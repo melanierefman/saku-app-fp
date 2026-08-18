@@ -50,7 +50,7 @@ public class JwtService {
                 .subject(user.getUsername())
                 .claim("role", user.getRole())
                 .claim("idKaryawan", user.getIdKaryawan())
-//                .claim("tipe", user.getTipe())
+                .claim("tipe", user.getTipe())
                 .issuedAt(Date.from(issuedAt))
                 .signWith(key);
     }

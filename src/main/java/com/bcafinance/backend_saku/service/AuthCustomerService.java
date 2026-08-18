@@ -1,6 +1,8 @@
 package com.bcafinance.backend_saku.service;
 
-import com.bcafinance.backend_saku.dto.*;
+import com.bcafinance.backend_saku.dto.AuthRequest;
+import com.bcafinance.backend_saku.dto.AuthResponse;
+import com.bcafinance.backend_saku.repository.CustomerRepository;
 import com.bcafinance.backend_saku.repository.KaryawanRepository;
 import com.bcafinance.backend_saku.security.AppUser;
 import com.bcafinance.backend_saku.security.JwtService;
@@ -16,27 +18,30 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 
 @Service
-public class AuthKaryawanService {
+public class AuthCustomerService {
 
     private final JwtService jwtService;
-    private final AuthenticationManager karyawanAuthenticationManager;
+    private final AuthenticationManager customerAuthenticationManager;
 
-    public AuthKaryawanService(
+    public AuthCustomerService(
             JwtService jwtService,
-            @Qualifier("karyawanAuthenticationManager")
-            AuthenticationManager karyawanAuthenticationManager
+            @Qualifier("customerAuthenticationManager")
+            AuthenticationManager customerAuthenticationManager
     ) {
         this.jwtService = jwtService;
-        this.karyawanAuthenticationManager = karyawanAuthenticationManager;
+        this.customerAuthenticationManager = customerAuthenticationManager;
     }
 
     //Login
     public AuthResponse login(AuthRequest request) {
 
+        System.out.println(">>> CUSTOMER SERVICE");
+        System.out.println(">>> Manager = " + customerAuthenticationManager);
+
         Authentication authentication;
 
         try {
-            authentication = karyawanAuthenticationManager.authenticate(
+            authentication = customerAuthenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             request.getIdentifier(),
                             request.getPassword()
@@ -63,36 +68,4 @@ public class AuthKaryawanService {
 
         return response;
     }
-
-    //Register
-//    @Transactional
-//    public KaryawanResponse register(KaryawanRequest request) {
-//
-//        Date now = new Date();
-//
-//        Karyawan karyawan = new Karyawan();
-//        karyawan.setNama(request.getNama());
-//        karyawan.setStatus(request.getStatus());
-//        karyawan.setEmail(request.getEmail());
-//        karyawan.setUsername(request.getUsername());
-//        karyawan.setPassword(passwordEncoder.encode(request.getPassword()));
-//        karyawan.setCreatedDate(now);
-//        karyawan.setUpdatedDate(now);
-//
-//        Karyawan saved = karyawanRepository.save(karyawan);
-//
-//        return toResponseRegister(saved);
-//    }
-//
-//    private KaryawanResponse toResponseRegister(Karyawan karyawan) {
-//
-//        KaryawanResponse response = new KaryawanResponse();
-//        response.setId(karyawan.getId());
-//        response.setNama(karyawan.getNama());
-//        response.setStatus(karyawan.getStatus());
-//        response.setEmail(karyawan.getEmail());
-//        response.setUsername(karyawan.getUsername());
-//
-//        return response;
-//    }
 }

@@ -3,6 +3,7 @@ package com.bcafinance.backend_saku.filter;
 import com.bcafinance.backend_saku.exception.UnauthorizedHandler;
 import com.bcafinance.backend_saku.security.AppUser;
 import com.bcafinance.backend_saku.security.AppUserDetailService;
+import com.bcafinance.backend_saku.security.CustomerUserDetailService;
 import com.bcafinance.backend_saku.security.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -29,30 +30,70 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private static final String PESAN_TOKEN_TIDAK_VALID = "Token tidak valid";
 
     private final JwtService jwtService;
-    private final AppUserDetailService userDetailsService;
+    private final AppUserDetailService appUserDetailService;
+    private final CustomerUserDetailService customerUserDetailService;
     private final UnauthorizedHandler unauthorizedHandler;
 
     @Override
     protected void doFilterInternal(
-            HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain chain)
             throws ServletException, IOException {
 
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+
         if (header == null || !header.startsWith(PREFIX)) {
             chain.doFilter(request, response);
             return;
         }
 
         try {
-            Claims claims = jwtService.parse(header.substring(PREFIX.length()));
-//            AppUser user = userDetailsService.loadUserByUsername(claims.getSubject());
-            UserDetails user = userDetailsService.loadUserByUsername(claims.getSubject());
+            String token = header.substring(PREFIX.length());
+
+            Claims claims = jwtService.parse(token);
+
+            String username = claims.getSubject();
+            String userType = claims.get("user_type", String.class);
+
+            UserDetails user;
+
+            if ("CUSTOMER".equalsIgnoreCase(userType)) {
+                user = customerUserDetailService
+                        .loadUserByUsername(username);
+            } else if ("KARYAWAN".equalsIgnoreCase(userType)) {
+                user = appUserDetailService
+                        .loadUserByUsername(username);
+            } else {
+                throw new IllegalArgumentException(
+                        "Tipe user tidak valid"
+                );
+            }
+
             UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-        } catch (JwtException | UsernameNotFoundException | IllegalArgumentException ex) {
+                    new UsernamePasswordAuthenticationToken(
+                            user,
+                            null,
+                            user.getAuthorities()
+                    );
+
+            SecurityContextHolder
+                    .getContext()
+                    .setAuthentication(authentication);
+
+        } catch (
+                JwtException |
+                UsernameNotFoundException |
+                IllegalArgumentException ex
+        ) {
+
             SecurityContextHolder.clearContext();
-            unauthorizedHandler.response(response, PESAN_TOKEN_TIDAK_VALID);
+
+            unauthorizedHandler.response(
+                    response,
+                    PESAN_TOKEN_TIDAK_VALID
+            );
+
             return;
         }
 

@@ -47,8 +47,8 @@ public class Customer {
     private String noHp;
 
     @NotNull
-    @Size(max = 100)
-    @Column(name = "password", nullable = false, length = 100)
+    @Size(max = 255)
+    @Column(name = "password", nullable = false, length = 255)
     private String password;
 
     @NotNull
@@ -57,8 +57,8 @@ public class Customer {
     private String namaRekening;
 
     @NotNull
-    @Column(name = "nama_bank", nullable = false)
-    private Integer namaBank;
+    @Column(name = "nama_bank", nullable = false, length = 50)
+    private String namaBank;
 
     @NotNull
     @Size(max = 20)

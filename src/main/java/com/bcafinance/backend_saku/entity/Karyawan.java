@@ -37,8 +37,8 @@ public class Karyawan {
     private String username;
 
     @NotNull
-    @Size(max = 20)
-    @Column(name = "password", nullable = false, length = 20)
+    @Size(max = 255)
+    @Column(name = "password", nullable = false, length = 255)
     private String password;
 
     @NotNull

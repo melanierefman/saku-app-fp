@@ -1,7 +1,7 @@
 package com.bcafinance.backend_saku.security;
 
-import com.bcafinance.backend_saku.entity.Karyawan;
-import com.bcafinance.backend_saku.repository.KaryawanRepository;
+import com.bcafinance.backend_saku.entity.Customer;
+import com.bcafinance.backend_saku.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -12,17 +12,17 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class AppUserDetailService implements UserDetailsService {
+public class CustomerUserDetailService implements UserDetailsService {
 
-    private final KaryawanRepository karyawanRepository;
+    private final CustomerRepository customerRepository;
 
     @Override
     public UserDetails loadUserByUsername(String identifier) {
 
-        System.out.println(">>> KARYAWAN USER DETAIL SERVICE");
+        System.out.println(">>> CUSTOMER USER DETAIL SERVICE");
         System.out.println(">>> identifier = " + identifier);
 
-        Optional<AppUser> optionalUser = findKaryawan(identifier);
+        Optional<AppUser> optionalUser = findCustomer(identifier);
 
         return optionalUser.orElseThrow(
                 () -> new UsernameNotFoundException(
@@ -31,22 +31,22 @@ public class AppUserDetailService implements UserDetailsService {
         );
     }
 
-    private Optional<AppUser> findKaryawan(String identifier) {
+    private Optional<AppUser> findCustomer(String identifier) {
 
-        return karyawanRepository
+        return customerRepository
                 .findByUsernameOrEmail(identifier)
                 .map(this::toAppUser);
     }
 
-    private AppUser toAppUser(Karyawan karyawan) {
+    private AppUser toAppUser(Customer customer) {
 
         return new AppUser(
-                karyawan.getId(),
-                karyawan.getEmail(),
-                karyawan.getUsername(),
-                karyawan.getPassword(),
-                karyawan.getRole().getNama(),
-                "KARYAWAN"
+                customer.getId(),
+                customer.getEmail(),
+                customer.getUsername(),
+                customer.getPassword(),
+                "CUSTOMER",
+                "CUSTOMER"
         );
     }
 }

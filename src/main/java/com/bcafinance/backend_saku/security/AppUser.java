@@ -21,6 +21,7 @@ public class AppUser implements UserDetails {
     private String username;
     private String password;
     private String role;
+    private String tipe;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

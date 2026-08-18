@@ -3,12 +3,18 @@ package com.bcafinance.backend_saku.config;
 import com.bcafinance.backend_saku.exception.SecurityExceptionHandler;
 import com.bcafinance.backend_saku.exception.UnauthorizedHandler;
 import com.bcafinance.backend_saku.filter.JwtAuthFilter;
+import com.bcafinance.backend_saku.security.AppUserDetailService;
+import com.bcafinance.backend_saku.security.CustomerUserDetailService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -116,11 +122,64 @@ public class SecurityConfig {
     }
 
     @Bean
-    AuthenticationManager authenticationManager(
-            AuthenticationConfiguration configuration
-    ) throws Exception {
-        return configuration.getAuthenticationManager();
+    public DaoAuthenticationProvider karyawanAuthenticationProvider(
+            AppUserDetailService appUserDetailService,
+            PasswordEncoder passwordEncoder
+    ) {
+        DaoAuthenticationProvider provider =
+                new DaoAuthenticationProvider(appUserDetailService);
+
+        provider.setPasswordEncoder(passwordEncoder);
+
+        return provider;
     }
+
+    @Bean(name = "customerAuthenticationProvider")
+    public DaoAuthenticationProvider customerAuthenticationProvider(
+            CustomerUserDetailService customerUserDetailService,
+            PasswordEncoder passwordEncoder
+    ) {
+        System.out.println("=================================");
+        System.out.println("CUSTOMER PROVIDER CREATED");
+        System.out.println("Customer UDS = " + customerUserDetailService);
+        System.out.println("=================================");
+
+        DaoAuthenticationProvider provider =
+                new DaoAuthenticationProvider(customerUserDetailService);
+
+        provider.setPasswordEncoder(passwordEncoder);
+
+        return provider;
+    }
+
+    @Bean(name = "karyawanAuthenticationManager")
+    @Primary
+    public AuthenticationManager karyawanAuthenticationManager(
+            @Qualifier("karyawanAuthenticationProvider")
+            DaoAuthenticationProvider provider
+    ) {
+        return new ProviderManager(provider);
+    }
+
+    @Bean(name = "customerAuthenticationManager")
+    public AuthenticationManager customerAuthenticationManager(
+            @Qualifier("customerAuthenticationProvider")
+            DaoAuthenticationProvider provider
+    ) {
+        System.out.println("=================================");
+        System.out.println("CUSTOMER MANAGER CREATED");
+        System.out.println("Provider = " + provider);
+        System.out.println("=================================");
+
+        return new ProviderManager(provider);
+    }
+
+//    @Bean
+//    public AuthenticationManager authenticationManager(
+//            DaoAuthenticationProvider provider
+//    ) {
+//        return new ProviderManager(provider);
+//    }
 
     @Bean
     ObjectMapper objectMapper() {
