@@ -50,6 +50,8 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/karyawan/**").hasRole("SUPERADMIN")
                                                 .requestMatchers("/api/cabang/**").hasRole("SUPERADMIN")
                                                 .requestMatchers("/api/plafond/**").hasRole("SUPERADMIN")
+                                                .requestMatchers("/api/backoffice/**")
+                                                .hasRole("BACKOFFICE")
                                                 .anyRequest()
                                                 .authenticated())
 

@@ -89,7 +89,8 @@ public class RegisterService {
         scoring.setLamaJadiNasabahBulan(req.lamaJadiNasabahBulan());
         scoring.setTotalCicilanLainBulanan(req.totalCicilanLainnya());
         scoring.setMstCustomerId(customer.getId());
-        scoring.setPekerjaan("Belum diisi");
+        scoring.setPekerjaan(req.pekerjaan());
+        scoring.setTempatKerja(req.tempatKerja());
         ScoringService.ScoringResult result = scoringService.calculateScore(
                 req.totalCicilanLainnya(),
                 req.pendapatan(),

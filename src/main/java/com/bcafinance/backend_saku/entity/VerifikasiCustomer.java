@@ -27,8 +27,9 @@ public class VerifikasiCustomer {
     private String statusVerifikasi;
 
     @NotNull
-    @Column(name = "catatan_verifikasi", nullable = false)
-    private Integer catatanVerifikasi;
+    @Size(max = 500)
+    @Column(name = "catatan_verifikasi", nullable = false, length = 500)
+    private String catatanVerifikasi;
 
     @NotNull
     @Column(name = "created_date", nullable = false)

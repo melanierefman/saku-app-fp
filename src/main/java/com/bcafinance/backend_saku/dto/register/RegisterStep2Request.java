@@ -15,6 +15,8 @@ public record RegisterStep2Request(
         @NotBlank String namaRekening,
         @NotBlank String namaBank,
         @NotBlank String noRekening,
+        @NotBlank @Size(max = 100) String pekerjaan,
+        @NotBlank @Size(max = 150) String tempatKerja,
         @NotBlank String statusPekerjaan,
         @NotNull @Positive BigDecimal pendapatan,
         @NotNull @Min(0) Integer lamaBekerjaBulan,

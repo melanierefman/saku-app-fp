@@ -27,8 +27,12 @@ public class AppUser implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        String normalizedRole = role == null
+                ? ""
+                : role.toUpperCase().replaceAll("[^A-Z0-9]", "");
+
         return Stream.concat(
-                Stream.of(new SimpleGrantedAuthority("ROLE_" + role.toUpperCase())),
+                Stream.of(new SimpleGrantedAuthority("ROLE_" + normalizedRole)),
                 permissions == null
                         ? Stream.empty()
                         : permissions.stream().map(SimpleGrantedAuthority::new))

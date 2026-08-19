@@ -31,6 +31,7 @@ public class CustomerUserDetailService implements UserDetailsService {
 
         return customerRepository
                 .findByUsernameOrEmail(identifier)
+                .filter(Customer::getStatus)
                 .map(this::toAppUser);
     }
 

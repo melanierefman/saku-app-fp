@@ -29,6 +29,11 @@ public class ScoringCustomer {
     private String pekerjaan;
 
     @NotNull
+    @Size(max = 150)
+    @Column(name = "tempat_kerja", nullable = false, length = 150)
+    private String tempatKerja;
+
+    @NotNull
     @Size(max = 50)
     @Column(name = "status_pekerjaan", nullable = false, length = 50)
     private String statusPekerjaan;
