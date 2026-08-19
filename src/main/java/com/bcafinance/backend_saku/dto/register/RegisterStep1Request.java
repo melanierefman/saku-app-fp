@@ -9,5 +9,6 @@ public record RegisterStep1Request(
         @Email @NotBlank String email,
         @NotBlank @Size(min = 4, max = 50) String username,
         @NotBlank @Pattern(regexp = "^08[0-9]{8,14}$") String noHp,
-        @NotBlank @Size(min = 8) String password) {
+        @NotBlank @Size(min = 8) String password,
+        @NotBlank @Size(min = 8) String confirmPassword) {
 }

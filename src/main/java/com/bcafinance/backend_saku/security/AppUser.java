@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @Setter
 @Getter
@@ -22,13 +23,15 @@ public class AppUser implements UserDetails {
     private String password;
     private String role;
     private String tipe;
+    private List<String> permissions;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(
-                new SimpleGrantedAuthority(
-                        "ROLE_" + role.toUpperCase()
-                )
-        );
+        return Stream.concat(
+                Stream.of(new SimpleGrantedAuthority("ROLE_" + role.toUpperCase())),
+                permissions == null
+                        ? Stream.empty()
+                        : permissions.stream().map(SimpleGrantedAuthority::new))
+                .toList();
     }
 }

@@ -10,11 +10,16 @@ import java.util.UUID;
 
 public interface KaryawanRepository extends JpaRepository<Karyawan, UUID> {
 
-    //Email or Username
+    boolean existsByEmail(String email);
+
+    boolean existsByUsername(String username);
+
+    // Email or Username
     @Query("""
-        SELECT k
-        FROM Karyawan k
-        WHERE (k.username = :identifier OR k.email = :identifier)
-    """)
+                SELECT k
+                FROM Karyawan k
+                JOIN FETCH k.role
+                WHERE (k.username = :identifier OR k.email = :identifier)
+            """)
     Optional<Karyawan> findByUsernameOrEmail(@Param("identifier") String identifier);
 }

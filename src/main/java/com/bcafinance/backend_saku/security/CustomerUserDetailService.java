@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +42,7 @@ public class CustomerUserDetailService implements UserDetailsService {
                 customer.getUsername(),
                 customer.getPassword(),
                 "CUSTOMER",
-                "CUSTOMER");
+                "CUSTOMER",
+                List.of());
     }
 }

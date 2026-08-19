@@ -2,6 +2,8 @@ package com.bcafinance.backend_saku.security;
 
 import com.bcafinance.backend_saku.entity.Karyawan;
 import com.bcafinance.backend_saku.repository.KaryawanRepository;
+import com.bcafinance.backend_saku.repository.PermissionRepository;
+import com.bcafinance.backend_saku.repository.RolePermissionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -9,12 +11,16 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class AppUserDetailService implements UserDetailsService {
 
     private final KaryawanRepository karyawanRepository;
+    private final RolePermissionRepository rolePermissionRepository;
+    private final PermissionRepository permissionRepository;
 
     @Override
     public UserDetails loadUserByUsername(String identifier) {
@@ -34,6 +40,16 @@ public class AppUserDetailService implements UserDetailsService {
     }
 
     private AppUser toAppUser(Karyawan karyawan) {
+        List<String> permissions = rolePermissionRepository.findAllByMstRoleId(karyawan.getRole().getId())
+                .stream()
+                .map(rolePermission -> permissionRepository.findById(rolePermission.getMstPermissionId()))
+                .flatMap(Optional::stream)
+                .flatMap(permission -> java.util.stream.Stream.of(
+                        "PERM_" + permission.getResource() + "_" + permission.getAction(),
+                        "PERM_" + permission.getNama()))
+                .map(value -> value.toUpperCase().replaceAll("[^A-Z0-9_]", "_"))
+                .distinct()
+                .collect(Collectors.toList());
 
         return new AppUser(
                 karyawan.getId(),
@@ -41,6 +57,7 @@ public class AppUserDetailService implements UserDetailsService {
                 karyawan.getUsername(),
                 karyawan.getPassword(),
                 karyawan.getRole().getNama(),
-                "KARYAWAN");
+                "KARYAWAN",
+                permissions);
     }
 }

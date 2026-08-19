@@ -35,6 +35,9 @@ public class RegisterService {
 
     @Transactional
     public RegisterStepResponse registerStep1(RegisterStep1Request req) {
+        if (!req.password().equals(req.confirmPassword()))
+            throw new BussinessRuleException("Password dan konfirmasi password tidak sama");
+
         if (customerRepository.existsByEmail(req.email()))
             throw new BussinessRuleException("Email sudah terdaftar");
         if (customerRepository.existsByUsername(req.username()))
