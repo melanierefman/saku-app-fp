@@ -30,6 +30,16 @@ public class Plafond {
 
     @NotNull
     @Digits(integer = 13, fraction = 2)
+    @Column(name = "min_pendapatan", nullable = false, precision = 15, scale = 2)
+    private BigDecimal minPendapatan;
+
+    @NotNull
+    @Digits(integer = 13, fraction = 2)
+    @Column(name = "plafond_maksimal", nullable = false, precision = 15, scale = 2)
+    private BigDecimal plafondMaksimal;
+
+    @NotNull
+    @Digits(integer = 13, fraction = 2)
     @Column(name = "min_plafond", nullable = false, precision = 15, scale = 2)
     private BigDecimal minPlafond;
 

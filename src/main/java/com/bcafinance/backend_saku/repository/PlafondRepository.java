@@ -9,4 +9,7 @@ import java.util.UUID;
 public interface PlafondRepository extends JpaRepository<Plafond, UUID> {
 
     Optional<Plafond> findFirstByStatusTrueOrderByMinSkorAsc();
+
+    Optional<Plafond> findTopByMinPendapatanLessThanEqualAndStatusTrueOrderByMinPendapatanDesc(
+            java.math.BigDecimal pendapatan);
 }
