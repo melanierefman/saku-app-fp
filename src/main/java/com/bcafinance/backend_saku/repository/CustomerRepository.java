@@ -21,6 +21,11 @@ public interface CustomerRepository extends JpaRepository<Customer, UUID> {
 
     List<Customer> findAllByStatusFalseOrderByCreatedDateAsc();
 
+    List<Customer> findAllByOrderByCreatedDateDesc();
+
+    List<Customer> findAllByStatusFalseOrderByCreatedDateDesc();
+
+
     // Email or Username
     @Query("""
                 SELECT c

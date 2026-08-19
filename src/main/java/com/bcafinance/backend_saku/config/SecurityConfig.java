@@ -47,6 +47,7 @@ public class SecurityConfig {
                                 // untuk RBAC
                                 .authorizeHttpRequests(request -> request
                                                 .requestMatchers("/api/auth/**").permitAll()
+                                                .requestMatchers("/uploads/**").permitAll()
                                                 .requestMatchers("/api/karyawan/**").hasRole("SUPERADMIN")
                                                 .requestMatchers("/api/cabang/**").hasRole("SUPERADMIN")
                                                 .requestMatchers("/api/plafond/**").hasRole("SUPERADMIN")
