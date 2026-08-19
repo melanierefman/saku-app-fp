@@ -72,7 +72,6 @@ public class ScoringCustomer {
     @Column(name = "mst_customer_id", nullable = false)
     private UUID mstCustomerId;
 
-    @NotNull
-    @Column(name = "mst_plafond_id", nullable = false)
+    @Column(name = "mst_plafond_id")
     private UUID mstPlafondId;
 }

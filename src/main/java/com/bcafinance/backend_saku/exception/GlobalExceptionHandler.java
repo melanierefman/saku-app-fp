@@ -19,48 +19,41 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public static final String PESAN_AUTENTIKASI_DIPERLUKAN = "Autentikikasi diperlukan";
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, Object>> illegalArgument
-            (IllegalArgumentException e) {
+    public ResponseEntity<Map<String, Object>> illegalArgument(IllegalArgumentException e) {
         return build(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> entityNotFound
-            (EntityNotFoundException e) {
+    public ResponseEntity<Map<String, Object>> entityNotFound(EntityNotFoundException e) {
         return build(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
     @ExceptionHandler(BussinessRuleException.class)
-    public ResponseEntity<Map<String, Object>> bussinessRuleException
-            (BussinessRuleException e) {
+    public ResponseEntity<Map<String, Object>> bussinessRuleException(BussinessRuleException e) {
         return build(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 
-    //BadCredentialException
+    // BadCredentialException
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<Map<String, Object>> badCredentials
-    (BadCredentialsException e) {
+    public ResponseEntity<Map<String, Object>> badCredentials(BadCredentialsException e) {
         return build(HttpStatus.UNAUTHORIZED, e.getMessage());
     }
 
-    //UsernameNotFoundException
+    // UsernameNotFoundException
     @ExceptionHandler(UsernameNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> usernameNotFound
-    (UsernameNotFoundException e) {
+    public ResponseEntity<Map<String, Object>> usernameNotFound(UsernameNotFoundException e) {
         return build(HttpStatus.UNAUTHORIZED, e.getMessage());
     }
 
-    //SignatureException
+    // SignatureException
     @ExceptionHandler(SignatureException.class)
-    public ResponseEntity<Map<String, Object>> signature
-    (SignatureException e) {
+    public ResponseEntity<Map<String, Object>> signature(SignatureException e) {
         return build(HttpStatus.UNAUTHORIZED, e.getMessage());
     }
 
-    //AuthenticationException
+    // AuthenticationException
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<Map<String, Object>> authentication
-    (AuthenticationException e) {
+    public ResponseEntity<Map<String, Object>> authentication(AuthenticationException e) {
         return build(HttpStatus.UNAUTHORIZED, e.getMessage());
     }
 
@@ -72,7 +65,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         return Map.of(
                 "statusCode", status.value(),
-                "message", message
-        );
+                "message", message);
     }
 }

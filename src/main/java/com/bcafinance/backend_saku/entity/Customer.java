@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -76,4 +77,10 @@ public class Customer {
     @NotNull
     @Column(name = "updated_date", nullable = false)
     private LocalDateTime updatedDate;
+
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
+    private List<AlamatCustomer> alamatList;
+
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
+    private List<DokumenCustomer> dokumenList;
 }

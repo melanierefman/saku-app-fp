@@ -39,7 +39,7 @@ public class DokumenCustomer {
     @Column(name = "updated_date", nullable = false)
     private LocalDateTime updatedDate;
 
-    @NotNull
-    @Column(name = "mst_customer_id", nullable = false)
-    private UUID mstCustomerId;
+    @ManyToOne
+    @JoinColumn(name = "mst_customer_id", nullable = false)
+    private Customer customer;
 }

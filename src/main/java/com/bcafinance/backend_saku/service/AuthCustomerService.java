@@ -2,17 +2,13 @@ package com.bcafinance.backend_saku.service;
 
 import com.bcafinance.backend_saku.dto.AuthRequest;
 import com.bcafinance.backend_saku.dto.AuthResponse;
-import com.bcafinance.backend_saku.repository.CustomerRepository;
-import com.bcafinance.backend_saku.repository.KaryawanRepository;
 import com.bcafinance.backend_saku.security.AppUser;
 import com.bcafinance.backend_saku.security.JwtService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -25,14 +21,12 @@ public class AuthCustomerService {
 
     public AuthCustomerService(
             JwtService jwtService,
-            @Qualifier("customerAuthenticationManager")
-            AuthenticationManager customerAuthenticationManager
-    ) {
+            @Qualifier("customerAuthenticationManager") AuthenticationManager customerAuthenticationManager) {
         this.jwtService = jwtService;
         this.customerAuthenticationManager = customerAuthenticationManager;
     }
 
-    //Login
+    // Login
     public AuthResponse login(AuthRequest request) {
 
         System.out.println(">>> CUSTOMER SERVICE");
@@ -44,21 +38,17 @@ public class AuthCustomerService {
             authentication = customerAuthenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             request.getIdentifier(),
-                            request.getPassword()
-                    )
-            );
+                            request.getPassword()));
         } catch (BadCredentialsException e) {
             throw new BadCredentialsException(
-                    "Username/email atau password salah"
-            );
+                    "Username/email atau password salah");
         }
 
         AppUser user = (AppUser) authentication.getPrincipal();
 
         String token = jwtService.issue(
                 user,
-                Instant.now()
-        );
+                Instant.now());
 
         AuthResponse response = new AuthResponse();
 

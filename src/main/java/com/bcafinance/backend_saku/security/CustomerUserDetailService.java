@@ -19,16 +19,11 @@ public class CustomerUserDetailService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String identifier) {
 
-        System.out.println(">>> CUSTOMER USER DETAIL SERVICE");
-        System.out.println(">>> identifier = " + identifier);
-
         Optional<AppUser> optionalUser = findCustomer(identifier);
 
         return optionalUser.orElseThrow(
                 () -> new UsernameNotFoundException(
-                        "Username atau email tidak ditemukan: " + identifier
-                )
-        );
+                        "Username atau email tidak ditemukan: " + identifier));
     }
 
     private Optional<AppUser> findCustomer(String identifier) {
@@ -46,7 +41,6 @@ public class CustomerUserDetailService implements UserDetailsService {
                 customer.getUsername(),
                 customer.getPassword(),
                 "CUSTOMER",
-                "CUSTOMER"
-        );
+                "CUSTOMER");
     }
 }
