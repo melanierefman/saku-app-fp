@@ -9,4 +9,7 @@ import java.util.Optional;
 public interface ScoringCustomerRepository extends JpaRepository<ScoringCustomer, UUID> {
 
     Optional<ScoringCustomer> findFirstByMstCustomerIdOrderByCreatedDateDesc(UUID customerId);
+
+    void deleteByMstCustomerId(UUID customerId);
 }
+

@@ -50,8 +50,9 @@ public class RegisterController {
     @PostMapping(value = "/step4/{customerId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<RegisterStepResponse>> step4(
             @PathVariable UUID customerId,
-            @RequestPart("ktp") MultipartFile ktpFile,
-            @RequestPart("selfie") MultipartFile selfieFile) {
+            @RequestPart(value = "ktp", required = false) MultipartFile ktpFile,
+            @RequestPart(value = "selfie", required = false) MultipartFile selfieFile) {
         return ResponseEntity.ok(ApiResponse.success(registerService.registerStep4(customerId, ktpFile, selfieFile)));
     }
 }
+

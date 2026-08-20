@@ -40,13 +40,14 @@ public class PengajuanPinjamanController {
     @PostMapping(value = "/step2/{pengajuanId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<PengajuanStepResponse>> step2(
             @PathVariable UUID pengajuanId,
-            @RequestPart("slipGaji") MultipartFile slipGaji,
-            @RequestPart("rekeningKoran") MultipartFile rekeningKoran,
+            @RequestPart(value = "slipGaji", required = false) MultipartFile slipGaji,
+            @RequestPart(value = "rekeningKoran", required = false) MultipartFile rekeningKoran,
             @RequestPart(value = "npwp", required = false) MultipartFile npwp,
             @AuthenticationPrincipal AppUser customer) {
         return ResponseEntity.ok(ApiResponse.success(
                 pengajuanService.step2(customer.getIdKaryawan(), pengajuanId, slipGaji, rekeningKoran, npwp)));
     }
+
 
     @GetMapping("/my")
     public ResponseEntity<ApiResponse<List<PengajuanPinjamanResponse>>> findMyLoans(

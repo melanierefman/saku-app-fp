@@ -70,7 +70,13 @@ public class VerifikasiCustomerService {
     }
 
     public List<PendingCustomerResponse> findPending() {
-        return customerRepository.findAllByStatusFalseOrderByCreatedDateAsc().stream()
+        return customerRepository.findAllByOrderByCreatedDateDesc().stream()
+                .filter(customer -> {
+                    Optional<VerifikasiCustomer> latestVerification =
+                            verifikasiRepository.findFirstByMstCustomerIdOrderByCreatedDateDesc(customer.getId());
+                    String status = determineStatus(customer, latestVerification);
+                    return "PENDING".equalsIgnoreCase(status) || "PERLU_REVISI".equalsIgnoreCase(status);
+                })
                 .map(customer -> {
                     Optional<VerifikasiCustomer> latestVerification =
                             verifikasiRepository.findFirstByMstCustomerIdOrderByCreatedDateDesc(customer.getId());
@@ -151,12 +157,14 @@ public class VerifikasiCustomerService {
         ScoringCustomer scoring = scoringRepository.findFirstByMstCustomerIdOrderByCreatedDateDesc(customerId)
                 .orElseThrow(() -> new BussinessRuleException("Data scoring customer belum tersedia"));
 
-        String status = request.getStatusVerifikasi().toUpperCase();
+        String rawStatus = request.getStatusVerifikasi().trim().toUpperCase();
+        String status;
         UUID plafondId = null;
         java.math.BigDecimal approvedAmount = java.math.BigDecimal.ZERO;
         String keputusan = scoring.getStatusScoring();
 
-        if ("APPROVED".equals(status)) {
+        if (rawStatus.contains("APPROV") || rawStatus.contains("SETUJU")) {
+            status = "APPROVED";
             if (scoring.getSkor() < 60) {
                 throw new BussinessRuleException("Customer tidak memenuhi skor minimum untuk approval");
             }
@@ -168,7 +176,12 @@ public class VerifikasiCustomerService {
             keputusan = calculation.getKeputusan();
             scoring.setMstPlafondId(plafondId);
             customer.setStatus(true);
+        } else if (rawStatus.contains("REVISI") || rawStatus.contains("REVISION")) {
+            status = "PERLU_REVISI";
+            scoring.setMstPlafondId(null);
+            customer.setStatus(false);
         } else {
+            status = "REJECTED";
             scoring.setMstPlafondId(null);
             customer.setStatus(false);
         }
@@ -194,6 +207,7 @@ public class VerifikasiCustomerService {
                 customerId, status, request.getCatatanVerifikasi(), scoring.getSkor(),
                 keputusan, plafondId, approvedAmount, customer.getStatus());
     }
+
 
     private String determineStatus(Customer customer, Optional<VerifikasiCustomer> latestVerificationOpt) {
         if (latestVerificationOpt.isPresent()) {

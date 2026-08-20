@@ -12,5 +12,8 @@ public interface VerifikasiCustomerRepository extends JpaRepository<VerifikasiCu
     Optional<VerifikasiCustomer> findFirstByMstCustomerIdOrderByCreatedDateDesc(UUID mstCustomerId);
 
     List<VerifikasiCustomer> findAllByMstCustomerIdOrderByCreatedDateDesc(UUID mstCustomerId);
+
+    void deleteByMstCustomerId(UUID customerId);
 }
+
 

@@ -11,8 +11,14 @@ public interface PengajuanPinjamanRepository extends JpaRepository<PengajuanPinj
 
     List<PengajuanPinjaman> findAllByMstCustomerIdOrderByCreatedDateDesc(UUID mstCustomerId);
 
+    List<PengajuanPinjaman> findAllByOrderByCreatedDateDesc();
+
+    List<PengajuanPinjaman> findAllByMstBranchIdOrderByCreatedDateDesc(UUID mstBranchId);
+
     Optional<PengajuanPinjaman> findByIdAndMstCustomerId(UUID id, UUID mstCustomerId);
 
     boolean existsByNomorPengajuan(String nomorPengajuan);
+
 }
+
 

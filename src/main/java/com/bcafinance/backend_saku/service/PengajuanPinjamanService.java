@@ -110,50 +110,91 @@ public class PengajuanPinjamanService {
         PengajuanPinjaman pengajuan = pengajuanRepository.findByIdAndMstCustomerId(pengajuanId, customerId)
                 .orElseThrow(() -> new BussinessRuleException("Data pengajuan pinjaman tidak ditemukan atau bukan milik Anda"));
 
-        if (slipGaji == null || slipGaji.isEmpty()) {
-            throw new BussinessRuleException("Dokumen Slip Gaji wajib diunggah");
+        String currentStatus = pengajuan.getStatusPengajuan() != null ? pengajuan.getStatusPengajuan() : "";
+
+        if ("DISETUJUI".equalsIgnoreCase(currentStatus)
+                || "SELESAI_DIREVIEW".equalsIgnoreCase(currentStatus)
+                || "APPROVED".equalsIgnoreCase(currentStatus)
+                || "PENGAJUAN_DITOLAK".equalsIgnoreCase(currentStatus)
+                || "DITOLAK".equalsIgnoreCase(currentStatus)
+                || "REJECTED".equalsIgnoreCase(currentStatus)) {
+            throw new BussinessRuleException("Pengajuan pinjaman sudah diproses (" + currentStatus + ") dan dokumen tidak dapat diubah.");
         }
 
-        if (rekeningKoran == null || rekeningKoran.isEmpty()) {
-            throw new BussinessRuleException("Dokumen Rekening Koran wajib diunggah");
+        boolean isRevisi = "PERLU_REVISI".equalsIgnoreCase(currentStatus);
+
+        boolean hasSlipGaji = slipGaji != null && !slipGaji.isEmpty();
+        boolean hasRekeningKoran = rekeningKoran != null && !rekeningKoran.isEmpty();
+        boolean hasNpwp = npwp != null && !npwp.isEmpty();
+
+        // Validasi jika pengajuan awal (bukan revisi)
+        if (!isRevisi) {
+            if (!hasSlipGaji) {
+                throw new BussinessRuleException("Dokumen Slip Gaji wajib diunggah");
+            }
+            if (!hasRekeningKoran) {
+                throw new BussinessRuleException("Dokumen Rekening Koran wajib diunggah");
+            }
+        } else {
+            // Jika dalam status revisi, minimal harus mengunggah 1 dokumen perbaikan
+            if (!hasSlipGaji && !hasRekeningKoran && !hasNpwp) {
+                throw new BussinessRuleException("Silakan pilih minimal satu file dokumen perbaikan untuk diunggah");
+            }
         }
 
         String directory = "pinjaman/" + pengajuanId;
-        List<DokumenPinjamanResponse> uploadedDocs = new ArrayList<>();
 
-        // 1. Simpan Slip Gaji
-        String slipGajiUrl = fileStorageService.store(slipGaji, directory);
-        DokumenPinjaman docSlipGaji = saveOrUpdateDokumen(pengajuanId, "SLIP_GAJI", slipGajiUrl);
-        uploadedDocs.add(toDokumenResponse(docSlipGaji));
-
-        // 2. Simpan Rekening Koran
-        String rekKoranUrl = fileStorageService.store(rekeningKoran, directory);
-        DokumenPinjaman docRekKoran = saveOrUpdateDokumen(pengajuanId, "REKENING_KORAN", rekKoranUrl);
-        uploadedDocs.add(toDokumenResponse(docRekKoran));
-
-        // 3. Simpan NPWP (Opsional)
-        if (npwp != null && !npwp.isEmpty()) {
-            String npwpUrl = fileStorageService.store(npwp, directory);
-            DokumenPinjaman docNpwp = saveOrUpdateDokumen(pengajuanId, "NPWP", npwpUrl);
-            uploadedDocs.add(toDokumenResponse(docNpwp));
+        // 1. Simpan/Update Slip Gaji jika diunggah
+        if (hasSlipGaji) {
+            String slipGajiUrl = fileStorageService.store(slipGaji, directory);
+            saveOrUpdateDokumen(pengajuanId, "SLIP_GAJI", slipGajiUrl);
         }
 
-        // Update status pengajuan menjadi PENDING untuk direview
-        pengajuan.setStatusPengajuan("PENDING");
-        pengajuan.setCatatanReview("Dokumen pendukung berhasil diunggah, menunggu proses review oleh tim cabang");
+        // 2. Simpan/Update Rekening Koran jika diunggah
+        if (hasRekeningKoran) {
+            String rekKoranUrl = fileStorageService.store(rekeningKoran, directory);
+            saveOrUpdateDokumen(pengajuanId, "REKENING_KORAN", rekKoranUrl);
+        }
+
+        // 3. Simpan/Update NPWP jika diunggah
+        if (hasNpwp) {
+            String npwpUrl = fileStorageService.store(npwp, directory);
+            saveOrUpdateDokumen(pengajuanId, "NPWP", npwpUrl);
+        }
+
+        // Ambil semua dokumen terkini (gabungan yang baru dan yang sudah ada sebelumnya)
+        List<DokumenPinjamanResponse> allUploadedDocs = dokumenPinjamanRepository
+                .findAllByTrxPengajuanPinjamanId(pengajuanId)
+                .stream()
+                .map(this::toDokumenResponse)
+                .toList();
+
+        // Update status pengajuan menjadi PENDING untuk direview ulang
+        String message;
+        if (isRevisi) {
+            pengajuan.setStatusPengajuan("PENDING");
+            pengajuan.setCatatanReview("Dokumen perbaikan telah diunggah oleh nasabah, menunggu review ulang oleh Marketing");
+            message = "Dokumen perbaikan berhasil diunggah. Pengajuan pinjaman kembali masuk ke antrean review Marketing.";
+        } else {
+            pengajuan.setStatusPengajuan("PENDING");
+            pengajuan.setCatatanReview("Dokumen pendukung berhasil diunggah, menunggu proses review oleh tim cabang");
+            message = "Dokumen pendukung berhasil diunggah. Pengajuan pinjaman selesai dan sedang dalam proses review.";
+        }
+
         pengajuan.setUpdatedDate(LocalDateTime.now());
         PengajuanPinjaman saved = pengajuanRepository.save(pengajuan);
 
         Cabang cabang = cabangRepository.findById(saved.getMstBranchId()).orElse(null);
-        PengajuanPinjamanResponse detail = toResponse(saved, customer.getNama(), cabang, uploadedDocs);
+        PengajuanPinjamanResponse detail = toResponse(saved, customer.getNama(), cabang, allUploadedDocs);
 
         return new PengajuanStepResponse(
                 saved.getId(),
                 saved.getNomorPengajuan(),
                 2,
-                "Dokumen pendukung berhasil diunggah. Pengajuan pinjaman selesai dan sedang dalam proses review.",
+                message,
                 detail);
     }
+
 
     public List<PengajuanPinjamanResponse> findMyLoans(UUID customerId) {
         Customer customer = customerRepository.findById(customerId)

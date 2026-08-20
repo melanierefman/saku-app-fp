@@ -8,13 +8,16 @@ import com.bcafinance.backend_saku.entity.AlamatCustomer;
 import com.bcafinance.backend_saku.entity.Customer;
 import com.bcafinance.backend_saku.entity.DokumenCustomer;
 import com.bcafinance.backend_saku.entity.ScoringCustomer;
+import com.bcafinance.backend_saku.entity.VerifikasiCustomer;
 import com.bcafinance.backend_saku.exception.BussinessRuleException;
 import com.bcafinance.backend_saku.repository.AlamatCustomerRepository;
 import com.bcafinance.backend_saku.repository.CustomerRepository;
 import com.bcafinance.backend_saku.repository.DokumenCustomerRepository;
 import com.bcafinance.backend_saku.repository.ScoringCustomerRepository;
+import com.bcafinance.backend_saku.repository.VerifikasiCustomerRepository;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,6 +32,7 @@ public class RegisterService {
     private final AlamatCustomerRepository alamatRepository;
     private final DokumenCustomerRepository dokumenRepository;
     private final ScoringCustomerRepository scoringRepository;
+    private final VerifikasiCustomerRepository verifikasiRepository;
     private final ScoringService scoringService;
     private final PasswordEncoder passwordEncoder;
     private final FileStorageService fileStorageService;
@@ -48,19 +52,20 @@ public class RegisterService {
         Customer customer = new Customer();
         customer.setId(UUID.randomUUID());
         customer.setNik("PENDING");
-        customer.setNama("PENDING");
+        customer.setNama(req.username());
         customer.setEmail(req.email());
         customer.setUsername(req.username());
-        customer.setNoHp(req.noHp());
         customer.setPassword(passwordEncoder.encode(req.password()));
+        customer.setNoHp(req.noHp());
         customer.setNamaRekening("PENDING");
         customer.setNamaBank("PENDING");
         customer.setNoRekening("PENDING");
-        customer.setStatus(false); // belum aktif
+        customer.setStatus(false);
         customer.setCreatedDate(LocalDateTime.now());
         customer.setUpdatedDate(LocalDateTime.now());
+        customerRepository.save(customer);
 
-        customer = customerRepository.save(customer);
+
         return new RegisterStepResponse(customer.getId(), 1, "Akun berhasil dibuat, lanjut ke data diri");
     }
 
@@ -71,20 +76,21 @@ public class RegisterService {
         if (customerRepository.existsByNikAndIdNot(req.nik(), customerId))
             throw new BussinessRuleException("NIK sudah terdaftar");
 
-        // update data identitas dasar di mst_customer
         customer.setNik(req.nik());
         customer.setNama(req.namaLengkap());
-        customer.setNamaRekening(req.namaRekening());
         customer.setNamaBank(req.namaBank());
         customer.setNoRekening(req.noRekening());
+        customer.setNamaRekening(req.namaRekening());
         customer.setUpdatedDate(LocalDateTime.now());
         customerRepository.save(customer);
 
-        // simpan data keuangan di trx_scoring_customer
+
+        scoringRepository.deleteByMstCustomerId(customer.getId());
+
         ScoringCustomer scoring = new ScoringCustomer();
         scoring.setId(UUID.randomUUID());
-        scoring.setStatusPekerjaan(req.statusPekerjaan());
         scoring.setPenghasilanBulanan(req.pendapatan());
+        scoring.setStatusPekerjaan(req.statusPekerjaan());
         scoring.setLamaBekerjaBulan(req.lamaBekerjaBulan());
         scoring.setLamaJadiNasabahBulan(req.lamaJadiNasabahBulan());
         scoring.setTotalCicilanLainBulanan(req.totalCicilanLainnya());
@@ -122,17 +128,48 @@ public class RegisterService {
     public RegisterStepResponse registerStep4(UUID customerId, MultipartFile ktp, MultipartFile selfie) {
         Customer customer = getCustomerOrThrow(customerId);
 
-        String ktpUrl = fileStorageService.store(ktp, "ktp/" + customerId);
-        String selfieUrl = fileStorageService.store(selfie, "selfie/" + customerId);
+        Optional<DokumenCustomer> existingKtpOpt = dokumenRepository.findByCustomer_IdAndDocType(customerId, "KTP");
+        Optional<DokumenCustomer> existingSelfieOpt = dokumenRepository.findByCustomer_IdAndDocType(customerId, "SELFIE");
 
-        dokumenRepository.deleteByCustomer_Id(customerId);
-        dokumenRepository.save(buildDokumen("KTP", ktpUrl, customer));
-        dokumenRepository.save(buildDokumen("SELFIE", selfieUrl, customer));
+        boolean hasKtp = ktp != null && !ktp.isEmpty();
+        boolean hasSelfie = selfie != null && !selfie.isEmpty();
 
-        // status masih false sampai verifikasi/OTP nanti kelar
+        if (existingKtpOpt.isEmpty() && !hasKtp) {
+            throw new BussinessRuleException("Dokumen KTP wajib diunggah");
+        }
+        if (existingSelfieOpt.isEmpty() && !hasSelfie) {
+            throw new BussinessRuleException("Dokumen Selfie wajib diunggah");
+        }
+        if (!hasKtp && !hasSelfie) {
+            throw new BussinessRuleException("Silakan pilih minimal satu dokumen untuk diunggah");
+        }
+
+        if (hasKtp) {
+            String ktpUrl = fileStorageService.store(ktp, "ktp/" + customerId);
+            DokumenCustomer docKtp = existingKtpOpt.orElseGet(() -> buildDokumen("KTP", ktpUrl, customer));
+            docKtp.setFileUrl(ktpUrl);
+            docKtp.setUpdatedDate(LocalDateTime.now());
+            dokumenRepository.save(docKtp);
+        }
+
+        if (hasSelfie) {
+            String selfieUrl = fileStorageService.store(selfie, "selfie/" + customerId);
+            DokumenCustomer docSelfie = existingSelfieOpt.orElseGet(() -> buildDokumen("SELFIE", selfieUrl, customer));
+            docSelfie.setFileUrl(selfieUrl);
+            docSelfie.setUpdatedDate(LocalDateTime.now());
+            dokumenRepository.save(docSelfie);
+        }
+
+        // Hapus catatan verifikasi lama (jika status sebelumnya PERLU_REVISI) sehingga status otomatis kembali PENDING
+        verifikasiRepository.deleteByMstCustomerId(customerId);
+
+        customer.setUpdatedDate(LocalDateTime.now());
+        customerRepository.save(customer);
+
         return new RegisterStepResponse(customerId, 4,
-                "Dokumen berhasil diunggah, registrasi selesai — menunggu verifikasi");
+                "Dokumen berhasil diunggah, registrasi selesai — menunggu verifikasi Backoffice");
     }
+
 
     private Customer getCustomerOrThrow(UUID id) {
         return customerRepository.findById(id)

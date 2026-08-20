@@ -52,19 +52,18 @@ public class Customer {
     @Column(name = "password", nullable = false, length = 255)
     private String password;
 
-    @NotNull
     @Size(max = 150)
-    @Column(name = "nama_rekening", nullable = false, length = 150)
+    @Column(name = "nama_rekening", length = 150)
     private String namaRekening;
 
-    @NotNull
-    @Column(name = "nama_bank", nullable = false, length = 50)
+    @Size(max = 50)
+    @Column(name = "nama_bank", length = 50)
     private String namaBank;
 
-    @NotNull
     @Size(max = 20)
-    @Column(name = "no_rekening", nullable = false, length = 20)
+    @Column(name = "no_rekening", length = 20)
     private String noRekening;
+
 
     @NotNull
     @Column(name = "status", nullable = false)
