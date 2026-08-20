@@ -48,6 +48,7 @@ public class SecurityConfig {
                                 .authorizeHttpRequests(request -> request
                                                 .requestMatchers("/api/auth/**").permitAll()
                                                 .requestMatchers("/uploads/**").permitAll()
+                                                .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
                                                 .requestMatchers("/api/karyawan/**").hasRole("SUPERADMIN")
                                                 .requestMatchers("/api/cabang/**").hasRole("SUPERADMIN")
                                                 .requestMatchers("/api/plafond/**").hasRole("SUPERADMIN")
@@ -55,6 +56,7 @@ public class SecurityConfig {
                                                 .hasRole("BACKOFFICE")
                                                 .anyRequest()
                                                 .authenticated())
+
 
                                 .headers(headers -> headers
                                                 // contentsecuritypolicy
