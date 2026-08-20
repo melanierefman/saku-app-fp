@@ -8,7 +8,6 @@ import com.bcafinance.backend_saku.entity.AlamatCustomer;
 import com.bcafinance.backend_saku.entity.Customer;
 import com.bcafinance.backend_saku.entity.DokumenCustomer;
 import com.bcafinance.backend_saku.entity.ScoringCustomer;
-import com.bcafinance.backend_saku.entity.VerifikasiCustomer;
 import com.bcafinance.backend_saku.exception.BussinessRuleException;
 import com.bcafinance.backend_saku.repository.AlamatCustomerRepository;
 import com.bcafinance.backend_saku.repository.CustomerRepository;
@@ -65,7 +64,6 @@ public class RegisterService {
         customer.setUpdatedDate(LocalDateTime.now());
         customerRepository.save(customer);
 
-
         return new RegisterStepResponse(customer.getId(), 1, "Akun berhasil dibuat, lanjut ke data diri");
     }
 
@@ -83,7 +81,6 @@ public class RegisterService {
         customer.setNamaRekening(req.namaRekening());
         customer.setUpdatedDate(LocalDateTime.now());
         customerRepository.save(customer);
-
 
         scoringRepository.deleteByMstCustomerId(customer.getId());
 
@@ -129,7 +126,8 @@ public class RegisterService {
         Customer customer = getCustomerOrThrow(customerId);
 
         Optional<DokumenCustomer> existingKtpOpt = dokumenRepository.findByCustomer_IdAndDocType(customerId, "KTP");
-        Optional<DokumenCustomer> existingSelfieOpt = dokumenRepository.findByCustomer_IdAndDocType(customerId, "SELFIE");
+        Optional<DokumenCustomer> existingSelfieOpt = dokumenRepository.findByCustomer_IdAndDocType(customerId,
+                "SELFIE");
 
         boolean hasKtp = ktp != null && !ktp.isEmpty();
         boolean hasSelfie = selfie != null && !selfie.isEmpty();
@@ -160,7 +158,8 @@ public class RegisterService {
             dokumenRepository.save(docSelfie);
         }
 
-        // Hapus catatan verifikasi lama (jika status sebelumnya PERLU_REVISI) sehingga status otomatis kembali PENDING
+        // Hapus catatan verifikasi lama (jika status sebelumnya PERLU_REVISI) sehingga
+        // status otomatis kembali PENDING
         verifikasiRepository.deleteByMstCustomerId(customerId);
 
         customer.setUpdatedDate(LocalDateTime.now());
@@ -169,7 +168,6 @@ public class RegisterService {
         return new RegisterStepResponse(customerId, 4,
                 "Dokumen berhasil diunggah, registrasi selesai — menunggu verifikasi Backoffice");
     }
-
 
     private Customer getCustomerOrThrow(UUID id) {
         return customerRepository.findById(id)

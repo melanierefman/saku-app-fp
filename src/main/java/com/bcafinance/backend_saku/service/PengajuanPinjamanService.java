@@ -24,7 +24,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -58,7 +57,8 @@ public class PengajuanPinjamanService {
                 .orElseThrow(() -> new BussinessRuleException("Data scoring customer belum tersedia"));
 
         if (scoring.getSkor() == null || scoring.getSkor() < 60) {
-            throw new BussinessRuleException("Skor kredit customer tidak memenuhi batas minimum untuk pengajuan pinjaman");
+            throw new BussinessRuleException(
+                    "Skor kredit customer tidak memenuhi batas minimum untuk pengajuan pinjaman");
         }
 
         Plafond plafond = resolvePlafond(scoring);
@@ -108,7 +108,8 @@ public class PengajuanPinjamanService {
                 .orElseThrow(() -> new BussinessRuleException("Customer tidak ditemukan"));
 
         PengajuanPinjaman pengajuan = pengajuanRepository.findByIdAndMstCustomerId(pengajuanId, customerId)
-                .orElseThrow(() -> new BussinessRuleException("Data pengajuan pinjaman tidak ditemukan atau bukan milik Anda"));
+                .orElseThrow(() -> new BussinessRuleException(
+                        "Data pengajuan pinjaman tidak ditemukan atau bukan milik Anda"));
 
         String currentStatus = pengajuan.getStatusPengajuan() != null ? pengajuan.getStatusPengajuan() : "";
 
@@ -118,7 +119,8 @@ public class PengajuanPinjamanService {
                 || "PENGAJUAN_DITOLAK".equalsIgnoreCase(currentStatus)
                 || "DITOLAK".equalsIgnoreCase(currentStatus)
                 || "REJECTED".equalsIgnoreCase(currentStatus)) {
-            throw new BussinessRuleException("Pengajuan pinjaman sudah diproses (" + currentStatus + ") dan dokumen tidak dapat diubah.");
+            throw new BussinessRuleException(
+                    "Pengajuan pinjaman sudah diproses (" + currentStatus + ") dan dokumen tidak dapat diubah.");
         }
 
         boolean isRevisi = "PERLU_REVISI".equalsIgnoreCase(currentStatus);
@@ -162,7 +164,8 @@ public class PengajuanPinjamanService {
             saveOrUpdateDokumen(pengajuanId, "NPWP", npwpUrl);
         }
 
-        // Ambil semua dokumen terkini (gabungan yang baru dan yang sudah ada sebelumnya)
+        // Ambil semua dokumen terkini (gabungan yang baru dan yang sudah ada
+        // sebelumnya)
         List<DokumenPinjamanResponse> allUploadedDocs = dokumenPinjamanRepository
                 .findAllByTrxPengajuanPinjamanId(pengajuanId)
                 .stream()
@@ -173,7 +176,8 @@ public class PengajuanPinjamanService {
         String message;
         if (isRevisi) {
             pengajuan.setStatusPengajuan("PENDING");
-            pengajuan.setCatatanReview("Dokumen perbaikan telah diunggah oleh nasabah, menunggu review ulang oleh Marketing");
+            pengajuan.setCatatanReview(
+                    "Dokumen perbaikan telah diunggah oleh nasabah, menunggu review ulang oleh Marketing");
             message = "Dokumen perbaikan berhasil diunggah. Pengajuan pinjaman kembali masuk ke antrean review Marketing.";
         } else {
             pengajuan.setStatusPengajuan("PENDING");
@@ -194,7 +198,6 @@ public class PengajuanPinjamanService {
                 message,
                 detail);
     }
-
 
     public List<PengajuanPinjamanResponse> findMyLoans(UUID customerId) {
         Customer customer = customerRepository.findById(customerId)
@@ -257,18 +260,22 @@ public class PengajuanPinjamanService {
         }
 
         return plafondRepository
-                .findTopByMinPendapatanLessThanEqualAndStatusTrueOrderByMinPendapatanDesc(scoring.getPenghasilanBulanan())
+                .findTopByMinPendapatanLessThanEqualAndStatusTrueOrderByMinPendapatanDesc(
+                        scoring.getPenghasilanBulanan())
                 .orElseThrow(() -> new BussinessRuleException("Customer belum memenuhi batas minimum plafond manapun"));
     }
 
     private void validateLoanAmount(BigDecimal jumlahPinjaman, Plafond plafond) {
         if (plafond.getMinPlafond() != null && jumlahPinjaman.compareTo(plafond.getMinPlafond()) < 0) {
-            throw new BussinessRuleException("Jumlah pinjaman kurang dari batas minimum plafond: Rp " + plafond.getMinPlafond());
+            throw new BussinessRuleException(
+                    "Jumlah pinjaman kurang dari batas minimum plafond: Rp " + plafond.getMinPlafond());
         }
 
-        BigDecimal maxLimit = plafond.getPlafondMaksimal() != null ? plafond.getPlafondMaksimal() : plafond.getMaxPlafond();
+        BigDecimal maxLimit = plafond.getPlafondMaksimal() != null ? plafond.getPlafondMaksimal()
+                : plafond.getMaxPlafond();
         if (maxLimit != null && jumlahPinjaman.compareTo(maxLimit) > 0) {
-            throw new BussinessRuleException("Jumlah pinjaman melebihi batas maksimum plafond yang disetujui: Rp " + maxLimit);
+            throw new BussinessRuleException(
+                    "Jumlah pinjaman melebihi batas maksimum plafond yang disetujui: Rp " + maxLimit);
         }
     }
 
@@ -342,7 +349,8 @@ public class PengajuanPinjamanService {
         return candidate;
     }
 
-    private BigDecimal calculateEstimasiAngsuran(BigDecimal jumlahPinjaman, Integer tenorBulan, BigDecimal bungaTahunan) {
+    private BigDecimal calculateEstimasiAngsuran(BigDecimal jumlahPinjaman, Integer tenorBulan,
+            BigDecimal bungaTahunan) {
         if (jumlahPinjaman == null || tenorBulan == null || tenorBulan <= 0) {
             return BigDecimal.ZERO;
         }
