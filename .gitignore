@@ -33,3 +33,7 @@ build/
 .vscode/
 
 .env
+
+### Custom Ignored ###
+src/test/
+uploads/
