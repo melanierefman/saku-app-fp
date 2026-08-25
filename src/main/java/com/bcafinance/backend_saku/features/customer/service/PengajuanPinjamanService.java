@@ -49,6 +49,9 @@ public class PengajuanPinjamanService {
     private final CabangRepository cabangRepository;
     private final AlamatCustomerRepository alamatRepository;
     private final FileStorageService fileStorageService;
+    private final NotifikasiService notifikasiService;
+
+
 
 
     @Transactional
@@ -195,8 +198,14 @@ public class PengajuanPinjamanService {
         pengajuan.setUpdatedDate(LocalDateTime.now());
         PengajuanPinjaman saved = pengajuanRepository.save(pengajuan);
 
+        // Kirim notifikasi in-app ke customer
+        String notifJudul = isRevisi ? "Dokumen Revisi Pinjaman Diterima" : "Pengajuan Pinjaman Diproses";
+        String notifPesan = "Pengajuan pinjaman no. " + saved.getNomorPengajuan() + " sedang dalam proses review oleh tim cabang.";
+        notifikasiService.createNotification(customerId, saved.getId(), "PENGAJUAN", "IN_APP", notifJudul, notifPesan);
+
         Cabang cabang = cabangRepository.findById(saved.getMstBranchId()).orElse(null);
         PengajuanPinjamanResponse detail = toResponse(saved, customer.getNama(), cabang, allUploadedDocs);
+
 
         return new PengajuanStepResponse(
                 saved.getId(),

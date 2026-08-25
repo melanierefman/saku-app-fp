@@ -52,6 +52,9 @@ public class MarketingReviewService {
     private final KaryawanRepository karyawanRepository;
     private final CabangRepository cabangRepository;
     private final ScoringService scoringService;
+    private final com.bcafinance.backend_saku.features.customer.service.NotifikasiService notifikasiService;
+
+
 
     public List<MarketingPengajuanItemResponse> findAll(String statusFilter) {
         List<PengajuanPinjaman> list = pengajuanRepository.findAllByOrderByCreatedDateDesc();
@@ -318,6 +321,34 @@ public class MarketingReviewService {
         pengajuan.setCatatanReview(request.getCatatan());
         pengajuan.setUpdatedDate(LocalDateTime.now());
         pengajuanRepository.save(pengajuan);
+
+        // Kirim notifikasi ke customer
+        if ("DISETUJUI".equals(hasilReview)) {
+            notifikasiService.createNotification(
+                    pengajuan.getMstCustomerId(),
+                    pengajuan.getId(),
+                    "REVIEW_MARKETING",
+                    "IN_APP",
+                    "Review Pinjaman Disetujui",
+                    "Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan() + " telah disetujui pada tahap review Marketing dan diteruskan ke Branch Manager.");
+        } else if ("DITOLAK".equals(hasilReview)) {
+            notifikasiService.createNotification(
+                    pengajuan.getMstCustomerId(),
+                    pengajuan.getId(),
+                    "REVIEW_MARKETING",
+                    "IN_APP",
+                    "Pengajuan Pinjaman Ditolak",
+                    "Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan() + " tidak disetujui pada tahap review Marketing. Catatan: " + request.getCatatan());
+        } else if ("PERLU_REVISI".equals(hasilReview)) {
+            notifikasiService.createNotification(
+                    pengajuan.getMstCustomerId(),
+                    pengajuan.getId(),
+                    "REVIEW_MARKETING",
+                    "IN_APP",
+                    "Perlu Revisi Dokumen Pinjaman",
+                    "Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan() + " memerlukan perbaikan dokumen. Catatan: " + request.getCatatan());
+        }
+
 
         return ReviewPengajuanResponse.builder()
                 .id(savedReview.getId())

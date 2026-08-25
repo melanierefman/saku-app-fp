@@ -52,10 +52,14 @@ public class BranchManagerPersetujuanService {
     private final AlamatCustomerRepository alamatRepository;
     private final DokumenCustomerRepository dokumenCustomerRepository;
     private final DokumenPinjamanRepository dokumenPinjamanRepository;
+
     private final ScoringCustomerRepository scoringRepository;
     private final KaryawanRepository karyawanRepository;
     private final CabangRepository cabangRepository;
     private final ScoringService scoringService;
+    private final com.bcafinance.backend_saku.features.customer.service.NotifikasiService notifikasiService;
+
+
 
     public List<BranchManagerPengajuanItemResponse> findAll(String statusFilter) {
         List<PengajuanPinjaman> list = pengajuanRepository.findAllByOrderByCreatedDateDesc();
@@ -362,11 +366,30 @@ public class BranchManagerPersetujuanService {
 
         Persetujuan savedPersetujuan = persetujuanRepository.save(persetujuan);
 
-        // Update status di trx_pengajuan_pinjaman
         pengajuan.setStatusPengajuan(newStatusPengajuan);
         pengajuan.setCatatanReview(request.getCatatan());
         pengajuan.setUpdatedDate(LocalDateTime.now());
         pengajuanRepository.save(pengajuan);
+
+        // Kirim notifikasi ke customer
+        if ("DISETUJUI".equals(hasilPersetujuan)) {
+            notifikasiService.createNotification(
+                    pengajuan.getMstCustomerId(),
+                    pengajuan.getId(),
+                    "APPROVAL_BM",
+                    "IN_APP",
+                    "Pinjaman Disetujui Branch Manager",
+                    "Selamat! Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan() + " telah disetujui oleh Branch Manager dan sedang dalam proses pencairan dana.");
+        } else {
+            notifikasiService.createNotification(
+                    pengajuan.getMstCustomerId(),
+                    pengajuan.getId(),
+                    "APPROVAL_BM",
+                    "IN_APP",
+                    "Pengajuan Pinjaman Ditolak",
+                    "Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan() + " tidak disetujui oleh Branch Manager. Catatan: " + request.getCatatan());
+        }
+
 
         return PersetujuanPinjamanResponse.builder()
                 .id(savedPersetujuan.getId())

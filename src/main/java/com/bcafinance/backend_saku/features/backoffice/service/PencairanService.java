@@ -59,6 +59,9 @@ public class PencairanService {
     private final CabangRepository cabangRepository;
     private final ReviewPengajuanRepository reviewPengajuanRepository;
     private final PersetujuanRepository persetujuanRepository;
+    private final com.bcafinance.backend_saku.features.customer.service.NotifikasiService notifikasiService;
+
+
 
     public List<PencairanItemResponse> findAll(String statusFilter) {
         List<PengajuanPinjaman> list = pengajuanRepository.findAllByOrderByCreatedDateDesc();
@@ -359,7 +362,17 @@ public class PencairanService {
             listAngsuranResponse.add(toAngsuranResponse(savedAngsuran));
         }
 
+        // Kirim notifikasi ke customer
+        notifikasiService.createNotification(
+                customer.getId(),
+                pengajuanId,
+                "PENCAIRAN",
+                "IN_APP",
+                "Dana Pinjaman Telah Dicairkan",
+                "Selamat! Dana pinjaman no. " + pengajuan.getNomorPengajuan() + " sebesar Rp " + jumlahPencairan + " telah berhasil dicairkan ke rekening " + customer.getNamaBank() + " Anda.");
+
         return PencairanResponse.builder()
+
                 .pencairanId(savedPencairan.getId())
                 .pengajuanId(pengajuanId)
                 .nomorPengajuan(pengajuan.getNomorPengajuan())
