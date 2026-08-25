@@ -19,13 +19,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class OtpService {
 
-    private static final int OTP_EXPIRY_MINUTES = 5;
+    @Value("${app.otp.expiry-minutes:5}")
+    private int otpExpiryMinutes;
+
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private final OtpRepository otpRepository;
@@ -53,7 +56,7 @@ public class OtpService {
         String otpCode = String.format("%06d", number);
 
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime expiredAt = now.plusMinutes(OTP_EXPIRY_MINUTES);
+        LocalDateTime expiredAt = now.plusMinutes(otpExpiryMinutes);
 
         // 3. Simpan ke database trx_otp
         Otp otp = new Otp();
@@ -69,12 +72,12 @@ public class OtpService {
         otpRepository.save(otp);
 
         // 4. Kirim email OTP
-        emailService.sendOtpEmail(email, otpCode, purpose, OTP_EXPIRY_MINUTES);
+        emailService.sendOtpEmail(email, otpCode, purpose, otpExpiryMinutes);
 
         return SendOtpResponse.builder()
                 .email(maskEmail(email))
                 .purpose(purpose)
-                .expiresInSeconds(OTP_EXPIRY_MINUTES * 60)
+                .expiresInMinutes(otpExpiryMinutes)
                 .expiredAt(expiredAt)
                 .message("Kode OTP berhasil dikirim ke email " + maskEmail(email))
                 .build();
@@ -128,7 +131,8 @@ public class OtpService {
                 return cust.getId();
             }
 
-            // Simpan placeholder customer untuk memenuhi foreign key trx_otp -> mst_customer
+            // Simpan placeholder customer untuk memenuhi foreign key trx_otp ->
+            // mst_customer
             Customer placeholder = new Customer();
             placeholder.setId(UUID.randomUUID());
             placeholder.setEmail(email);
@@ -154,7 +158,8 @@ public class OtpService {
 
         Optional<Karyawan> karyOpt = karyawanRepository.findByEmail(email);
         if (karyOpt.isPresent()) {
-            // Jika karyawan meminta OTP reset password, pastikan ada entri di mst_customer untuk FK
+            // Jika karyawan meminta OTP reset password, pastikan ada entri di mst_customer
+            // untuk FK
             Customer placeholder = new Customer();
             placeholder.setId(UUID.randomUUID());
             placeholder.setEmail(email);
@@ -176,10 +181,9 @@ public class OtpService {
         throw new BussinessRuleException("Email tidak ditemukan dalam sistem SAKU");
     }
 
-
-
     private String maskEmail(String email) {
-        if (email == null || !email.contains("@")) return email;
+        if (email == null || !email.contains("@"))
+            return email;
         int atIndex = email.indexOf("@");
         String username = email.substring(0, atIndex);
         String domain = email.substring(atIndex);

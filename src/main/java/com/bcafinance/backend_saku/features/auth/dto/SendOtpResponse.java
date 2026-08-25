@@ -16,7 +16,7 @@ public class SendOtpResponse {
 
     private String email;
     private String purpose;
-    private Integer expiresInSeconds;
+    private Integer expiresInMinutes;
     private LocalDateTime expiredAt;
     private String message;
 }
