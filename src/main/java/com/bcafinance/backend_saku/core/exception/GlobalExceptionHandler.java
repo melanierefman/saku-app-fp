@@ -57,7 +57,27 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return build(HttpStatus.UNAUTHORIZED, e.getMessage());
     }
 
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(
+            org.springframework.web.bind.MethodArgumentNotValidException ex,
+            org.springframework.http.HttpHeaders headers,
+            org.springframework.http.HttpStatusCode status,
+            org.springframework.web.context.request.WebRequest request) {
+        String errorMessage = ex.getBindingResult().getFieldErrors().stream()
+                .map(org.springframework.context.support.DefaultMessageSourceResolvable::getDefaultMessage)
+                .findFirst()
+                .orElse("Format input tidak valid");
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                Map.of(
+                        "statusCode", HttpStatus.BAD_REQUEST.value(),
+                        "message", errorMessage
+                )
+        );
+    }
+
     private ResponseEntity<Map<String, Object>> build(HttpStatus status, String message) {
+
         return ResponseEntity.status(status).body(body(status, message));
     }
 

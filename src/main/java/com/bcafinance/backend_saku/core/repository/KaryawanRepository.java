@@ -14,6 +14,8 @@ public interface KaryawanRepository extends JpaRepository<Karyawan, UUID> {
 
     boolean existsByUsername(String username);
 
+    Optional<Karyawan> findByEmail(String email);
+
     // Email or Username
     @Query("""
                 SELECT k
@@ -23,3 +25,4 @@ public interface KaryawanRepository extends JpaRepository<Karyawan, UUID> {
             """)
     Optional<Karyawan> findByUsernameOrEmail(@Param("identifier") String identifier);
 }
+

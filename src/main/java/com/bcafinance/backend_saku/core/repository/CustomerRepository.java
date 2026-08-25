@@ -26,6 +26,8 @@ public interface CustomerRepository extends JpaRepository<Customer, UUID> {
     List<Customer> findAllByStatusFalseOrderByCreatedDateDesc();
 
 
+    Optional<Customer> findByEmail(String email);
+
     // Email or Username
     @Query("""
                 SELECT c
@@ -34,3 +36,4 @@ public interface CustomerRepository extends JpaRepository<Customer, UUID> {
             """)
     Optional<Customer> findByUsernameOrEmail(@Param("identifier") String identifier);
 }
+

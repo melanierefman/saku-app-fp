@@ -1,6 +1,9 @@
 package com.bcafinance.backend_saku.features.customer.service;
 
+import com.bcafinance.backend_saku.features.auth.dto.VerifyOtpRequest;
+import com.bcafinance.backend_saku.features.auth.service.OtpService;
 import com.bcafinance.backend_saku.features.customer.dto.RegisterStep1Request;
+
 import com.bcafinance.backend_saku.features.customer.dto.RegisterStep2Request;
 import com.bcafinance.backend_saku.features.customer.dto.RegisterStep3Request;
 import com.bcafinance.backend_saku.features.customer.dto.RegisterStepResponse;
@@ -36,6 +39,7 @@ public class RegisterService {
     private final ScoringCustomerRepository scoringRepository;
     private final VerifikasiCustomerRepository verifikasiRepository;
     private final ScoringService scoringService;
+    private final OtpService otpService;
     private final PasswordEncoder passwordEncoder;
     private final FileStorageService fileStorageService;
 
@@ -44,15 +48,37 @@ public class RegisterService {
         if (!req.password().equals(req.confirmPassword()))
             throw new BussinessRuleException("Password dan konfirmasi password tidak sama");
 
-        if (customerRepository.existsByEmail(req.email()))
-            throw new BussinessRuleException("Email sudah terdaftar");
-        if (customerRepository.existsByUsername(req.username()))
-            throw new BussinessRuleException("Username sudah terdaftar");
-        if (customerRepository.existsByNoHp(req.noHp()))
-            throw new BussinessRuleException("No HP sudah terdaftar");
+        Optional<Customer> existingCustOpt = customerRepository.findByEmail(req.email());
+        Customer customer;
+        if (existingCustOpt.isPresent()) {
+            Customer existing = existingCustOpt.get();
+            if (!"PENDING".equals(existing.getPassword())) {
+                throw new BussinessRuleException("Email sudah terdaftar");
+            }
+            if (customerRepository.existsByUsername(req.username()) && !req.username().equals(existing.getUsername())) {
+                throw new BussinessRuleException("Username sudah terdaftar");
+            }
+            if (customerRepository.existsByNoHp(req.noHp()) && !req.noHp().equals(existing.getNoHp())) {
+                throw new BussinessRuleException("No HP sudah terdaftar");
+            }
+            customer = existing;
+        } else {
+            if (customerRepository.existsByEmail(req.email()))
+                throw new BussinessRuleException("Email sudah terdaftar");
+            if (customerRepository.existsByUsername(req.username()))
+                throw new BussinessRuleException("Username sudah terdaftar");
+            if (customerRepository.existsByNoHp(req.noHp()))
+                throw new BussinessRuleException("No HP sudah terdaftar");
 
-        Customer customer = new Customer();
-        customer.setId(UUID.randomUUID());
+            customer = new Customer();
+            customer.setId(UUID.randomUUID());
+        }
+
+        // Jika otpCode disertakan di request Step 1, lakukan verifikasi OTP
+        if (req.otpCode() != null && !req.otpCode().isBlank()) {
+            otpService.verifyOtp(new VerifyOtpRequest(req.email(), req.otpCode(), "REGISTRATION"));
+        }
+
         customer.setNik("PENDING");
         customer.setNama(req.username());
         customer.setEmail(req.email());
@@ -63,12 +89,15 @@ public class RegisterService {
         customer.setNamaBank("PENDING");
         customer.setNoRekening("PENDING");
         customer.setStatus(false);
-        customer.setCreatedDate(LocalDateTime.now());
+        if (customer.getCreatedDate() == null) {
+            customer.setCreatedDate(LocalDateTime.now());
+        }
         customer.setUpdatedDate(LocalDateTime.now());
         customerRepository.save(customer);
 
         return new RegisterStepResponse(customer.getId(), 1, "Akun berhasil dibuat, lanjut ke data diri");
     }
+
 
     @Transactional
     public RegisterStepResponse registerStep2(UUID customerId, RegisterStep2Request req) {

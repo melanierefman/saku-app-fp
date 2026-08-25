@@ -384,8 +384,9 @@ public class PengajuanPinjamanService {
     }
 
     public List<AngsuranItemResponse> getJadwalAngsuran(UUID pengajuanId, UUID customerId) {
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new BussinessRuleException("Customer tidak ditemukan"));
+        if (!customerRepository.existsById(customerId)) {
+            throw new BussinessRuleException("Customer tidak ditemukan");
+        }
 
         PengajuanPinjaman pengajuan = pengajuanRepository.findByIdAndMstCustomerId(pengajuanId, customerId)
                 .orElseThrow(() -> new BussinessRuleException("Data pengajuan pinjaman tidak ditemukan atau bukan milik Anda"));
@@ -395,6 +396,7 @@ public class PengajuanPinjamanService {
                 .map(this::toAngsuranResponse)
                 .toList();
     }
+
 
     private AngsuranItemResponse toAngsuranResponse(Angsuran a) {
         if (a == null) {

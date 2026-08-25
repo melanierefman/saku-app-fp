@@ -1,37 +1,52 @@
 package com.bcafinance.backend_saku.features.auth.service;
 
-import com.bcafinance.backend_saku.features.auth.dto.AuthRequest;
-import com.bcafinance.backend_saku.features.auth.dto.AuthResponse;
+import com.bcafinance.backend_saku.core.entity.Customer;
+import com.bcafinance.backend_saku.core.exception.BussinessRuleException;
+import com.bcafinance.backend_saku.core.repository.CustomerRepository;
 import com.bcafinance.backend_saku.core.security.AppUser;
 import com.bcafinance.backend_saku.core.security.JwtService;
+import com.bcafinance.backend_saku.features.auth.dto.AuthRequest;
+import com.bcafinance.backend_saku.features.auth.dto.AuthResponse;
+import com.bcafinance.backend_saku.features.auth.dto.ForgotPasswordRequest;
+import com.bcafinance.backend_saku.features.auth.dto.ResetPasswordRequest;
+import com.bcafinance.backend_saku.features.auth.dto.SendOtpRequest;
+import com.bcafinance.backend_saku.features.auth.dto.SendOtpResponse;
+import com.bcafinance.backend_saku.features.auth.dto.VerifyOtpRequest;
+import jakarta.transaction.Transactional;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.time.Instant;
 
 @Service
 public class AuthCustomerService {
 
     private final JwtService jwtService;
     private final AuthenticationManager customerAuthenticationManager;
+    private final CustomerRepository customerRepository;
+    private final OtpService otpService;
+    private final PasswordEncoder passwordEncoder;
 
     public AuthCustomerService(
             JwtService jwtService,
-            @Qualifier("customerAuthenticationManager") AuthenticationManager customerAuthenticationManager) {
+            @Qualifier("customerAuthenticationManager") AuthenticationManager customerAuthenticationManager,
+            CustomerRepository customerRepository,
+            OtpService otpService,
+            PasswordEncoder passwordEncoder) {
         this.jwtService = jwtService;
         this.customerAuthenticationManager = customerAuthenticationManager;
+        this.customerRepository = customerRepository;
+        this.otpService = otpService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     // Login
     public AuthResponse login(AuthRequest request) {
-
-        System.out.println(">>> CUSTOMER SERVICE");
-        System.out.println(">>> Manager = " + customerAuthenticationManager);
-
         Authentication authentication;
 
         try {
@@ -51,11 +66,43 @@ public class AuthCustomerService {
                 Instant.now());
 
         AuthResponse response = new AuthResponse();
-
         response.setEmail(user.getEmail());
         response.setUsername(user.getUsername());
         response.setToken(token);
 
         return response;
     }
+
+    // Lupa Password: Kirim OTP ke email customer
+    public SendOtpResponse forgotPassword(ForgotPasswordRequest request) {
+        String email = request.getEmail().trim().toLowerCase();
+        customerRepository.findByEmail(email)
+                .orElseThrow(() -> new BussinessRuleException("Email tidak terdaftar sebagai nasabah SAKU"));
+
+        return otpService.sendOtp(new SendOtpRequest(email, "RESET_PASSWORD"));
+    }
+
+    // Reset Password: Verifikasi OTP + ubah password
+    @Transactional
+    public String resetPassword(ResetPasswordRequest request) {
+        String email = request.getEmail().trim().toLowerCase();
+
+        if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
+            throw new BussinessRuleException("Password baru dan konfirmasi password tidak sama");
+        }
+
+        Customer customer = customerRepository.findByEmail(email)
+                .orElseThrow(() -> new BussinessRuleException("Nasabah dengan email ini tidak ditemukan"));
+
+        // Verifikasi OTP
+        otpService.verifyOtp(new VerifyOtpRequest(email, request.getOtpCode(), "RESET_PASSWORD"));
+
+        // Update password customer
+        customer.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        customer.setUpdatedDate(LocalDateTime.now());
+        customerRepository.save(customer);
+
+        return "Password berhasil diubah. Silakan login dengan password baru.";
+    }
 }
+
