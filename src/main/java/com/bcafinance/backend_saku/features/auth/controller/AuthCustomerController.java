@@ -38,5 +38,12 @@ public class AuthCustomerController {
             @Valid @RequestBody ResetPasswordRequest request) {
         return ResponseEntity.ok(ApiResponse.success(authCustomerService.resetPassword(request)));
     }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(
+            @Valid @RequestBody com.bcafinance.backend_saku.features.auth.dto.RefreshTokenRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(authCustomerService.refreshToken(request)));
+    }
 }
+
 

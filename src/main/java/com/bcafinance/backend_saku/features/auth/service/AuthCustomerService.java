@@ -8,13 +8,17 @@ import com.bcafinance.backend_saku.core.security.JwtService;
 import com.bcafinance.backend_saku.features.auth.dto.AuthRequest;
 import com.bcafinance.backend_saku.features.auth.dto.AuthResponse;
 import com.bcafinance.backend_saku.features.auth.dto.ForgotPasswordRequest;
+import com.bcafinance.backend_saku.features.auth.dto.RefreshTokenRequest;
 import com.bcafinance.backend_saku.features.auth.dto.ResetPasswordRequest;
 import com.bcafinance.backend_saku.features.auth.dto.SendOtpRequest;
 import com.bcafinance.backend_saku.features.auth.dto.SendOtpResponse;
+import com.bcafinance.backend_saku.features.auth.dto.UserLoginProfile;
 import com.bcafinance.backend_saku.features.auth.dto.VerifyOtpRequest;
+import io.jsonwebtoken.Claims;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -46,6 +50,7 @@ public class AuthCustomerService {
     }
 
     // Login
+
     public AuthResponse login(AuthRequest request) {
         Authentication authentication;
 
@@ -60,18 +65,65 @@ public class AuthCustomerService {
         }
 
         AppUser user = (AppUser) authentication.getPrincipal();
-
-        String token = jwtService.issue(
-                user,
-                Instant.now());
-
-        AuthResponse response = new AuthResponse();
-        response.setEmail(user.getEmail());
-        response.setUsername(user.getUsername());
-        response.setToken(token);
-
-        return response;
+        return generateAuthResponse(user);
     }
+
+    // Refresh Token
+    public AuthResponse refreshToken(RefreshTokenRequest request) {
+        try {
+            Claims claims = jwtService.parse(request.getRefreshToken());
+            String tokenType = claims.get("tokenType", String.class);
+            if (!"REFRESH".equals(tokenType)) {
+                throw new BussinessRuleException("Token bukan merupakan refresh token yang valid");
+            }
+
+            String username = claims.getSubject();
+            Customer customer = customerRepository.findByUsernameOrEmail(username)
+                    .orElseThrow(() -> new BussinessRuleException("Nasabah tidak ditemukan"));
+
+            AppUser user = new AppUser(
+                    customer.getId(),
+                    customer.getEmail(),
+                    customer.getUsername(),
+                    customer.getPassword(),
+                    "CUSTOMER",
+                    "CUSTOMER",
+                    List.of());
+
+            return generateAuthResponse(user);
+        } catch (Exception e) {
+            throw new BussinessRuleException("Refresh token tidak valid atau telah kedaluwarsa");
+        }
+    }
+
+    private AuthResponse generateAuthResponse(AppUser user) {
+        Instant now = Instant.now();
+        String accessToken = jwtService.issue(user, now);
+        String refreshToken = jwtService.issueRefreshToken(user, now);
+
+        Customer customer = customerRepository.findById(user.getIdKaryawan()).orElse(null);
+
+        UserLoginProfile profile = UserLoginProfile.builder()
+                .id(user.getIdKaryawan())
+                .username(user.getUsername())
+                .nama(customer != null && customer.getNama() != null ? customer.getNama() : user.getUsername())
+                .email(user.getEmail())
+                .noHp(customer != null ? customer.getNoHp() : null)
+                .role("CUSTOMER")
+                .tipe("CUSTOMER")
+                .status(customer != null ? customer.getStatus() : true)
+                .isKycVerified(customer != null && Boolean.TRUE.equals(customer.getStatus()))
+                .build();
+
+        return AuthResponse.builder()
+                .tokenType("Bearer")
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .expiresIn(jwtService.getTtlSeconds())
+                .user(profile)
+                .build();
+    }
+
 
     // Lupa Password: Kirim OTP ke email customer
     public SendOtpResponse forgotPassword(ForgotPasswordRequest request) {

@@ -38,5 +38,12 @@ public class AuthKaryawanController {
             @Valid @RequestBody ResetPasswordRequest request) {
         return ResponseEntity.ok(ApiResponse.success(authKaryawanService.resetPassword(request)));
     }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(
+            @Valid @RequestBody com.bcafinance.backend_saku.features.auth.dto.RefreshTokenRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(authKaryawanService.refreshToken(request)));
+    }
 }
+
 

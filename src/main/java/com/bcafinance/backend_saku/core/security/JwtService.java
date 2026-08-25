@@ -45,6 +45,22 @@ public class JwtService {
                 .getPayload();
     }
 
+    public long getTtlSeconds() {
+        return ttl.toSeconds();
+    }
+
+    public String issueRefreshToken(AppUser user, Instant issuedAt) {
+        return Jwts.builder()
+                .subject(user.getUsername())
+                .claim("tokenType", "REFRESH")
+                .claim("idKaryawan", user.getIdKaryawan())
+                .claim("tipe", user.getTipe())
+                .issuedAt(Date.from(issuedAt))
+                .expiration(Date.from(issuedAt.plus(Duration.ofDays(30))))
+                .signWith(key)
+                .compact();
+    }
+
     private JwtBuilder builder(AppUser user, Instant issuedAt) {
         return Jwts.builder()
                 .subject(user.getUsername())
@@ -55,3 +71,4 @@ public class JwtService {
                 .signWith(key);
     }
 }
+
