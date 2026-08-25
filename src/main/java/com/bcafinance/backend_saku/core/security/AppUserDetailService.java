@@ -18,46 +18,47 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AppUserDetailService implements UserDetailsService {
 
-    private final KaryawanRepository karyawanRepository;
-    private final RolePermissionRepository rolePermissionRepository;
-    private final PermissionRepository permissionRepository;
+        private final KaryawanRepository karyawanRepository;
+        private final RolePermissionRepository rolePermissionRepository;
+        private final PermissionRepository permissionRepository;
 
-    @Override
-    public UserDetails loadUserByUsername(String identifier) {
+        @Override
+        public UserDetails loadUserByUsername(String identifier) {
 
-        Optional<AppUser> optionalUser = findKaryawan(identifier);
+                Optional<AppUser> optionalUser = findKaryawan(identifier);
 
-        return optionalUser.orElseThrow(
-                () -> new UsernameNotFoundException(
-                        "Username atau email tidak ditemukan: " + identifier));
-    }
+                return optionalUser.orElseThrow(
+                                () -> new UsernameNotFoundException(
+                                                "Username atau email tidak ditemukan: " + identifier));
+        }
 
-    private Optional<AppUser> findKaryawan(String identifier) {
+        private Optional<AppUser> findKaryawan(String identifier) {
 
-        return karyawanRepository
-                .findByUsernameOrEmail(identifier)
-                .map(this::toAppUser);
-    }
+                return karyawanRepository
+                                .findByUsernameOrEmail(identifier)
+                                .map(this::toAppUser);
+        }
 
-    private AppUser toAppUser(Karyawan karyawan) {
-        List<String> permissions = rolePermissionRepository.findAllByMstRoleId(karyawan.getRole().getId())
-                .stream()
-                .map(rolePermission -> permissionRepository.findById(rolePermission.getMstPermissionId()))
-                .flatMap(Optional::stream)
-                .flatMap(permission -> java.util.stream.Stream.of(
-                        "PERM_" + permission.getResource() + "_" + permission.getAction(),
-                        "PERM_" + permission.getNama()))
-                .map(value -> value.toUpperCase().replaceAll("[^A-Z0-9_]", "_"))
-                .distinct()
-                .collect(Collectors.toList());
+        private AppUser toAppUser(Karyawan karyawan) {
+                List<String> permissions = rolePermissionRepository.findAllByMstRoleId(karyawan.getRole().getId())
+                                .stream()
+                                .map(rolePermission -> permissionRepository
+                                                .findById(rolePermission.getMstPermissionId()))
+                                .flatMap(Optional::stream)
+                                .flatMap(permission -> java.util.stream.Stream.of(
+                                                "PERM_" + permission.getResource() + "_" + permission.getAction(),
+                                                "PERM_" + permission.getNama()))
+                                .map(value -> value.toUpperCase().replaceAll("[^A-Z0-9_]", "_"))
+                                .distinct()
+                                .collect(Collectors.toList());
 
-        return new AppUser(
-                karyawan.getId(),
-                karyawan.getEmail(),
-                karyawan.getUsername(),
-                karyawan.getPassword(),
-                karyawan.getRole().getNama(),
-                "KARYAWAN",
-                permissions);
-    }
+                return new AppUser(
+                                karyawan.getId(),
+                                karyawan.getEmail(),
+                                karyawan.getUsername(),
+                                karyawan.getPassword(),
+                                karyawan.getRole().getNama(),
+                                "KARYAWAN",
+                                permissions);
+        }
 }

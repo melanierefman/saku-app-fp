@@ -1,5 +1,6 @@
 package com.bcafinance.backend_saku.features.customer.controller;
 
+import com.bcafinance.backend_saku.core.dto.AngsuranItemResponse;
 import com.bcafinance.backend_saku.core.dto.ApiResponse;
 import com.bcafinance.backend_saku.features.customer.dto.PengajuanPinjamanRequest;
 import com.bcafinance.backend_saku.features.customer.dto.PengajuanPinjamanResponse;
@@ -63,4 +64,13 @@ public class PengajuanPinjamanController {
         return ResponseEntity.ok(ApiResponse.success(
                 pengajuanService.findById(id, customer.getIdKaryawan())));
     }
+
+    @GetMapping("/{pengajuanId}/angsuran")
+    public ResponseEntity<ApiResponse<List<AngsuranItemResponse>>> getJadwalAngsuran(
+            @PathVariable UUID pengajuanId,
+            @AuthenticationPrincipal AppUser customer) {
+        return ResponseEntity.ok(ApiResponse.success(
+                pengajuanService.getJadwalAngsuran(pengajuanId, customer.getIdKaryawan())));
+    }
 }
+

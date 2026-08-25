@@ -34,7 +34,6 @@ public class CustomerUserDetailService implements UserDetailsService {
                 .map(this::toAppUser);
     }
 
-
     private AppUser toAppUser(Customer customer) {
 
         return new AppUser(

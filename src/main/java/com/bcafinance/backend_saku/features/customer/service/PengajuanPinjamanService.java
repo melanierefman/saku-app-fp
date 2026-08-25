@@ -1,10 +1,12 @@
 package com.bcafinance.backend_saku.features.customer.service;
 
+import com.bcafinance.backend_saku.core.dto.AngsuranItemResponse;
 import com.bcafinance.backend_saku.core.dto.DokumenPinjamanResponse;
 import com.bcafinance.backend_saku.features.customer.dto.PengajuanPinjamanRequest;
 import com.bcafinance.backend_saku.features.customer.dto.PengajuanPinjamanResponse;
 import com.bcafinance.backend_saku.features.customer.dto.PengajuanStepResponse;
 import com.bcafinance.backend_saku.core.entity.AlamatCustomer;
+import com.bcafinance.backend_saku.core.entity.Angsuran;
 import com.bcafinance.backend_saku.core.entity.Cabang;
 import com.bcafinance.backend_saku.core.entity.Customer;
 import com.bcafinance.backend_saku.core.entity.DokumenPinjaman;
@@ -13,6 +15,7 @@ import com.bcafinance.backend_saku.core.entity.Plafond;
 import com.bcafinance.backend_saku.core.entity.ScoringCustomer;
 import com.bcafinance.backend_saku.core.exception.BussinessRuleException;
 import com.bcafinance.backend_saku.core.repository.AlamatCustomerRepository;
+import com.bcafinance.backend_saku.core.repository.AngsuranRepository;
 import com.bcafinance.backend_saku.core.repository.CabangRepository;
 import com.bcafinance.backend_saku.core.repository.CustomerRepository;
 import com.bcafinance.backend_saku.core.repository.DokumenPinjamanRepository;
@@ -39,12 +42,14 @@ public class PengajuanPinjamanService {
 
     private final PengajuanPinjamanRepository pengajuanRepository;
     private final DokumenPinjamanRepository dokumenPinjamanRepository;
+    private final AngsuranRepository angsuranRepository;
     private final CustomerRepository customerRepository;
     private final ScoringCustomerRepository scoringRepository;
     private final PlafondRepository plafondRepository;
     private final CabangRepository cabangRepository;
     private final AlamatCustomerRepository alamatRepository;
     private final FileStorageService fileStorageService;
+
 
     @Transactional
     public PengajuanStepResponse step1(UUID customerId, PengajuanPinjamanRequest request) {
@@ -378,12 +383,44 @@ public class PengajuanPinjamanService {
                 .build();
     }
 
+    public List<AngsuranItemResponse> getJadwalAngsuran(UUID pengajuanId, UUID customerId) {
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new BussinessRuleException("Customer tidak ditemukan"));
+
+        PengajuanPinjaman pengajuan = pengajuanRepository.findByIdAndMstCustomerId(pengajuanId, customerId)
+                .orElseThrow(() -> new BussinessRuleException("Data pengajuan pinjaman tidak ditemukan atau bukan milik Anda"));
+
+        return angsuranRepository.findAllByTrxPengajuanPinjamanIdOrderByCicilanKeAsc(pengajuan.getId())
+                .stream()
+                .map(this::toAngsuranResponse)
+                .toList();
+    }
+
+    private AngsuranItemResponse toAngsuranResponse(Angsuran a) {
+        if (a == null) {
+            return null;
+        }
+        return AngsuranItemResponse.builder()
+                .id(a.getId())
+                .cicilanKe(a.getCicilanKe())
+                .jumlahAngsuran(a.getJumlahAngsuran())
+                .jatuhTempo(a.getJatuhTempo())
+                .statusBayar(a.getStatusBayar())
+                .build();
+    }
+
     private PengajuanPinjamanResponse toResponse(
             PengajuanPinjaman p,
             String namaCustomer,
             Cabang cabang,
             List<DokumenPinjamanResponse> dokumenList) {
         BigDecimal estimasiCicilan = calculateEstimasiAngsuran(p.getJumlahPinjaman(), p.getTenorBulan(), p.getBunga());
+
+        List<AngsuranItemResponse> listAngsuran = angsuranRepository
+                .findAllByTrxPengajuanPinjamanIdOrderByCicilanKeAsc(p.getId())
+                .stream()
+                .map(this::toAngsuranResponse)
+                .toList();
 
         return PengajuanPinjamanResponse.builder()
                 .id(p.getId())
@@ -405,6 +442,8 @@ public class PengajuanPinjamanService {
                 .createdDate(p.getCreatedDate())
                 .updatedDate(p.getUpdatedDate())
                 .dokumenList(dokumenList)
+                .listAngsuran(listAngsuran)
                 .build();
     }
 }
+

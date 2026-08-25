@@ -1,5 +1,6 @@
 package com.bcafinance.backend_saku.features.customer.dto;
 
+import com.bcafinance.backend_saku.core.dto.AngsuranItemResponse;
 import com.bcafinance.backend_saku.core.dto.DokumenPinjamanResponse;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -38,5 +39,7 @@ public class PengajuanPinjamanResponse {
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
     private List<DokumenPinjamanResponse> dokumenList;
+    private List<AngsuranItemResponse> listAngsuran;
 }
+
 

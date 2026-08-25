@@ -17,25 +17,25 @@ import java.util.stream.Stream;
 @AllArgsConstructor
 public class AppUser implements UserDetails {
 
-    private UUID idKaryawan;
-    private String email;
-    private String username;
-    private String password;
-    private String role;
-    private String tipe;
-    private List<String> permissions;
+        private UUID idKaryawan;
+        private String email;
+        private String username;
+        private String password;
+        private String role;
+        private String tipe;
+        private List<String> permissions;
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        String normalizedRole = role == null
-                ? ""
-                : role.toUpperCase().replaceAll("[^A-Z0-9]", "");
+        @Override
+        public Collection<? extends GrantedAuthority> getAuthorities() {
+                String normalizedRole = role == null
+                                ? ""
+                                : role.toUpperCase().replaceAll("[^A-Z0-9]", "");
 
-        return Stream.concat(
-                Stream.of(new SimpleGrantedAuthority("ROLE_" + normalizedRole)),
-                permissions == null
-                        ? Stream.empty()
-                        : permissions.stream().map(SimpleGrantedAuthority::new))
-                .toList();
-    }
+                return Stream.concat(
+                                Stream.of(new SimpleGrantedAuthority("ROLE_" + normalizedRole)),
+                                permissions == null
+                                                ? Stream.empty()
+                                                : permissions.stream().map(SimpleGrantedAuthority::new))
+                                .toList();
+        }
 }
