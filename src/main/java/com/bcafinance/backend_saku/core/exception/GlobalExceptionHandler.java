@@ -57,6 +57,33 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return build(HttpStatus.UNAUTHORIZED, e.getMessage());
     }
 
+    // AccessDeniedException (403 Forbidden)
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> accessDenied(
+            org.springframework.security.access.AccessDeniedException e) {
+        return build(HttpStatus.FORBIDDEN, "Akses ditolak: Anda tidak memiliki izin untuk mengakses resource ini");
+    }
+
+    // DataIntegrityViolationException (400 Bad Request / 409 Conflict)
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> dataIntegrityViolation(
+            org.springframework.dao.DataIntegrityViolationException e) {
+        String msg = "Terjadi konflik integritas data di database (data terkait masih digunakan atau duplikat)";
+        if (e.getMessage() != null && e.getMessage().contains("duplicate key")) {
+            msg = "Data yang Anda masukkan sudah terdaftar di sistem";
+        } else if (e.getMessage() != null && e.getMessage().contains("violates foreign key")) {
+            msg = "Data tidak dapat dihapus atau diubah karena masih berelasi dengan data lain";
+        }
+        return build(HttpStatus.BAD_REQUEST, msg);
+    }
+
+    // MaxUploadSizeExceededException (400 Bad Request)
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, Object>> maxUploadSize(
+            org.springframework.web.multipart.MaxUploadSizeExceededException e) {
+        return build(HttpStatus.BAD_REQUEST, "Ukuran file unggahan terlalu besar, maksimal 5MB");
+    }
+
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
             org.springframework.web.bind.MethodArgumentNotValidException ex,
@@ -71,9 +98,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                 Map.of(
                         "statusCode", HttpStatus.BAD_REQUEST.value(),
-                        "message", errorMessage
-                )
-        );
+                        "message", errorMessage));
     }
 
     private ResponseEntity<Map<String, Object>> build(HttpStatus status, String message) {
