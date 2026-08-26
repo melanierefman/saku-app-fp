@@ -77,12 +77,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, msg);
     }
 
-    // MaxUploadSizeExceededException (400 Bad Request)
-    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
-    public ResponseEntity<Map<String, Object>> maxUploadSize(
-            org.springframework.web.multipart.MaxUploadSizeExceededException e) {
-        return build(HttpStatus.BAD_REQUEST, "Ukuran file unggahan terlalu besar, maksimal 5MB");
+    @Override
+    protected ResponseEntity<Object> handleMaxUploadSizeExceededException(
+            org.springframework.web.multipart.MaxUploadSizeExceededException ex,
+            org.springframework.http.HttpHeaders headers,
+            org.springframework.http.HttpStatusCode status,
+            org.springframework.web.context.request.WebRequest request) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                Map.of(
+                        "statusCode", HttpStatus.BAD_REQUEST.value(),
+                        "message", "Ukuran file unggahan terlalu besar, maksimal 5MB"));
     }
+
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
