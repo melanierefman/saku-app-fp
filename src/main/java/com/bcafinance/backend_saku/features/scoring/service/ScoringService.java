@@ -60,7 +60,8 @@ public class ScoringService {
         // 2. Evaluasi Plafond
         List<Plafond> activePlafonds = plafondRepository.findAllByStatusTrue();
         Optional<Plafond> matchedPlafondOpt = plafondRepository
-                .findTopByMinPendapatanLessThanEqualAndStatusTrueOrderByMinPendapatanDesc(pendapatan);
+                .findTopByMinPendapatanLessThanEqualAndStatusTrueOrderByMinPendapatanDesc(pendapatan)
+                .or(() -> plafondRepository.findFirstByStatusTrueOrderByMinSkorAsc());
 
         UUID matchedPlafondId = null;
         String matchedPlafondNama = null;
@@ -75,13 +76,16 @@ public class ScoringService {
             matchedMinPendapatan = p.getMinPendapatan();
             matchedPlafondMaksimal = p.getPlafondMaksimal();
 
-            int percentage = skor >= 75 ? 100 : (skor >= 60 ? 70 : 0);
-            if (percentage > 0 && matchedPlafondMaksimal != null) {
+            int percentage = skor >= 75 ? 100 : (skor >= 60 ? 70 : 50);
+            if (matchedPlafondMaksimal != null) {
                 estimasiPlafondDisetujui = matchedPlafondMaksimal
                         .multiply(BigDecimal.valueOf(percentage).movePointLeft(2))
                         .setScale(2, RoundingMode.HALF_UP);
+            } else if (p.getMinPlafond() != null) {
+                estimasiPlafondDisetujui = p.getMinPlafond();
             }
         }
+
 
         // 3. Deteksi Kondisi Ambigu / Anomali Scoring (untuk Marketing & BM)
         List<String> indikatorAmbigu = new ArrayList<>();
@@ -232,13 +236,20 @@ public class ScoringService {
     }
 
     private double scoreStatusPekerjaan(String status) {
+        if (status == null || status.isBlank()) {
+            return 30;
+        }
         return switch (status.trim().toUpperCase()) {
-            case "KARYAWAN_TETAP" -> 100;
+            case "PNS", "BUMN", "TNI_POLRI", "KARYAWAN_TETAP" -> 100;
             case "KARYAWAN_KONTRAK", "PROFESIONAL" -> 70;
-            case "WIRASWASTA" -> 50;
+            case "WIRASWASTA", "PENGUSAHA" -> 50;
+            case "FREELANCE", "PEKERJA_LEPAS", "PENSIUNAN" -> 40;
+            case "IBU_RUMAH_TANGGA", "LAINNYA" -> 30;
             default -> 30;
         };
     }
+
+
 
     private double scoreLamaNasabah(int bulan) {
         if (bulan >= 24)

@@ -51,9 +51,6 @@ public class PengajuanPinjamanService {
     private final FileStorageService fileStorageService;
     private final NotifikasiService notifikasiService;
 
-
-
-
     @Transactional
     public PengajuanStepResponse step1(UUID customerId, PengajuanPinjamanRequest request) {
         Customer customer = customerRepository.findById(customerId)
@@ -65,11 +62,6 @@ public class PengajuanPinjamanService {
 
         ScoringCustomer scoring = scoringRepository.findFirstByMstCustomerIdOrderByCreatedDateDesc(customerId)
                 .orElseThrow(() -> new BussinessRuleException("Data scoring customer belum tersedia"));
-
-        if (scoring.getSkor() == null || scoring.getSkor() < 60) {
-            throw new BussinessRuleException(
-                    "Skor kredit customer tidak memenuhi batas minimum untuk pengajuan pinjaman");
-        }
 
         Plafond plafond = resolvePlafond(scoring);
 
@@ -200,12 +192,12 @@ public class PengajuanPinjamanService {
 
         // Kirim notifikasi in-app ke customer
         String notifJudul = isRevisi ? "Dokumen Revisi Pinjaman Diterima" : "Pengajuan Pinjaman Diproses";
-        String notifPesan = "Pengajuan pinjaman no. " + saved.getNomorPengajuan() + " sedang dalam proses review oleh tim cabang.";
+        String notifPesan = "Pengajuan pinjaman no. " + saved.getNomorPengajuan()
+                + " sedang dalam proses review oleh tim cabang.";
         notifikasiService.createNotification(customerId, saved.getId(), "PENGAJUAN", "IN_APP", notifJudul, notifPesan);
 
         Cabang cabang = cabangRepository.findById(saved.getMstBranchId()).orElse(null);
         PengajuanPinjamanResponse detail = toResponse(saved, customer.getNama(), cabang, allUploadedDocs);
-
 
         return new PengajuanStepResponse(
                 saved.getId(),
@@ -275,10 +267,13 @@ public class PengajuanPinjamanService {
             }
         }
 
+        BigDecimal pendapatan = scoring.getPenghasilanBulanan() != null ? scoring.getPenghasilanBulanan()
+                : BigDecimal.ZERO;
+
         return plafondRepository
-                .findTopByMinPendapatanLessThanEqualAndStatusTrueOrderByMinPendapatanDesc(
-                        scoring.getPenghasilanBulanan())
-                .orElseThrow(() -> new BussinessRuleException("Customer belum memenuhi batas minimum plafond manapun"));
+                .findTopByMinPendapatanLessThanEqualAndStatusTrueOrderByMinPendapatanDesc(pendapatan)
+                .or(() -> plafondRepository.findFirstByStatusTrueOrderByMinSkorAsc())
+                .orElseThrow(() -> new BussinessRuleException("Produk plafond belum tersedia di sistem"));
     }
 
     private void validateLoanAmount(BigDecimal jumlahPinjaman, Plafond plafond) {
@@ -398,14 +393,14 @@ public class PengajuanPinjamanService {
         }
 
         PengajuanPinjaman pengajuan = pengajuanRepository.findByIdAndMstCustomerId(pengajuanId, customerId)
-                .orElseThrow(() -> new BussinessRuleException("Data pengajuan pinjaman tidak ditemukan atau bukan milik Anda"));
+                .orElseThrow(() -> new BussinessRuleException(
+                        "Data pengajuan pinjaman tidak ditemukan atau bukan milik Anda"));
 
         return angsuranRepository.findAllByTrxPengajuanPinjamanIdOrderByCicilanKeAsc(pengajuan.getId())
                 .stream()
                 .map(this::toAngsuranResponse)
                 .toList();
     }
-
 
     private AngsuranItemResponse toAngsuranResponse(Angsuran a) {
         if (a == null) {
@@ -457,4 +452,3 @@ public class PengajuanPinjamanService {
                 .build();
     }
 }
-
