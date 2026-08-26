@@ -26,7 +26,10 @@ import com.bcafinance.backend_saku.core.repository.PengajuanPinjamanRepository;
 import com.bcafinance.backend_saku.core.repository.PersetujuanRepository;
 import com.bcafinance.backend_saku.core.repository.ReviewPengajuanRepository;
 import com.bcafinance.backend_saku.features.backoffice.dto.AngsuranItemResponse;
+
+import com.bcafinance.backend_saku.features.backoffice.dto.BackofficeDashboardStatsResponse;
 import com.bcafinance.backend_saku.features.backoffice.dto.PencairanDetailResponse;
+
 import com.bcafinance.backend_saku.features.backoffice.dto.PencairanItemResponse;
 import com.bcafinance.backend_saku.features.backoffice.dto.PencairanRequest;
 import com.bcafinance.backend_saku.features.backoffice.dto.PencairanResponse;
@@ -468,5 +471,98 @@ public class PencairanService {
                 .formattedAddress(formatted.toString().trim())
                 .build();
     }
+
+    public BackofficeDashboardStatsResponse getDashboardStats() {
+        List<Customer> allCustomers = customerRepository.findAll();
+        List<PengajuanPinjaman> allLoans = pengajuanRepository.findAll();
+        List<Pencairan> allPencairan = pencairanRepository.findAll();
+
+        long menungguVerifikasiKyc = 0;
+        long terverifikasiKyc = 0;
+        java.util.Map<String, Long> bankMap = new java.util.LinkedHashMap<>();
+
+        for (Customer c : allCustomers) {
+            if (Boolean.TRUE.equals(c.getStatus())) {
+                terverifikasiKyc++;
+            } else {
+                menungguVerifikasiKyc++;
+            }
+
+            String bank = c.getNamaBank();
+            if (bank != null && !bank.isBlank() && !"PENDING".equalsIgnoreCase(bank)) {
+                String normalizedBank = bank.trim().toUpperCase();
+                bankMap.put(normalizedBank, bankMap.getOrDefault(normalizedBank, 0L) + 1);
+            }
+        }
+
+        long siapDicairkan = 0;
+        BigDecimal totalBiayaAdmin = BigDecimal.ZERO;
+
+        for (PengajuanPinjaman p : allLoans) {
+            String status = p.getStatusPengajuan() != null ? p.getStatusPengajuan().toUpperCase() : "";
+            if ("PENGAJUAN_DISETUJUI".equals(status) || "APPROVED".equals(status)) {
+                siapDicairkan++;
+            } else if ("DICAIRKAN".equals(status)) {
+                if (p.getBiayaAdmin() != null) {
+                    totalBiayaAdmin = totalBiayaAdmin.add(p.getBiayaAdmin());
+                }
+            }
+        }
+
+        long totalTransaksiPencairan = allPencairan.size();
+        BigDecimal totalNominalDicairkan = BigDecimal.ZERO;
+        for (Pencairan pc : allPencairan) {
+            if (pc.getJumlahPencairan() != null) {
+                totalNominalDicairkan = totalNominalDicairkan.add(pc.getJumlahPencairan());
+            }
+        }
+
+        long totalAngsuranAktif = angsuranRepository.count();
+
+        java.util.Map<String, Long> kycMap = new java.util.LinkedHashMap<>();
+        kycMap.put("TERVERIFIKASI", terverifikasiKyc);
+        kycMap.put("MENUNGGU_VERIFIKASI", menungguVerifikasiKyc);
+
+        // Weekly Disbursement Trends (Last 7 days)
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.time.format.DateTimeFormatter dateFormatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        java.time.format.DateTimeFormatter dayFormatter = java.time.format.DateTimeFormatter.ofPattern("EEE", java.util.Locale.forLanguageTag("id-ID"));
+
+        java.util.List<BackofficeDashboardStatsResponse.DailyDisbursementItem> weeklyDisbursements = new java.util.ArrayList<>();
+        for (int i = 6; i >= 0; i--) {
+            java.time.LocalDate d = today.minusDays(i);
+            long count = 0;
+            BigDecimal nominal = BigDecimal.ZERO;
+
+            for (Pencairan pc : allPencairan) {
+                if (pc.getCreatedDate() != null && pc.getCreatedDate().toLocalDate().isEqual(d)) {
+                    count++;
+                    if (pc.getJumlahPencairan() != null) {
+                        nominal = nominal.add(pc.getJumlahPencairan());
+                    }
+                }
+            }
+
+            weeklyDisbursements.add(BackofficeDashboardStatsResponse.DailyDisbursementItem.builder()
+                    .date(d.format(dateFormatter))
+                    .day(d.format(dayFormatter))
+                    .count(count)
+                    .totalNominal(nominal)
+                    .build());
+        }
+
+        return BackofficeDashboardStatsResponse.builder()
+                .menungguVerifikasiKyc(menungguVerifikasiKyc)
+                .siapDicairkan(siapDicairkan)
+                .totalTransaksiPencairan(totalTransaksiPencairan)
+                .totalNominalDicairkan(totalNominalDicairkan)
+                .totalBiayaAdmin(totalBiayaAdmin)
+                .totalAngsuranAktif(totalAngsuranAktif)
+                .bankDistribution(bankMap)
+                .kycDistribution(kycMap)
+                .weeklyDisbursements(weeklyDisbursements)
+                .build();
+    }
 }
+
 

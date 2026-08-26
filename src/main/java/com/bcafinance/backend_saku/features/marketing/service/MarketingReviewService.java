@@ -2,7 +2,9 @@ package com.bcafinance.backend_saku.features.marketing.service;
 
 import com.bcafinance.backend_saku.core.dto.AlamatDetailResponse;
 import com.bcafinance.backend_saku.core.dto.DokumenPinjamanResponse;
+import com.bcafinance.backend_saku.features.marketing.dto.MarketingDashboardStatsResponse;
 import com.bcafinance.backend_saku.features.marketing.dto.MarketingPengajuanDetailResponse;
+
 import com.bcafinance.backend_saku.features.marketing.dto.MarketingPengajuanItemResponse;
 import com.bcafinance.backend_saku.features.marketing.dto.ReviewPengajuanRequest;
 import com.bcafinance.backend_saku.features.marketing.dto.ReviewPengajuanResponse;
@@ -442,4 +444,111 @@ public class MarketingReviewService {
 
         return pokokBulanan.add(bungaBulanan);
     }
+
+    public MarketingDashboardStatsResponse getDashboardStats() {
+        List<PengajuanPinjaman> allLoans = pengajuanRepository.findAll();
+
+        long total = allLoans.size();
+        long menungguReview = 0;
+        long perluRevisi = 0;
+        long disetujuiMarketing = 0;
+        long ditolakMarketing = 0;
+
+        java.util.Map<String, Long> statusMap = new java.util.LinkedHashMap<>();
+        statusMap.put("MENUNGGU_REVIEW", 0L);
+        statusMap.put("PERLU_REVISI", 0L);
+        statusMap.put("SELESAI_DIREVIEW", 0L);
+        statusMap.put("PENGAJUAN_DITOLAK", 0L);
+        statusMap.put("DICAIRKAN", 0L);
+
+        for (PengajuanPinjaman p : allLoans) {
+            String status = p.getStatusPengajuan() != null ? p.getStatusPengajuan().toUpperCase() : "PENDING";
+            if ("PENDING".equals(status) || "MENUNGGU_REVIEW".equals(status)) {
+                menungguReview++;
+                statusMap.put("MENUNGGU_REVIEW", statusMap.get("MENUNGGU_REVIEW") + 1);
+            } else if ("PERLU_REVISI".equals(status)) {
+                perluRevisi++;
+                statusMap.put("PERLU_REVISI", statusMap.get("PERLU_REVISI") + 1);
+            } else if ("SELESAI_DIREVIEW".equals(status) || "PENGAJUAN_DISETUJUI".equals(status) || "DICAIRKAN".equals(status) || "APPROVED".equals(status)) {
+                disetujuiMarketing++;
+                if ("DICAIRKAN".equals(status)) {
+                    statusMap.put("DICAIRKAN", statusMap.get("DICAIRKAN") + 1);
+                } else {
+                    statusMap.put("SELESAI_DIREVIEW", statusMap.get("SELESAI_DIREVIEW") + 1);
+                }
+            } else if ("PENGAJUAN_DITOLAK".equals(status) || "DITOLAK".equals(status) || "REJECTED".equals(status)) {
+                ditolakMarketing++;
+                statusMap.put("PENGAJUAN_DITOLAK", statusMap.get("PENGAJUAN_DITOLAK") + 1);
+            }
+        }
+
+        long totalDecided = disetujuiMarketing + ditolakMarketing;
+        double approvalRate = totalDecided > 0 ? ((double) disetujuiMarketing / totalDecided) * 100.0 : 0.0;
+        approvalRate = Math.round(approvalRate * 10.0) / 10.0;
+
+        // Scoring Distribution
+        List<ScoringCustomer> scorings = scoringRepository.findAll();
+        long skorTinggi = 0; // >= 75
+        long skorSedang = 0; // 60 - 74
+        long skorRendah = 0; // < 60
+
+        for (ScoringCustomer s : scorings) {
+            Integer score = s.getSkor();
+            if (score != null) {
+                if (score >= 75) {
+                    skorTinggi++;
+                } else if (score >= 60) {
+                    skorSedang++;
+                } else {
+                    skorRendah++;
+                }
+            }
+        }
+
+        java.util.Map<String, Long> scoringMap = new java.util.LinkedHashMap<>();
+        scoringMap.put("SKOR_TINGGI (>= 75)", skorTinggi);
+        scoringMap.put("SKOR_SEDANG (60 - 74)", skorSedang);
+        scoringMap.put("SKOR_RENDAH (< 60)", skorRendah);
+
+        // Weekly Trends (Last 7 days)
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.time.format.DateTimeFormatter dateFormatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        java.time.format.DateTimeFormatter dayFormatter = java.time.format.DateTimeFormatter.ofPattern("EEE", java.util.Locale.forLanguageTag("id-ID"));
+
+        java.util.List<MarketingDashboardStatsResponse.DailyTrendItem> weeklyTrends = new java.util.ArrayList<>();
+        for (int i = 6; i >= 0; i--) {
+            java.time.LocalDate d = today.minusDays(i);
+            long count = 0;
+            BigDecimal nominal = BigDecimal.ZERO;
+
+            for (PengajuanPinjaman p : allLoans) {
+                if (p.getCreatedDate() != null && p.getCreatedDate().toLocalDate().isEqual(d)) {
+                    count++;
+                    if (p.getJumlahPinjaman() != null) {
+                        nominal = nominal.add(p.getJumlahPinjaman());
+                    }
+                }
+            }
+
+            weeklyTrends.add(MarketingDashboardStatsResponse.DailyTrendItem.builder()
+                    .date(d.format(dateFormatter))
+                    .day(d.format(dayFormatter))
+                    .count(count)
+                    .totalNominal(nominal)
+                    .build());
+        }
+
+        return MarketingDashboardStatsResponse.builder()
+                .totalPengajuan(total)
+                .menungguReview(menungguReview)
+                .perluRevisi(perluRevisi)
+                .disetujuiMarketing(disetujuiMarketing)
+                .ditolakMarketing(ditolakMarketing)
+                .approvalRate(approvalRate)
+                .scoringDistribution(scoringMap)
+                .statusDistribution(statusMap)
+                .weeklyTrends(weeklyTrends)
+                .build();
+    }
 }
+

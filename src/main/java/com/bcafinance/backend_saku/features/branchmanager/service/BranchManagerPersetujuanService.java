@@ -1,7 +1,9 @@
 package com.bcafinance.backend_saku.features.branchmanager.service;
 
 import com.bcafinance.backend_saku.core.dto.AlamatDetailResponse;
+import com.bcafinance.backend_saku.features.branchmanager.dto.BranchManagerDashboardStatsResponse;
 import com.bcafinance.backend_saku.features.branchmanager.dto.BranchManagerPengajuanDetailResponse;
+
 import com.bcafinance.backend_saku.features.branchmanager.dto.BranchManagerPengajuanItemResponse;
 import com.bcafinance.backend_saku.core.dto.DokumenPinjamanResponse;
 import com.bcafinance.backend_saku.features.branchmanager.dto.PersetujuanPinjamanRequest;
@@ -474,4 +476,108 @@ public class BranchManagerPersetujuanService {
 
         return pokokBulanan.add(bungaBulanan);
     }
+
+    public BranchManagerDashboardStatsResponse getDashboardStats() {
+        List<PengajuanPinjaman> allLoans = pengajuanRepository.findAll();
+
+        long total = allLoans.size();
+        long menungguPersetujuan = 0;
+        long disetujuiBM = 0;
+        long ditolakBM = 0;
+        BigDecimal totalNominalDiajukan = BigDecimal.ZERO;
+        BigDecimal totalNominalDisetujui = BigDecimal.ZERO;
+
+        java.util.Map<String, Long> tenorMap = new java.util.LinkedHashMap<>();
+        tenorMap.put("6 Bulan", 0L);
+        tenorMap.put("12 Bulan", 0L);
+        tenorMap.put("18 Bulan", 0L);
+        tenorMap.put("24 Bulan", 0L);
+        tenorMap.put("Lainnya", 0L);
+
+        for (PengajuanPinjaman p : allLoans) {
+            String status = p.getStatusPengajuan() != null ? p.getStatusPengajuan().toUpperCase() : "";
+            BigDecimal nominal = p.getJumlahPinjaman() != null ? p.getJumlahPinjaman() : BigDecimal.ZERO;
+            totalNominalDiajukan = totalNominalDiajukan.add(nominal);
+
+            if ("SELESAI_DIREVIEW".equals(status) || "MENUNGGU_PERSETUJUAN".equals(status)) {
+                menungguPersetujuan++;
+            } else if ("PENGAJUAN_DISETUJUI".equals(status) || "DICAIRKAN".equals(status) || "APPROVED".equals(status)) {
+                disetujuiBM++;
+                totalNominalDisetujui = totalNominalDisetujui.add(nominal);
+            } else if ("PENGAJUAN_DITOLAK".equals(status) || "DITOLAK".equals(status)) {
+                ditolakBM++;
+            }
+
+            // Tenor count
+            Integer tenor = p.getTenorBulan();
+            if (tenor != null) {
+                String tenorKey = tenor + " Bulan";
+                if (tenorMap.containsKey(tenorKey)) {
+                    tenorMap.put(tenorKey, tenorMap.get(tenorKey) + 1);
+                } else {
+                    tenorMap.put("Lainnya", tenorMap.get("Lainnya") + 1);
+                }
+            }
+        }
+
+        long totalDecided = disetujuiBM + ditolakBM;
+        double approvalRate = totalDecided > 0 ? ((double) disetujuiBM / totalDecided) * 100.0 : 0.0;
+        approvalRate = Math.round(approvalRate * 10.0) / 10.0;
+
+        BigDecimal rataRataNominal = total > 0
+                ? totalNominalDiajukan.divide(BigDecimal.valueOf(total), 2, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
+
+        java.util.Map<String, Long> statusPersetujuanMap = new java.util.LinkedHashMap<>();
+        statusPersetujuanMap.put("PENGAJUAN_DISETUJUI", disetujuiBM);
+        statusPersetujuanMap.put("PENGAJUAN_DITOLAK", ditolakBM);
+        statusPersetujuanMap.put("MENUNGGU_PERSETUJUAN", menungguPersetujuan);
+
+        // Monthly trends (Last 6 months)
+        java.time.YearMonth currentMonth = java.time.YearMonth.now();
+        java.time.format.DateTimeFormatter monthFormatter = java.time.format.DateTimeFormatter.ofPattern("MMM yyyy", java.util.Locale.forLanguageTag("id-ID"));
+
+        java.util.List<BranchManagerDashboardStatsResponse.MonthlyTrendItem> monthlyTrends = new java.util.ArrayList<>();
+        for (int i = 5; i >= 0; i--) {
+            java.time.YearMonth ym = currentMonth.minusMonths(i);
+            long count = 0;
+            BigDecimal nominal = BigDecimal.ZERO;
+
+            for (PengajuanPinjaman p : allLoans) {
+                if (p.getCreatedDate() != null) {
+                    java.time.YearMonth loanYm = java.time.YearMonth.from(p.getCreatedDate());
+                    if (loanYm.equals(ym)) {
+                        String status = p.getStatusPengajuan() != null ? p.getStatusPengajuan().toUpperCase() : "";
+                        if ("PENGAJUAN_DISETUJUI".equals(status) || "DICAIRKAN".equals(status) || "APPROVED".equals(status)) {
+                            count++;
+                            if (p.getJumlahPinjaman() != null) {
+                                nominal = nominal.add(p.getJumlahPinjaman());
+                            }
+                        }
+                    }
+                }
+            }
+
+            monthlyTrends.add(BranchManagerDashboardStatsResponse.MonthlyTrendItem.builder()
+                    .month(ym.format(monthFormatter))
+                    .countDisetujui(count)
+                    .totalNominalDisetujui(nominal)
+                    .build());
+        }
+
+        return BranchManagerDashboardStatsResponse.builder()
+                .totalPengajuanCabang(total)
+                .menungguPersetujuan(menungguPersetujuan)
+                .disetujuiBM(disetujuiBM)
+                .ditolakBM(ditolakBM)
+                .totalNominalDiajukan(totalNominalDiajukan)
+                .totalNominalDisetujui(totalNominalDisetujui)
+                .approvalRateBM(approvalRate)
+                .rataRataNominalPinjaman(rataRataNominal)
+                .tenorDistribution(tenorMap)
+                .statusPersetujuanDistribution(statusPersetujuanMap)
+                .monthlyApprovalTrends(monthlyTrends)
+                .build();
+    }
 }
+
