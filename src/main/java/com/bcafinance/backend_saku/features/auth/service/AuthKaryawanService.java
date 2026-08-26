@@ -34,18 +34,21 @@ public class AuthKaryawanService {
     private final KaryawanRepository karyawanRepository;
     private final OtpService otpService;
     private final PasswordEncoder passwordEncoder;
+    private final com.bcafinance.backend_saku.features.master.auditlog.service.AuditLogService auditLogService;
 
     public AuthKaryawanService(
             JwtService jwtService,
             @Qualifier("karyawanAuthenticationManager") AuthenticationManager karyawanAuthenticationManager,
             KaryawanRepository karyawanRepository,
             OtpService otpService,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            com.bcafinance.backend_saku.features.master.auditlog.service.AuditLogService auditLogService) {
         this.jwtService = jwtService;
         this.karyawanAuthenticationManager = karyawanAuthenticationManager;
         this.karyawanRepository = karyawanRepository;
         this.otpService = otpService;
         this.passwordEncoder = passwordEncoder;
+        this.auditLogService = auditLogService;
     }
 
     // Login
@@ -64,8 +67,19 @@ public class AuthKaryawanService {
         }
 
         AppUser user = (AppUser) authentication.getPrincipal();
+
+        // Record Audit Log for Karyawan Login
+        if (auditLogService != null && user.getIdKaryawan() != null) {
+            auditLogService.recordLog(
+                    user.getIdKaryawan(),
+                    "LOGIN",
+                    "AUTH",
+                    "Karyawan " + user.getUsername() + " (" + user.getRole() + ") berhasil login ke sistem");
+        }
+
         return generateAuthResponse(user);
     }
+
 
     // Refresh Token
     public AuthResponse refreshToken(RefreshTokenRequest request) {

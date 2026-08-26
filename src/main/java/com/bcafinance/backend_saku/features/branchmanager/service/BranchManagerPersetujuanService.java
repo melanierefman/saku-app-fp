@@ -60,6 +60,8 @@ public class BranchManagerPersetujuanService {
     private final CabangRepository cabangRepository;
     private final ScoringService scoringService;
     private final com.bcafinance.backend_saku.features.customer.service.NotifikasiService notifikasiService;
+    private final com.bcafinance.backend_saku.features.master.auditlog.service.AuditLogService auditLogService;
+
 
 
 
@@ -392,8 +394,14 @@ public class BranchManagerPersetujuanService {
                     "Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan() + " tidak disetujui oleh Branch Manager. Catatan: " + request.getCatatan());
         }
 
+        if (auditLogService != null && karyawanId != null) {
+            String act = "PENGAJUAN_DISETUJUI".equalsIgnoreCase(newStatusPengajuan) ? "APPROVE" : "REJECT";
+            String desc = "Branch Manager " + karyawan.getNama() + " memproses persetujuan pengajuan no. " + pengajuan.getNomorPengajuan() + " (" + act + ")";
+            auditLogService.recordLog(karyawanId, act, "PENGAJUAN", desc);
+        }
 
         return PersetujuanPinjamanResponse.builder()
+
                 .id(savedPersetujuan.getId())
                 .pengajuanId(pengajuanId)
                 .nomorPengajuan(pengajuan.getNomorPengajuan())

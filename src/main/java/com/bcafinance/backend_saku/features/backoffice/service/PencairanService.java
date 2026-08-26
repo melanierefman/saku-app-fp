@@ -63,6 +63,8 @@ public class PencairanService {
     private final ReviewPengajuanRepository reviewPengajuanRepository;
     private final PersetujuanRepository persetujuanRepository;
     private final com.bcafinance.backend_saku.features.customer.service.NotifikasiService notifikasiService;
+    private final com.bcafinance.backend_saku.features.master.auditlog.service.AuditLogService auditLogService;
+
 
 
 
@@ -374,7 +376,13 @@ public class PencairanService {
                 "Dana Pinjaman Telah Dicairkan",
                 "Selamat! Dana pinjaman no. " + pengajuan.getNomorPengajuan() + " sebesar Rp " + jumlahPencairan + " telah berhasil dicairkan ke rekening " + customer.getNamaBank() + " Anda.");
 
+        if (auditLogService != null && karyawanId != null) {
+            String desc = "Backoffice " + karyawan.getNama() + " mencairkan pinjaman no. " + pengajuan.getNomorPengajuan() + " sebesar Rp " + jumlahPencairan + " ke rekening " + customer.getNamaBank();
+            auditLogService.recordLog(karyawanId, "PENCAIRAN", "PENCAIRAN", desc);
+        }
+
         return PencairanResponse.builder()
+
 
                 .pencairanId(savedPencairan.getId())
                 .pengajuanId(pengajuanId)

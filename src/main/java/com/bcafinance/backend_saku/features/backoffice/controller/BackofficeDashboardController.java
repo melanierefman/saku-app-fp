@@ -13,8 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/backoffice/dashboard")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('BACKOFFICE', 'ADMIN')")
+@PreAuthorize("hasRole('BACKOFFICE')")
 public class BackofficeDashboardController {
+
 
     private final PencairanService pencairanService;
 

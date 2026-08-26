@@ -13,8 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/branchmanager/dashboard")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('BRANCHMANAGER', 'ADMIN')")
+@PreAuthorize("hasRole('BRANCHMANAGER')")
 public class BranchManagerDashboardController {
+
 
     private final BranchManagerPersetujuanService branchManagerPersetujuanService;
 

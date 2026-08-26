@@ -55,6 +55,8 @@ public class MarketingReviewService {
     private final CabangRepository cabangRepository;
     private final ScoringService scoringService;
     private final com.bcafinance.backend_saku.features.customer.service.NotifikasiService notifikasiService;
+    private final com.bcafinance.backend_saku.features.master.auditlog.service.AuditLogService auditLogService;
+
 
 
 
@@ -351,8 +353,13 @@ public class MarketingReviewService {
                     "Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan() + " memerlukan perbaikan dokumen. Catatan: " + request.getCatatan());
         }
 
+        if (auditLogService != null && karyawanId != null) {
+            String desc = "Marketing " + karyawan.getNama() + " mereview pengajuan no. " + pengajuan.getNomorPengajuan() + " dengan hasil: " + hasilReview;
+            auditLogService.recordLog(karyawanId, "REVIEW", "PENGAJUAN", desc);
+        }
 
         return ReviewPengajuanResponse.builder()
+
                 .id(savedReview.getId())
                 .pengajuanId(pengajuanId)
                 .nomorPengajuan(pengajuan.getNomorPengajuan())

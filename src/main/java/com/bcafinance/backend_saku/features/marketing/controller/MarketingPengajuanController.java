@@ -40,8 +40,9 @@ public class MarketingPengajuanController {
         return ResponseEntity.ok(ApiResponse.success(marketingReviewService.getDetail(pengajuanId)));
     }
 
-    @PutMapping("/{pengajuanId}/review")
+    @PutMapping("/{pengajuanId}")
     public ResponseEntity<ApiResponse<ReviewPengajuanResponse>> review(
+
             @PathVariable UUID pengajuanId,
             @Valid @RequestBody ReviewPengajuanRequest request,
             @AuthenticationPrincipal AppUser karyawan) {

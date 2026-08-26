@@ -49,13 +49,13 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/auth/**").permitAll()
                                                 .requestMatchers("/uploads/**").permitAll()
                                                 .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
-                                                .requestMatchers("/api/marketing/**").hasAnyRole("MARKETING")
-                                                .requestMatchers("/api/branch-manager/**", "/api/bm/**")
-                                                .hasAnyRole("BRANCHMANAGER")
-
-                                                .requestMatchers("/api/karyawan/**").hasRole("SUPERADMIN")
-                                                .requestMatchers("/api/cabang/**").hasRole("SUPERADMIN")
-                                                .requestMatchers("/api/plafond/**").hasRole("SUPERADMIN")
+                                                .requestMatchers("/api/marketing/**").hasRole("MARKETING")
+                                                .requestMatchers("/api/branch-manager/**", "/api/bm/**",
+                                                                "/api/branchmanager/**")
+                                                .hasRole("BRANCHMANAGER")
+                                                .requestMatchers("/api/karyawan/**", "/api/cabang/**",
+                                                                "/api/plafond/**", "/api/master/**")
+                                                .hasRole("SUPERADMIN")
                                                 .requestMatchers("/api/backoffice/**").hasRole("BACKOFFICE")
                                                 .anyRequest()
                                                 .authenticated())

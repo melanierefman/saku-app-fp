@@ -38,6 +38,8 @@ public class VerifikasiCustomerService {
     private final AlamatCustomerRepository alamatRepository;
     private final DokumenCustomerRepository dokumenRepository;
     private final PlafondService plafondService;
+    private final com.bcafinance.backend_saku.features.master.auditlog.service.AuditLogService auditLogService;
+
 
     public List<VerifikasiCustomerItemResponse> findAll(String statusFilter) {
         List<Customer> customers = customerRepository.findAllByOrderByCreatedDateDesc();
@@ -210,7 +212,13 @@ public class VerifikasiCustomerService {
         verification.setMstKaryawanId(karyawanId);
         verifikasiRepository.save(verification);
 
+        if (auditLogService != null && karyawanId != null) {
+            String desc = "Backoffice memverifikasi KYC customer " + customer.getNama() + " (" + customer.getEmail() + ") dengan status: " + status;
+            auditLogService.recordLog(karyawanId, "VERIFIKASI_KYC", "CUSTOMER", desc);
+        }
+
         return new VerifikasiCustomerResponse(
+
                 customerId, status, request.getCatatanVerifikasi(), scoring.getSkor(),
                 keputusan, plafondId, approvedAmount, customer.getStatus());
     }

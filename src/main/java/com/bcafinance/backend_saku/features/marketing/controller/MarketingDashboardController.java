@@ -13,8 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/marketing/dashboard")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('MARKETING', 'ADMIN', 'BRANCHMANAGER', 'BACKOFFICE')")
+@PreAuthorize("hasRole('MARKETING')")
 public class MarketingDashboardController {
+
 
     private final MarketingReviewService marketingReviewService;
 
