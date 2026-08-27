@@ -1,0 +1,53 @@
+<div class="w-full space-y-1.5">
+  <!-- Header with Label & Character Count -->
+  <div class="flex items-center justify-between">
+    @if (label) {
+      <label
+        [for]="id"
+        class="block text-sm font-medium text-neutral-60"
+      >
+        {{ label }}
+        @if (required) {
+          <span class="text-error ml-0.5">*</span>
+        }
+      </label>
+    }
+
+    @if (showCharCount && maxLength) {
+      <span class="text-[11px] text-neutral-40 font-mono ml-auto">
+        {{ value.length }}/{{ maxLength }}
+      </span>
+    }
+  </div>
+
+  <!-- Textarea Core Element -->
+  <textarea
+    [id]="id"
+    [rows]="rows"
+    [value]="value"
+    [placeholder]="placeholder"
+    [disabled]="disabled"
+    [readOnly]="readonly"
+    [required]="required"
+    [maxLength]="maxLength || null"
+    [class]="textareaClasses"
+    (input)="onInput($event)"
+    (blur)="onBlur()"
+  ></textarea>
+
+  <!-- Helper Text or Error Message -->
+  @if (errorMessage) {
+    <p class="text-xs text-error flex items-center gap-1 mt-1">
+      <svg class="w-3.5 h-3.5 shrink-0 lucide lucide-alert-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" x2="12" y1="8" y2="12" />
+        <line x1="12" x2="12.01" y1="16" y2="16" />
+      </svg>
+      <span>{{ errorMessage }}</span>
+    </p>
+  } @else if (helperText) {
+    <p class="text-xs text-neutral-40 mt-1">
+      {{ helperText }}
+    </p>
+  }
+</div>

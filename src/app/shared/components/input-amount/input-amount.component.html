@@ -1,0 +1,96 @@
+<div class="w-full space-y-1.5">
+  <!-- Label -->
+  @if (label) {
+    <label
+      [for]="id"
+      class="block text-sm font-medium text-neutral-60"
+    >
+      {{ label }}
+      @if (required) {
+        <span class="text-error ml-0.5">*</span>
+      }
+    </label>
+  }
+
+  <!-- Amount Input Wrapper -->
+  <div [class]="wrapperClasses">
+    <!-- Left Icon (Cash / Banknote Icon) -->
+    <div class="pl-3.5 flex items-center pointer-events-none text-neutral-50">
+      <ng-content select="[iconLeft]">
+        <svg class="w-4 h-4 lucide lucide-banknote" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect width="20" height="12" x="2" y="6" rx="2" />
+          <circle cx="12" cy="12" r="2" />
+          <path d="M6 12h.01M18 12h.01" />
+        </svg>
+      </ng-content>
+    </div>
+
+    <!-- Optional Currency Prefix text (e.g. Rp) -->
+    @if (currencyPrefix) {
+      <span class="pl-2 text-sm text-neutral-50 font-medium select-none">
+        {{ currencyPrefix }}
+      </span>
+    }
+
+    <!-- Core Amount Text Input -->
+    <input
+      [id]="id"
+      type="text"
+      inputmode="numeric"
+      [value]="displayValue"
+      [placeholder]="placeholder"
+      [disabled]="disabled"
+      [readOnly]="readonly"
+      [required]="required"
+      class="w-full bg-transparent px-3 py-2 text-sm font-normal text-neutral-100 placeholder:text-neutral-30 focus:outline-none disabled:cursor-not-allowed"
+      (input)="onInputChange($event)"
+      (blur)="onBlur()"
+    />
+
+    <!-- Clear Button (if value exists) -->
+    @if (displayValue && !disabled && !readonly) {
+      <button
+        type="button"
+        (click)="clearAmount()"
+        class="pr-3 text-neutral-30 hover:text-neutral-60 focus:outline-none cursor-pointer"
+        aria-label="Hapus nominal"
+      >
+        <svg class="w-4 h-4 lucide lucide-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 6 6 18" />
+          <path d="m6 6 12 12" />
+        </svg>
+      </button>
+    }
+  </div>
+
+  <!-- Quick Amounts Chips (Optional Presets) -->
+  @if (quickAmounts.length > 0 && !disabled && !readonly) {
+    <div class="flex flex-wrap items-center gap-1.5 pt-1">
+      @for (amount of quickAmounts; track amount) {
+        <button
+          type="button"
+          (click)="addQuickAmount(amount)"
+          class="px-2.5 py-1 text-xs font-medium rounded-md bg-neutral-0 border border-neutral-10 text-neutral-70 hover:border-primary/50 hover:text-primary hover:bg-primary-0 transition-colors cursor-pointer"
+        >
+          {{ formatQuickLabel(amount) }}
+        </button>
+      }
+    </div>
+  }
+
+  <!-- Helper Text or Error Message -->
+  @if (errorMessage) {
+    <p class="text-xs text-error flex items-center gap-1 mt-1">
+      <svg class="w-3.5 h-3.5 shrink-0 lucide lucide-alert-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" x2="12" y1="8" y2="12" />
+        <line x1="12" x2="12.01" y1="16" y2="16" />
+      </svg>
+      <span>{{ errorMessage }}</span>
+    </p>
+  } @else if (helperText) {
+    <p class="text-xs text-neutral-40 mt-1">
+      {{ helperText }}
+    </p>
+  }
+</div>

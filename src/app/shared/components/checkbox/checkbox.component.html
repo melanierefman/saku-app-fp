@@ -1,0 +1,50 @@
+<div class="flex items-start gap-2.5">
+  <!-- Checkbox Visual Box -->
+  <div
+    role="checkbox"
+    [attr.aria-checked]="indeterminate ? 'mixed' : checked"
+    [attr.aria-disabled]="disabled"
+    tabindex="0"
+    (click)="toggle()"
+    (keydown.space)="$event.preventDefault(); toggle()"
+    (keydown.enter)="$event.preventDefault(); toggle()"
+    [class]="boxClasses"
+  >
+    @if (indeterminate) {
+      <!-- Minus icon for indeterminate -->
+      <svg class="w-3 h-3 text-white stroke-[3]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" x2="19" y1="12" y2="12" />
+      </svg>
+    } @else if (checked) {
+      <!-- Checkmark icon -->
+      <svg class="w-3 h-3 text-white stroke-[3]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12" />
+      </svg>
+    }
+  </div>
+
+  <!-- Label & Description Text -->
+  @if (label || description) {
+    <div class="text-xs select-none">
+      @if (label) {
+        <label
+          (click)="toggle()"
+          [class]="disabled ? 'text-neutral-40 cursor-not-allowed' : 'text-neutral-90 cursor-pointer font-medium hover:text-neutral-100'"
+          class="block leading-snug"
+        >
+          {{ label }}
+        </label>
+      }
+      @if (description) {
+        <p class="text-neutral-40 mt-0.5 leading-relaxed">
+          {{ description }}
+        </p>
+      }
+      @if (errorMessage) {
+        <p class="text-error mt-0.5 font-medium">
+          {{ errorMessage }}
+        </p>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,38 @@
+<div class="flex items-start gap-2.5">
+  <!-- Radio Outer Circle -->
+  <div
+    role="radio"
+    [attr.aria-checked]="isChecked"
+    [attr.aria-disabled]="disabled"
+    tabindex="0"
+    (click)="onSelect()"
+    (keydown.space)="$event.preventDefault(); onSelect()"
+    (keydown.enter)="$event.preventDefault(); onSelect()"
+    [class]="circleClasses"
+  >
+    <!-- Radio Inner Dot (when checked) -->
+    @if (isChecked) {
+      <span class="w-2.5 h-2.5 rounded-full bg-primary animate-scaleIn"></span>
+    }
+  </div>
+
+  <!-- Label & Description Text -->
+  @if (label || description) {
+    <div class="text-xs select-none">
+      @if (label) {
+        <label
+          (click)="onSelect()"
+          [class]="disabled ? 'text-neutral-40 cursor-not-allowed' : 'text-neutral-90 cursor-pointer font-medium hover:text-neutral-100'"
+          class="block leading-snug"
+        >
+          {{ label }}
+        </label>
+      }
+      @if (description) {
+        <p class="text-neutral-40 mt-0.5 leading-relaxed">
+          {{ description }}
+        </p>
+      }
+    </div>
+  }
+</div>

@@ -1,11 +1,11 @@
-<div class="min-h-screen bg-white text-neutral-50 font-sans py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto space-y-12">
+<div class="min-h-screen bg-white text-neutral-50 font-sans py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto space-y-14">
   <!-- Page Header -->
   <div class="border-b border-neutral-10 pb-6">
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold text-neutral-100 tracking-tight">Component Sandbox</h1>
         <p class="text-sm text-neutral-40 mt-1">
-          Katalog komponen dasar Saku UI (Button dan Badge) beserta variasi dan statusnya.
+          Katalog komponen dasar & form controls Saku UI (Button, Badge, Input, Textarea, Amount, Checkbox, Radio, Dropdown).
         </p>
       </div>
       <app-badge variant="primary" size="sm">Design System</app-badge>
@@ -186,7 +186,324 @@
   </section>
 
   <!-- ========================================== -->
-  <!-- 3. COLOR TOKENS SECTION -->
+  <!-- 3. INPUT SECTION (Phase 1) -->
+  <!-- ========================================== -->
+  <section class="space-y-6">
+    <div class="border-b border-neutral-10 pb-2">
+      <h2 class="text-lg font-bold text-neutral-100">Input (Text, Search, Password, Addons)</h2>
+      <p class="text-xs text-neutral-40">app-input</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Standard Input -->
+      <app-input
+        label="Nama Perusahaan"
+        [(ngModel)]="demoText"
+        placeholder="Masukkan nama perusahaan"
+        helperText="Nama resmi sesuai dokumen legalitas"
+        [required]="true"
+      ></app-input>
+
+      <!-- Search Input with Left Icon -->
+      <app-input
+        label="Pencarian Data"
+        type="search"
+        [(ngModel)]="demoSearch"
+        placeholder="Cari transaksi, nasabah, cabang..."
+      >
+        <svg iconLeft class="w-4 h-4 lucide lucide-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.3-4.3" />
+        </svg>
+      </app-input>
+
+      <!-- Email Input with Icon -->
+      <app-input
+        label="Email Admin"
+        type="email"
+        [(ngModel)]="demoEmail"
+        placeholder="nama@saku.id"
+      >
+        <svg iconLeft class="w-4 h-4 lucide lucide-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect width="20" height="16" x="2" y="4" rx="2" />
+          <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+        </svg>
+      </app-input>
+
+      <!-- Prefix Addon Input -->
+      <app-input
+        label="Website Perusahaan"
+        prefixText="https://"
+        suffixText=".id"
+        placeholder="perusahaan"
+      ></app-input>
+
+      <!-- Error State Input -->
+      <app-input
+        label="Nomor Pokok Wajib Pajak (NPWP)"
+        placeholder="00.000.000.0-000.000"
+        errorMessage="Format NPWP tidak valid atau belum lengkap"
+        [required]="true"
+      ></app-input>
+
+      <!-- Disabled Input -->
+      <app-input
+        label="ID Pengguna (Readonly)"
+        value="SK-USR-9821"
+        [disabled]="true"
+        helperText="ID akun digenerate secara otomatis oleh sistem"
+      ></app-input>
+    </div>
+
+    <!-- Input Sizes -->
+    <div class="space-y-3 pt-2">
+      <h3 class="text-xs font-semibold uppercase tracking-wider text-neutral-40">Input Sizes (sm, md, lg)</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <app-input label="Small (sm)" size="sm" placeholder="Ukuran kecil (sm)"></app-input>
+        <app-input label="Medium (md - Default)" size="md" placeholder="Ukuran sedang (md)"></app-input>
+        <app-input label="Large (lg)" size="lg" placeholder="Ukuran besar (lg)"></app-input>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- 4. TEXTAREA SECTION (Phase 1) -->
+  <!-- ========================================== -->
+  <section class="space-y-6">
+    <div class="border-b border-neutral-10 pb-2">
+      <h2 class="text-lg font-bold text-neutral-100">Textarea</h2>
+      <p class="text-xs text-neutral-40">app-textarea</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Standard Textarea with Char Count -->
+      <app-textarea
+        label="Deskripsi / Catatan Transaksi"
+        [(ngModel)]="demoTextarea"
+        [rows]="4"
+        [maxLength]="200"
+        [showCharCount]="true"
+        helperText="Maksimal 200 karakter keterangan transaksi"
+      ></app-textarea>
+
+      <!-- Textarea with Error -->
+      <app-textarea
+        label="Alasan Penolakan Pengajuan"
+        placeholder="Tuliskan detail alasan penolakan..."
+        [rows]="4"
+        [required]="true"
+        errorMessage="Alasan penolakan wajib diisi secara rinci"
+      ></app-textarea>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- 5. INPUT AMOUNT (CURRENCY) SECTION (Phase 1) -->
+  <!-- ========================================== -->
+  <section class="space-y-6">
+    <div class="border-b border-neutral-10 pb-2">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold text-neutral-100">Input Amount / Currency</h2>
+          <p class="text-xs text-neutral-40">app-input-amount</p>
+        </div>
+        <span class="text-xs font-mono text-primary font-bold bg-primary-0 px-2 py-1 rounded">
+          Model Value: {{ demoAmount }}
+        </span>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+      <!-- Minimal Skor -->
+      <app-input-number
+        label="Minimal Skor"
+        [required]="true"
+        [(ngModel)]="minScore"
+        [min]="0"
+        [max]="999"
+        helperText="Max 999"
+      ></app-input-number>
+
+      <!-- Maksimal Skor -->
+      <app-input-number
+        label="Maksimal Skor"
+        [required]="true"
+        [(ngModel)]="maxScore"
+        [min]="0"
+        [max]="999"
+        helperText="Max 999"
+      ></app-input-number>
+
+      <!-- Minimal Plafond -->
+      <app-input-amount
+        label="Minimal Plafond"
+        [required]="true"
+        placeholder="Enter the amount"
+        [(ngModel)]="minPlafond"
+      ></app-input-amount>
+
+      <!-- Maksimal Plafond -->
+      <app-input-amount
+        label="Maksimal Plafond"
+        [required]="true"
+        placeholder="Enter the amount"
+        [(ngModel)]="maxPlafond"
+      ></app-input-amount>
+
+      <!-- Bunga (%) -->
+      <app-input-number
+        label="Bunga (%)"
+        [required]="true"
+        [(ngModel)]="bunga"
+        suffix="%"
+        [min]="0"
+        [max]="100"
+        helperText="Max 999"
+      ></app-input-number>
+
+      <!-- Biaya Admin -->
+      <app-input-amount
+        label="Biaya Admin"
+        [required]="true"
+        placeholder="Enter the amount"
+        [(ngModel)]="biayaAdmin"
+      ></app-input-amount>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- 6. CHECKBOX & RADIO SECTION (Phase 1) -->
+  <!-- ========================================== -->
+  <section class="space-y-6">
+    <div class="border-b border-neutral-10 pb-2">
+      <h2 class="text-lg font-bold text-neutral-100">Checkbox & Radio</h2>
+      <p class="text-xs text-neutral-40">app-checkbox & app-radio</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <!-- Checkbox Group -->
+      <div class="space-y-4">
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-neutral-40">Checkbox Options</h3>
+
+        <div class="p-4 bg-neutral-0/40 rounded-xl border border-neutral-10 space-y-3.5">
+          <app-checkbox
+            label="Kirim notifikasi email transaksi"
+            description="Menerima ringkasan mutasi dan notifikasi real-time"
+            [(ngModel)]="demoCheckbox1"
+          ></app-checkbox>
+
+          <app-checkbox
+            label="Autentikasi Dua Faktor (2FA)"
+            description="Wajibkan OTP SMS/WhatsApp untuk setiap persetujuan transfer"
+            [(ngModel)]="demoCheckbox2"
+          ></app-checkbox>
+
+          <app-checkbox
+            label="Pilih Semua Data (Indeterminate Demo)"
+            description="Contoh status sebagian baris tabel tercentang"
+            [indeterminate]="demoCheckboxIndeterminate"
+          ></app-checkbox>
+
+          <app-checkbox
+            label="Opsi Dinonaktifkan (Disabled)"
+            [disabled]="true"
+            [checked]="true"
+          ></app-checkbox>
+        </div>
+      </div>
+
+      <!-- Radio Group -->
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-neutral-40">Radio Options (Role Dashboard)</h3>
+          <span class="text-xs font-mono text-primary font-bold">Selected: {{ demoRole }}</span>
+        </div>
+
+        <div class="p-4 bg-neutral-0/40 rounded-xl border border-neutral-10 space-y-3.5">
+          <app-radio
+            name="userRole"
+            value="superadmin"
+            label="Superadmin"
+            description="Akses penuh ke seluruh konfigurasi sistem, audit log, dan cabang"
+            [(ngModel)]="demoRole"
+          ></app-radio>
+
+          <app-radio
+            name="userRole"
+            value="marketing"
+            label="Marketing"
+            description="Kelola promosi, kode voucher, dan analytics kampanye"
+            [(ngModel)]="demoRole"
+          ></app-radio>
+
+          <app-radio
+            name="userRole"
+            value="bm"
+            label="Branch Manager (BM)"
+            description="Persetujuan transaksi dan monitoring operasional kantor cabang"
+            [(ngModel)]="demoRole"
+          ></app-radio>
+
+          <app-radio
+            name="userRole"
+            value="backoffice"
+            label="Back Office"
+            description="Rekonsiliasi data harian dan verifikasi dokumen pengajuan"
+            [(ngModel)]="demoRole"
+          ></app-radio>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- 7. DROPDOWN / SELECT SECTION (Phase 1) -->
+  <!-- ========================================== -->
+  <section class="space-y-6">
+    <div class="border-b border-neutral-10 pb-2">
+      <h2 class="text-lg font-bold text-neutral-100">Dropdown & Filter Select</h2>
+      <p class="text-xs text-neutral-40">app-dropdown</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Searchable Branch Select -->
+      <app-dropdown
+        label="Kantor Cabang (Searchable)"
+        placeholder="Pilih kantor cabang..."
+        [options]="branchOptions"
+        [(ngModel)]="demoBranch"
+        [searchable]="true"
+        [clearable]="true"
+        helperText="Ketik nama kota untuk mencari cabang"
+        [required]="true"
+      ></app-dropdown>
+
+      <!-- Role Select -->
+      <app-dropdown
+        label="Pilih Role Pengguna"
+        placeholder="Pilih role..."
+        [options]="roleOptions"
+        [(ngModel)]="demoRole"
+        [clearable]="true"
+      ></app-dropdown>
+
+      <!-- Table Filter Dropdown Style -->
+      <app-dropdown
+        label="Filter Status Tabel"
+        placeholder="Semua Status"
+        [options]="statusFilterOptions"
+        [(ngModel)]="selectedStatusFilter"
+        [clearable]="true"
+      >
+        <svg iconLeft class="w-4 h-4 lucide lucide-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+        </svg>
+      </app-dropdown>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- 8. COLOR TOKENS SECTION -->
   <!-- ========================================== -->
   <section class="space-y-6">
     <div class="border-b border-neutral-10 pb-2">

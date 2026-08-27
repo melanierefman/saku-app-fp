@@ -1,0 +1,143 @@
+<div class="relative w-full space-y-1.5">
+  <!-- Label -->
+  @if (label) {
+    <label
+      [for]="id"
+      class="block text-sm font-medium text-neutral-60"
+    >
+      {{ label }}
+      @if (required) {
+        <span class="text-error ml-0.5">*</span>
+      }
+    </label>
+  }
+
+  <!-- Trigger Button -->
+  <div
+    [id]="id"
+    role="combobox"
+    [attr.aria-expanded]="isOpen"
+    [attr.aria-disabled]="disabled"
+    tabindex="0"
+    (click)="toggle()"
+    (keydown.enter)="$event.preventDefault(); toggle()"
+    (keydown.space)="$event.preventDefault(); toggle()"
+    [class]="triggerClasses"
+  >
+    <!-- Left Icon Slot -->
+    <div class="mr-2 flex items-center text-neutral-50 empty:hidden">
+      <ng-content select="[iconLeft]"></ng-content>
+    </div>
+
+    <!-- Selected Value Text or Placeholder -->
+    <span
+      class="truncate flex-1"
+      [class]="selectedOption ? 'text-neutral-100 font-normal' : 'text-neutral-30'"
+    >
+      {{ selectedOption ? selectedOption.label : placeholder }}
+    </span>
+
+    <!-- Actions (Clear & Chevron) -->
+    <div class="flex items-center gap-1.5 ml-2 text-neutral-50">
+      @if (clearable && selectedValue !== null && !disabled) {
+        <button
+          type="button"
+          (click)="clearSelection($event)"
+          class="hover:text-neutral-70 focus:outline-none cursor-pointer"
+          aria-label="Hapus pilihan"
+        >
+          <svg class="w-3.5 h-3.5 lucide lucide-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
+        </button>
+      }
+
+      <!-- Chevron Down Icon -->
+      <svg
+        [class]="isOpen ? 'rotate-180 text-primary' : ''"
+        class="w-4 h-4 transition-transform duration-150 lucide lucide-chevron-down"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="m6 9 6 6 6-6" />
+      </svg>
+    </div>
+  </div>
+
+  <!-- Popover Menu List -->
+  @if (isOpen) {
+    <div
+      class="absolute z-50 left-0 top-full mt-1.5 w-full bg-white rounded-xl border border-neutral-10 shadow-lg py-1.5 overflow-hidden animate-dropdownIn max-h-60 flex flex-col text-sm"
+    >
+      <!-- Optional Search Bar within dropdown -->
+      @if (searchable) {
+        <div class="p-2 border-b border-neutral-10">
+          <div class="relative flex items-center">
+            <svg class="w-3.5 h-3.5 absolute left-2.5 text-neutral-30 lucide lucide-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+            <input
+              type="text"
+              [(ngModel)]="searchQuery"
+              (click)="$event.stopPropagation()"
+              placeholder="Cari opsi..."
+              class="w-full bg-neutral-0 rounded-lg pl-8 pr-3 py-1.5 text-sm text-neutral-100 placeholder:text-neutral-30 focus:outline-none focus:bg-white focus:ring-1 focus:ring-primary border border-transparent focus:border-primary"
+            />
+          </div>
+        </div>
+      }
+
+      <!-- Options List -->
+      <div class="overflow-y-auto flex-1 py-1">
+        @for (option of filteredOptions; track option.value) {
+          <div
+            role="option"
+            [attr.aria-selected]="selectedValue === option.value"
+            (click)="selectOption(option)"
+            [class]="option.disabled ? 'opacity-50 cursor-not-allowed bg-neutral-0/50' : 'cursor-pointer hover:bg-primary-0/60 text-neutral-80 hover:text-primary'"
+            [class.bg-primary-0]="selectedValue === option.value"
+            [class.text-primary]="selectedValue === option.value"
+            class="px-3.5 py-2 flex items-center justify-between transition-colors duration-100 text-sm"
+          >
+            <span class="truncate font-normal">{{ option.label }}</span>
+
+            <!-- Active Checkmark -->
+            @if (selectedValue === option.value) {
+              <svg class="w-4 h-4 text-primary shrink-0 lucide lucide-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            }
+          </div>
+        }
+
+        @if (filteredOptions.length === 0) {
+          <div class="px-4 py-3 text-center text-neutral-30 italic">
+            Tidak ada opsi yang cocok.
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Helper Text or Error Message -->
+  @if (errorMessage) {
+    <p class="text-xs text-error flex items-center gap-1 mt-1">
+      <svg class="w-3.5 h-3.5 shrink-0 lucide lucide-alert-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" x2="12" y1="8" y2="12" />
+        <line x1="12" x2="12.01" y1="16" y2="16" />
+      </svg>
+      <span>{{ errorMessage }}</span>
+    </p>
+  } @else if (helperText) {
+    <p class="text-xs text-neutral-40 mt-1">
+      {{ helperText }}
+    </p>
+  }
+</div>
