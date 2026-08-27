@@ -425,7 +425,7 @@
 
     <!-- Inline Showcase of Both Modal Types (Directly Visible on Page) -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start pt-2">
-      <!-- 1. Inline Visual Preview: Form Modal (Gambar 1) -->
+      <!-- 1. Inline Visual Preview: Form Modal -->
       <div class="space-y-2">
         <span class="text-xs font-semibold uppercase tracking-wider text-neutral-40">1. Form Modal (Tambah/Edit
           Data)</span>
@@ -497,7 +497,7 @@
         </div>
       </div>
 
-      <!-- 2. Inline Visual Preview: Confirmation Alert Modal (Gambar 2) -->
+      <!-- 2. Inline Visual Preview: Confirmation Alert Modal -->
       <div class="space-y-2">
         <span class="text-xs font-semibold uppercase tracking-wider text-neutral-40">2. Confirmation Dialog (Konfirmasi
           Aksi)</span>
@@ -625,7 +625,77 @@
   </section>
 
   <!-- ========================================== -->
-  <!-- 10. COLOR TOKENS SECTION -->
+  <!-- 10. BREADCRUMBS SECTION -->
+  <!-- ========================================== -->
+  <section class="space-y-6">
+    <div class="border-b border-neutral-10 pb-2">
+      <h2 class="text-lg font-bold text-neutral-100">Breadcrumbs Navigation</h2>
+      <p class="text-xs text-neutral-40">app-breadcrumbs (Jejak rekam navigasi bertingkat)</p>
+    </div>
+
+    <div class="p-6 bg-neutral-0/40 rounded-2xl border border-neutral-10 space-y-4">
+      <!-- Example 1 -->
+      <div class="space-y-1.5">
+        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-40">Contoh 1: Detail Verifikasi
+          Customer</span>
+        <div class="p-3.5 bg-white rounded-xl border border-[#E5E7EB] shadow-2xs">
+          <app-breadcrumbs [items]="breadcrumbItems"></app-breadcrumbs>
+        </div>
+      </div>
+
+      <!-- Example 2 -->
+      <div class="space-y-1.5">
+        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-40">Contoh 2: Form Tambah Cabang Master
+          Data</span>
+        <div class="p-3.5 bg-white rounded-xl border border-[#E5E7EB] shadow-2xs">
+          <app-breadcrumbs [items]="breadcrumbMasterItems"></app-breadcrumbs>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- 11. SIDEBAR SECTION -->
+  <!-- ========================================== -->
+  <section class="space-y-6">
+    <div class="border-b border-neutral-10 pb-2 flex items-center justify-between">
+      <div>
+        <h2 class="text-lg font-bold text-neutral-100">Sidebar Navigation</h2>
+        <p class="text-xs text-neutral-40">app-sidebar (SAKU Back Office Portal Sidebar)</p>
+      </div>
+
+      <!-- Toggle Collapse -->
+      <app-button variant="outline" size="sm" (btnClick)="toggleSidebarCollapse()">
+        {{ sidebarCollapsed ? 'Perluas Sidebar' : 'Ciutkan (Collapse)' }}
+      </app-button>
+    </div>
+
+    <div class="p-6 bg-neutral-100/10 rounded-2xl border border-neutral-10 flex flex-col md:flex-row gap-6 items-start">
+      <!-- Live Interactive SAKU Sidebar Component -->
+      <div class="rounded-2xl border border-[#E5E7EB] shadow-xl overflow-hidden bg-white">
+        <app-sidebar [activeId]="sidebarActiveMenu" [collapsed]="sidebarCollapsed"
+          (itemSelect)="onSidebarNavSelect($event)"></app-sidebar>
+      </div>
+
+      <!-- Live Sidebar Status Indicator -->
+      <div class="flex-1 space-y-4 p-5 bg-white rounded-2xl border border-[#E5E7EB] shadow-sm">
+        <h3 class="text-base font-bold text-neutral-100">Interaksi Navigasi Menu Aktif</h3>
+        <p class="text-sm text-neutral-60">
+          Klik salah satu menu di sidebar sebelah kiri untuk menguji perubahan status aktif dan pemicu routing event.
+        </p>
+
+        <div class="p-4 bg-primary-0/50 rounded-xl border border-primary-20 flex items-center gap-3">
+          <div class="w-3 h-3 rounded-full bg-primary animate-pulse"></div>
+          <span class="text-sm font-medium text-neutral-80">
+            Menu Terpilih Saat Ini: <strong class="text-primary uppercase font-bold">{{ sidebarActiveMenu }}</strong>
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- 12. COLOR TOKENS SECTION -->
   <!-- ========================================== -->
   <section class="space-y-6">
     <div class="border-b border-neutral-10 pb-2">

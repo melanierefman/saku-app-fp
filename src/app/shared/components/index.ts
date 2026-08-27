@@ -15,3 +15,7 @@ export * from './dropdown/dropdown.component';
 export * from './modal/modal.component';
 export * from './toast/toast.service';
 export * from './toast/toast.component';
+
+// Phase 3: Layout & Navigation
+export * from './breadcrumbs/breadcrumbs.component';
+export * from './sidebar/sidebar.component';

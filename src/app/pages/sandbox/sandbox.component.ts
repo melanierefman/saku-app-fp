@@ -14,6 +14,10 @@ import {
   DropdownOption,
   ModalComponent,
   ToastService,
+  BreadcrumbsComponent,
+  BreadcrumbItem,
+  SidebarComponent,
+  NavItem,
 } from '../../shared/components';
 
 @Component({
@@ -32,12 +36,41 @@ import {
     RadioComponent,
     DropdownComponent,
     ModalComponent,
+    BreadcrumbsComponent,
+    SidebarComponent,
   ],
   templateUrl: './sandbox.component.html',
   styleUrl: './sandbox.component.css',
 })
 export class SandboxComponent {
   readonly toastService = inject(ToastService);
+
+  // Breadcrumbs Demo Items
+  breadcrumbItems: BreadcrumbItem[] = [
+    { label: 'Dashboard', url: '/dashboard' },
+    { label: 'Detail Verifikasi Customer', url: '/verification' },
+    { label: 'No. PJ – 202608 – 000123', active: true },
+  ];
+
+  breadcrumbMasterItems: BreadcrumbItem[] = [
+    { label: 'Beranda', url: '/dashboard' },
+    { label: 'Master Data', url: '/master' },
+    { label: 'Cabang', url: '/master/cabang' },
+    { label: 'Tambah Cabang Baru', active: true },
+  ];
+
+  // Sidebar Demo Active Item
+  sidebarActiveMenu: string = 'role';
+  sidebarCollapsed: boolean = false;
+
+  onSidebarNavSelect(item: NavItem): void {
+    this.sidebarActiveMenu = item.id;
+    this.toastService.info(`Navigasi ke menu: ${item.label}`);
+  }
+
+  toggleSidebarCollapse(): void {
+    this.sidebarCollapsed = !this.sidebarCollapsed;
+  }
 
   // Demo tag list untuk removable test
   tags: string[] = ['Angular', 'Tailwind', 'Saku Pay', 'Verified'];
@@ -101,7 +134,7 @@ export class SandboxComponent {
   isFormModalOpen: boolean = false;
   isConfirmModalOpen: boolean = false;
 
-  // Form Modal State (Gambar 1)
+  // Form Modal State
   modalCabangNama: string = '';
   modalCabangKota: string = '';
   modalCabangDefault: string = 'Ya';
@@ -133,7 +166,7 @@ export class SandboxComponent {
     this.toastService.error('Item has been deleted.');
   }
 
-  // Trigger Toasts (Gambar 3)
+  // Trigger Toasts
   showSuccessToast(): void {
     this.toastService.success('Item moved successfully.');
   }

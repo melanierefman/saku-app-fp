@@ -1,0 +1,43 @@
+<nav aria-label="Breadcrumb" class="flex items-center">
+  <ol class="inline-flex items-center flex-wrap gap-1.5 sm:gap-2">
+    @for (item of items; track item.label; let i = $index) {
+      <li class="inline-flex items-center gap-1.5 sm:gap-2">
+        <!-- Chevron Separator (between items) -->
+        @if (i > 0) {
+          <svg
+            class="w-3.5 h-3.5 text-neutral-40 shrink-0 lucide lucide-chevron-right"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="m9 18 6-6-6-6" />
+          </svg>
+        }
+
+        <!-- Last Item (Active Page) -->
+        @if (isLastItem(i) || item.active) {
+          <span
+            class="text-sm font-semibold text-primary tracking-tight select-none"
+            aria-current="page"
+          >
+            {{ item.label }}
+          </span>
+        }
+
+        <!-- Clickable Parent Link Item -->
+        @else {
+          <a
+            [routerLink]="item.url || null"
+            (click)="onItemClick(item, $event)"
+            class="text-sm font-medium text-neutral-40 hover:text-neutral-70 transition-colors cursor-pointer"
+          >
+            {{ item.label }}
+          </a>
+        }
+      </li>
+    }
+  </ol>
+</nav>
