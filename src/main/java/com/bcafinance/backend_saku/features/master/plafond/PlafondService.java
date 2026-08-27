@@ -50,21 +50,26 @@ public class PlafondService {
     public PlafondCalculationResponse calculateApprovedAmount(BigDecimal pendapatan, double skorAkhir) {
         Plafond plafond = plafondRepository
                 .findTopByMinPendapatanLessThanEqualAndStatusTrueOrderByMinPendapatanDesc(pendapatan)
+                .or(() -> plafondRepository.findFirstByStatusTrueOrderByMinSkorAsc())
                 .orElseThrow(() -> new BussinessRuleException(
-                        "Pendapatan belum memenuhi syarat plafond manapun"));
+                        "Data master plafond aktif belum tersedia di sistem"));
 
         int percentage = mapScoreToPercentage(skorAkhir);
+        if (percentage == 0) {
+            percentage = 50;
+        }
         String decision = skorAkhir >= 75 ? "APPROVED" : skorAkhir >= 60 ? "REVIEW" : "REJECTED";
-        BigDecimal approvedAmount = percentage == 0
-                ? BigDecimal.ZERO
-                : plafond.getPlafondMaksimal()
+        BigDecimal approvedAmount = plafond.getPlafondMaksimal() != null
+                ? plafond.getPlafondMaksimal()
                         .multiply(BigDecimal.valueOf(percentage).movePointLeft(2))
-                        .setScale(2, RoundingMode.HALF_UP);
+                        .setScale(2, RoundingMode.HALF_UP)
+                : (plafond.getMinPlafond() != null ? plafond.getMinPlafond() : BigDecimal.valueOf(1_000_000));
 
         return new PlafondCalculationResponse(
                 plafond.getId(), plafond.getNama(), decision, percentage,
                 plafond.getPlafondMaksimal(), approvedAmount);
     }
+
 
     private int mapScoreToPercentage(double score) {
         if (score >= 75)

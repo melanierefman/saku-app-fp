@@ -27,9 +27,10 @@ public class Persetujuan {
     private String hasilPersetujuan;
 
     @NotNull
-    @Size(max = 200)
-    @Column(name = "catatan", nullable = false, length = 200)
+    @Size(max = 1000)
+    @Column(name = "catatan", nullable = false, length = 1000)
     private String catatan;
+
 
     @NotNull
     @Column(name = "created_date", nullable = false)

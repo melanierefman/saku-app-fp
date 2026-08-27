@@ -277,18 +277,20 @@ public class PengajuanPinjamanService {
     }
 
     private void validateLoanAmount(BigDecimal jumlahPinjaman, Plafond plafond) {
-        if (plafond.getMinPlafond() != null && jumlahPinjaman.compareTo(plafond.getMinPlafond()) < 0) {
+        BigDecimal minSystemLoan = BigDecimal.valueOf(500_000);
+        if (jumlahPinjaman.compareTo(minSystemLoan) < 0) {
             throw new BussinessRuleException(
-                    "Jumlah pinjaman kurang dari batas minimum plafond: Rp " + plafond.getMinPlafond());
+                    "Jumlah pinjaman minimal adalah Rp 500.000");
         }
 
         BigDecimal maxLimit = plafond.getPlafondMaksimal() != null ? plafond.getPlafondMaksimal()
-                : plafond.getMaxPlafond();
+                : (plafond.getMaxPlafond() != null ? plafond.getMaxPlafond() : BigDecimal.valueOf(50_000_000));
         if (maxLimit != null && jumlahPinjaman.compareTo(maxLimit) > 0) {
             throw new BussinessRuleException(
                     "Jumlah pinjaman melebihi batas maksimum plafond yang disetujui: Rp " + maxLimit);
         }
     }
+
 
     private Cabang resolveCabang(UUID customerId, UUID branchId) {
         if (branchId != null) {

@@ -30,9 +30,12 @@ public class BranchManagerPersetujuanController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<BranchManagerPengajuanItemResponse>>> findAll(
-            @RequestParam(required = false) String status) {
-        return ResponseEntity.ok(ApiResponse.success(branchManagerPersetujuanService.findAll(status)));
+            @RequestParam(required = false) String status,
+            @AuthenticationPrincipal AppUser karyawan) {
+        UUID karyawanId = karyawan != null ? karyawan.getIdKaryawan() : null;
+        return ResponseEntity.ok(ApiResponse.success(branchManagerPersetujuanService.findAll(status, karyawanId)));
     }
+
 
     @GetMapping("/{pengajuanId}")
     public ResponseEntity<ApiResponse<BranchManagerPengajuanDetailResponse>> getDetail(

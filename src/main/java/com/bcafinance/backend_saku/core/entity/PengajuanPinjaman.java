@@ -62,9 +62,10 @@ public class PengajuanPinjaman {
     private String statusPengajuan;
 
     @NotNull
-    @Size(max = 200)
-    @Column(name = "catatan_review", nullable = false, length = 200)
+    @Size(max = 1000)
+    @Column(name = "catatan_review", nullable = false, length = 1000)
     private String catatanReview;
+
 
     @NotNull
     @Column(name = "created_date", nullable = false)

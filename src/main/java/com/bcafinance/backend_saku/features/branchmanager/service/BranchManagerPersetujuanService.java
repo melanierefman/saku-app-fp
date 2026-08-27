@@ -66,10 +66,26 @@ public class BranchManagerPersetujuanService {
 
 
     public List<BranchManagerPengajuanItemResponse> findAll(String statusFilter) {
+        return findAll(statusFilter, null);
+    }
+
+    public List<BranchManagerPengajuanItemResponse> findAll(String statusFilter, UUID karyawanId) {
+        UUID branchId = null;
+        if (karyawanId != null) {
+            Optional<Karyawan> kOpt = karyawanRepository.findById(karyawanId);
+            if (kOpt.isPresent() && kOpt.get().getCabang() != null) {
+                branchId = kOpt.get().getCabang().getId();
+            }
+        }
+
+
+        final UUID filterBranchId = branchId;
         List<PengajuanPinjaman> list = pengajuanRepository.findAllByOrderByCreatedDateDesc();
 
         return list.stream()
+                .filter(p -> filterBranchId == null || (p.getMstBranchId() != null && filterBranchId.equals(p.getMstBranchId())))
                 .filter(p -> {
+
                     // Hanya tampilkan pengajuan yang sudah selesai direview oleh marketing atau
                     // sudah diproses oleh BM
                     String status = p.getStatusPengajuan() != null ? p.getStatusPengajuan() : "";
@@ -335,6 +351,14 @@ public class BranchManagerPersetujuanService {
         Karyawan karyawan = karyawanRepository.findById(karyawanId)
                 .orElseThrow(() -> new BussinessRuleException("Data Karyawan Branch Manager tidak ditemukan"));
 
+        UUID userBranchId = karyawan.getCabang() != null ? karyawan.getCabang().getId() : null;
+        if (userBranchId != null && pengajuan.getMstBranchId() != null
+                && !userBranchId.equals(pengajuan.getMstBranchId())) {
+            throw new BussinessRuleException("Anda tidak memiliki izin untuk menyetujui pengajuan dari cabang lain");
+        }
+
+
+
         String currentStatus = pengajuan.getStatusPengajuan() != null ? pengajuan.getStatusPengajuan() : "";
 
         // Validasi: Pengajuan harus sudah disetujui oleh Marketing (SELESAI_DIREVIEW)
@@ -486,7 +510,24 @@ public class BranchManagerPersetujuanService {
     }
 
     public BranchManagerDashboardStatsResponse getDashboardStats() {
-        List<PengajuanPinjaman> allLoans = pengajuanRepository.findAll();
+        return getDashboardStats(null);
+    }
+
+    public BranchManagerDashboardStatsResponse getDashboardStats(UUID karyawanId) {
+        UUID branchId = null;
+        if (karyawanId != null) {
+            Optional<Karyawan> kOpt = karyawanRepository.findById(karyawanId);
+            if (kOpt.isPresent() && kOpt.get().getCabang() != null) {
+                branchId = kOpt.get().getCabang().getId();
+            }
+        }
+
+
+        final UUID filterBranchId = branchId;
+        List<PengajuanPinjaman> allLoans = pengajuanRepository.findAll().stream()
+                .filter(p -> filterBranchId == null || (p.getMstBranchId() != null && filterBranchId.equals(p.getMstBranchId())))
+                .toList();
+
 
         long total = allLoans.size();
         long menungguPersetujuan = 0;

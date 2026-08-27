@@ -61,10 +61,26 @@ public class MarketingReviewService {
 
 
     public List<MarketingPengajuanItemResponse> findAll(String statusFilter) {
+        return findAll(statusFilter, null);
+    }
+
+    public List<MarketingPengajuanItemResponse> findAll(String statusFilter, UUID karyawanId) {
+        UUID branchId = null;
+        if (karyawanId != null) {
+            Optional<Karyawan> kOpt = karyawanRepository.findById(karyawanId);
+            if (kOpt.isPresent() && kOpt.get().getCabang() != null) {
+                branchId = kOpt.get().getCabang().getId();
+            }
+        }
+
+
+        final UUID filterBranchId = branchId;
         List<PengajuanPinjaman> list = pengajuanRepository.findAllByOrderByCreatedDateDesc();
 
         return list.stream()
+                .filter(p -> filterBranchId == null || (p.getMstBranchId() != null && filterBranchId.equals(p.getMstBranchId())))
                 .map(p -> {
+
                     Customer customer = customerRepository.findById(p.getMstCustomerId()).orElse(null);
                     Cabang cabang = cabangRepository.findById(p.getMstBranchId()).orElse(null);
                     Optional<ReviewPengajuan> latestReviewOpt = reviewPengajuanRepository
@@ -292,6 +308,14 @@ public class MarketingReviewService {
         Karyawan karyawan = karyawanRepository.findById(karyawanId)
                 .orElseThrow(() -> new BussinessRuleException("Karyawan reviewer tidak ditemukan"));
 
+        UUID userBranchId = karyawan.getCabang() != null ? karyawan.getCabang().getId() : null;
+        if (userBranchId != null && pengajuan.getMstBranchId() != null
+                && !userBranchId.equals(pengajuan.getMstBranchId())) {
+            throw new BussinessRuleException("Anda tidak memiliki izin untuk mereview pengajuan dari cabang lain");
+        }
+
+
+
         String inputReview = request.getHasilReview().trim().toUpperCase();
         String hasilReview;
         String statusPengajuan;
@@ -453,7 +477,24 @@ public class MarketingReviewService {
     }
 
     public MarketingDashboardStatsResponse getDashboardStats() {
-        List<PengajuanPinjaman> allLoans = pengajuanRepository.findAll();
+        return getDashboardStats(null);
+    }
+
+    public MarketingDashboardStatsResponse getDashboardStats(UUID karyawanId) {
+        UUID branchId = null;
+        if (karyawanId != null) {
+            Optional<Karyawan> kOpt = karyawanRepository.findById(karyawanId);
+            if (kOpt.isPresent() && kOpt.get().getCabang() != null) {
+                branchId = kOpt.get().getCabang().getId();
+            }
+        }
+
+
+        final UUID filterBranchId = branchId;
+        List<PengajuanPinjaman> allLoans = pengajuanRepository.findAll().stream()
+                .filter(p -> filterBranchId == null || (p.getMstBranchId() != null && filterBranchId.equals(p.getMstBranchId())))
+                .toList();
+
 
         long total = allLoans.size();
         long menungguReview = 0;

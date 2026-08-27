@@ -17,7 +17,8 @@ public class VerifikasiCustomerRequest {
     private String statusVerifikasi;
 
     @NotBlank(message = "Catatan verifikasi tidak boleh kosong")
-    @Size(max = 500, message = "Catatan verifikasi maksimal 500 karakter")
+    @Size(max = 1000, message = "Catatan verifikasi maksimal 1000 karakter")
     private String catatanVerifikasi;
+
 }
 

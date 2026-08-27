@@ -23,7 +23,8 @@ public class PersetujuanPinjamanRequest {
     private String hasilPersetujuan;
 
     @NotBlank(message = "Catatan persetujuan tidak boleh kosong")
-    @Size(max = 200, message = "Catatan persetujuan maksimal 200 karakter")
+    @Size(max = 1000, message = "Catatan persetujuan maksimal 1000 karakter")
     @JsonAlias({"catatanPersetujuan", "notes"})
     private String catatan;
+
 }

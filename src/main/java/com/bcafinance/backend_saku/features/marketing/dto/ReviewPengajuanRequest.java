@@ -19,6 +19,7 @@ public class ReviewPengajuanRequest {
     private String hasilReview;
 
     @NotBlank(message = "Catatan review tidak boleh kosong")
-    @Size(max = 200, message = "Catatan review maksimal 200 karakter")
+    @Size(max = 1000, message = "Catatan review maksimal 1000 karakter")
     private String catatan;
+
 }

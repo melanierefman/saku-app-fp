@@ -174,9 +174,6 @@ public class VerifikasiCustomerService {
 
         if (rawStatus.contains("APPROV") || rawStatus.contains("SETUJU")) {
             status = "APPROVED";
-            if (scoring.getSkor() < 60) {
-                throw new BussinessRuleException("Customer tidak memenuhi skor minimum untuk approval");
-            }
 
             PlafondCalculationResponse calculation = plafondService.calculateApprovedAmount(
                     scoring.getPenghasilanBulanan(), scoring.getSkor());
@@ -185,6 +182,7 @@ public class VerifikasiCustomerService {
             keputusan = calculation.getKeputusan();
             scoring.setMstPlafondId(plafondId);
             customer.setStatus(true);
+
         } else if (rawStatus.contains("REVISI") || rawStatus.contains("REVISION")) {
             status = "PERLU_REVISI";
             scoring.setMstPlafondId(null);

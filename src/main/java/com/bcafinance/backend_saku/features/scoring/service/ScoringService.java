@@ -239,15 +239,17 @@ public class ScoringService {
         if (status == null || status.isBlank()) {
             return 30;
         }
-        return switch (status.trim().toUpperCase()) {
-            case "PNS", "BUMN", "TNI_POLRI", "KARYAWAN_TETAP" -> 100;
-            case "KARYAWAN_KONTRAK", "PROFESIONAL" -> 70;
-            case "WIRASWASTA", "PENGUSAHA" -> 50;
+        String normalized = status.trim().toUpperCase().replace(" ", "_").replace("-", "_");
+        return switch (normalized) {
+            case "PNS", "BUMN", "TNI_POLRI", "TNI", "POLRI", "KARYAWAN_TETAP", "PEGAWAI_TETAP", "TETAP" -> 100;
+            case "KARYAWAN_KONTRAK", "PEGAWAI_KONTRAK", "KONTRAK", "PROFESIONAL" -> 70;
+            case "WIRASWASTA", "PENGUSAHA", "ENTREPRENEUR", "PEDAGANG" -> 50;
             case "FREELANCE", "PEKERJA_LEPAS", "PENSIUNAN" -> 40;
             case "IBU_RUMAH_TANGGA", "LAINNYA" -> 30;
             default -> 30;
         };
     }
+
 
 
 

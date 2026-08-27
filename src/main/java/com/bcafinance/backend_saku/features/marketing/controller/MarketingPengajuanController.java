@@ -30,9 +30,12 @@ public class MarketingPengajuanController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<MarketingPengajuanItemResponse>>> findAll(
-            @RequestParam(required = false) String status) {
-        return ResponseEntity.ok(ApiResponse.success(marketingReviewService.findAll(status)));
+            @RequestParam(required = false) String status,
+            @AuthenticationPrincipal AppUser karyawan) {
+        UUID karyawanId = karyawan != null ? karyawan.getIdKaryawan() : null;
+        return ResponseEntity.ok(ApiResponse.success(marketingReviewService.findAll(status, karyawanId)));
     }
+
 
     @GetMapping("/{pengajuanId}")
     public ResponseEntity<ApiResponse<MarketingPengajuanDetailResponse>> getDetail(

@@ -20,7 +20,10 @@ public class MarketingDashboardController {
     private final MarketingReviewService marketingReviewService;
 
     @GetMapping("/stats")
-    public ResponseEntity<ApiResponse<MarketingDashboardStatsResponse>> getDashboardStats() {
-        return ResponseEntity.ok(ApiResponse.success(marketingReviewService.getDashboardStats()));
+    public ResponseEntity<ApiResponse<MarketingDashboardStatsResponse>> getDashboardStats(
+            @org.springframework.security.core.annotation.AuthenticationPrincipal com.bcafinance.backend_saku.core.security.AppUser karyawan) {
+        java.util.UUID karyawanId = karyawan != null ? karyawan.getIdKaryawan() : null;
+        return ResponseEntity.ok(ApiResponse.success(marketingReviewService.getDashboardStats(karyawanId)));
     }
+
 }
