@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -12,6 +12,8 @@ import {
   RadioComponent,
   DropdownComponent,
   DropdownOption,
+  ModalComponent,
+  ToastService,
 } from '../../shared/components';
 
 @Component({
@@ -29,11 +31,14 @@ import {
     CheckboxComponent,
     RadioComponent,
     DropdownComponent,
+    ModalComponent,
   ],
   templateUrl: './sandbox.component.html',
   styleUrl: './sandbox.component.css',
 })
 export class SandboxComponent {
+  readonly toastService = inject(ToastService);
+
   // Demo tag list untuk removable test
   tags: string[] = ['Angular', 'Tailwind', 'Saku Pay', 'Verified'];
 
@@ -76,6 +81,14 @@ export class SandboxComponent {
     { value: 'DPS-01', label: 'Denpasar - Sunset Road' },
   ];
 
+  readonly cityOptions: DropdownOption[] = [
+    { value: 'jakarta', label: 'Jakarta' },
+    { value: 'bandung', label: 'Bandung' },
+    { value: 'surabaya', label: 'Surabaya' },
+    { value: 'medan', label: 'Medan' },
+    { value: 'denpasar', label: 'Denpasar' },
+  ];
+
   readonly statusFilterOptions: DropdownOption[] = [
     { value: 'success', label: 'Berhasil (Success)' },
     { value: 'pending', label: 'Menunggu (Pending)' },
@@ -83,6 +96,55 @@ export class SandboxComponent {
   ];
 
   selectedStatusFilter: string = '';
+
+  // Modal State
+  isFormModalOpen: boolean = false;
+  isConfirmModalOpen: boolean = false;
+
+  // Form Modal State (Gambar 1)
+  modalCabangNama: string = '';
+  modalCabangKota: string = '';
+  modalCabangDefault: string = 'Ya';
+  modalCabangStatus: string = 'Aktif';
+
+  openFormModal(): void {
+    this.isFormModalOpen = true;
+  }
+
+  closeFormModal(): void {
+    this.isFormModalOpen = false;
+  }
+
+  submitFormModal(): void {
+    this.isFormModalOpen = false;
+    this.toastService.success('Cabang baru berhasil ditambahkan.');
+  }
+
+  openConfirmModal(): void {
+    this.isConfirmModalOpen = true;
+  }
+
+  closeConfirmModal(): void {
+    this.isConfirmModalOpen = false;
+  }
+
+  submitConfirmModal(): void {
+    this.isConfirmModalOpen = false;
+    this.toastService.error('Item has been deleted.');
+  }
+
+  // Trigger Toasts (Gambar 3)
+  showSuccessToast(): void {
+    this.toastService.success('Item moved successfully.');
+  }
+
+  showErrorToast(): void {
+    this.toastService.error('Item has been deleted.');
+  }
+
+  showWarningToast(): void {
+    this.toastService.warning('Improve password difficulty.');
+  }
 
   removeTag(tagToRemove: string): void {
     this.tags = this.tags.filter((tag) => tag !== tagToRemove);

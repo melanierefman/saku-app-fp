@@ -5,7 +5,8 @@
       <div>
         <h1 class="text-2xl font-bold text-neutral-100 tracking-tight">Component Sandbox</h1>
         <p class="text-sm text-neutral-40 mt-1">
-          Katalog komponen dasar & form controls Saku UI (Button, Badge, Input, Textarea, Amount, Checkbox, Radio, Dropdown).
+          Katalog komponen dasar & form controls Saku UI (Button, Badge, Input, Textarea, Amount, Checkbox, Radio,
+          Dropdown).
         </p>
       </div>
       <app-badge variant="primary" size="sm">Design System</app-badge>
@@ -30,6 +31,7 @@
           <app-button variant="secondary">Secondary</app-button>
           <app-button variant="neutral">Neutral</app-button>
           <app-button variant="outline">Outline</app-button>
+          <app-button variant="cancel">Cancel</app-button>
           <app-button variant="ghost">Ghost</app-button>
           <app-button variant="success">Success</app-button>
           <app-button variant="warning">Warning</app-button>
@@ -71,7 +73,8 @@
 
           <!-- Button with Left Icon -->
           <app-button variant="primary">
-            <svg iconLeft class="w-4 h-4 lucide lucide-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg iconLeft class="w-4 h-4 lucide lucide-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M5 12h14" />
               <path d="M12 5v14" />
             </svg>
@@ -81,7 +84,8 @@
           <!-- Button with Right Icon -->
           <app-button variant="outline">
             Lanjut
-            <svg iconRight class="w-4 h-4 lucide lucide-arrow-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg iconRight class="w-4 h-4 lucide lucide-arrow-right" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M5 12h14" />
               <path d="m12 5 7 7-7 7" />
             </svg>
@@ -163,22 +167,19 @@
       <div class="space-y-3">
         <div class="flex items-center justify-between max-w-lg">
           <h3 class="text-xs font-semibold uppercase tracking-wider text-neutral-40">Removable Tags</h3>
-          <button
-            type="button"
-            (click)="resetTags()"
-            class="text-xs text-primary hover:underline font-medium cursor-pointer"
-          >
+          <button type="button" (click)="resetTags()"
+            class="text-xs text-primary hover:underline font-medium cursor-pointer">
             Reset
           </button>
         </div>
         <div class="flex flex-wrap items-center gap-2">
           @for (tag of tags; track tag) {
-            <app-badge variant="neutral" [removable]="true" (removed)="removeTag(tag)">
-              {{ tag }}
-            </app-badge>
+          <app-badge variant="neutral" [removable]="true" (removed)="removeTag(tag)">
+            {{ tag }}
+          </app-badge>
           }
           @if (tags.length === 0) {
-            <span class="text-xs text-neutral-30 italic">Semua tag telah dihapus. Klik Reset untuk memulihkan.</span>
+          <span class="text-xs text-neutral-30 italic">Semua tag telah dihapus. Klik Reset untuk memulihkan.</span>
           }
         </div>
       </div>
@@ -186,7 +187,7 @@
   </section>
 
   <!-- ========================================== -->
-  <!-- 3. INPUT SECTION (Phase 1) -->
+  <!-- 3. INPUT SECTION -->
   <!-- ========================================== -->
   <section class="space-y-6">
     <div class="border-b border-neutral-10 pb-2">
@@ -196,63 +197,38 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <!-- Standard Input -->
-      <app-input
-        label="Nama Perusahaan"
-        [(ngModel)]="demoText"
-        placeholder="Masukkan nama perusahaan"
-        helperText="Nama resmi sesuai dokumen legalitas"
-        [required]="true"
-      ></app-input>
+      <app-input label="Nama Perusahaan" [(ngModel)]="demoText" placeholder="Masukkan nama perusahaan"
+        helperText="Nama resmi sesuai dokumen legalitas" [required]="true"></app-input>
 
       <!-- Search Input with Left Icon -->
-      <app-input
-        label="Pencarian Data"
-        type="search"
-        [(ngModel)]="demoSearch"
-        placeholder="Cari transaksi, nasabah, cabang..."
-      >
-        <svg iconLeft class="w-4 h-4 lucide lucide-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <app-input label="Pencarian Data" type="search" [(ngModel)]="demoSearch"
+        placeholder="Cari transaksi, nasabah, cabang...">
+        <svg iconLeft class="w-4 h-4 lucide lucide-search" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8" />
           <path d="m21 21-4.3-4.3" />
         </svg>
       </app-input>
 
       <!-- Email Input with Icon -->
-      <app-input
-        label="Email Admin"
-        type="email"
-        [(ngModel)]="demoEmail"
-        placeholder="nama@saku.id"
-      >
-        <svg iconLeft class="w-4 h-4 lucide lucide-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <app-input label="Email Admin" type="email" [(ngModel)]="demoEmail" placeholder="nama@saku.id">
+        <svg iconLeft class="w-4 h-4 lucide lucide-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect width="20" height="16" x="2" y="4" rx="2" />
           <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
         </svg>
       </app-input>
 
       <!-- Prefix Addon Input -->
-      <app-input
-        label="Website Perusahaan"
-        prefixText="https://"
-        suffixText=".id"
-        placeholder="perusahaan"
-      ></app-input>
+      <app-input label="Website Perusahaan" prefixText="https://" suffixText=".id" placeholder="perusahaan"></app-input>
 
       <!-- Error State Input -->
-      <app-input
-        label="Nomor Pokok Wajib Pajak (NPWP)"
-        placeholder="00.000.000.0-000.000"
-        errorMessage="Format NPWP tidak valid atau belum lengkap"
-        [required]="true"
-      ></app-input>
+      <app-input label="Nomor Pokok Wajib Pajak (NPWP)" placeholder="00.000.000.0-000.000"
+        errorMessage="Format NPWP tidak valid atau belum lengkap" [required]="true"></app-input>
 
       <!-- Disabled Input -->
-      <app-input
-        label="ID Pengguna (Readonly)"
-        value="SK-USR-9821"
-        [disabled]="true"
-        helperText="ID akun digenerate secara otomatis oleh sistem"
-      ></app-input>
+      <app-input label="ID Pengguna (Readonly)" value="SK-USR-9821" [disabled]="true"
+        helperText="ID akun digenerate secara otomatis oleh sistem"></app-input>
     </div>
 
     <!-- Input Sizes -->
@@ -267,7 +243,7 @@
   </section>
 
   <!-- ========================================== -->
-  <!-- 4. TEXTAREA SECTION (Phase 1) -->
+  <!-- 4. TEXTAREA SECTION -->
   <!-- ========================================== -->
   <section class="space-y-6">
     <div class="border-b border-neutral-10 pb-2">
@@ -277,28 +253,17 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <!-- Standard Textarea with Char Count -->
-      <app-textarea
-        label="Deskripsi / Catatan Transaksi"
-        [(ngModel)]="demoTextarea"
-        [rows]="4"
-        [maxLength]="200"
-        [showCharCount]="true"
-        helperText="Maksimal 200 karakter keterangan transaksi"
-      ></app-textarea>
+      <app-textarea label="Deskripsi / Catatan Transaksi" [(ngModel)]="demoTextarea" [rows]="4" [maxLength]="200"
+        [showCharCount]="true" helperText="Maksimal 200 karakter keterangan transaksi"></app-textarea>
 
       <!-- Textarea with Error -->
-      <app-textarea
-        label="Alasan Penolakan Pengajuan"
-        placeholder="Tuliskan detail alasan penolakan..."
-        [rows]="4"
-        [required]="true"
-        errorMessage="Alasan penolakan wajib diisi secara rinci"
-      ></app-textarea>
+      <app-textarea label="Alasan Penolakan Pengajuan" placeholder="Tuliskan detail alasan penolakan..." [rows]="4"
+        [required]="true" errorMessage="Alasan penolakan wajib diisi secara rinci"></app-textarea>
     </div>
   </section>
 
   <!-- ========================================== -->
-  <!-- 5. INPUT AMOUNT (CURRENCY) SECTION (Phase 1) -->
+  <!-- 5. INPUT AMOUNT (CURRENCY) SECTION -->
   <!-- ========================================== -->
   <section class="space-y-6">
     <div class="border-b border-neutral-10 pb-2">
@@ -315,64 +280,33 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
       <!-- Minimal Skor -->
-      <app-input-number
-        label="Minimal Skor"
-        [required]="true"
-        [(ngModel)]="minScore"
-        [min]="0"
-        [max]="999"
-        helperText="Max 999"
-      ></app-input-number>
+      <app-input-number label="Minimal Skor" [required]="true" [(ngModel)]="minScore" [min]="0" [max]="999"
+        helperText="Max 999"></app-input-number>
 
       <!-- Maksimal Skor -->
-      <app-input-number
-        label="Maksimal Skor"
-        [required]="true"
-        [(ngModel)]="maxScore"
-        [min]="0"
-        [max]="999"
-        helperText="Max 999"
-      ></app-input-number>
+      <app-input-number label="Maksimal Skor" [required]="true" [(ngModel)]="maxScore" [min]="0" [max]="999"
+        helperText="Max 999"></app-input-number>
 
       <!-- Minimal Plafond -->
-      <app-input-amount
-        label="Minimal Plafond"
-        [required]="true"
-        placeholder="Enter the amount"
-        [(ngModel)]="minPlafond"
-      ></app-input-amount>
+      <app-input-amount label="Minimal Plafond" [required]="true" placeholder="Enter the amount"
+        [(ngModel)]="minPlafond"></app-input-amount>
 
       <!-- Maksimal Plafond -->
-      <app-input-amount
-        label="Maksimal Plafond"
-        [required]="true"
-        placeholder="Enter the amount"
-        [(ngModel)]="maxPlafond"
-      ></app-input-amount>
+      <app-input-amount label="Maksimal Plafond" [required]="true" placeholder="Enter the amount"
+        [(ngModel)]="maxPlafond"></app-input-amount>
 
       <!-- Bunga (%) -->
-      <app-input-number
-        label="Bunga (%)"
-        [required]="true"
-        [(ngModel)]="bunga"
-        suffix="%"
-        [min]="0"
-        [max]="100"
-        helperText="Max 999"
-      ></app-input-number>
+      <app-input-number label="Bunga (%)" [required]="true" [(ngModel)]="bunga" suffix="%" [min]="0" [max]="100"
+        helperText="Max 999"></app-input-number>
 
       <!-- Biaya Admin -->
-      <app-input-amount
-        label="Biaya Admin"
-        [required]="true"
-        placeholder="Enter the amount"
-        [(ngModel)]="biayaAdmin"
-      ></app-input-amount>
+      <app-input-amount label="Biaya Admin" [required]="true" placeholder="Enter the amount"
+        [(ngModel)]="biayaAdmin"></app-input-amount>
     </div>
   </section>
 
   <!-- ========================================== -->
-  <!-- 6. CHECKBOX & RADIO SECTION (Phase 1) -->
+  <!-- 6. CHECKBOX & RADIO SECTION -->
   <!-- ========================================== -->
   <section class="space-y-6">
     <div class="border-b border-neutral-10 pb-2">
@@ -386,29 +320,18 @@
         <h3 class="text-xs font-semibold uppercase tracking-wider text-neutral-40">Checkbox Options</h3>
 
         <div class="p-4 bg-neutral-0/40 rounded-xl border border-neutral-10 space-y-3.5">
-          <app-checkbox
-            label="Kirim notifikasi email transaksi"
-            description="Menerima ringkasan mutasi dan notifikasi real-time"
-            [(ngModel)]="demoCheckbox1"
-          ></app-checkbox>
+          <app-checkbox label="Kirim notifikasi email transaksi"
+            description="Menerima ringkasan mutasi dan notifikasi real-time" [(ngModel)]="demoCheckbox1"></app-checkbox>
 
-          <app-checkbox
-            label="Autentikasi Dua Faktor (2FA)"
+          <app-checkbox label="Autentikasi Dua Faktor (2FA)"
             description="Wajibkan OTP SMS/WhatsApp untuk setiap persetujuan transfer"
-            [(ngModel)]="demoCheckbox2"
-          ></app-checkbox>
+            [(ngModel)]="demoCheckbox2"></app-checkbox>
 
-          <app-checkbox
-            label="Pilih Semua Data (Indeterminate Demo)"
+          <app-checkbox label="Pilih Semua Data (Indeterminate Demo)"
             description="Contoh status sebagian baris tabel tercentang"
-            [indeterminate]="demoCheckboxIndeterminate"
-          ></app-checkbox>
+            [indeterminate]="demoCheckboxIndeterminate"></app-checkbox>
 
-          <app-checkbox
-            label="Opsi Dinonaktifkan (Disabled)"
-            [disabled]="true"
-            [checked]="true"
-          ></app-checkbox>
+          <app-checkbox label="Opsi Dinonaktifkan (Disabled)" [disabled]="true" [checked]="true"></app-checkbox>
         </div>
       </div>
 
@@ -420,44 +343,26 @@
         </div>
 
         <div class="p-4 bg-neutral-0/40 rounded-xl border border-neutral-10 space-y-3.5">
-          <app-radio
-            name="userRole"
-            value="superadmin"
-            label="Superadmin"
+          <app-radio name="userRole" value="superadmin" label="Superadmin"
             description="Akses penuh ke seluruh konfigurasi sistem, audit log, dan cabang"
-            [(ngModel)]="demoRole"
-          ></app-radio>
+            [(ngModel)]="demoRole"></app-radio>
 
-          <app-radio
-            name="userRole"
-            value="marketing"
-            label="Marketing"
-            description="Kelola promosi, kode voucher, dan analytics kampanye"
-            [(ngModel)]="demoRole"
-          ></app-radio>
+          <app-radio name="userRole" value="marketing" label="Marketing"
+            description="Kelola promosi, kode voucher, dan analytics kampanye" [(ngModel)]="demoRole"></app-radio>
 
-          <app-radio
-            name="userRole"
-            value="bm"
-            label="Branch Manager (BM)"
+          <app-radio name="userRole" value="bm" label="Branch Manager (BM)"
             description="Persetujuan transaksi dan monitoring operasional kantor cabang"
-            [(ngModel)]="demoRole"
-          ></app-radio>
+            [(ngModel)]="demoRole"></app-radio>
 
-          <app-radio
-            name="userRole"
-            value="backoffice"
-            label="Back Office"
-            description="Rekonsiliasi data harian dan verifikasi dokumen pengajuan"
-            [(ngModel)]="demoRole"
-          ></app-radio>
+          <app-radio name="userRole" value="backoffice" label="Back Office"
+            description="Rekonsiliasi data harian dan verifikasi dokumen pengajuan" [(ngModel)]="demoRole"></app-radio>
         </div>
       </div>
     </div>
   </section>
 
   <!-- ========================================== -->
-  <!-- 7. DROPDOWN / SELECT SECTION (Phase 1) -->
+  <!-- 7. DROPDOWN / SELECT SECTION -->
   <!-- ========================================== -->
   <section class="space-y-6">
     <div class="border-b border-neutral-10 pb-2">
@@ -467,35 +372,19 @@
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <!-- Searchable Branch Select -->
-      <app-dropdown
-        label="Kantor Cabang (Searchable)"
-        placeholder="Pilih kantor cabang..."
-        [options]="branchOptions"
-        [(ngModel)]="demoBranch"
-        [searchable]="true"
-        [clearable]="true"
-        helperText="Ketik nama kota untuk mencari cabang"
-        [required]="true"
-      ></app-dropdown>
+      <app-dropdown label="Kantor Cabang (Searchable)" placeholder="Pilih kantor cabang..." [options]="branchOptions"
+        [(ngModel)]="demoBranch" [searchable]="true" [clearable]="true"
+        helperText="Ketik nama kota untuk mencari cabang" [required]="true"></app-dropdown>
 
       <!-- Role Select -->
-      <app-dropdown
-        label="Pilih Role Pengguna"
-        placeholder="Pilih role..."
-        [options]="roleOptions"
-        [(ngModel)]="demoRole"
-        [clearable]="true"
-      ></app-dropdown>
+      <app-dropdown label="Pilih Role Pengguna" placeholder="Pilih role..." [options]="roleOptions"
+        [(ngModel)]="demoRole" [clearable]="true"></app-dropdown>
 
       <!-- Table Filter Dropdown Style -->
-      <app-dropdown
-        label="Filter Status Tabel"
-        placeholder="Semua Status"
-        [options]="statusFilterOptions"
-        [(ngModel)]="selectedStatusFilter"
-        [clearable]="true"
-      >
-        <svg iconLeft class="w-4 h-4 lucide lucide-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <app-dropdown label="Filter Status Tabel" placeholder="Semua Status" [options]="statusFilterOptions"
+        [(ngModel)]="selectedStatusFilter" [clearable]="true">
+        <svg iconLeft class="w-4 h-4 lucide lucide-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
         </svg>
       </app-dropdown>
@@ -503,7 +392,240 @@
   </section>
 
   <!-- ========================================== -->
-  <!-- 8. COLOR TOKENS SECTION -->
+  <!-- 8. MODAL SECTION -->
+  <!-- ========================================== -->
+  <section class="space-y-6">
+    <div class="border-b border-neutral-10 pb-2">
+      <h2 class="text-lg font-bold text-neutral-100">Modal / Popup Dialog</h2>
+      <p class="text-xs text-neutral-40">app-modal (Form Modal & Confirmation Dialog)</p>
+    </div>
+
+    <!-- Action Buttons to Open Real Floating Modal Popups -->
+    <div class="flex flex-wrap items-center gap-4">
+      <app-button variant="primary" (btnClick)="openFormModal()">
+        <svg iconLeft class="w-4 h-4 lucide lucide-layout" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect width="18" height="18" x="3" y="3" rx="2" />
+          <path d="M3 9h18" />
+          <path d="M9 21V9" />
+        </svg>
+        Buka Popup Modal Form
+      </app-button>
+
+      <app-button variant="outline" (btnClick)="openConfirmModal()">
+        <svg iconLeft class="w-4 h-4 text-error lucide lucide-trash-2" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 6h18" />
+          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+        </svg>
+        Buka Popup Modal Konfirmasi
+      </app-button>
+    </div>
+
+    <!-- Inline Showcase of Both Modal Types (Directly Visible on Page) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start pt-2">
+      <!-- 1. Inline Visual Preview: Form Modal (Gambar 1) -->
+      <div class="space-y-2">
+        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-40">1. Form Modal (Tambah/Edit
+          Data)</span>
+        <div class="p-6 bg-neutral-100/10 rounded-2xl border border-neutral-10 flex justify-center">
+          <div class="w-full max-w-md bg-white rounded-2xl shadow-xl border border-[#E5E7EB] overflow-hidden">
+            <!-- Header -->
+            <div class="px-6 pt-6 pb-4 flex items-center justify-between">
+              <h3 class="text-lg font-medium text-neutral-100 tracking-tight">
+                Tambah Cabang
+              </h3>
+              <button type="button"
+                class="p-2 text-neutral-50 hover:text-neutral-90 bg-neutral-0/80 hover:bg-neutral-10 rounded-xl transition-colors cursor-pointer"
+                aria-label="Tutup modal">
+                <svg class="w-4 h-4 lucide lucide-x" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 6 6 18" />
+                  <path d="m6 6 12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <!-- Inset Divider (Header) -->
+            <div class="h-px bg-[#E5E7EB] mx-6"></div>
+
+            <!-- Body -->
+            <div class="px-6 py-5 space-y-4">
+              <!-- Cabang Input -->
+              <app-input label="Cabang" placeholder="Masukkan nama cabang" [(ngModel)]="modalCabangNama"></app-input>
+
+              <!-- Kota Dropdown -->
+              <app-dropdown label="Kota" placeholder="Pilih kota" [options]="cityOptions"
+                [(ngModel)]="modalCabangKota"></app-dropdown>
+
+              <!-- Default Radio -->
+              <div class="space-y-1.5">
+                <label class="block text-sm font-medium text-neutral-60">Default</label>
+                <div class="flex items-center gap-6 pt-1">
+                  <app-radio name="inlineDefault" value="Ya" label="Ya" [(ngModel)]="modalCabangDefault"></app-radio>
+                  <app-radio name="inlineDefault" value="Tidak" label="Tidak"
+                    [(ngModel)]="modalCabangDefault"></app-radio>
+                </div>
+              </div>
+
+              <!-- Status Radio -->
+              <div class="space-y-1.5">
+                <label class="block text-sm font-medium text-neutral-60">Status</label>
+                <div class="flex items-center gap-6 pt-1">
+                  <app-radio name="inlineStatus" value="Aktif" label="Aktif"
+                    [(ngModel)]="modalCabangStatus"></app-radio>
+                  <app-radio name="inlineStatus" value="Tidak Aktif" label="Tidak Aktif"
+                    [(ngModel)]="modalCabangStatus"></app-radio>
+                </div>
+              </div>
+            </div>
+
+            <!-- Inset Divider (Footer) -->
+            <div class="h-px bg-[#E5E7EB] mx-6"></div>
+
+            <!-- Footer -->
+            <div class="px-6 py-5 flex items-center justify-start gap-3">
+              <app-button variant="primary" (btnClick)="submitFormModal()">
+                Confirm
+              </app-button>
+              <app-button variant="cancel" (btnClick)="closeFormModal()">
+                Cancel
+              </app-button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Inline Visual Preview: Confirmation Alert Modal (Gambar 2) -->
+      <div class="space-y-2">
+        <span class="text-xs font-semibold uppercase tracking-wider text-neutral-40">2. Confirmation Dialog (Konfirmasi
+          Aksi)</span>
+        <div class="p-6 bg-neutral-100/10 rounded-2xl border border-neutral-10 flex justify-center">
+          <div class="w-full max-w-md bg-white rounded-2xl shadow-xl border border-[#E5E7EB] overflow-hidden relative">
+            <!-- Close Button Top Right -->
+            <button type="button"
+              class="absolute top-4 right-4 p-1.5 text-neutral-40 hover:text-neutral-90 hover:bg-neutral-0 rounded-lg transition-colors cursor-pointer"
+              aria-label="Tutup modal">
+              <svg class="w-5 h-5 lucide lucide-x" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </button>
+
+            <!-- Centered Body Content -->
+            <div class="p-8 text-center">
+              <!-- Exclamation Alert Icon (w-8 h-8) -->
+              <div class="mx-auto flex items-center justify-center text-neutral-40 mb-4">
+                <svg class="w-8 h-8 lucide lucide-alert-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" x2="12" y1="8" y2="12" />
+                  <line x1="12" x2="12.01" y1="16" y2="16" />
+                </svg>
+              </div>
+
+              <!-- Message -->
+              <p class="text-base font-normal text-neutral-70 leading-relaxed max-w-xs mx-auto mb-6">
+                Are you sure you want to delete this product from your account?
+              </p>
+
+              <!-- Centered Buttons -->
+              <div class="flex items-center justify-center gap-3">
+                <app-button variant="primary" (btnClick)="submitConfirmModal()">
+                  Confirm
+                </app-button>
+                <app-button variant="cancel" (btnClick)="closeConfirmModal()">
+                  No, cancel
+                </app-button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1. Form Modal Instance (Real Popup Lifecycle) -->
+    <app-modal [isOpen]="isFormModalOpen" title="Tambah Cabang" variant="form" confirmText="Confirm" cancelText="Cancel"
+      (close)="closeFormModal()" (confirm)="submitFormModal()" (cancel)="closeFormModal()">
+      <app-input label="Cabang" placeholder="Masukkan nama cabang" [(ngModel)]="modalCabangNama"></app-input>
+
+      <app-dropdown label="Kota" placeholder="Pilih kota" [options]="cityOptions"
+        [(ngModel)]="modalCabangKota"></app-dropdown>
+
+      <div class="space-y-1.5">
+        <label class="block text-sm font-medium text-neutral-60">Default</label>
+        <div class="flex items-center gap-6 pt-1">
+          <app-radio name="popupDefault" value="Ya" label="Ya" [(ngModel)]="modalCabangDefault"></app-radio>
+          <app-radio name="popupDefault" value="Tidak" label="Tidak" [(ngModel)]="modalCabangDefault"></app-radio>
+        </div>
+      </div>
+
+      <div class="space-y-1.5">
+        <label class="block text-sm font-medium text-neutral-60">Status</label>
+        <div class="flex items-center gap-6 pt-1">
+          <app-radio name="popupStatus" value="Aktif" label="Aktif" [(ngModel)]="modalCabangStatus"></app-radio>
+          <app-radio name="popupStatus" value="Tidak Aktif" label="Tidak Aktif"
+            [(ngModel)]="modalCabangStatus"></app-radio>
+        </div>
+      </div>
+    </app-modal>
+
+    <!-- 2. Confirmation Alert Modal Instance (Real Popup Lifecycle) -->
+    <app-modal [isOpen]="isConfirmModalOpen" variant="confirm" confirmText="Confirm" cancelText="No, cancel"
+      confirmVariant="primary" icon="alert" (close)="closeConfirmModal()" (confirm)="submitConfirmModal()"
+      (cancel)="closeConfirmModal()">
+      Are you sure you want to delete this product from your account?
+    </app-modal>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- 9. TOAST NOTIFICATION SECTION -->
+  <!-- ========================================== -->
+  <section class="space-y-6">
+    <div class="border-b border-neutral-10 pb-2">
+      <h2 class="text-lg font-bold text-neutral-100">Toast Notifications</h2>
+      <p class="text-xs text-neutral-40">ToastService & app-toast-container (Success, Error, Warning)</p>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3">
+      <!-- Trigger Success Toast -->
+      <app-button variant="success" (btnClick)="showSuccessToast()">
+        <svg iconLeft class="w-4 h-4 lucide lucide-check-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+          <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+        Munculkan Toast Success
+      </app-button>
+
+      <!-- Trigger Error Toast -->
+      <app-button variant="error" (btnClick)="showErrorToast()">
+        <svg iconLeft class="w-4 h-4 lucide lucide-x-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <path d="m15 9-6 6" />
+          <path d="m9 9 6 6" />
+        </svg>
+        Munculkan Toast Error
+      </app-button>
+
+      <!-- Trigger Warning Toast -->
+      <app-button variant="warning" (btnClick)="showWarningToast()">
+        <svg iconLeft class="w-4 h-4 lucide lucide-alert-triangle" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+          <line x1="12" x2="12" y1="9" y2="13" />
+          <line x1="12" x2="12.01" y1="17" y2="17" />
+        </svg>
+        Munculkan Toast Warning
+      </app-button>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- 10. COLOR TOKENS SECTION -->
   <!-- ========================================== -->
   <section class="space-y-6">
     <div class="border-b border-neutral-10 pb-2">

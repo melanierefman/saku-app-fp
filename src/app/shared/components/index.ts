@@ -10,3 +10,8 @@ export * from './input-amount/input-amount.component';
 export * from './checkbox/checkbox.component';
 export * from './radio/radio.component';
 export * from './dropdown/dropdown.component';
+
+// Phase 2: Feedback & Overlays
+export * from './modal/modal.component';
+export * from './toast/toast.service';
+export * from './toast/toast.component';

@@ -1,4 +1,4 @@
-<div class="flex items-start gap-2.5">
+<div class="flex items-center gap-2.5" [class.items-start]="description">
   <!-- Checkbox Visual Box -->
   <div
     role="checkbox"
@@ -9,6 +9,7 @@
     (keydown.space)="$event.preventDefault(); toggle()"
     (keydown.enter)="$event.preventDefault(); toggle()"
     [class]="boxClasses"
+    [class.mt-0.5]="description"
   >
     @if (indeterminate) {
       <!-- Minus icon for indeterminate -->
@@ -25,23 +26,23 @@
 
   <!-- Label & Description Text -->
   @if (label || description) {
-    <div class="text-xs select-none">
+    <div class="select-none">
       @if (label) {
         <label
           (click)="toggle()"
-          [class]="disabled ? 'text-neutral-40 cursor-not-allowed' : 'text-neutral-90 cursor-pointer font-medium hover:text-neutral-100'"
-          class="block leading-snug"
+          [class]="disabled ? 'text-neutral-40 cursor-not-allowed' : 'text-neutral-80 cursor-pointer font-medium hover:text-neutral-100'"
+          class="block text-sm leading-snug"
         >
           {{ label }}
         </label>
       }
       @if (description) {
-        <p class="text-neutral-40 mt-0.5 leading-relaxed">
+        <p class="text-xs text-neutral-40 mt-0.5 leading-relaxed">
           {{ description }}
         </p>
       }
       @if (errorMessage) {
-        <p class="text-error mt-0.5 font-medium">
+        <p class="text-error mt-0.5 font-medium text-xs">
           {{ errorMessage }}
         </p>
       }

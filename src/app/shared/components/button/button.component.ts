@@ -6,6 +6,7 @@ export type ButtonVariant =
   | 'secondary'
   | 'neutral'
   | 'outline'
+  | 'cancel'
   | 'ghost'
   | 'success'
   | 'warning'
@@ -118,6 +119,11 @@ export class ButtonComponent {
       case 'outline':
         classes.push(
           'border border-neutral-20 text-neutral-50 bg-white hover:bg-neutral-0 active:bg-neutral-10 focus-visible:ring-neutral-30'
+        );
+        break;
+      case 'cancel':
+        classes.push(
+          'border border-[#E5E7EB] text-neutral-40 bg-white hover:bg-neutral-0/50 hover:text-neutral-70 hover:border-neutral-30 active:bg-neutral-10 focus-visible:ring-neutral-20'
         );
         break;
       case 'ghost':
