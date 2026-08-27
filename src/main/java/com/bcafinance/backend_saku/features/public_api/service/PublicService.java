@@ -10,6 +10,7 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,7 @@ public class PublicService {
 
     private final PlafondRepository plafondRepository;
 
+    @Cacheable(value = "publicPlafonds")
     @Transactional(readOnly = true)
     public List<PublicPlafondResponse> getPublicPlafonds() {
         return plafondRepository.findAllByStatusTrue().stream()
@@ -26,8 +28,10 @@ public class PublicService {
                 .toList();
     }
 
+    @Cacheable(value = "simulasiPinjaman", key = "#jumlahPinjaman + '-' + #tenorBulan")
     @Transactional(readOnly = true)
     public SimulasiPinjamanResponse hitungSimulasi(BigDecimal jumlahPinjaman, Integer tenorBulan) {
+
         if (jumlahPinjaman == null || jumlahPinjaman.compareTo(BigDecimal.ZERO) <= 0) {
             jumlahPinjaman = BigDecimal.valueOf(5_000_000);
         }

@@ -1,6 +1,8 @@
 package com.bcafinance.backend_saku.features.public_api.dto;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
+
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,7 +15,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PublicPlafondResponse {
+public class PublicPlafondResponse implements Serializable {
 
     private UUID id;
     private String nama;

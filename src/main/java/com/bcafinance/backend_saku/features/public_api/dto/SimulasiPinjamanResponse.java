@@ -1,5 +1,6 @@
 package com.bcafinance.backend_saku.features.public_api.dto;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,7 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SimulasiPinjamanResponse {
+public class SimulasiPinjamanResponse implements Serializable {
 
     private BigDecimal jumlahPinjaman;
     private Integer tenorBulan;

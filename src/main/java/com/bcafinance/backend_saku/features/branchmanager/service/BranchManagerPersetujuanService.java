@@ -62,9 +62,6 @@ public class BranchManagerPersetujuanService {
     private final com.bcafinance.backend_saku.features.customer.service.NotifikasiService notifikasiService;
     private final com.bcafinance.backend_saku.features.master.auditlog.service.AuditLogService auditLogService;
 
-
-
-
     public List<BranchManagerPengajuanItemResponse> findAll(String statusFilter) {
         return findAll(statusFilter, null);
     }
@@ -78,12 +75,12 @@ public class BranchManagerPersetujuanService {
             }
         }
 
-
         final UUID filterBranchId = branchId;
         List<PengajuanPinjaman> list = pengajuanRepository.findAllByOrderByCreatedDateDesc();
 
         return list.stream()
-                .filter(p -> filterBranchId == null || (p.getMstBranchId() != null && filterBranchId.equals(p.getMstBranchId())))
+                .filter(p -> filterBranchId == null
+                        || (p.getMstBranchId() != null && filterBranchId.equals(p.getMstBranchId())))
                 .filter(p -> {
 
                     // Hanya tampilkan pengajuan yang sudah selesai direview oleh marketing atau
@@ -357,8 +354,6 @@ public class BranchManagerPersetujuanService {
             throw new BussinessRuleException("Anda tidak memiliki izin untuk menyetujui pengajuan dari cabang lain");
         }
 
-
-
         String currentStatus = pengajuan.getStatusPengajuan() != null ? pengajuan.getStatusPengajuan() : "";
 
         // Validasi: Pengajuan harus sudah disetujui oleh Marketing (SELESAI_DIREVIEW)
@@ -407,7 +402,8 @@ public class BranchManagerPersetujuanService {
                     "APPROVAL_BM",
                     "IN_APP",
                     "Pinjaman Disetujui Branch Manager",
-                    "Selamat! Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan() + " telah disetujui oleh Branch Manager dan sedang dalam proses pencairan dana.");
+                    "Selamat! Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan()
+                            + " telah disetujui oleh Branch Manager dan sedang dalam proses pencairan dana.");
         } else {
             notifikasiService.createNotification(
                     pengajuan.getMstCustomerId(),
@@ -415,12 +411,14 @@ public class BranchManagerPersetujuanService {
                     "APPROVAL_BM",
                     "IN_APP",
                     "Pengajuan Pinjaman Ditolak",
-                    "Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan() + " tidak disetujui oleh Branch Manager. Catatan: " + request.getCatatan());
+                    "Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan()
+                            + " tidak disetujui oleh Branch Manager. Catatan: " + request.getCatatan());
         }
 
         if (auditLogService != null && karyawanId != null) {
             String act = "PENGAJUAN_DISETUJUI".equalsIgnoreCase(newStatusPengajuan) ? "APPROVE" : "REJECT";
-            String desc = "Branch Manager " + karyawan.getNama() + " memproses persetujuan pengajuan no. " + pengajuan.getNomorPengajuan() + " (" + act + ")";
+            String desc = "Branch Manager " + karyawan.getNama() + " memproses persetujuan pengajuan no. "
+                    + pengajuan.getNomorPengajuan() + " (" + act + ")";
             auditLogService.recordLog(karyawanId, act, "PENGAJUAN", desc);
         }
 
@@ -522,12 +520,11 @@ public class BranchManagerPersetujuanService {
             }
         }
 
-
         final UUID filterBranchId = branchId;
         List<PengajuanPinjaman> allLoans = pengajuanRepository.findAll().stream()
-                .filter(p -> filterBranchId == null || (p.getMstBranchId() != null && filterBranchId.equals(p.getMstBranchId())))
+                .filter(p -> filterBranchId == null
+                        || (p.getMstBranchId() != null && filterBranchId.equals(p.getMstBranchId())))
                 .toList();
-
 
         long total = allLoans.size();
         long menungguPersetujuan = 0;
@@ -550,7 +547,8 @@ public class BranchManagerPersetujuanService {
 
             if ("SELESAI_DIREVIEW".equals(status) || "MENUNGGU_PERSETUJUAN".equals(status)) {
                 menungguPersetujuan++;
-            } else if ("PENGAJUAN_DISETUJUI".equals(status) || "DICAIRKAN".equals(status) || "APPROVED".equals(status)) {
+            } else if ("PENGAJUAN_DISETUJUI".equals(status) || "DICAIRKAN".equals(status)
+                    || "APPROVED".equals(status)) {
                 disetujuiBM++;
                 totalNominalDisetujui = totalNominalDisetujui.add(nominal);
             } else if ("PENGAJUAN_DITOLAK".equals(status) || "DITOLAK".equals(status)) {
@@ -584,7 +582,8 @@ public class BranchManagerPersetujuanService {
 
         // Monthly trends (Last 6 months)
         java.time.YearMonth currentMonth = java.time.YearMonth.now();
-        java.time.format.DateTimeFormatter monthFormatter = java.time.format.DateTimeFormatter.ofPattern("MMM yyyy", java.util.Locale.forLanguageTag("id-ID"));
+        java.time.format.DateTimeFormatter monthFormatter = java.time.format.DateTimeFormatter.ofPattern("MMM yyyy",
+                java.util.Locale.forLanguageTag("id-ID"));
 
         java.util.List<BranchManagerDashboardStatsResponse.MonthlyTrendItem> monthlyTrends = new java.util.ArrayList<>();
         for (int i = 5; i >= 0; i--) {
@@ -597,7 +596,8 @@ public class BranchManagerPersetujuanService {
                     java.time.YearMonth loanYm = java.time.YearMonth.from(p.getCreatedDate());
                     if (loanYm.equals(ym)) {
                         String status = p.getStatusPengajuan() != null ? p.getStatusPengajuan().toUpperCase() : "";
-                        if ("PENGAJUAN_DISETUJUI".equals(status) || "DICAIRKAN".equals(status) || "APPROVED".equals(status)) {
+                        if ("PENGAJUAN_DISETUJUI".equals(status) || "DICAIRKAN".equals(status)
+                                || "APPROVED".equals(status)) {
                             count++;
                             if (p.getJumlahPinjaman() != null) {
                                 nominal = nominal.add(p.getJumlahPinjaman());
@@ -629,4 +629,3 @@ public class BranchManagerPersetujuanService {
                 .build();
     }
 }
-

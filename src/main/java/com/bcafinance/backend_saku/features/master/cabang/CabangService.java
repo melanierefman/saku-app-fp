@@ -52,6 +52,8 @@ public class CabangService {
         cabangRepository.delete(cabang);
     }
 
+
+
     private void applyRequest(Cabang cabang, CabangRequest request) {
         cabang.setNama(request.getNama());
         cabang.setKota(request.getKota());

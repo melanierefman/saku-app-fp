@@ -57,9 +57,6 @@ public class MarketingReviewService {
     private final com.bcafinance.backend_saku.features.customer.service.NotifikasiService notifikasiService;
     private final com.bcafinance.backend_saku.features.master.auditlog.service.AuditLogService auditLogService;
 
-
-
-
     public List<MarketingPengajuanItemResponse> findAll(String statusFilter) {
         return findAll(statusFilter, null);
     }
@@ -73,12 +70,12 @@ public class MarketingReviewService {
             }
         }
 
-
         final UUID filterBranchId = branchId;
         List<PengajuanPinjaman> list = pengajuanRepository.findAllByOrderByCreatedDateDesc();
 
         return list.stream()
-                .filter(p -> filterBranchId == null || (p.getMstBranchId() != null && filterBranchId.equals(p.getMstBranchId())))
+                .filter(p -> filterBranchId == null
+                        || (p.getMstBranchId() != null && filterBranchId.equals(p.getMstBranchId())))
                 .map(p -> {
 
                     Customer customer = customerRepository.findById(p.getMstCustomerId()).orElse(null);
@@ -314,8 +311,6 @@ public class MarketingReviewService {
             throw new BussinessRuleException("Anda tidak memiliki izin untuk mereview pengajuan dari cabang lain");
         }
 
-
-
         String inputReview = request.getHasilReview().trim().toUpperCase();
         String hasilReview;
         String statusPengajuan;
@@ -358,7 +353,8 @@ public class MarketingReviewService {
                     "REVIEW_MARKETING",
                     "IN_APP",
                     "Review Pinjaman Disetujui",
-                    "Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan() + " telah disetujui pada tahap review Marketing dan diteruskan ke Branch Manager.");
+                    "Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan()
+                            + " telah disetujui pada tahap review Marketing dan diteruskan ke Branch Manager.");
         } else if ("DITOLAK".equals(hasilReview)) {
             notifikasiService.createNotification(
                     pengajuan.getMstCustomerId(),
@@ -366,7 +362,8 @@ public class MarketingReviewService {
                     "REVIEW_MARKETING",
                     "IN_APP",
                     "Pengajuan Pinjaman Ditolak",
-                    "Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan() + " tidak disetujui pada tahap review Marketing. Catatan: " + request.getCatatan());
+                    "Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan()
+                            + " tidak disetujui pada tahap review Marketing. Catatan: " + request.getCatatan());
         } else if ("PERLU_REVISI".equals(hasilReview)) {
             notifikasiService.createNotification(
                     pengajuan.getMstCustomerId(),
@@ -374,11 +371,13 @@ public class MarketingReviewService {
                     "REVIEW_MARKETING",
                     "IN_APP",
                     "Perlu Revisi Dokumen Pinjaman",
-                    "Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan() + " memerlukan perbaikan dokumen. Catatan: " + request.getCatatan());
+                    "Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan()
+                            + " memerlukan perbaikan dokumen. Catatan: " + request.getCatatan());
         }
 
         if (auditLogService != null && karyawanId != null) {
-            String desc = "Marketing " + karyawan.getNama() + " mereview pengajuan no. " + pengajuan.getNomorPengajuan() + " dengan hasil: " + hasilReview;
+            String desc = "Marketing " + karyawan.getNama() + " mereview pengajuan no. " + pengajuan.getNomorPengajuan()
+                    + " dengan hasil: " + hasilReview;
             auditLogService.recordLog(karyawanId, "REVIEW", "PENGAJUAN", desc);
         }
 
@@ -489,12 +488,11 @@ public class MarketingReviewService {
             }
         }
 
-
         final UUID filterBranchId = branchId;
         List<PengajuanPinjaman> allLoans = pengajuanRepository.findAll().stream()
-                .filter(p -> filterBranchId == null || (p.getMstBranchId() != null && filterBranchId.equals(p.getMstBranchId())))
+                .filter(p -> filterBranchId == null
+                        || (p.getMstBranchId() != null && filterBranchId.equals(p.getMstBranchId())))
                 .toList();
-
 
         long total = allLoans.size();
         long menungguReview = 0;
@@ -517,7 +515,8 @@ public class MarketingReviewService {
             } else if ("PERLU_REVISI".equals(status)) {
                 perluRevisi++;
                 statusMap.put("PERLU_REVISI", statusMap.get("PERLU_REVISI") + 1);
-            } else if ("SELESAI_DIREVIEW".equals(status) || "PENGAJUAN_DISETUJUI".equals(status) || "DICAIRKAN".equals(status) || "APPROVED".equals(status)) {
+            } else if ("SELESAI_DIREVIEW".equals(status) || "PENGAJUAN_DISETUJUI".equals(status)
+                    || "DICAIRKAN".equals(status) || "APPROVED".equals(status)) {
                 disetujuiMarketing++;
                 if ("DICAIRKAN".equals(status)) {
                     statusMap.put("DICAIRKAN", statusMap.get("DICAIRKAN") + 1);
@@ -561,7 +560,8 @@ public class MarketingReviewService {
         // Weekly Trends (Last 7 days)
         java.time.LocalDate today = java.time.LocalDate.now();
         java.time.format.DateTimeFormatter dateFormatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        java.time.format.DateTimeFormatter dayFormatter = java.time.format.DateTimeFormatter.ofPattern("EEE", java.util.Locale.forLanguageTag("id-ID"));
+        java.time.format.DateTimeFormatter dayFormatter = java.time.format.DateTimeFormatter.ofPattern("EEE",
+                java.util.Locale.forLanguageTag("id-ID"));
 
         java.util.List<MarketingDashboardStatsResponse.DailyTrendItem> weeklyTrends = new java.util.ArrayList<>();
         for (int i = 6; i >= 0; i--) {
@@ -599,4 +599,3 @@ public class MarketingReviewService {
                 .build();
     }
 }
-

@@ -1,6 +1,8 @@
 package com.bcafinance.backend_saku.features.master.plafond;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.Getter;
@@ -10,7 +12,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class PlafondResponse {
+public class PlafondResponse implements Serializable {
 
     private UUID id;
     private String nama;

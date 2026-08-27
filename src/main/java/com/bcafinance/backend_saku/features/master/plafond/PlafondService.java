@@ -47,6 +47,8 @@ public class PlafondService {
         plafondRepository.delete(getPlafond(id));
     }
 
+
+
     public PlafondCalculationResponse calculateApprovedAmount(BigDecimal pendapatan, double skorAkhir) {
         Plafond plafond = plafondRepository
                 .findTopByMinPendapatanLessThanEqualAndStatusTrueOrderByMinPendapatanDesc(pendapatan)

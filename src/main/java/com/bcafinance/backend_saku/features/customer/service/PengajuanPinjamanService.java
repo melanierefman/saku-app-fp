@@ -291,7 +291,6 @@ public class PengajuanPinjamanService {
         }
     }
 
-
     private Cabang resolveCabang(UUID customerId, UUID branchId) {
         if (branchId != null) {
             return cabangRepository.findById(branchId)

@@ -65,9 +65,6 @@ public class PencairanService {
     private final com.bcafinance.backend_saku.features.customer.service.NotifikasiService notifikasiService;
     private final com.bcafinance.backend_saku.features.master.auditlog.service.AuditLogService auditLogService;
 
-
-
-
     public List<PencairanItemResponse> findAll(String statusFilter) {
         List<PengajuanPinjaman> list = pengajuanRepository.findAllByOrderByCreatedDateDesc();
 
@@ -94,9 +91,11 @@ public class PencairanService {
                     Optional<Pencairan> pencairanOpt = pencairanRepository
                             .findFirstByTrxPengajuanPinjamanIdOrderByCreatedDateDesc(p.getId());
 
-                    String statusPencairan = pencairanOpt.isPresent() ? pencairanOpt.get().getStatusPencairan() : "MENUNGGU_PENCAIRAN";
+                    String statusPencairan = pencairanOpt.isPresent() ? pencairanOpt.get().getStatusPencairan()
+                            : "MENUNGGU_PENCAIRAN";
                     LocalDateTime tglPencairan = pencairanOpt.map(Pencairan::getCreatedDate).orElse(null);
-                    String namaPetugasBO = pencairanOpt.flatMap(pc -> karyawanRepository.findById(pc.getMstKaryawanId()))
+                    String namaPetugasBO = pencairanOpt
+                            .flatMap(pc -> karyawanRepository.findById(pc.getMstKaryawanId()))
                             .map(Karyawan::getNama)
                             .orElse("-");
 
@@ -160,11 +159,13 @@ public class PencairanService {
 
         // 1. Alamat Nasabah
         Optional<AlamatCustomer> alamatKtpOpt = alamatRepository.findByCustomer_IdAndJenisAlamat(customerId, "KTP");
-        Optional<AlamatCustomer> alamatDomisiliOpt = alamatRepository.findByCustomer_IdAndJenisAlamat(customerId, "DOMISILI");
+        Optional<AlamatCustomer> alamatDomisiliOpt = alamatRepository.findByCustomer_IdAndJenisAlamat(customerId,
+                "DOMISILI");
 
         // 2. Dokumen Foto Identitas (KTP & Selfie)
         Optional<DokumenCustomer> ktpDocOpt = dokumenCustomerRepository.findByCustomer_IdAndDocType(customerId, "KTP");
-        Optional<DokumenCustomer> selfieDocOpt = dokumenCustomerRepository.findByCustomer_IdAndDocType(customerId, "SELFIE");
+        Optional<DokumenCustomer> selfieDocOpt = dokumenCustomerRepository.findByCustomer_IdAndDocType(customerId,
+                "SELFIE");
 
         // 3. Dokumen Pinjaman (Slip Gaji, Rekening Koran, NPWP)
         List<DokumenPinjaman> loanDocs = dokumenPinjamanRepository.findAllByTrxPengajuanPinjamanId(pengajuanId);
@@ -217,7 +218,8 @@ public class PencairanService {
         Optional<Pencairan> pencairanOpt = pencairanRepository
                 .findFirstByTrxPengajuanPinjamanIdOrderByCreatedDateDesc(pengajuanId);
 
-        String statusPencairan = pencairanOpt.isPresent() ? pencairanOpt.get().getStatusPencairan() : "MENUNGGU_PENCAIRAN";
+        String statusPencairan = pencairanOpt.isPresent() ? pencairanOpt.get().getStatusPencairan()
+                : "MENUNGGU_PENCAIRAN";
         LocalDateTime tglPencairan = pencairanOpt.map(Pencairan::getCreatedDate).orElse(null);
         UUID boKaryawanId = pencairanOpt.map(Pencairan::getMstKaryawanId).orElse(null);
         String namaPetugasBO = pencairanOpt.flatMap(pc -> karyawanRepository.findById(pc.getMstKaryawanId()))
@@ -225,7 +227,8 @@ public class PencairanService {
                 .orElse("-");
 
         // 7. Jadwal Angsuran
-        List<Angsuran> angsuranList = angsuranRepository.findAllByTrxPengajuanPinjamanIdOrderByCicilanKeAsc(pengajuanId);
+        List<Angsuran> angsuranList = angsuranRepository
+                .findAllByTrxPengajuanPinjamanIdOrderByCicilanKeAsc(pengajuanId);
         List<AngsuranItemResponse> angsuranResponseList = angsuranList.stream()
                 .map(this::toAngsuranResponse)
                 .toList();
@@ -235,7 +238,8 @@ public class PencairanService {
 
         BigDecimal jumlahPencairanBersih = pencairanOpt.map(Pencairan::getJumlahPencairan)
                 .orElseGet(() -> {
-                    BigDecimal biayaAdmin = pengajuan.getBiayaAdmin() != null ? pengajuan.getBiayaAdmin() : BigDecimal.ZERO;
+                    BigDecimal biayaAdmin = pengajuan.getBiayaAdmin() != null ? pengajuan.getBiayaAdmin()
+                            : BigDecimal.ZERO;
                     return pengajuan.getJumlahPinjaman().subtract(biayaAdmin);
                 });
 
@@ -312,7 +316,8 @@ public class PencairanService {
 
         // Tentukan jumlah pencairan
         BigDecimal jumlahPencairan;
-        if (request != null && request.getJumlahPencairan() != null && request.getJumlahPencairan().compareTo(BigDecimal.ZERO) > 0) {
+        if (request != null && request.getJumlahPencairan() != null
+                && request.getJumlahPencairan().compareTo(BigDecimal.ZERO) > 0) {
             jumlahPencairan = request.getJumlahPencairan();
         } else {
             BigDecimal biayaAdmin = pengajuan.getBiayaAdmin() != null ? pengajuan.getBiayaAdmin() : BigDecimal.ZERO;
@@ -374,15 +379,17 @@ public class PencairanService {
                 "PENCAIRAN",
                 "IN_APP",
                 "Dana Pinjaman Telah Dicairkan",
-                "Selamat! Dana pinjaman no. " + pengajuan.getNomorPengajuan() + " sebesar Rp " + jumlahPencairan + " telah berhasil dicairkan ke rekening " + customer.getNamaBank() + " Anda.");
+                "Selamat! Dana pinjaman no. " + pengajuan.getNomorPengajuan() + " sebesar Rp " + jumlahPencairan
+                        + " telah berhasil dicairkan ke rekening " + customer.getNamaBank() + " Anda.");
 
         if (auditLogService != null && karyawanId != null) {
-            String desc = "Backoffice " + karyawan.getNama() + " mencairkan pinjaman no. " + pengajuan.getNomorPengajuan() + " sebesar Rp " + jumlahPencairan + " ke rekening " + customer.getNamaBank();
+            String desc = "Backoffice " + karyawan.getNama() + " mencairkan pinjaman no. "
+                    + pengajuan.getNomorPengajuan() + " sebesar Rp " + jumlahPencairan + " ke rekening "
+                    + customer.getNamaBank();
             auditLogService.recordLog(karyawanId, "PENCAIRAN", "PENCAIRAN", desc);
         }
 
         return PencairanResponse.builder()
-
 
                 .pencairanId(savedPencairan.getId())
                 .pengajuanId(pengajuanId)
@@ -405,7 +412,8 @@ public class PencairanService {
     }
 
     private AngsuranItemResponse toAngsuranResponse(Angsuran a) {
-        if (a == null) return null;
+        if (a == null)
+            return null;
         return AngsuranItemResponse.builder()
                 .id(a.getId())
                 .cicilanKe(a.getCicilanKe())
@@ -415,7 +423,8 @@ public class PencairanService {
                 .build();
     }
 
-    private BigDecimal calculateEstimasiAngsuran(BigDecimal jumlahPinjaman, Integer tenorBulan, BigDecimal bungaTahunan) {
+    private BigDecimal calculateEstimasiAngsuran(BigDecimal jumlahPinjaman, Integer tenorBulan,
+            BigDecimal bungaTahunan) {
         if (jumlahPinjaman == null || tenorBulan == null || tenorBulan <= 0) {
             return BigDecimal.ZERO;
         }
@@ -440,7 +449,8 @@ public class PencairanService {
     }
 
     private AlamatDetailResponse mapAlamat(AlamatCustomer alamat) {
-        if (alamat == null) return null;
+        if (alamat == null)
+            return null;
 
         StringBuilder formatted = new StringBuilder();
         if (alamat.getAlamatLengkap() != null) {
@@ -534,7 +544,8 @@ public class PencairanService {
         // Weekly Disbursement Trends (Last 7 days)
         java.time.LocalDate today = java.time.LocalDate.now();
         java.time.format.DateTimeFormatter dateFormatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        java.time.format.DateTimeFormatter dayFormatter = java.time.format.DateTimeFormatter.ofPattern("EEE", java.util.Locale.forLanguageTag("id-ID"));
+        java.time.format.DateTimeFormatter dayFormatter = java.time.format.DateTimeFormatter.ofPattern("EEE",
+                java.util.Locale.forLanguageTag("id-ID"));
 
         java.util.List<BackofficeDashboardStatsResponse.DailyDisbursementItem> weeklyDisbursements = new java.util.ArrayList<>();
         for (int i = 6; i >= 0; i--) {
@@ -572,5 +583,3 @@ public class PencairanService {
                 .build();
     }
 }
-
-
