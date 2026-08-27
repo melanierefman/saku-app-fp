@@ -695,7 +695,85 @@
   </section>
 
   <!-- ========================================== -->
-  <!-- 12. COLOR TOKENS SECTION -->
+  <!-- 12. DATE PICKER & FILTER TANGGAL (Phase 4) -->
+  <!-- ========================================== -->
+  <section class="space-y-6">
+    <div class="border-b border-neutral-10 pb-2">
+      <h2 class="text-lg font-bold text-neutral-100">Date Picker & Filter Tanggal</h2>
+      <p class="text-xs text-neutral-40">app-date-picker (Form input tanggal & filter rentang periode data)</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+      <!-- 1. Single Date Picker (Form Input) -->
+      <div class="p-5 bg-white rounded-2xl border border-[#E5E7EB] shadow-xs space-y-4">
+        <div>
+          <span class="text-xs font-semibold uppercase tracking-wider text-neutral-40">1. Single Date Picker</span>
+          <p class="text-xs text-neutral-50 mt-0.5">Untuk input tanggal lahir, tanggal efektif SK, dsb.</p>
+        </div>
+
+        <app-date-picker
+          label="Tanggal Lahir"
+          placeholder="Pilih tanggal"
+          mode="single"
+          [required]="true"
+          [(ngModel)]="demoSingleDate"
+        ></app-date-picker>
+
+        <div class="p-3 bg-neutral-0/50 rounded-xl border border-neutral-10 text-xs text-neutral-60">
+          Value: <strong class="text-neutral-90">{{ demoSingleDate ? (demoSingleDate | date:'fullDate') : 'Belum dipilih' }}</strong>
+        </div>
+      </div>
+
+      <!-- 2. Date Range Picker (Filter Laporan / Transaksi) -->
+      <div class="p-5 bg-white rounded-2xl border border-[#E5E7EB] shadow-xs space-y-4">
+        <div>
+          <span class="text-xs font-semibold uppercase tracking-wider text-neutral-40">2. Date Range Picker (Presets Chips)</span>
+          <p class="text-xs text-neutral-50 mt-0.5">Untuk filter rentang periode laporan & audit log.</p>
+        </div>
+
+        <app-date-picker
+          label="Periode Transaksi"
+          placeholder="Pilih rentang tanggal"
+          mode="range"
+          [showPresets]="true"
+          [(ngModel)]="demoDateRange"
+        ></app-date-picker>
+
+        <div class="p-3 bg-neutral-0/50 rounded-xl border border-neutral-10 text-xs text-neutral-60 space-y-1">
+          <div>Mulai: <strong class="text-neutral-90">{{ demoDateRange.start ? (demoDateRange.start | date:'dd MMM yyyy') : '-' }}</strong></div>
+          <div>Selesai: <strong class="text-neutral-90">{{ demoDateRange.end ? (demoDateRange.end | date:'dd MMM yyyy') : '-' }}</strong></div>
+        </div>
+      </div>
+
+      <!-- 3. Toolbar Filter Simulation (Filter Bar di atas Tabel) -->
+      <div class="p-5 bg-white rounded-2xl border border-[#E5E7EB] shadow-xs space-y-4">
+        <div>
+          <span class="text-xs font-semibold uppercase tracking-wider text-neutral-40">3. Simulasi Filter Bar di Atas Tabel</span>
+          <p class="text-xs text-neutral-50 mt-0.5">Contoh integrasi filter tanggal pada toolbar tabel data.</p>
+        </div>
+
+        <div class="space-y-3">
+          <app-date-picker
+            label="Filter Tanggal Pengajuan"
+            placeholder="Semua Tanggal"
+            mode="range"
+            [showPresets]="true"
+            [(ngModel)]="demoFilterDateRange"
+          ></app-date-picker>
+
+          <div class="flex items-center justify-between text-xs pt-1">
+            <span class="text-neutral-40">Status Filter:</span>
+            <span [class]="demoFilterDateRange?.start ? 'text-primary font-bold' : 'text-neutral-50'">
+              {{ demoFilterDateRange?.start ? 'Aktif (Difilter)' : 'Menampilkan Semua Data' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- 13. COLOR TOKENS SECTION -->
   <!-- ========================================== -->
   <section class="space-y-6">
     <div class="border-b border-neutral-10 pb-2">

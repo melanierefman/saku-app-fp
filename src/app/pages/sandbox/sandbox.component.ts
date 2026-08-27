@@ -18,6 +18,8 @@ import {
   BreadcrumbItem,
   SidebarComponent,
   NavItem,
+  DatePickerComponent,
+  DateRangeValue,
 } from '../../shared/components';
 
 @Component({
@@ -38,12 +40,21 @@ import {
     ModalComponent,
     BreadcrumbsComponent,
     SidebarComponent,
+    DatePickerComponent,
   ],
   templateUrl: './sandbox.component.html',
   styleUrl: './sandbox.component.css',
 })
 export class SandboxComponent {
   readonly toastService = inject(ToastService);
+
+  // Date Picker Demo States
+  demoSingleDate: Date | null = new Date();
+  demoDateRange: DateRangeValue = {
+    start: new Date(2026, 7, 1),
+    end: new Date(2026, 7, 27),
+  };
+  demoFilterDateRange: DateRangeValue | null = null;
 
   // Breadcrumbs Demo Items
   breadcrumbItems: BreadcrumbItem[] = [

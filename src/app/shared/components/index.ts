@@ -19,3 +19,7 @@ export * from './toast/toast.component';
 // Phase 3: Layout & Navigation
 export * from './breadcrumbs/breadcrumbs.component';
 export * from './sidebar/sidebar.component';
+
+// Phase 4: Data Presentation & Filtering
+export * from './date-picker/date-picker.component';
+

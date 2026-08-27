@@ -56,10 +56,10 @@ export class DropdownComponent implements ControlValueAccessor {
   isOpen: boolean = false;
   searchQuery: string = '';
 
-  constructor(private elementRef: ElementRef) {}
+  constructor(private elementRef: ElementRef) { }
 
-  onChange: (value: any) => void = () => {};
-  onTouched: () => void = () => {};
+  onChange: (value: any) => void = () => { };
+  onTouched: () => void = () => { };
 
   writeValue(value: any): void {
     this.selectedValue = value;
@@ -136,18 +136,19 @@ export class DropdownComponent implements ControlValueAccessor {
 
   get triggerClasses(): string {
     const classes = [
-      'relative flex items-center justify-between w-full rounded-lg cursor-pointer select-none text-left saku-input-control',
+      'relative flex items-center justify-between w-full cursor-pointer select-none text-left saku-input-control transition-all',
     ];
 
     switch (this.size) {
       case 'sm':
-        classes.push('py-1.5 px-3 text-xs');
-        break;
-      case 'md':
-        classes.push('py-2 px-3.5 text-sm');
+        classes.push('py-1.5 px-3 text-xs rounded-lg');
         break;
       case 'lg':
-        classes.push('py-2.5 px-4 text-base');
+        classes.push('py-3 px-4 text-base rounded-xl');
+        break;
+      case 'md':
+      default:
+        classes.push('py-2.5 px-3.5 text-sm rounded-xl');
         break;
     }
 
