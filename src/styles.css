@@ -1,3 +1,93 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import 'tailwindcss';
+
+@theme {
+  --font-sans: "Overused Grotesk", system-ui, sans-serif;
+  /* --font-mono: 'JetBrains Mono', monospace; */
+}
+
+@theme static {
+  /* Typography */
+  --color-neutral: #252525;
+  --color-neutral-0: #EEEEEE;
+  --color-neutral-10: #D8D8D8;
+  --color-neutral-20: #B9B9B9;
+  --color-neutral-30: #969696;
+  --color-neutral-40: #6F6F6F;
+  --color-neutral-50: #252525;
+  --color-neutral-60: #1F1F1F;
+  --color-neutral-70: #1A1A1A;
+  --color-neutral-80: #141414;
+  --color-neutral-90: #0F0F0F;
+  --color-neutral-100: #090909;
+
+  /* Primary */
+  --color-primary: #FF792E;
+  --color-primary-0: #FFF4EE;
+  --color-primary-10: #FFE7D9;
+  --color-primary-20: #FFD4BC;
+  --color-primary-30: #FFBF9B;
+  --color-primary-40: #FFA775;
+  --color-primary-50: #FF792E;
+  --color-primary-60: #D96727;
+  --color-primary-70: #B35520;
+  --color-primary-80: #8C4319;
+  --color-primary-90: #663012;
+  --color-primary-100: #401E0C;
+
+  /* Secondary */
+  /* --color-secondary: #f9316d;
+  --color-secondary-10: #fed9d5;
+  --color-secondary-20: #feacad;
+  --color-secondary-30: #fd838f;
+  --color-secondary-40: #fb6382;
+  --color-secondary-50: #f9316d;
+  --color-secondary-60: #d6236a;
+  --color-secondary-70: #b31865;
+  --color-secondary-80: #900f5c;
+  --color-secondary-90: #770955;
+  --color-secondary-100: #5f0743; */
+
+  /* Error */
+  --color-error: #e53e3e;
+  --color-error-0: #fad8d8;
+  --color-error-10: #f6bfbf;
+  --color-error-20: #f29f9f;
+  --color-error-30: #ee7e7e;
+  --color-error-40: #e95e5e;
+  --color-error-50: #e53e3e;
+  --color-error-60: #bf3434;
+  --color-error-70: #992929;
+  --color-error-80: #731f1f;
+  --color-error-90: #4c1515;
+  --color-error-100: #2e0c0c;
+
+  /* Success */
+  --color-success: #48bb78;
+  --color-success-0: #daf1e4;
+  --color-success-10: #c2e8d2;
+  --color-success-20: #a4ddbc;
+  --color-success-30: #85d2a5;
+  --color-success-40: #67c68f;
+  --color-success-50: #48bb78;
+  --color-success-60: #3c9c64;
+  --color-success-70: #307d50;
+  --color-success-80: #245e3c;
+  --color-success-90: #183e28;
+  --color-success-100: #0e2518;
+
+  /* Warning (Standard Amber) */
+  --color-warning: #F59E0B;
+  --color-warning-0: #FFFBEB;
+  --color-warning-10: #FEF3C7;
+  --color-warning-20: #FDE68A;
+  --color-warning-30: #FCD34D;
+  --color-warning-40: #FBBF24;
+  --color-warning-50: #F59E0B;
+  --color-warning-60: #D97706;
+  --color-warning-70: #B45309;
+  --color-warning-80: #92400E;
+  --color-warning-90: #78350F;
+  --color-warning-100: #451A03;
+}
