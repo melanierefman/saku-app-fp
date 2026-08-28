@@ -141,14 +141,14 @@ export class DropdownComponent implements ControlValueAccessor {
 
     switch (this.size) {
       case 'sm':
-        classes.push('py-1.5 px-3 text-xs rounded-lg');
+        classes.push('py-1.5 px-3 text-xs rounded-lg h-8');
         break;
       case 'lg':
-        classes.push('py-3 px-4 text-base rounded-xl');
+        classes.push('py-2.5 px-4 text-base rounded-xl h-11');
         break;
       case 'md':
       default:
-        classes.push('py-2.5 px-3.5 text-sm rounded-xl');
+        classes.push('py-2 px-3.5 text-sm rounded-xl h-10');
         break;
     }
 

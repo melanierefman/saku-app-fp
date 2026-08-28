@@ -104,7 +104,7 @@ export class InputComponent implements ControlValueAccessor {
 
   get inputWrapperClasses(): string {
     const classes = [
-      'relative flex items-center w-full rounded-lg saku-input-control',
+      'relative flex items-center w-full rounded-xl saku-input-control h-10',
     ];
 
     if (this.disabled) {

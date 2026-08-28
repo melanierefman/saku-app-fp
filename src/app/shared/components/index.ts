@@ -22,4 +22,7 @@ export * from './sidebar/sidebar.component';
 
 // Phase 4: Data Presentation & Filtering
 export * from './date-picker/date-picker.component';
+export * from './table/table.component';
+export * from './pagination/pagination.component';
+
 

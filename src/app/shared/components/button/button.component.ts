@@ -25,7 +25,7 @@ export type ButtonRounded = 'none' | 'sm' | 'md' | 'lg' | 'full';
 export class ButtonComponent {
   @Input() variant: ButtonVariant = 'primary';
   @Input() size: ButtonSize = 'md';
-  @Input() rounded: ButtonRounded = 'md';
+  @Input() rounded: ButtonRounded = 'lg';
   @Input() disabled: boolean = false;
   @Input() loading: boolean = false;
   @Input() fullWidth: boolean = false;
@@ -45,7 +45,7 @@ export class ButtonComponent {
 
   get buttonClasses(): string {
     const classes: string[] = [
-      'inline-flex items-center justify-center font-medium transition-all duration-150 select-none cursor-pointer',
+      'inline-flex items-center justify-center font-medium transition-all duration-150 select-none cursor-pointer whitespace-nowrap',
       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
     ];
 
@@ -64,19 +64,19 @@ export class ButtonComponent {
     // Sizes
     switch (this.size) {
       case 'xs':
-        classes.push('px-2.5 py-1 text-xs gap-1.5 min-h-[28px]');
+        classes.push('px-2.5 py-1 text-xs gap-1.5 h-7');
         break;
       case 'sm':
-        classes.push('px-3 py-1.5 text-xs gap-1.5 min-h-[32px]');
+        classes.push('px-3 py-1.5 text-xs gap-1.5 h-8');
         break;
       case 'md':
-        classes.push('px-4 py-2 text-sm gap-2 min-h-[40px]');
+        classes.push('px-4 py-2 text-sm gap-2 h-10');
         break;
       case 'lg':
-        classes.push('px-5 py-2.5 text-base gap-2.5 min-h-[46px]');
+        classes.push('px-5 py-2.5 text-base gap-2.5 h-11');
         break;
       case 'xl':
-        classes.push('px-6 py-3.5 text-lg gap-3 min-h-[52px]');
+        classes.push('px-6 py-3.5 text-lg gap-3 h-12');
         break;
     }
 

@@ -1,0 +1,90 @@
+<div class="w-full bg-white border-y border-[#E5E7EB] overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+      <!-- Table Header -->
+      <thead>
+        <tr class="border-b border-[#E5E7EB] bg-[#F9FAFB]">
+          @for (col of columns; track col.key) {
+          <th [style.width]="col.width" [class]="col.headerClass || ''" [class.text-center]="col.align === 'center'"
+            [class.text-right]="col.align === 'right'" [class.text-left]="!col.align || col.align === 'left'"
+            class="px-6 py-3.5 text-sm font-medium text-neutral-40 select-none normal-case">
+            <div class="inline-flex items-center gap-1.5" [class.justify-center]="col.align === 'center'"
+              [class.justify-end]="col.align === 'right'">
+              <span>{{ col.header }}</span>
+
+              <!-- Column Tooltip / Info Icon -->
+              @if (col.tooltip) {
+              <span [title]="col.tooltip"
+                class="text-neutral-40 hover:text-neutral-60 cursor-help inline-flex items-center">
+                <svg class="w-3.5 h-3.5 lucide lucide-help-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                  <path d="M12 17h.01" />
+                </svg>
+              </span>
+              }
+            </div>
+          </th>
+          }
+        </tr>
+      </thead>
+
+      <!-- Table Body -->
+      <tbody class="divide-y divide-[#E5E7EB]">
+        <!-- Loading Shimmer Skeleton State -->
+        @if (loading) {
+        @for (s of dummySkeletonRows; track s) {
+        <tr class="animate-pulse">
+          @for (col of columns; track col.key) {
+          <td class="px-6 py-4">
+            <div class="h-4 bg-neutral-10/70 rounded-md w-3/4"></div>
+          </td>
+          }
+        </tr>
+        }
+        } @else if (data.length === 0) {
+        <!-- Empty State -->
+        <tr>
+          <td [attr.colspan]="columns.length" class="px-6 py-12 text-center">
+            <div class="flex flex-col items-center justify-center gap-2">
+              <div class="w-12 h-12 rounded-full bg-neutral-0 flex items-center justify-center text-neutral-40 mb-1">
+                <svg class="w-6 h-6 lucide lucide-inbox" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="22 12 16 12 14 15 10 15 8 12 2 12" />
+                  <path
+                    d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
+                </svg>
+              </div>
+              <p class="text-sm font-medium text-neutral-70">{{ emptyMessage }}</p>
+              <p class="text-xs text-neutral-40">Coba ubah kata kunci pencarian atau filter yang Anda gunakan.</p>
+            </div>
+          </td>
+        </tr>
+        } @else {
+        <!-- Data Rows -->
+        @for (row of data; track (row[rowKey] || $index); let rowIndex = $index) {
+        <tr class="hover:bg-[#F9FAFB]/80 transition-colors group">
+          @for (col of columns; track col.key) {
+          <td [class]="col.cellClass || ''" [class.text-center]="col.align === 'center'"
+            [class.text-right]="col.align === 'right'" [class.text-left]="!col.align || col.align === 'left'"
+            class="px-6 py-3.5 text-sm font-normal text-neutral-50 align-middle">
+            <!-- Check if custom template provided -->
+            @if (getTemplate(col.key); as templateRef) {
+            <ng-container [ngTemplateOutlet]="templateRef"
+              [ngTemplateOutletContext]="{ $implicit: row, row: row, index: rowIndex, column: col }"></ng-container>
+            } @else {
+            <!-- Default Text Rendering -->
+            <span class="truncate block">
+              {{ row[col.key] !== undefined && row[col.key] !== null ? row[col.key] : '-' }}
+            </span>
+            }
+          </td>
+          }
+        </tr>
+        }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

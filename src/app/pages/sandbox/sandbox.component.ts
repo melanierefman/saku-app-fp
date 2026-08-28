@@ -20,6 +20,10 @@ import {
   NavItem,
   DatePickerComponent,
   DateRangeValue,
+  TableComponent,
+  TableCellDirective,
+  TableColumn,
+  PaginationComponent,
 } from '../../shared/components';
 
 @Component({
@@ -41,6 +45,9 @@ import {
     BreadcrumbsComponent,
     SidebarComponent,
     DatePickerComponent,
+    TableComponent,
+    TableCellDirective,
+    PaginationComponent,
   ],
   templateUrl: './sandbox.component.html',
   styleUrl: './sandbox.component.css',
@@ -197,4 +204,128 @@ export class SandboxComponent {
   resetTags(): void {
     this.tags = ['Angular', 'Tailwind', 'Saku Pay', 'Verified'];
   }
+
+  // ==========================================
+  // Permission Table Demo States (Phase 4)
+  // ==========================================
+  tableSearchQuery: string = '';
+  selectedResourceFilter: string = '';
+  selectedActionFilter: string = '';
+  tableCurrentPage: number = 1;
+  tablePageSize: number = 10;
+  isTableLoading: boolean = false;
+
+  resourceFilterOptions: DropdownOption[] = [
+    { value: 'DASHBOARD', label: 'DASHBOARD' },
+    { value: 'CUSTOMER', label: 'CUSTOMER' },
+    { value: 'PENGAJUAN', label: 'PENGAJUAN' },
+    { value: 'REVIEW_PENGAJUAN', label: 'REVIEW_PENGAJUAN' },
+    { value: 'ROLE', label: 'ROLE' },
+    { value: 'USER', label: 'USER' },
+  ];
+
+  actionFilterOptions: DropdownOption[] = [
+    { value: 'VIEW', label: 'VIEW' },
+    { value: 'CREATE', label: 'CREATE' },
+    { value: 'UPDATE', label: 'UPDATE' },
+    { value: 'DELETE', label: 'DELETE' },
+    { value: 'APPROVE', label: 'APPROVE' },
+    { value: 'REJECT', label: 'REJECT' },
+  ];
+
+  permissionColumns: TableColumn[] = [
+    { key: 'no', header: 'No', width: '64px' },
+    { key: 'permission', header: 'Permission' },
+    { key: 'resource', header: 'Resource' },
+    { key: 'action', header: 'Action' },
+    { key: 'menu', header: 'Menu' },
+    { key: 'actions', header: 'Actions', width: '130px', align: 'right', tooltip: 'Informasi aksi permission' },
+  ];
+
+  allPermissions = [
+    { id: 1, permission: 'View Dashboard', resource: 'DASHBOARD', action: 'VIEW', menu: 'Dashboard' },
+    { id: 2, permission: 'View Customer', resource: 'CUSTOMER', action: 'VIEW', menu: 'Customer' },
+    { id: 3, permission: 'Create Customer', resource: 'CUSTOMER', action: 'CREATE', menu: 'Customer' },
+    { id: 4, permission: 'Update Customer', resource: 'CUSTOMER', action: 'UPDATE', menu: 'Customer' },
+    { id: 5, permission: 'Delete Customer', resource: 'CUSTOMER', action: 'DELETE', menu: 'Customer' },
+    { id: 6, permission: 'View Pengajuan', resource: 'PENGAJUAN', action: 'VIEW', menu: 'Pengajuan' },
+    { id: 7, permission: 'Create Pengajuan', resource: 'PENGAJUAN', action: 'CREATE', menu: 'Pengajuan' },
+    { id: 8, permission: 'Update Pengajuan', resource: 'PENGAJUAN', action: 'UPDATE', menu: 'Pengajuan' },
+    { id: 9, permission: 'Delete Pengajuan', resource: 'PENGAJUAN', action: 'DELETE', menu: 'Pengajuan' },
+    { id: 10, permission: 'View Pengajuan', resource: 'REVIEW_PENGAJUAN', action: 'VIEW', menu: 'Review Pengajuan' },
+    { id: 11, permission: 'Approve Pengajuan', resource: 'REVIEW_PENGAJUAN', action: 'APPROVE', menu: 'Review Pengajuan' },
+    { id: 12, permission: 'Reject Pengajuan', resource: 'REVIEW_PENGAJUAN', action: 'REJECT', menu: 'Review Pengajuan' },
+    { id: 13, permission: 'View Role', resource: 'ROLE', action: 'VIEW', menu: 'Role Access' },
+    { id: 14, permission: 'Create Role', resource: 'ROLE', action: 'CREATE', menu: 'Role Access' },
+    { id: 15, permission: 'Update Role', resource: 'ROLE', action: 'UPDATE', menu: 'Role Access' },
+    { id: 16, permission: 'Delete Role', resource: 'ROLE', action: 'DELETE', menu: 'Role Access' },
+    { id: 17, permission: 'View User', resource: 'USER', action: 'VIEW', menu: 'User Management' },
+    { id: 18, permission: 'Create User', resource: 'USER', action: 'CREATE', menu: 'User Management' },
+    { id: 19, permission: 'Update User', resource: 'USER', action: 'UPDATE', menu: 'User Management' },
+    { id: 20, permission: 'Delete User', resource: 'USER', action: 'DELETE', menu: 'User Management' },
+    { id: 21, permission: 'Export Report', resource: 'DASHBOARD', action: 'VIEW', menu: 'Dashboard' },
+    { id: 22, permission: 'Audit Log View', resource: 'AUDIT', action: 'VIEW', menu: 'Audit Log' },
+    { id: 23, permission: 'Audit Log Export', resource: 'AUDIT', action: 'CREATE', menu: 'Audit Log' },
+    { id: 24, permission: 'System Setting', resource: 'SETTING', action: 'UPDATE', menu: 'Pengaturan' },
+    { id: 25, permission: 'View Master Cabang', resource: 'CABANG', action: 'VIEW', menu: 'Cabang' },
+  ];
+
+  get filteredPermissions() {
+    return this.allPermissions.filter((item) => {
+      const matchQuery =
+        !this.tableSearchQuery.trim() ||
+        item.permission.toLowerCase().includes(this.tableSearchQuery.toLowerCase()) ||
+        item.resource.toLowerCase().includes(this.tableSearchQuery.toLowerCase()) ||
+        item.action.toLowerCase().includes(this.tableSearchQuery.toLowerCase()) ||
+        item.menu.toLowerCase().includes(this.tableSearchQuery.toLowerCase());
+
+      const matchResource =
+        !this.selectedResourceFilter || item.resource === this.selectedResourceFilter;
+      const matchAction =
+        !this.selectedActionFilter || item.action === this.selectedActionFilter;
+
+      return matchQuery && matchResource && matchAction;
+    });
+  }
+
+  get paginatedPermissions() {
+    const startIndex = (this.tableCurrentPage - 1) * this.tablePageSize;
+    return this.filteredPermissions
+      .slice(startIndex, startIndex + this.tablePageSize)
+      .map((item, idx) => ({
+        ...item,
+        no: startIndex + idx + 1,
+      }));
+  }
+
+  onTableSearchChange(): void {
+    this.tableCurrentPage = 1;
+  }
+
+  clearTableFilters(): void {
+    this.tableSearchQuery = '';
+    this.selectedResourceFilter = '';
+    this.selectedActionFilter = '';
+    this.tableCurrentPage = 1;
+  }
+
+  get hasActiveTableFilters(): boolean {
+    return !!(this.tableSearchQuery.trim() || this.selectedResourceFilter || this.selectedActionFilter);
+  }
+
+  onTablePageChange(page: number): void {
+    this.tableCurrentPage = page;
+  }
+
+  viewPermissionDetail(row: any): void {
+    this.toastService.info(`Melihat detail permission: ${row.permission} (${row.resource})`);
+  }
+
+  simulateTableLoading(): void {
+    this.isTableLoading = true;
+    setTimeout(() => {
+      this.isTableLoading = false;
+    }, 1000);
+  }
 }
+

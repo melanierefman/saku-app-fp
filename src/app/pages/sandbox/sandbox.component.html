@@ -711,55 +711,45 @@
           <p class="text-xs text-neutral-50 mt-0.5">Untuk input tanggal lahir, tanggal efektif SK, dsb.</p>
         </div>
 
-        <app-date-picker
-          label="Tanggal Lahir"
-          placeholder="Pilih tanggal"
-          mode="single"
-          [required]="true"
-          [(ngModel)]="demoSingleDate"
-        ></app-date-picker>
+        <app-date-picker label="Tanggal Lahir" placeholder="Pilih tanggal" mode="single" [required]="true"
+          [(ngModel)]="demoSingleDate"></app-date-picker>
 
         <div class="p-3 bg-neutral-0/50 rounded-xl border border-neutral-10 text-xs text-neutral-60">
-          Value: <strong class="text-neutral-90">{{ demoSingleDate ? (demoSingleDate | date:'fullDate') : 'Belum dipilih' }}</strong>
+          Value: <strong class="text-neutral-90">{{ demoSingleDate ? (demoSingleDate | date:'fullDate') : 'Belum
+            dipilih' }}</strong>
         </div>
       </div>
 
       <!-- 2. Date Range Picker (Filter Laporan / Transaksi) -->
       <div class="p-5 bg-white rounded-2xl border border-[#E5E7EB] shadow-xs space-y-4">
         <div>
-          <span class="text-xs font-semibold uppercase tracking-wider text-neutral-40">2. Date Range Picker (Presets Chips)</span>
+          <span class="text-xs font-semibold uppercase tracking-wider text-neutral-40">2. Date Range Picker (Presets
+            Chips)</span>
           <p class="text-xs text-neutral-50 mt-0.5">Untuk filter rentang periode laporan & audit log.</p>
         </div>
 
-        <app-date-picker
-          label="Periode Transaksi"
-          placeholder="Pilih rentang tanggal"
-          mode="range"
-          [showPresets]="true"
-          [(ngModel)]="demoDateRange"
-        ></app-date-picker>
+        <app-date-picker label="Periode Transaksi" placeholder="Pilih rentang tanggal" mode="range" [showPresets]="true"
+          [(ngModel)]="demoDateRange"></app-date-picker>
 
         <div class="p-3 bg-neutral-0/50 rounded-xl border border-neutral-10 text-xs text-neutral-60 space-y-1">
-          <div>Mulai: <strong class="text-neutral-90">{{ demoDateRange.start ? (demoDateRange.start | date:'dd MMM yyyy') : '-' }}</strong></div>
-          <div>Selesai: <strong class="text-neutral-90">{{ demoDateRange.end ? (demoDateRange.end | date:'dd MMM yyyy') : '-' }}</strong></div>
+          <div>Mulai: <strong class="text-neutral-90">{{ demoDateRange.start ? (demoDateRange.start | date:'dd MMM
+              yyyy') : '-' }}</strong></div>
+          <div>Selesai: <strong class="text-neutral-90">{{ demoDateRange.end ? (demoDateRange.end | date:'dd MMM yyyy')
+              : '-' }}</strong></div>
         </div>
       </div>
 
       <!-- 3. Toolbar Filter Simulation (Filter Bar di atas Tabel) -->
       <div class="p-5 bg-white rounded-2xl border border-[#E5E7EB] shadow-xs space-y-4">
         <div>
-          <span class="text-xs font-semibold uppercase tracking-wider text-neutral-40">3. Simulasi Filter Bar di Atas Tabel</span>
+          <span class="text-xs font-semibold uppercase tracking-wider text-neutral-40">3. Simulasi Filter Bar di Atas
+            Tabel</span>
           <p class="text-xs text-neutral-50 mt-0.5">Contoh integrasi filter tanggal pada toolbar tabel data.</p>
         </div>
 
         <div class="space-y-3">
-          <app-date-picker
-            label="Filter Tanggal Pengajuan"
-            placeholder="Semua Tanggal"
-            mode="range"
-            [showPresets]="true"
-            [(ngModel)]="demoFilterDateRange"
-          ></app-date-picker>
+          <app-date-picker label="Filter Tanggal Pengajuan" placeholder="Semua Tanggal" mode="range"
+            [showPresets]="true" [(ngModel)]="demoFilterDateRange"></app-date-picker>
 
           <div class="flex items-center justify-between text-xs pt-1">
             <span class="text-neutral-40">Status Filter:</span>
@@ -773,7 +763,108 @@
   </section>
 
   <!-- ========================================== -->
-  <!-- 13. COLOR TOKENS SECTION -->
+  <!-- 13. DATA TABLE & PAGINATION (Phase 4) -->
+  <!-- ========================================== -->
+  <section class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-10 pb-3">
+      <div>
+        <h2 class="text-lg font-bold text-neutral-100">Data Table & Pagination (Phase 4)</h2>
+        <p class="text-xs text-neutral-40">app-table & app-pagination (Tabel data enterprise dengan toolbar fleksibel)
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <app-button variant="cancel" size="sm" (click)="simulateTableLoading()">
+          <svg class="w-3.5 h-3.5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            <path d="M3 3v5h5" />
+            <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+            <path d="M16 21h5v-5" />
+          </svg>
+          Simulasi Loading
+        </app-button>
+      </div>
+    </div>
+
+    <div class="border border-[#E5E7EB] rounded-2xl bg-white shadow-xs overflow-hidden">
+      <!-- 1. Toolbar Filter & Action Bar (Sesuai Desain SAKU) -->
+      <div class="flex flex-wrap items-center justify-between gap-4 p-4">
+        <!-- Left Filters -->
+        <div class="flex flex-wrap items-center gap-3 flex-1">
+          <!-- Search Input -->
+          <div class="w-64">
+            <app-input placeholder="Cari permission" [(ngModel)]="tableSearchQuery"
+              (ngModelChange)="onTableSearchChange()">
+              <svg iconLeft class="w-4 h-4 text-neutral-40 lucide lucide-search" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
+            </app-input>
+          </div>
+
+          <!-- Filter Resource Dropdown -->
+          <div class="w-44">
+            <app-dropdown [options]="resourceFilterOptions" placeholder="Pilih Resource"
+              [(ngModel)]="selectedResourceFilter" (optionChange)="onTableSearchChange()"></app-dropdown>
+          </div>
+
+          <!-- Filter Action Dropdown -->
+          <div class="w-44">
+            <app-dropdown [options]="actionFilterOptions" placeholder="Pilih Action" [(ngModel)]="selectedActionFilter"
+              (optionChange)="onTableSearchChange()"></app-dropdown>
+          </div>
+
+          <!-- Clear Filter Action Button -->
+          @if (hasActiveTableFilters) {
+          <button type="button" (click)="clearTableFilters()"
+            class="p-2 text-neutral-40 hover:text-neutral-80 hover:bg-neutral-0 rounded-lg transition-colors cursor-pointer"
+            title="Reset semua filter">
+            <svg class="w-4 h-4 lucide lucide-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
+          </button>
+          }
+        </div>
+
+        <!-- Right Action Button -->
+        <div class="flex items-center">
+          <app-button variant="primary" (click)="openFormModal()">
+            <svg iconLeft class="w-4 h-4 mr-1.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Tambah Permission
+          </app-button>
+        </div>
+      </div>
+
+      <!-- 2. Table Component (app-table) -->
+      <app-table [columns]="permissionColumns" [data]="paginatedPermissions" [loading]="isTableLoading" rowKey="id"
+        emptyMessage="Tidak ada permission yang cocok dengan filter.">
+        <!-- Custom Actions Column Template ('Lihat Detail') -->
+        <ng-template appTableCell="actions" let-row="row">
+          <button type="button" (click)="viewPermissionDetail(row)"
+            class="px-3 py-1 text-xs font-normal text-neutral-60 hover:text-neutral-90 bg-white hover:bg-neutral-0 border border-[#E5E7EB] rounded-lg transition-colors cursor-pointer">
+            Lihat Detail
+          </button>
+        </ng-template>
+      </app-table>
+
+      <!-- 3. Pagination Component (app-pagination) -->
+      <div class="px-4 py-3 bg-[#F9FAFB]">
+        <app-pagination [currentPage]="tableCurrentPage" [pageSize]="tablePageSize"
+          [totalItems]="filteredPermissions.length" (pageChange)="onTablePageChange($event)"></app-pagination>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- 14. COLOR TOKENS SECTION -->
   <!-- ========================================== -->
   <section class="space-y-6">
     <div class="border-b border-neutral-10 pb-2">
