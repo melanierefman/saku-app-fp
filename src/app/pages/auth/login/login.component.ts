@@ -28,7 +28,7 @@ export class LoginComponent {
   }
 
   onForgotPassword(): void {
-    // Navigate or trigger forgot password modal / notification
+    this.router.navigate(['/forgot-password']);
   }
 
   onLogin(): void {
