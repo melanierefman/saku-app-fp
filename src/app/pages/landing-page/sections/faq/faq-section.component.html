@@ -15,7 +15,7 @@
         <button type="button" (click)="toggleFaq(faq.id)"
           class="w-full flex items-center justify-between text-left cursor-pointer select-none group focus:outline-none"
           [attr.aria-expanded]="faq.isOpen">
-          <span class="text-base sm:text-lg font-bold pr-6 transition-colors" [class.text-primary]="faq.isOpen"
+          <span class="text-md sm:text-lg font-bold pr-6 transition-colors" [class.text-primary]="faq.isOpen"
             [class.text-neutral-100]="!faq.isOpen" [class.group-hover:text-primary]="!faq.isOpen">
             {{ faq.question }}
           </span>
@@ -31,7 +31,7 @@
 
         <!-- Accordion Content -->
         @if (faq.isOpen) {
-        <div class="pt-3 sm:pt-4 text-sm sm:text-base text-neutral-40 font-normal leading-relaxed animate-accordionIn">
+        <div class="pt-3 sm:pt-4 text-md sm:text-md text-neutral-40 font-normal leading-relaxed animate-accordionIn">
           {{ faq.answer }}
         </div>
         }

@@ -7,6 +7,14 @@
   /* --font-mono: 'JetBrains Mono', monospace; */
 }
 
+html,
+body {
+  overflow-x: hidden;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 @theme static {
   /* Typography */
   --color-neutral: #252525;

@@ -1,5 +1,12 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  Inject,
+  PLATFORM_ID,
+  ChangeDetectorRef,
+} from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 
 export interface FeatureCard {
   id: number;
@@ -18,13 +25,19 @@ export interface FeatureCard {
   templateUrl: './features-section.component.html',
   styleUrl: './features-section.component.css',
 })
-export class LandingFeaturesComponent {
+export class LandingFeaturesComponent implements OnInit, OnDestroy {
+  currentSlide = 0;
+  private autoPlayTimer: any;
+  private touchStartX = 0;
+  private touchEndX = 0;
+  private isBrowser: boolean;
+
   features: FeatureCard[] = [
     {
       id: 1,
       icon: 'hand-coins',
       title: 'Limit yang Disesuaikan, Bukan Angka Standar Semua Orang',
-      description: 'Limit disesuaikan dengan profil dan kebutuhanmu, gak cuma satu ukuran untuk semua orang.',
+      description: 'Kebutuhanmu beda, jadi limitnya juga harus ngikutin rencana dan kemampuanmu sendiri.',
       highlight: false,
       cardBgClass: 'bg-[#FDF8EF] border border-[#F0E6D2]',
       image: '/landing/phone-pinjaman.png',
@@ -48,4 +61,74 @@ export class LandingFeaturesComponent {
       image: '/landing/phone-pinjaman-3.png',
     },
   ];
+
+  constructor(
+    @Inject(PLATFORM_ID) platformId: Object,
+    private cdr: ChangeDetectorRef
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
+
+  ngOnInit(): void {
+    if (this.isBrowser) {
+      this.startAutoPlay();
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.stopAutoPlay();
+  }
+
+  startAutoPlay(): void {
+    this.stopAutoPlay();
+    if (!this.isBrowser) return;
+    this.autoPlayTimer = setInterval(() => {
+      this.nextSlide();
+    }, 3000);
+  }
+
+  stopAutoPlay(): void {
+    if (this.autoPlayTimer) {
+      clearInterval(this.autoPlayTimer);
+      this.autoPlayTimer = null;
+    }
+  }
+
+  nextSlide(): void {
+    this.currentSlide = (this.currentSlide + 1) % this.features.length;
+    this.cdr.detectChanges();
+  }
+
+  prevSlide(): void {
+    this.currentSlide =
+      (this.currentSlide - 1 + this.features.length) % this.features.length;
+    this.cdr.detectChanges();
+  }
+
+  goToSlide(index: number): void {
+    this.currentSlide = index;
+    this.cdr.detectChanges();
+    this.startAutoPlay();
+  }
+
+  onTouchStart(event: TouchEvent): void {
+    this.touchStartX = event.changedTouches[0].screenX;
+    this.stopAutoPlay();
+  }
+
+  onTouchEnd(event: TouchEvent): void {
+    this.touchEndX = event.changedTouches[0].screenX;
+    this.handleSwipe();
+    this.startAutoPlay();
+  }
+
+  private handleSwipe(): void {
+    const swipeThreshold = 40;
+    const diff = this.touchStartX - this.touchEndX;
+    if (diff > swipeThreshold) {
+      this.nextSlide();
+    } else if (diff < -swipeThreshold) {
+      this.prevSlide();
+    }
+  }
 }
