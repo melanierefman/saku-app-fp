@@ -22,6 +22,11 @@ export type ButtonRounded = 'none' | 'sm' | 'md' | 'lg' | 'full';
   imports: [CommonModule],
   templateUrl: './button.component.html',
   styleUrl: './button.component.css',
+  host: {
+    '[class.w-full]': 'fullWidth',
+    '[class.block]': 'fullWidth',
+    '[class.inline-block]': '!fullWidth',
+  },
 })
 export class ButtonComponent {
   @Input() variant: ButtonVariant = 'primary';
