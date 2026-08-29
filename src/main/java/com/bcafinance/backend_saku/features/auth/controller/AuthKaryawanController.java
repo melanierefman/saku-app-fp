@@ -44,6 +44,12 @@ public class AuthKaryawanController {
             @Valid @RequestBody com.bcafinance.backend_saku.features.auth.dto.RefreshTokenRequest request) {
         return ResponseEntity.ok(ApiResponse.success(authKaryawanService.refreshToken(request)));
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<String>> logout() {
+        return ResponseEntity.ok(ApiResponse.success("Berhasil logout"));
+    }
 }
+
 
 
