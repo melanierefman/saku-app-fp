@@ -1,0 +1,93 @@
+<section id="hero" class="relative pt-28 sm:pt-32 md:pt-36 lg:pt-40 pb-0 overflow-hidden bg-[#FDF8EF]">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 items-center">
+      <!-- Left Column: Headline, Badge, Subtitle, Pill Buttons (Rata Kiri) -->
+      <div class="lg:col-span-5 text-left space-y-6 pb-6 lg:pb-14">
+        <!-- OJK Pill Badge -->
+        <div
+          class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-10 border border-primary-20 text-primary text-xs font-semibold tracking-wide shadow-2xs">
+          <svg class="w-3.5 h-3.5 text-primary shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <path d="m9 12 2 2 4-4" />
+          </svg>
+          <span>Terdaftar & Diawasi oleh OJK</span>
+        </div>
+
+        <!-- Main Headline -->
+        <h1 class="text-4xl sm:text-5xl lg:text-[54px] font-bold text-neutral-100 tracking-tight leading-[1.12]">
+          Rencana Besar <br />
+          Gak Harus Nunggu <br />
+          Tabungan Penuh
+        </h1>
+
+        <!-- Subtitle -->
+        <p class="text-sm sm:text-base text-neutral-40 font-normal leading-relaxed max-w-md">
+          SAKU bikin langkah besarmu terasa lebih ringan, cepat, transparan, dan selalu di sisimu.
+        </p>
+
+        <!-- Pill CTA Action Buttons (Rata Kiri & space-x-4) -->
+        <div class="flex items-center space-x-4 justify-start pt-2">
+          <app-button variant="primary" size="lg">
+            Download Sekarang
+          </app-button>
+
+          <app-button variant="white" size="lg">
+            <div iconLeft
+              class="w-6 h-6 rounded-full bg-[#FFF5EE] flex items-center justify-center text-primary -ml-1 mr-1">
+              <svg class="w-2.5 h-2.5 fill-current ml-0.5" viewBox="0 0 24 24">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+            </div>
+            Lihat Cara Kerja
+          </app-button>
+        </div>
+      </div>
+
+      <!-- Center Column: Phone Mockup (grounded cleanly at bottom) -->
+      <div class="lg:col-span-4 flex justify-center items-end self-end relative pt-4 lg:pt-0">
+        <div
+          class="relative w-full max-w-[230px] sm:max-w-[250px] lg:max-w-[290px] transition-transform duration-300 hover:scale-[1.02] flex items-end justify-center">
+          <img src="/landing/phone-hero.png" alt="SAKU Mobile Application"
+            class="w-full h-auto drop-shadow-2xl select-none object-contain object-bottom align-bottom block" />
+        </div>
+      </div>
+
+      <!-- Right Column: 3 Floating Stats Cards -->
+      <div class="lg:col-span-3 flex flex-col gap-4 pb-6 lg:pb-14 justify-end">
+        @for (item of stats; track item.label) {
+        <div
+          class="flex-1 bg-white rounded-md border border-[#E5E7EB]/60 p-4 sm:p-5 shadow-xs hover:shadow-sm transition-shadow flex items-center justify-between gap-4">
+          <div>
+            <div class="text-3xl font-bold text-primary tracking-tight">{{ item.value }}</div>
+            <div class="text-sm font-semibold text-neutral-50 mt-0.5">{{ item.label }}</div>
+          </div>
+          <div
+            class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shrink-0 shadow-2xs">
+            @if (item.icon === 'users') {
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            } @else if (item.icon === 'clock') {
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            } @else if (item.icon === 'star') {
+            <svg class="w-5 h-5 fill-white" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <polygon
+                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+            </svg>
+            }
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,60 @@
+<header class="fixed top-4 md:top-6 left-0 right-0 z-50 flex justify-center px-4 sm:px-6 lg:px-8">
+  <div
+    class="w-full max-w-7xl bg-white backdrop-blur-md rounded-full border border-neutral-10/60 shadow-sm hover:shadow-md px-6 sm:px-8 py-3 flex items-center justify-between transition-all duration-300"
+    [class.shadow-md]="isScrolled">
+    <!-- Left: SAKU Logo -->
+    <a href="#hero" class="flex items-center gap-2 group shrink-0">
+      <img src="/landing/saku-logo.png" alt="SAKU Logo"
+        class="h-6 sm:h-7 w-auto object-contain transition-transform group-hover:scale-105" />
+    </a>
+
+    <!-- Center: Desktop Navigation Links -->
+    <nav class="hidden md:flex items-center gap-6 lg:gap-8">
+      @for (link of navLinks; track link.label) {
+      <a [href]="link.href" (click)="scrollToSection(link.href, $event)" [class.text-primary]="link.active"
+        [class.font-bold]="link.active" [class.text-neutral-70]="!link.active" [class.font-medium]="!link.active"
+        class="text-md sm:text-sm hover:text-primary transition-colors cursor-pointer">
+        {{ link.label }}
+      </a>
+      }
+    </nav>
+
+    <!-- Right: CTA Button & Mobile Trigger -->
+    <div class="flex items-center gap-2">
+      <app-button variant="primary" size="md" (btnClick)="scrollToSection('#download', $event)">
+        Download Aplikasi
+      </app-button>
+
+      <!-- Mobile Hamburger Button -->
+      <button type="button" (click)="toggleMobileMenu()"
+        class="md:hidden p-1.5 rounded-full text-neutral-70 hover:text-primary hover:bg-neutral-0 focus:outline-none cursor-pointer"
+        aria-label="Menu">
+        @if (!isMobileMenuOpen) {
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+        } @else {
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        }
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile Navigation Drawer Overlay -->
+@if (isMobileMenuOpen) {
+<div
+  class="fixed top-20 left-4 right-4 z-40 md:hidden bg-white/95 backdrop-blur-xl border border-[#E5E7EB] rounded-3xl p-5 shadow-xl space-y-3 animate-fadeIn">
+  <div class="flex flex-col space-y-1">
+    @for (link of navLinks; track link.label) {
+    <a [href]="link.href" (click)="scrollToSection(link.href, $event)" [class.text-primary]="link.active"
+      [class.bg-[#FFF5EE]]="link.active" [class.font-bold]="link.active" [class.font-medium]="!link.active"
+      class="px-4 py-2.5 rounded-2xl text-sm text-neutral-80 hover:bg-[#FFF5EE] hover:text-primary transition-colors">
+      {{ link.label }}
+    </a>
+    }
+  </div>
+</div>
+}

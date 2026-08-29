@@ -10,7 +10,8 @@ export type ButtonVariant =
   | 'ghost'
   | 'success'
   | 'warning'
-  | 'error';
+  | 'error'
+  | 'white';
 
 export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 export type ButtonRounded = 'none' | 'sm' | 'md' | 'lg' | 'full';
@@ -109,6 +110,11 @@ export class ButtonComponent {
       case 'secondary':
         classes.push(
           'bg-primary-0 text-primary-60 border border-primary-20 hover:bg-primary-10 active:bg-primary-20 focus-visible:ring-primary/40'
+        );
+        break;
+      case 'white':
+        classes.push(
+          'bg-white text-primary hover:bg-neutral-0/80 active:bg-neutral-10 focus-visible:ring-primary/30 shadow-2xs'
         );
         break;
       case 'neutral':

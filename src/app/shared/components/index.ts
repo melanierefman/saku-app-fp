@@ -19,6 +19,8 @@ export * from './toast/toast.component';
 // Phase 3: Layout & Navigation
 export * from './breadcrumbs/breadcrumbs.component';
 export * from './sidebar/sidebar.component';
+export * from './navbar/navbar.component';
+export * from './footer/footer.component';
 
 // Phase 4: Data Presentation & Filtering
 export * from './date-picker/date-picker.component';
