@@ -1,0 +1,99 @@
+<div class="space-y-4 pb-12 max-w-2xl">
+  <div class="space-y-2">
+    <!-- Top Breadcrumbs -->
+    <div class="pt-1">
+      <app-breadcrumbs [items]="breadcrumbs"></app-breadcrumbs>
+    </div>
+
+    <!-- Page Title -->
+    <div class="flex items-center justify-between">
+      <h1 class="text-2xl font-semibold text-neutral-100 tracking-tight">
+        {{ pageTitle }}
+      </h1>
+    </div>
+  </div>
+
+  <!-- Form Card Container -->
+  <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 sm:p-8 shadow-xs space-y-4">
+    <!-- Nama Input -->
+    <app-input label="Nama" placeholder="Masukkan nama karyawan" [(ngModel)]="nama" [errorMessage]="namaError"
+      [required]="true"></app-input>
+
+    <!-- Username Input -->
+    <app-input label="Username" placeholder="Masukkan username karyawan" [(ngModel)]="username"
+      [errorMessage]="usernameError" [required]="true"></app-input>
+
+    <!-- Email Input -->
+    <app-input label="Email" type="email" placeholder="Masukkan email karyawan" [(ngModel)]="email"
+      [errorMessage]="emailError" [required]="true"></app-input>
+
+    <!-- Password Input -->
+    <app-input label="Password" [type]="showPassword ? 'text' : 'password'" placeholder="Masukkan password"
+      [(ngModel)]="password" [errorMessage]="passwordError" [required]="true">
+      <button iconRight type="button" (click)="showPassword = !showPassword"
+        class="p-1 text-neutral-40 hover:text-neutral-70 focus:outline-none cursor-pointer transition-colors flex items-center justify-center"
+        [attr.aria-label]="showPassword ? 'Sembunyikan password' : 'Tampilkan password'">
+        @if (showPassword) {
+        <svg lucideEyeOff [size]="16" class="w-4 h-4"></svg>
+        } @else {
+        <svg lucideEye [size]="16" class="w-4 h-4"></svg>
+        }
+      </button>
+    </app-input>
+
+    <!-- Cabang Dropdown -->
+    <app-dropdown label="Cabang" placeholder="Pilih cabang" [options]="branchOptions" [(ngModel)]="mstBranchId"
+      [errorMessage]="branchError" [required]="true"></app-dropdown>
+
+    <!-- Role Dropdown -->
+    <app-dropdown label="Role" placeholder="Pilih role" [options]="roleOptions" [(ngModel)]="mstRoleId"
+      [errorMessage]="roleError" [required]="true"></app-dropdown>
+
+    <!-- Status Radio Group -->
+    <div class="space-y-1.5 pt-1">
+      <label class="block text-sm text-neutral-60">Status</label>
+      <div class="flex items-center gap-6 pt-1">
+        <app-radio name="karyawanStatus" value="true" label="Aktif" [(ngModel)]="status"></app-radio>
+        <app-radio name="karyawanStatus" value="false" label="Tidak Aktif" [(ngModel)]="status"></app-radio>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div class="pt-4 border-t border-[#E5E7EB]/70">
+      <!-- Create Mode Action -->
+      @if (!isEditMode) {
+      <app-button variant="primary" [loading]="isSubmitting" (btnClick)="onSubmit()">
+        Tambah Karyawan
+      </app-button>
+      }
+
+      <!-- Edit Mode Actions (Update & Delete) -->
+      @if (isEditMode) {
+      <div class="flex items-center gap-3">
+        <app-button variant="primary" [loading]="isSubmitting" (btnClick)="onSubmit()">
+          Update Karyawan
+        </app-button>
+
+        <app-button variant="error" [disabled]="isSubmitting" (btnClick)="openDeleteModal()">
+          Hapus Karyawan
+        </app-button>
+      </div>
+      }
+    </div>
+  </div>
+
+  <!-- Create / Update Confirmation Dialog Modal -->
+  <app-modal [isOpen]="isConfirmModalOpen" variant="confirm" icon="alert"
+    [message]="isEditMode ? 'Apakah Anda yakin ingin memperbarui data karyawan ini?' : 'Apakah Anda yakin ingin menambahkan data karyawan baru ini?'"
+    [confirmText]="isEditMode ? 'Ya, Simpan' : 'Ya, Tambah'" cancelText="Batal" confirmVariant="primary"
+    [loading]="isSubmitting" (confirm)="confirmSubmit()" (close)="isConfirmModalOpen = false"
+    (cancel)="isConfirmModalOpen = false">
+  </app-modal>
+
+  <!-- Delete Confirmation Modal -->
+  <app-modal [isOpen]="isDeleteModalOpen" variant="confirm" icon="alert"
+    message="Apakah Anda yakin ingin menghapus data karyawan ini? Tindakan ini tidak dapat dibatalkan."
+    confirmText="Hapus Karyawan" cancelText="Batal" confirmVariant="error" [loading]="isSubmitting"
+    (close)="closeDeleteModal()" (cancel)="closeDeleteModal()" (confirm)="confirmDelete()">
+  </app-modal>
+</div>

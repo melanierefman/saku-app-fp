@@ -7,6 +7,10 @@
   background-color: #F9FAFB;
   border: 1px solid #E5E7EB;
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out, background-color 0.15s ease-in-out;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+  box-sizing: border-box;
 }
 
 .saku-input-control:hover:not(.is-disabled) {
@@ -38,23 +42,31 @@
   cursor: not-allowed;
 }
 
-/* Enhanced password bullets (dots) size & spacing */
-input[type="password"] {
-  letter-spacing: 0.2em;
-  font-size: 1.2rem;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+/* 100% Exact vertical centering via line-height == height */
+.saku-input-control input {
+  height: 38px !important;
+  line-height: 38px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  box-sizing: border-box !important;
+  font-family: inherit !important;
+  font-size: 0.875rem !important;
+  vertical-align: middle !important;
 }
 
-input[type="password"]::placeholder {
-  letter-spacing: normal;
-  font-size: 0.875rem;
-  font-family: var(--font-sans, inherit);
+.saku-input-control input::placeholder {
+  color: #9CA3AF !important;
+  line-height: 38px !important;
+  opacity: 1 !important;
+  vertical-align: middle !important;
 }
 
-input.text-xs[type="password"]::placeholder {
-  font-size: 0.75rem;
-}
-
-input.text-base[type="password"]::placeholder {
-  font-size: 1rem;
+/* Password bullet styling when typing password */
+.saku-input-control input[type="password"] {
+  letter-spacing: 0.15em;
+  font-size: 1rem !important;
 }

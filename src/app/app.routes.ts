@@ -6,6 +6,8 @@ import { ForgotPasswordComponent } from './pages/auth/forgot-password/forgot-pas
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { FeaturePlaceholderComponent } from './pages/feature-placeholder/feature-placeholder.component';
 import { ProfileComponent } from './pages/profile/profile.component';
+import { KaryawanListComponent } from './pages/karyawan/karyawan-list/karyawan-list.component';
+import { KaryawanFormComponent } from './pages/karyawan/karyawan-form/karyawan-form.component';
 import { MainLayoutComponent } from './shared/layouts/main-layout/main-layout.component';
 import { authGuard, guestGuard } from './core/guards/auth.guard';
 
@@ -84,8 +86,15 @@ export const routes: Routes = [
       // Superadmin / Master Data Routes
       {
         path: 'master/karyawan',
-        component: FeaturePlaceholderComponent,
-        data: { title: 'Master Karyawan' },
+        component: KaryawanListComponent,
+      },
+      {
+        path: 'master/karyawan/tambah',
+        component: KaryawanFormComponent,
+      },
+      {
+        path: 'master/karyawan/edit/:id',
+        component: KaryawanFormComponent,
       },
       {
         path: 'master/cabang',

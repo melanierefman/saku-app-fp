@@ -28,20 +28,20 @@ export interface NavItem {
   id: string;
   label: string;
   icon:
-    | 'grid'
-    | 'user-round-key'
-    | 'user-round-cog'
-    | 'user-shield'
-    | 'square-menu'
-    | 'menu'
-    | 'users-round'
-    | 'building'
-    | 'banknote'
-    | 'clipboard-clock'
-    | 'clipboard-check'
-    | 'file-user'
-    | 'user-round'
-    | string;
+  | 'grid'
+  | 'user-round-key'
+  | 'user-round-cog'
+  | 'user-shield'
+  | 'square-menu'
+  | 'menu'
+  | 'users-round'
+  | 'building'
+  | 'banknote'
+  | 'clipboard-clock'
+  | 'clipboard-check'
+  | 'file-user'
+  | 'user-round'
+  | string;
   url?: string;
   badge?: string | number;
 }
@@ -169,7 +169,12 @@ export const SUPERADMIN_MENU_GROUPS: NavGroup[] = [
         label: 'Audit Log',
         icon: 'clipboard-clock',
         url: '/monitoring/audit-log',
-      },
+      }
+    ],
+  },
+  {
+    title: 'PROFIL',
+    items: [
       { id: 'profile', label: 'Profil', icon: 'user-round', url: '/profile' },
     ],
   },

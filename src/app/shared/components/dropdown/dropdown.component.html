@@ -1,7 +1,7 @@
 <div class="relative w-full space-y-1.5 select-none">
   <!-- Label -->
   @if (label) {
-  <label [for]="id" class="block text-sm font-medium text-neutral-60">
+  <label [for]="id" class="block text-sm text-neutral-60">
     {{ label }}
     @if (required) {
     <span class="text-error ml-0.5">*</span>
@@ -19,15 +19,17 @@
     </div>
 
     <!-- Selected Value Text or Placeholder -->
-    <span class="truncate flex-1 font-normal text-sm" [class.text-neutral-90]="selectedOption" [class.text-neutral-40]="!selectedOption">
+    <span class="truncate flex-1 font-normal text-sm" [class.text-neutral-90]="selectedOption"
+      [class.text-neutral-40]="!selectedOption">
       {{ selectedOption ? selectedOption.label : placeholder }}
     </span>
 
     <!-- Actions (Clear & Chevron) -->
     <div class="flex items-center gap-1.5 ml-2 text-neutral-40">
-      @if (clearable && selectedValue !== null && !disabled) {
+      @if (clearable && selectedOption && !disabled) {
       <button type="button" (click)="clearSelection($event)"
-        class="hover:text-neutral-80 p-1 rounded-md hover:bg-neutral-0/80 transition-colors focus:outline-none cursor-pointer" aria-label="Hapus pilihan">
+        class="hover:text-neutral-80 p-0.5 rounded-md hover:bg-neutral-0/80 transition-colors focus:outline-none cursor-pointer"
+        aria-label="Hapus pilihan">
         <svg lucideX [size]="14" class="w-3.5 h-3.5"></svg>
       </button>
       }
@@ -42,8 +44,7 @@
   @if (isOpen) {
   <div
     class="absolute z-50 left-0 top-full mt-1.5 w-full bg-white rounded-xl border border-[#E5E7EB] shadow-xl py-1 overflow-hidden animate-dropdownIn max-h-60 flex flex-col text-sm"
-    (click)="$event.stopPropagation()"
-  >
+    (click)="$event.stopPropagation()">
     <!-- Optional Search Bar within dropdown -->
     @if (searchable) {
     <div class="p-2 border-b border-[#E5E7EB]">

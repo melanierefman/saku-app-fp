@@ -1,0 +1,140 @@
+<div class="space-y-4 pb-12">
+  <div class="space-y-2">
+    <div class="pt-1">
+      <app-breadcrumbs [items]="breadcrumbs"></app-breadcrumbs>
+    </div>
+
+    <!-- Page Title -->
+    <div class="flex items-center justify-between">
+      <h1 class="text-2xl font-semibold text-neutral-100 tracking-tight">
+        Daftar Karyawan
+      </h1>
+    </div>
+  </div>
+
+  <!-- Main Card Container -->
+  <div class="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs overflow-hidden">
+    <!-- 1. Toolbar Filters & Action -->
+    <div class="p-4 flex flex-wrap items-center justify-between gap-3.5">
+      <!-- Left Filters -->
+      <div class="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
+        <!-- Search Input -->
+        <div class="w-64 max-w-full">
+          <app-input
+            placeholder="Cari Karyawan"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="onSearchChange($event)"
+          >
+            <svg lucideSearch [size]="16" iconLeft class="w-4 h-4 text-neutral-40"></svg>
+          </app-input>
+        </div>
+
+        <!-- Role Filter Dropdown -->
+        <div class="w-44 max-w-full">
+          <app-dropdown
+            [options]="roleFilterOptions()"
+            placeholder="Pilih Role"
+            [ngModel]="selectedRoleFilter()"
+            [clearable]="true"
+            (optionChange)="onRoleFilterChange($event)"
+          ></app-dropdown>
+        </div>
+
+        <!-- Branch Filter Dropdown -->
+        <div class="w-44 max-w-full">
+          <app-dropdown
+            [options]="branchFilterOptions()"
+            placeholder="Pilih Cabang"
+            [ngModel]="selectedBranchFilter()"
+            [clearable]="true"
+            (optionChange)="onBranchFilterChange($event)"
+          ></app-dropdown>
+        </div>
+
+        <!-- Status Filter Dropdown -->
+        <div class="w-40 max-w-full">
+          <app-dropdown
+            [options]="statusFilterOptions"
+            placeholder="Pilih Status"
+            [ngModel]="selectedStatusFilter()"
+            [clearable]="true"
+            (optionChange)="onStatusFilterChange($event)"
+          ></app-dropdown>
+        </div>
+
+        <!-- Clear Filter Action Button -->
+        @if (hasActiveFilters()) {
+          <button
+            type="button"
+            (click)="clearFilters()"
+            class="p-2 text-neutral-40 hover:text-neutral-90 hover:bg-neutral-0 rounded-lg transition-colors cursor-pointer"
+            title="Reset semua filter"
+          >
+            <svg lucideX [size]="16" class="w-4 h-4"></svg>
+          </button>
+        }
+      </div>
+
+      <!-- Right Action: Tambah Karyawan Button -->
+      <div class="shrink-0">
+        <app-button variant="primary" (btnClick)="navigateToCreate()">
+          <svg lucidePlus [size]="16" iconLeft class="w-4 h-4 mr-1.5 shrink-0"></svg>
+          Tambah Karyawan
+        </app-button>
+      </div>
+    </div>
+
+    <!-- 2. Data Table -->
+    <app-table
+      [columns]="columns"
+      [data]="tableData()"
+      [loading]="isLoading()"
+      rowKey="id"
+      emptyMessage="Tidak ada data karyawan yang ditemukan."
+    >
+      <!-- Custom Karyawan Name Template (Clickable Primary) -->
+      <ng-template appTableCell="nama" let-row="row">
+        <button
+          type="button"
+          (click)="navigateToEdit(row.id)"
+          class="font-medium text-primary hover:text-primary-hover hover:underline transition-colors text-left cursor-pointer focus:outline-none"
+        >
+          {{ row.nama || '-' }}
+        </button>
+      </ng-template>
+
+      <!-- Custom Role Template -->
+      <ng-template appTableCell="role" let-row="row">
+        <span class="text-neutral-70">
+          {{ row.roleName || '-' }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Cabang Template -->
+      <ng-template appTableCell="cabang" let-row="row">
+        <span class="text-neutral-70">
+          {{ row.branchName || '-' }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Status Badge Template -->
+      <ng-template appTableCell="status" let-row="row">
+        @if (row.status === true || row.status === 'true' || row.status === 1) {
+          <app-badge variant="success" size="sm">Aktif</app-badge>
+        } @else {
+          <app-badge variant="error" size="sm">Tidak Aktif</app-badge>
+        }
+      </ng-template>
+    </app-table>
+
+    <!-- 3. Bottom Pagination -->
+    <div class="px-5 py-3.5 bg-white border-t border-[#E5E7EB]">
+      <app-pagination
+        [currentPage]="currentPage()"
+        [pageSize]="pageSize()"
+        [totalItems]="totalElements()"
+        (pageChange)="onPageChange($event)"
+      ></app-pagination>
+    </div>
+  </div>
+</div>

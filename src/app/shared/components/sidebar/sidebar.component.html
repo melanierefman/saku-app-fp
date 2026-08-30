@@ -1,7 +1,7 @@
 <aside [class.w-20]="collapsed" [class.w-64]="!collapsed"
-  class="bg-white border-r border-[#E5E7EB] min-h-screen flex flex-col p-3 transition-all duration-200 select-none shrink-0">
+  class="bg-white border-r border-[#E5E7EB] h-full max-h-screen flex flex-col p-3 transition-all duration-200 select-none shrink-0 overflow-hidden">
   <!-- Brand / Logo Header -->
-  <div class="flex items-center gap-3 px-2 py-2 mb-3">
+  <div class="flex items-center gap-3 px-2 py-2 mb-2 shrink-0">
     <!-- SAKU Official Logo Image -->
     <img [src]="logoSrc" alt="SAKU Logo" class="w-10 h-10 rounded-xl object-contain shrink-0" />
 
@@ -18,8 +18,8 @@
     }
   </div>
 
-  <!-- Navigation Groups -->
-  <div class="flex-1 space-y-3 overflow-y-auto pr-1">
+  <!-- Navigation Groups (Scrollable with hidden scrollbar) -->
+  <div class="flex-1 space-y-3 overflow-y-auto pb-4 sidebar-scroll">
     @for (group of (menuGroups || []); track group.title || $index) {
     <div class="space-y-1">
       <!-- Group Section Heading -->

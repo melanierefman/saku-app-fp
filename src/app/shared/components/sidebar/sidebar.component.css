@@ -1,3 +1,17 @@
 :host {
   display: block;
+  height: 100%;
+  flex-shrink: 0;
+}
+
+/* Hide scrollbar while keeping scroll functionality */
+.sidebar-scroll {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+  width: 0;
+  height: 0;
 }

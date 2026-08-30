@@ -10,6 +10,7 @@ import {
 } from '@lucide/angular';
 import { AuthStore } from '../../../core/store/auth.store';
 import { AuthService } from '../../../core/services/auth.service';
+import { formatRoleName } from '../../../core';
 import { ModalComponent } from '../modal/modal.component';
 
 @Component({
@@ -44,8 +45,7 @@ export class HeaderComponent {
   }
 
   get userRoleDisplay(): string {
-    const role = this.userRole() || 'KARYAWAN';
-    return role.replace(/_/g, ' ').toUpperCase();
+    return formatRoleName(this.userRole() || 'Karyawan');
   }
 
   get userInitials(): string {

@@ -26,22 +26,37 @@ export class PaginationComponent {
   @Output() pageChange = new EventEmitter<number>();
   @Output() pageSizeChange = new EventEmitter<number>();
 
+  get safeTotalItems(): number {
+    const n = Number(this.totalItems);
+    return isNaN(n) || n < 0 ? 0 : n;
+  }
+
+  get safePageSize(): number {
+    const n = Number(this.pageSize);
+    return isNaN(n) || n <= 0 ? 10 : n;
+  }
+
+  get safeCurrentPage(): number {
+    const n = Number(this.currentPage);
+    return isNaN(n) || n < 1 ? 1 : n;
+  }
+
   get totalPages(): number {
-    return Math.max(1, Math.ceil(this.totalItems / this.pageSize));
+    return Math.max(1, Math.ceil(this.safeTotalItems / this.safePageSize));
   }
 
   get startItem(): number {
-    if (this.totalItems === 0) return 0;
-    return (this.currentPage - 1) * this.pageSize + 1;
+    if (this.safeTotalItems === 0) return 0;
+    return (this.safeCurrentPage - 1) * this.safePageSize + 1;
   }
 
   get endItem(): number {
-    return Math.min(this.totalItems, this.currentPage * this.pageSize);
+    return Math.min(this.safeTotalItems, this.safeCurrentPage * this.safePageSize);
   }
 
   get visiblePages(): (number | string)[] {
     const total = this.totalPages;
-    const current = this.currentPage;
+    const current = this.safeCurrentPage;
 
     if (total <= 10) {
       return Array.from({ length: total }, (_, i) => i + 1);
@@ -72,7 +87,7 @@ export class PaginationComponent {
 
   goToPage(page: number | string): void {
     if (typeof page !== 'number') return;
-    if (page < 1 || page > this.totalPages || page === this.currentPage) return;
+    if (page < 1 || page > this.totalPages || page === this.safeCurrentPage) return;
     this.currentPage = page;
     this.pageChange.emit(this.currentPage);
   }

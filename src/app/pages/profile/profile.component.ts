@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AuthStore } from '../../core/store/auth.store';
 import { ButtonComponent, ModalComponent } from '../../shared/components';
 import { AuthService } from '../../core/services/auth.service';
+import { formatRoleName } from '../../core';
 
 @Component({
   selector: 'app-profile',
@@ -20,7 +21,7 @@ export class ProfileComponent {
   showLogoutModal = false;
 
   get roleDisplay(): string {
-    return (this.user()?.role || 'KARYAWAN').replace(/_/g, ' ').toUpperCase();
+    return formatRoleName(this.user()?.role || 'Karyawan');
   }
 
   get userInitials(): string {

@@ -47,6 +47,31 @@ export class AuthService {
   }
 
   /**
+   * Refresh Token Karyawan
+   * POST /api/auth/karyawan/refresh-token
+   */
+  refreshToken(): Observable<AuthResponse> {
+    const refreshToken = this.tokenService.getRefreshToken();
+    return this.http
+      .post<AuthResponse>(`${this.API_URL}/karyawan/refresh-token`, { refreshToken })
+      .pipe(
+        tap((response) => {
+          if (response?.data) {
+            if (response.data.accessToken) {
+              this.tokenService.setAccessToken(response.data.accessToken);
+            }
+            if (response.data.refreshToken) {
+              this.tokenService.setRefreshToken(response.data.refreshToken);
+            }
+            if (response.data.user) {
+              this.authStore.updateUser(response.data.user);
+            }
+          }
+        })
+      );
+  }
+
+  /**
    * Logout Karyawan
    * POST /api/auth/karyawan/logout
    */

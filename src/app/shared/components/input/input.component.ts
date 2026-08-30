@@ -103,6 +103,15 @@ export class InputComponent implements ControlValueAccessor {
     this.inputFocus.emit(event);
   }
 
+  get effectiveType(): InputType {
+    // When password input is empty, render as text so placeholder font metrics and baseline alignment
+    // are 100% identical and vertically centered with normal text inputs in Chromium/Safari
+    if (this.type === 'password' && !this.value) {
+      return 'text';
+    }
+    return this.type;
+  }
+
   get inputWrapperClasses(): string {
     const classes = [
       'relative flex items-center w-full rounded-xl saku-input-control h-10',
@@ -121,18 +130,19 @@ export class InputComponent implements ControlValueAccessor {
 
   get inputClasses(): string {
     const classes = [
-      'w-full bg-transparent text-neutral-100 placeholder:text-neutral-30 focus:outline-none disabled:cursor-not-allowed',
+      'flex-1 min-w-0 w-full bg-transparent text-neutral-100 placeholder:text-neutral-30 focus:outline-none disabled:cursor-not-allowed',
     ];
 
     switch (this.size) {
       case 'sm':
-        classes.push('py-1.5 px-3 text-xs');
-        break;
-      case 'md':
-        classes.push('py-2 px-3.5 text-sm');
+        classes.push('px-3 text-xs');
         break;
       case 'lg':
-        classes.push('py-2.5 px-4 text-base');
+        classes.push('px-4 text-base');
+        break;
+      case 'md':
+      default:
+        classes.push('px-3.5 text-sm');
         break;
     }
 
