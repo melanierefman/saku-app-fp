@@ -43,6 +43,8 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import com.bcafinance.backend_saku.core.dto.PageResponse;
+
 @Service
 @RequiredArgsConstructor
 public class BranchManagerPersetujuanService {
@@ -62,9 +64,27 @@ public class BranchManagerPersetujuanService {
     private final com.bcafinance.backend_saku.features.customer.service.NotifikasiService notifikasiService;
     private final com.bcafinance.backend_saku.features.master.auditlog.service.AuditLogService auditLogService;
 
+    public PageResponse<BranchManagerPengajuanItemResponse> findAllPaginated(int page, int size, String search, String statusFilter, UUID karyawanId) {
+        List<BranchManagerPengajuanItemResponse> all = findAll(statusFilter, karyawanId);
+
+        if (search != null && !search.trim().isEmpty()) {
+            String s = search.trim().toLowerCase();
+            all = all.stream().filter(item ->
+                    (item.getNoPengajuan() != null && item.getNoPengajuan().toLowerCase().contains(s)) ||
+                    (item.getCustomer() != null && item.getCustomer().toLowerCase().contains(s)) ||
+                    (item.getEmail() != null && item.getEmail().toLowerCase().contains(s)) ||
+                    (item.getNoHp() != null && item.getNoHp().toLowerCase().contains(s)) ||
+                    (item.getCabang() != null && item.getCabang().toLowerCase().contains(s))
+            ).toList();
+        }
+
+        return PageResponse.ofList(all, page, size);
+    }
+
     public List<BranchManagerPengajuanItemResponse> findAll(String statusFilter) {
         return findAll(statusFilter, null);
     }
+
 
     public List<BranchManagerPengajuanItemResponse> findAll(String statusFilter, UUID karyawanId) {
         UUID branchId = null;

@@ -2,6 +2,7 @@ package com.bcafinance.backend_saku.features.backoffice.service;
 
 import com.bcafinance.backend_saku.core.dto.AlamatDetailResponse;
 import com.bcafinance.backend_saku.features.backoffice.dto.PendingCustomerResponse;
+import com.bcafinance.backend_saku.core.dto.PageResponse;
 import com.bcafinance.backend_saku.features.master.plafond.PlafondCalculationResponse;
 import com.bcafinance.backend_saku.features.master.plafond.PlafondService;
 import com.bcafinance.backend_saku.features.backoffice.dto.VerifikasiCustomerDetailResponse;
@@ -39,6 +40,23 @@ public class VerifikasiCustomerService {
     private final DokumenCustomerRepository dokumenRepository;
     private final PlafondService plafondService;
     private final com.bcafinance.backend_saku.features.master.auditlog.service.AuditLogService auditLogService;
+
+    public PageResponse<VerifikasiCustomerItemResponse> findAllPaginated(int page, int size, String search, String statusFilter) {
+        List<VerifikasiCustomerItemResponse> all = findAll(statusFilter);
+
+        if (search != null && !search.trim().isEmpty()) {
+            String s = search.trim().toLowerCase();
+            all = all.stream().filter(item ->
+                    (item.getNamaCustomer() != null && item.getNamaCustomer().toLowerCase().contains(s)) ||
+                    (item.getNik() != null && item.getNik().toLowerCase().contains(s)) ||
+                    (item.getEmail() != null && item.getEmail().toLowerCase().contains(s)) ||
+                    (item.getNoHp() != null && item.getNoHp().toLowerCase().contains(s))
+            ).toList();
+        }
+
+        return PageResponse.ofList(all, page, size);
+    }
+
 
     public List<VerifikasiCustomerItemResponse> findAll(String statusFilter) {
         List<Customer> customers = customerRepository.findAllByOrderByCreatedDateDesc();

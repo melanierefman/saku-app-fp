@@ -16,12 +16,13 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.web.bind.annotation.RequestParam;
+
 @RestController
 @RequestMapping("/api/karyawan")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('SUPERADMIN')")
 public class KaryawanController {
-
 
     private final KaryawanService karyawanService;
 
@@ -32,12 +33,25 @@ public class KaryawanController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<KaryawanResponse>>> findAll() {
+    public ResponseEntity<ApiResponse<KaryawanPageResponse>> findAll(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(name = "search", required = false) String search,
+            @RequestParam(name = "roleId", required = false) UUID roleId,
+            @RequestParam(name = "branchId", required = false) UUID branchId,
+            @RequestParam(name = "status", required = false) Boolean status) {
+        return ResponseEntity.ok(ApiResponse.success(
+                karyawanService.findAllPaginated(page, size, search, roleId, branchId, status)));
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<List<KaryawanResponse>>> findAllList() {
         return ResponseEntity.ok(ApiResponse.success(karyawanService.findAll()));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<KaryawanResponse>> findById(@PathVariable UUID id) {
+
         return ResponseEntity.ok(ApiResponse.success(karyawanService.findById(id)));
     }
 

@@ -47,6 +47,8 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import com.bcafinance.backend_saku.core.dto.PageResponse;
+
 @Service
 @RequiredArgsConstructor
 public class PencairanService {
@@ -65,7 +67,26 @@ public class PencairanService {
     private final com.bcafinance.backend_saku.features.customer.service.NotifikasiService notifikasiService;
     private final com.bcafinance.backend_saku.features.master.auditlog.service.AuditLogService auditLogService;
 
+    public PageResponse<PencairanItemResponse> findAllPaginated(int page, int size, String search, String statusFilter) {
+        List<PencairanItemResponse> all = findAll(statusFilter);
+
+        if (search != null && !search.trim().isEmpty()) {
+            String s = search.trim().toLowerCase();
+            all = all.stream().filter(item ->
+                    (item.getNoPengajuan() != null && item.getNoPengajuan().toLowerCase().contains(s)) ||
+                    (item.getNamaCustomer() != null && item.getNamaCustomer().toLowerCase().contains(s)) ||
+                    (item.getNik() != null && item.getNik().toLowerCase().contains(s)) ||
+                    (item.getEmail() != null && item.getEmail().toLowerCase().contains(s)) ||
+                    (item.getNamaBank() != null && item.getNamaBank().toLowerCase().contains(s)) ||
+                    (item.getNoRekening() != null && item.getNoRekening().toLowerCase().contains(s))
+            ).toList();
+        }
+
+        return PageResponse.ofList(all, page, size);
+    }
+
     public List<PencairanItemResponse> findAll(String statusFilter) {
+
         List<PengajuanPinjaman> list = pengajuanRepository.findAllByOrderByCreatedDateDesc();
 
         return list.stream()

@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.bcafinance.backend_saku.core.dto.PageResponse;
+
 @RestController
 @RequestMapping("/api/backoffice/pencairan")
 @RequiredArgsConstructor
@@ -29,7 +31,17 @@ public class PencairanController {
     private final PencairanService pencairanService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<PencairanItemResponse>>> findAll(
+    public ResponseEntity<ApiResponse<PageResponse<PencairanItemResponse>>> findAll(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(name = "search", required = false) String search,
+            @RequestParam(name = "status", required = false) String status) {
+        return ResponseEntity.ok(ApiResponse.success(
+                pencairanService.findAllPaginated(page, size, search, status)));
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<List<PencairanItemResponse>>> findAllList(
             @RequestParam(required = false) String status) {
         return ResponseEntity.ok(ApiResponse.success(pencairanService.findAll(status)));
     }
@@ -38,6 +50,7 @@ public class PencairanController {
     public ResponseEntity<ApiResponse<List<PencairanItemResponse>>> findPending() {
         return ResponseEntity.ok(ApiResponse.success(pencairanService.findAll("MENUNGGU_PENCAIRAN")));
     }
+
 
     @GetMapping("/{pengajuanId}")
     public ResponseEntity<ApiResponse<PencairanDetailResponse>> getDetail(

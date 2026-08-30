@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.bcafinance.backend_saku.core.dto.PageResponse;
+
 @RestController
 @RequestMapping("/api/marketing/pengajuan-pinjaman")
 @RequiredArgsConstructor
@@ -29,12 +31,25 @@ public class MarketingPengajuanController {
     private final MarketingReviewService marketingReviewService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<MarketingPengajuanItemResponse>>> findAll(
+    public ResponseEntity<ApiResponse<PageResponse<MarketingPengajuanItemResponse>>> findAll(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(name = "search", required = false) String search,
+            @RequestParam(name = "status", required = false) String status,
+            @AuthenticationPrincipal AppUser karyawan) {
+        UUID karyawanId = karyawan != null ? karyawan.getIdKaryawan() : null;
+        return ResponseEntity.ok(ApiResponse.success(
+                marketingReviewService.findAllPaginated(page, size, search, status, karyawanId)));
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<List<MarketingPengajuanItemResponse>>> findAllList(
             @RequestParam(required = false) String status,
             @AuthenticationPrincipal AppUser karyawan) {
         UUID karyawanId = karyawan != null ? karyawan.getIdKaryawan() : null;
         return ResponseEntity.ok(ApiResponse.success(marketingReviewService.findAll(status, karyawanId)));
     }
+
 
 
     @GetMapping("/{pengajuanId}")

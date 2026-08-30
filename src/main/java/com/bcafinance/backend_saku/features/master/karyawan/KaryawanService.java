@@ -13,6 +13,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -37,9 +40,31 @@ public class KaryawanService {
         return toResponse(karyawanRepository.save(karyawan));
     }
 
+    public KaryawanPageResponse findAllPaginated(int page, int size, String search, UUID roleId, UUID branchId, Boolean status) {
+        if (page < 0) page = 0;
+        if (size <= 0) size = 10;
+
+        Pageable pageable = PageRequest.of(page, size);
+        String searchTrimmed = (search != null && !search.trim().isEmpty()) ? search.trim() : null;
+
+        Page<Karyawan> pageResult = karyawanRepository.findByFilters(searchTrimmed, roleId, branchId, status, pageable);
+        List<KaryawanResponse> content = pageResult.getContent().stream().map(this::toResponse).toList();
+
+        return KaryawanPageResponse.builder()
+                .content(content)
+                .totalElements(pageResult.getTotalElements())
+                .totalPages(pageResult.getTotalPages())
+                .currentPage(pageResult.getNumber())
+                .pageSize(pageResult.getSize())
+                .isFirst(pageResult.isFirst())
+                .isLast(pageResult.isLast())
+                .build();
+    }
+
     public List<KaryawanResponse> findAll() {
         return karyawanRepository.findAll().stream().map(this::toResponse).toList();
     }
+
 
     public KaryawanResponse findById(UUID id) {
         return toResponse(getKaryawan(id));
@@ -110,8 +135,15 @@ public class KaryawanService {
         response.setStatus(karyawan.getStatus());
         response.setCreatedDate(karyawan.getCreatedDate());
         response.setUpdatedDate(karyawan.getUpdatedDate());
-        response.setMstRoleId(karyawan.getRole().getId());
-        response.setMstBranchId(karyawan.getCabang().getId());
+
+        if (karyawan.getRole() != null) {
+            response.setMstRoleId(karyawan.getRole().getId());
+            response.setRoleNama(karyawan.getRole().getNama());
+        }
+        if (karyawan.getCabang() != null) {
+            response.setMstBranchId(karyawan.getCabang().getId());
+            response.setCabangNama(karyawan.getCabang().getNama());
+        }
         return response;
     }
 

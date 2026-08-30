@@ -20,5 +20,9 @@ public class KaryawanResponse {
     private Date createdDate;
     private Date updatedDate;
     private UUID mstRoleId;
+    private String roleNama;
     private UUID mstBranchId;
+    private String cabangNama;
 }
+
+

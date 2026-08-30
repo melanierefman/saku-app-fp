@@ -21,20 +21,35 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.bcafinance.backend_saku.core.dto.PageResponse;
+
 @RestController
-@RequestMapping({"/api/branch-manager/persetujuan", "/api/bm/persetujuan"})
+@RequestMapping({"/api/branch-manager/persetujuan", "/api/bm/persetujuan", "/api/branchmanager/persetujuan"})
 @RequiredArgsConstructor
 public class BranchManagerPersetujuanController {
 
     private final BranchManagerPersetujuanService branchManagerPersetujuanService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<BranchManagerPengajuanItemResponse>>> findAll(
+    public ResponseEntity<ApiResponse<PageResponse<BranchManagerPengajuanItemResponse>>> findAll(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(name = "search", required = false) String search,
+            @RequestParam(name = "status", required = false) String status,
+            @AuthenticationPrincipal AppUser karyawan) {
+        UUID karyawanId = karyawan != null ? karyawan.getIdKaryawan() : null;
+        return ResponseEntity.ok(ApiResponse.success(
+                branchManagerPersetujuanService.findAllPaginated(page, size, search, status, karyawanId)));
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<List<BranchManagerPengajuanItemResponse>>> findAllList(
             @RequestParam(required = false) String status,
             @AuthenticationPrincipal AppUser karyawan) {
         UUID karyawanId = karyawan != null ? karyawan.getIdKaryawan() : null;
         return ResponseEntity.ok(ApiResponse.success(branchManagerPersetujuanService.findAll(status, karyawanId)));
     }
+
 
 
     @GetMapping("/{pengajuanId}")
