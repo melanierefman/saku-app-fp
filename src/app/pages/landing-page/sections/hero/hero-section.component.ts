@@ -1,11 +1,26 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonComponent } from '../../../../shared/components';
+import {
+  LucideShieldCheck,
+  LucideUsers,
+  LucideClock,
+  LucideStar,
+  LucidePlay,
+} from '@lucide/angular';
 
 @Component({
   selector: 'app-landing-hero',
   standalone: true,
-  imports: [CommonModule, ButtonComponent],
+  imports: [
+    CommonModule,
+    ButtonComponent,
+    LucideShieldCheck,
+    LucideUsers,
+    LucideClock,
+    LucideStar,
+    LucidePlay,
+  ],
   templateUrl: './hero-section.component.html',
   styleUrl: './hero-section.component.css',
 })

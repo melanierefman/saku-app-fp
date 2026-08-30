@@ -7,6 +7,7 @@ import {
   TemplateRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideCircleHelp, LucideInbox } from '@lucide/angular';
 
 export interface TableColumn<T = any> {
   key: string;
@@ -30,7 +31,7 @@ export class TableCellDirective {
 @Component({
   selector: 'app-table',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LucideCircleHelp, LucideInbox],
   templateUrl: './table.component.html',
   styleUrl: './table.component.css',
 })

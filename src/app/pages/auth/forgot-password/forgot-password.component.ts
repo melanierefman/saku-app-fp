@@ -14,11 +14,27 @@ import {
   ButtonComponent,
   ToastService,
 } from '../../../shared/components';
+import {
+  LucideMail,
+  LucideChevronLeft,
+  LucideEye,
+  LucideEyeOff,
+} from '@lucide/angular';
 
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, InputComponent, ButtonComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    InputComponent,
+    ButtonComponent,
+    LucideMail,
+    LucideChevronLeft,
+    LucideEye,
+    LucideEyeOff,
+  ],
   templateUrl: './forgot-password.component.html',
   styleUrl: './forgot-password.component.css',
 })

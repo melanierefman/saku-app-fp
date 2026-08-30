@@ -7,6 +7,11 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import {
+  LucideHandCoins,
+  LucideRotateCcw,
+  LucideWallet,
+} from '@lucide/angular';
 
 export interface FeatureCard {
   id: number;
@@ -21,7 +26,12 @@ export interface FeatureCard {
 @Component({
   selector: 'app-landing-features',
   standalone: true,
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    LucideHandCoins,
+    LucideRotateCcw,
+    LucideWallet,
+  ],
   templateUrl: './features-section.component.html',
   styleUrl: './features-section.component.css',
 })

@@ -19,6 +19,7 @@ export * from './toast/toast.component';
 // Phase 3: Layout & Navigation
 export * from './breadcrumbs/breadcrumbs.component';
 export * from './sidebar/sidebar.component';
+export * from './header/header.component';
 export * from './navbar/navbar.component';
 export * from './footer/footer.component';
 

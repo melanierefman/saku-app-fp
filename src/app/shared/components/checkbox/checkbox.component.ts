@@ -12,12 +12,14 @@ import {
   NG_VALUE_ACCESSOR,
 } from '@angular/forms';
 
+import { LucideCheck, LucideMinus } from '@lucide/angular';
+
 let nextUniqueCheckboxId = 0;
 
 @Component({
   selector: 'app-checkbox',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LucideCheck, LucideMinus],
   templateUrl: './checkbox.component.html',
   styleUrl: './checkbox.component.css',
   providers: [

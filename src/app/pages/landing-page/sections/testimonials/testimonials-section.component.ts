@@ -7,6 +7,7 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { LucideCircleCheck, LucideStar } from '@lucide/angular';
 
 export interface Testimonial {
   id: number;
@@ -21,7 +22,7 @@ export interface Testimonial {
 @Component({
   selector: 'app-landing-testimonials',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LucideCircleCheck, LucideStar],
   templateUrl: './testimonials-section.component.html',
   styleUrl: './testimonials-section.component.css',
 })

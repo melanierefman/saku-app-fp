@@ -11,13 +11,24 @@ import {
   FormsModule,
   NG_VALUE_ACCESSOR,
 } from '@angular/forms';
+import {
+  LucideMinus,
+  LucidePlus,
+  LucideCircleAlert,
+} from '@lucide/angular';
 
 let nextUniqueNumberId = 0;
 
 @Component({
   selector: 'app-input-number',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    LucideMinus,
+    LucidePlus,
+    LucideCircleAlert,
+  ],
   templateUrl: './input-number.component.html',
   styleUrl: './input-number.component.css',
   providers: [

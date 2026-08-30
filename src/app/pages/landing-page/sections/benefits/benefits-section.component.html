@@ -22,32 +22,13 @@
             <div
               class="w-12 h-12 rounded-xl bg-[#494949] text-primary flex items-center justify-center mb-5 group-hover:bg-primary group-hover:text-white transition-colors">
               @if (item.icon === 'percent') {
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <line x1="19" y1="5" x2="5" y2="19" />
-                <circle cx="6.5" cy="6.5" r="2.5" />
-                <circle cx="17.5" cy="17.5" r="2.5" />
-              </svg>
+              <svg lucidePercent [size]="24" class="w-6 h-6"></svg>
               } @else if (item.icon === 'globe') {
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="2" y1="12" x2="22" y2="12" />
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-              </svg>
+              <svg lucideGlobe [size]="24" class="w-6 h-6"></svg>
               } @else if (item.icon === 'shield-check') {
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                <path d="m9 12 2 2 4-4" />
-              </svg>
+              <svg lucideShieldCheck [size]="24" class="w-6 h-6"></svg>
               } @else if (item.icon === 'headset') {
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path
-                  d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z" />
-                <path d="M21 16v2a4 4 0 0 1-4 4h-5" />
-              </svg>
+              <svg lucideHeadphones [size]="24" class="w-6 h-6"></svg>
               }
             </div>
 

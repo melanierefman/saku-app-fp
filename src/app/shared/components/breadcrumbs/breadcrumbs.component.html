@@ -5,16 +5,10 @@
         <!-- Chevron Separator (between items) -->
         @if (i > 0) {
           <svg
-            class="w-3.5 h-3.5 text-neutral-40 shrink-0 lucide lucide-chevron-right"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="m9 18 6-6-6-6" />
-          </svg>
+            lucideChevronRight
+            [size]="14"
+            class="w-3.5 h-3.5 text-neutral-40 shrink-0"
+          ></svg>
         }
 
         <!-- Last Item (Active Page) -->

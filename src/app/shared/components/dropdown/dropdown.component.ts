@@ -13,6 +13,13 @@ import {
   FormsModule,
   NG_VALUE_ACCESSOR,
 } from '@angular/forms';
+import {
+  LucideChevronDown,
+  LucideX,
+  LucideSearch,
+  LucideCheck,
+  LucideCircleAlert,
+} from '@lucide/angular';
 
 export interface DropdownOption {
   value: any;
@@ -26,7 +33,15 @@ let nextUniqueDropdownId = 0;
 @Component({
   selector: 'app-dropdown',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    LucideChevronDown,
+    LucideX,
+    LucideSearch,
+    LucideCheck,
+    LucideCircleAlert,
+  ],
   templateUrl: './dropdown.component.html',
   styleUrl: './dropdown.component.css',
   providers: [

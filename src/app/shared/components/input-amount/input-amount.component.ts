@@ -11,13 +11,24 @@ import {
   FormsModule,
   NG_VALUE_ACCESSOR,
 } from '@angular/forms';
+import {
+  LucideBanknote,
+  LucideX,
+  LucideCircleAlert,
+} from '@lucide/angular';
 
 let nextUniqueAmountId = 0;
 
 @Component({
   selector: 'app-input-amount',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    LucideBanknote,
+    LucideX,
+    LucideCircleAlert,
+  ],
   templateUrl: './input-amount.component.html',
   styleUrl: './input-amount.component.css',
   providers: [

@@ -28,20 +28,13 @@
       @if (clearable && selectedValue !== null && !disabled) {
       <button type="button" (click)="clearSelection($event)"
         class="hover:text-neutral-80 p-1 rounded-md hover:bg-neutral-0/80 transition-colors focus:outline-none cursor-pointer" aria-label="Hapus pilihan">
-        <svg class="w-3.5 h-3.5 lucide lucide-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 6 6 18" />
-          <path d="m6 6 12 12" />
-        </svg>
+        <svg lucideX [size]="14" class="w-3.5 h-3.5"></svg>
       </button>
       }
 
       <!-- Chevron Down Icon -->
-      <svg [class]="isOpen ? 'rotate-180 text-primary' : 'text-neutral-40'"
-        class="w-4 h-4 transition-transform duration-150 lucide lucide-chevron-down" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="m6 9 6 6 6-6" />
-      </svg>
+      <svg lucideChevronDown [size]="16" [class]="isOpen ? 'rotate-180 text-primary' : 'text-neutral-40'"
+        class="w-4 h-4 transition-transform duration-150"></svg>
     </div>
   </div>
 
@@ -55,11 +48,7 @@
     @if (searchable) {
     <div class="p-2 border-b border-[#E5E7EB]">
       <div class="relative flex items-center">
-        <svg class="w-3.5 h-3.5 absolute left-2.5 text-neutral-40 lucide lucide-search" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.3-4.3" />
-        </svg>
+        <svg lucideSearch [size]="14" class="w-3.5 h-3.5 absolute left-2.5 text-neutral-40"></svg>
         <input type="text" [(ngModel)]="searchQuery" (click)="$event.stopPropagation()" placeholder="Cari opsi..."
           class="w-full bg-[#F9FAFB] rounded-lg pl-8 pr-3 py-1.5 text-sm text-neutral-90 placeholder:text-neutral-40 focus:outline-none focus:bg-white focus:ring-1 focus:ring-primary border border-transparent focus:border-primary" />
       </div>
@@ -77,10 +66,7 @@
 
         <!-- Active Checkmark -->
         @if (selectedValue === option.value) {
-        <svg class="w-4 h-4 text-primary shrink-0 lucide lucide-check" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="20 6 9 17 4 12" />
-        </svg>
+        <svg lucideCheck [size]="16" class="w-4 h-4 text-primary shrink-0"></svg>
         }
       </div>
       }
@@ -97,12 +83,7 @@
   <!-- Helper Text or Error Message -->
   @if (errorMessage) {
   <p class="text-xs text-error flex items-center gap-1 mt-1">
-    <svg class="w-3.5 h-3.5 shrink-0 lucide lucide-alert-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <line x1="12" x2="12" y1="8" y2="12" />
-      <line x1="12" x2="12.01" y1="16" y2="16" />
-    </svg>
+    <svg lucideCircleAlert [size]="14" class="w-3.5 h-3.5 shrink-0"></svg>
     <span>{{ errorMessage }}</span>
   </p>
   } @else if (helperText) {

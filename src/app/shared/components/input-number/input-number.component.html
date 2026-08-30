@@ -22,9 +22,7 @@
       class="px-3.5 py-2 flex items-center justify-center text-neutral-60 hover:bg-black/5 hover:text-neutral-90 disabled:opacity-30 disabled:cursor-not-allowed border-r border-[#E5E7EB] transition-colors cursor-pointer"
       aria-label="Kurangi nilai"
     >
-      <svg class="w-3.5 h-3.5 lucide lucide-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="5" x2="19" y1="12" y2="12" />
-      </svg>
+      <svg lucideMinus [size]="14" class="w-3.5 h-3.5"></svg>
     </button>
 
     <!-- Core Number Input -->
@@ -59,21 +57,14 @@
       class="px-3.5 py-2 flex items-center justify-center text-primary hover:bg-primary-0/60 disabled:opacity-30 disabled:cursor-not-allowed border-l border-[#E5E7EB] transition-colors cursor-pointer font-bold"
       aria-label="Tambah nilai"
     >
-      <svg class="w-3.5 h-3.5 lucide lucide-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M5 12h14" />
-        <path d="M12 5v14" />
-      </svg>
+      <svg lucidePlus [size]="14" class="w-3.5 h-3.5"></svg>
     </button>
   </div>
 
   <!-- Helper Text or Error Message -->
   @if (errorMessage) {
     <p class="text-xs text-error flex items-center gap-1 mt-1">
-      <svg class="w-3.5 h-3.5 shrink-0 lucide lucide-alert-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <line x1="12" x2="12" y1="8" y2="12" />
-        <line x1="12" x2="12.01" y1="16" y2="16" />
-      </svg>
+      <svg lucideCircleAlert [size]="14" class="w-3.5 h-3.5 shrink-0"></svg>
       <span>{{ errorMessage }}</span>
     </p>
   } @else if (helperText) {

@@ -1,6 +1,8 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+import { LucideX } from '@lucide/angular';
+
 export type BadgeVariant =
   | 'primary'
   | 'neutral'
@@ -20,7 +22,7 @@ export type BadgeRounded = 'pill' | 'rounded' | 'square';
 @Component({
   selector: 'app-badge',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LucideX],
   templateUrl: './badge.component.html',
   styleUrl: './badge.component.css',
 })

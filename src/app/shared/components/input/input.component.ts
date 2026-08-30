@@ -11,6 +11,7 @@ import {
   FormsModule,
   NG_VALUE_ACCESSOR,
 } from '@angular/forms';
+import { LucideCircleAlert } from '@lucide/angular';
 
 export type InputSize = 'sm' | 'md' | 'lg';
 export type InputType =
@@ -27,7 +28,7 @@ let nextUniqueId = 0;
 @Component({
   selector: 'app-input',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LucideCircleAlert],
   templateUrl: './input.component.html',
   styleUrl: './input.component.css',
   providers: [

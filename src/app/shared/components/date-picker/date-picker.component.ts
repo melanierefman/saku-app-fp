@@ -13,6 +13,14 @@ import {
   FormsModule,
   NG_VALUE_ACCESSOR,
 } from '@angular/forms';
+import {
+  LucideCalendar,
+  LucideX,
+  LucideChevronDown,
+  LucideChevronLeft,
+  LucideChevronRight,
+  LucideCheck,
+} from '@lucide/angular';
 
 export type DatePickerMode = 'single' | 'range';
 
@@ -43,7 +51,16 @@ let nextUniqueDatePickerId = 0;
 @Component({
   selector: 'app-date-picker',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    LucideCalendar,
+    LucideX,
+    LucideChevronDown,
+    LucideChevronLeft,
+    LucideChevronRight,
+    LucideCheck,
+  ],
   templateUrl: './date-picker.component.html',
   styleUrl: './date-picker.component.css',
   providers: [

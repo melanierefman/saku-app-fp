@@ -99,3 +99,16 @@ body {
   --color-warning-90: #78350F;
   --color-warning-100: #451A03;
 }
+
+/* Global Password Bullets Styling */
+input[type="password"] {
+  letter-spacing: 0.2em;
+  font-size: 1.2rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+input[type="password"]::placeholder {
+  letter-spacing: normal;
+  font-size: 0.875rem;
+  font-family: var(--font-sans, inherit);
+}

@@ -11,13 +11,14 @@ import {
   FormsModule,
   NG_VALUE_ACCESSOR,
 } from '@angular/forms';
+import { LucideCircleAlert } from '@lucide/angular';
 
 let nextUniqueTextareaId = 0;
 
 @Component({
   selector: 'app-textarea',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LucideCircleAlert],
   templateUrl: './textarea.component.html',
   styleUrl: './textarea.component.css',
   providers: [

@@ -34,21 +34,12 @@
     <div class="flex items-center gap-2.5 truncate">
       <!-- Calendar Icon -->
       <svg
+        lucideCalendar
+        [size]="18"
         class="w-4.5 h-4.5 shrink-0 transition-colors"
         [class.text-primary]="isOpen || hasValue"
         [class.text-neutral-40]="!isOpen && !hasValue"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
-        <line x1="16" x2="16" y1="2" y2="6" />
-        <line x1="8" x2="8" y1="2" y2="6" />
-        <line x1="3" x2="21" y1="10" y2="10" />
-      </svg>
+      ></svg>
 
       <!-- Display Text -->
       <span
@@ -69,24 +60,15 @@
           class="p-1 rounded-md text-neutral-40 hover:text-neutral-80 hover:bg-neutral-0/80 transition-colors cursor-pointer"
           title="Hapus tanggal"
         >
-          <svg class="w-3.5 h-3.5 lucide lucide-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 6 6 18" />
-            <path d="m6 6 12 12" />
-          </svg>
+          <svg lucideX [size]="14" class="w-3.5 h-3.5"></svg>
         </button>
       } @else {
         <svg
+          lucideChevronDown
+          [size]="16"
           class="w-4 h-4 text-neutral-40 transition-transform duration-200"
           [class.rotate-180]="isOpen"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="m6 9 6 6 6-6" />
-        </svg>
+        ></svg>
       }
     </div>
   </div>
@@ -130,19 +112,13 @@
             </span>
 
             <svg
+              lucideChevronDown
+              [size]="16"
               [class.rotate-180]="isPresetMenuOpen"
               [class.text-primary]="isPresetMenuOpen"
               [class.text-neutral-40]="!isPresetMenuOpen"
               class="w-4 h-4 transition-transform duration-150 shrink-0 ml-2"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="m6 9 6 6 6-6" />
-            </svg>
+            ></svg>
           </div>
 
           <!-- Dropdown Popover Menu -->
@@ -161,9 +137,7 @@
               >
                 <span class="truncate">Periode Kustom (Kalender)</span>
                 @if (selectedPresetLabel === 'Periode Kustom (Kalender)') {
-                  <svg class="w-4 h-4 text-primary shrink-0 lucide lucide-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
+                  <svg lucideCheck [size]="16" class="w-4 h-4 text-primary shrink-0"></svg>
                 }
               </div>
 
@@ -179,9 +153,7 @@
                 >
                   <span class="truncate">{{ preset.label }}</span>
                   @if (selectedPresetLabel === preset.label) {
-                    <svg class="w-4 h-4 text-primary shrink-0 lucide lucide-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
+                    <svg lucideCheck [size]="16" class="w-4 h-4 text-primary shrink-0"></svg>
                   }
                 </div>
               }
@@ -205,9 +177,7 @@
             class="p-1.5 text-neutral-50 hover:text-neutral-90 hover:bg-neutral-0 rounded-lg transition-colors cursor-pointer"
             aria-label="Bulan sebelumnya"
           >
-            <svg class="w-4 h-4 lucide lucide-chevron-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m15 18-6-6 6-6" />
-            </svg>
+            <svg lucideChevronLeft [size]="16" class="w-4 h-4"></svg>
           </button>
 
           <button
@@ -216,9 +186,7 @@
             class="p-1.5 text-neutral-50 hover:text-neutral-90 hover:bg-neutral-0 rounded-lg transition-colors cursor-pointer"
             aria-label="Bulan berikutnya"
           >
-            <svg class="w-4 h-4 lucide lucide-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m9 18 6-6-6-6" />
-            </svg>
+            <svg lucideChevronRight [size]="16" class="w-4 h-4"></svg>
           </button>
         </div>
       </div>

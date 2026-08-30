@@ -1,6 +1,8 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+import { LucideLoader2 } from '@lucide/angular';
+
 export type ButtonVariant =
   | 'primary'
   | 'secondary'
@@ -19,7 +21,7 @@ export type ButtonRounded = 'none' | 'sm' | 'md' | 'lg' | 'full';
 @Component({
   selector: 'app-button',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LucideLoader2],
   templateUrl: './button.component.html',
   styleUrl: './button.component.css',
   host: {

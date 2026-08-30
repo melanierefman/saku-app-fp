@@ -8,45 +8,28 @@
       <!-- Success Icon -->
       @if (toast.type === 'success') {
       <div class="w-7 h-7 rounded-lg bg-[#E8F8EE] flex items-center justify-center text-success">
-        <svg class="w-4 h-4 lucide lucide-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="20 6 9 17 4 12" />
-        </svg>
+        <svg lucideCheck [size]="16" class="w-4 h-4"></svg>
       </div>
       }
 
       <!-- Error Icon -->
       @else if (toast.type === 'error') {
       <div class="w-7 h-7 rounded-lg bg-[#FDF2F2] flex items-center justify-center text-error">
-        <svg class="w-4 h-4 lucide lucide-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-          stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 6 6 18" />
-          <path d="m6 6 12 12" />
-        </svg>
+        <svg lucideX [size]="16" class="w-4 h-4"></svg>
       </div>
       }
 
       <!-- Warning Icon -->
       @else if (toast.type === 'warning') {
       <div class="w-7 h-7 rounded-lg bg-[#FFFBEB] flex items-center justify-center text-warning">
-        <svg class="w-4 h-4 lucide lucide-alert-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10" />
-          <line x1="12" x2="12" y1="8" y2="12" />
-          <line x1="12" x2="12.01" y1="16" y2="16" />
-        </svg>
+        <svg lucideCircleAlert [size]="16" class="w-4 h-4"></svg>
       </div>
       }
 
       <!-- Info Icon -->
       @else {
       <div class="w-7 h-7 rounded-lg bg-primary-0 flex items-center justify-center text-primary">
-        <svg class="w-4 h-4 lucide lucide-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-          stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10" />
-          <line x1="12" x2="12" y1="16" y2="12" />
-          <line x1="12" x2="12.01" y1="8" y2="8" />
-        </svg>
+        <svg lucideInfo [size]="16" class="w-4 h-4"></svg>
       </div>
       }
     </div>
@@ -60,11 +43,7 @@
     <button type="button" (click)="dismiss(toast)"
       class="text-neutral-40 hover:text-neutral-90 p-1 rounded-md hover:bg-neutral-0/60 transition-colors cursor-pointer shrink-0"
       aria-label="Tutup notifikasi">
-      <svg class="w-4 h-4 lucide lucide-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round">
-        <path d="M18 6 6 18" />
-        <path d="m6 6 12 12" />
-      </svg>
+      <svg lucideX [size]="16" class="w-4 h-4"></svg>
     </button>
   </div>
   }

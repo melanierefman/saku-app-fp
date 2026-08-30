@@ -1,14 +1,17 @@
 @if (isOpen) {
-<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-100/40 backdrop-blur-xs animate-fadeIn"
+<div class="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn"
   (click)="onBackdropClick($event)">
   <!-- Modal Card Container -->
   <div [class]="sizeClasses"
-    class="relative w-full bg-white rounded-2xl shadow-2xl overflow-hidden animate-modalIn border border-[#E5E7EB]">
+    class="relative w-full bg-white rounded-2xl shadow-2xl overflow-hidden animate-modalIn border border-[#E5E7EB]"
+    (click)="$event.stopPropagation()">
+    <!-- ========================================== -->
     <!-- 1. VARIANT: FORM MODAL -->
+    <!-- ========================================== -->
     @if (variant === 'form') {
     <!-- Header -->
     <div class="px-6 pt-6 pb-4 flex items-center justify-between">
-      <h3 class="text-lg font-medium text-neutral-100 tracking-tight">
+      <h3 class="text-lg font-bold text-neutral-90 tracking-tight">
         {{ title }}
       </h3>
 
@@ -16,11 +19,7 @@
       <button type="button" (click)="handleClose()"
         class="p-2 text-neutral-50 hover:text-neutral-90 bg-neutral-0/80 hover:bg-neutral-10 rounded-xl transition-colors cursor-pointer"
         aria-label="Tutup modal">
-        <svg class="w-4 h-4 lucide lucide-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 6 6 18" />
-          <path d="m6 6 12 12" />
-        </svg>
+        <svg lucideX [size]="16" class="w-4 h-4"></svg>
       </button>
       }
     </div>
@@ -30,7 +29,10 @@
 
     <!-- Body Content -->
     <div class="px-6 py-5 space-y-4 max-h-[75vh] overflow-y-auto">
-      <ng-content></ng-content>
+      @if (message) {
+      <p class="text-sm text-neutral-50">{{ message }}</p>
+      }
+      <ng-content select="[modalBody], form, .modal-body"></ng-content>
     </div>
 
     <!-- Inset Divider (Footer) -->
@@ -47,61 +49,49 @@
     </div>
     }
 
+    <!-- ========================================== -->
     <!-- 2. VARIANT: CONFIRMATION MODAL -->
+    <!-- ========================================== -->
     @else if (variant === 'confirm') {
     <!-- Close Button (Top Right) -->
     @if (showCloseButton) {
     <button type="button" (click)="handleClose()"
       class="absolute top-4 right-4 p-1.5 text-neutral-40 hover:text-neutral-90 hover:bg-neutral-0 rounded-lg transition-colors cursor-pointer"
       aria-label="Tutup modal">
-      <svg class="w-5 h-5 lucide lucide-x" viewBox="0 0 24 24" fill="none">
-        <path d="M18 6 6 18" />
-        <path d="m6 6 12 12" />
-      </svg>
+      <svg lucideX [size]="20" class="w-5 h-5"></svg>
     </button>
     }
 
     <!-- Centered Body Content -->
-    <div class="p-8 text-center">
-      <!-- Centered Icon (w-8 h-8) -->
+    <div class="p-6 sm:p-8 text-center">
+      <!-- Centered Icon matching screenshot -->
       @if (icon !== 'none') {
       <div class="mx-auto flex items-center justify-center text-neutral-40 mb-4">
         @if (icon === 'alert' || icon === 'warning') {
-        <svg class="w-8 h-8 lucide lucide-alert-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10" />
-          <line x1="12" x2="12" y1="8" y2="12" />
-          <line x1="12" x2="12.01" y1="16" y2="16" />
-        </svg>
+        <svg lucideCircleAlert [size]="48" class="w-12 h-12 text-neutral-40"></svg>
         } @else if (icon === 'error') {
-        <svg class="w-8 h-8 text-error lucide lucide-x-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10" />
-          <path d="m15 9-6 6" />
-          <path d="m9 9 6 6" />
-        </svg>
+        <svg lucideCircleX [size]="48" class="w-12 h-12 text-error"></svg>
         } @else if (icon === 'success') {
-        <svg class="w-8 h-8 text-success lucide lucide-check-circle-2" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10" />
-          <path d="m9 12 2 2 4-4" />
-        </svg>
+        <svg lucideCircleCheck [size]="48" class="w-12 h-12 text-emerald-600"></svg>
         }
       </div>
       }
 
       <!-- Message Text -->
-      <div class="text-base font-normal text-neutral-70 leading-relaxed max-w-sm mx-auto mb-6">
+      <div class="text-sm sm:text-base font-normal text-neutral-70 leading-relaxed max-w-sm mx-auto mb-6">
+        @if (message) {
+        {{ message }}
+        }
         <ng-content></ng-content>
       </div>
 
       <!-- Centered Action Buttons -->
       <div class="flex items-center justify-center gap-3">
-        <app-button [variant]="confirmVariant" [loading]="loading" (btnClick)="handleConfirm()">
-          {{ confirmText }}
-        </app-button>
         <app-button [variant]="cancelVariant" (btnClick)="handleCancel()">
           {{ computedCancelText }}
+        </app-button>
+        <app-button [variant]="confirmVariant" [loading]="loading" (btnClick)="handleConfirm()">
+          {{ confirmText }}
         </app-button>
       </div>
     </div>
@@ -116,14 +106,10 @@
       <button type="button" (click)="handleClose()"
         class="absolute top-4 right-4 p-1.5 text-neutral-40 hover:text-neutral-90 hover:bg-neutral-0 rounded-lg transition-colors cursor-pointer"
         aria-label="Tutup modal">
-        <svg class="w-5 h-5 lucide lucide-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 6 6 18" />
-          <path d="m6 6 12 12" />
-        </svg>
+        <svg lucideX [size]="20" class="w-5 h-5"></svg>
       </button>
       }
-      <ng-content></ng-content>
+      <ng-content select="[modalCustom], .modal-custom"></ng-content>
     </div>
     }
   </div>

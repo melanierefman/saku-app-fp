@@ -1,5 +1,11 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import {
+  LucidePercent,
+  LucideGlobe,
+  LucideShieldCheck,
+  LucideHeadphones,
+} from '@lucide/angular';
 
 export interface BenefitItem {
   id: number;
@@ -10,7 +16,13 @@ export interface BenefitItem {
 @Component({
   selector: 'app-landing-benefits',
   standalone: true,
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    LucidePercent,
+    LucideGlobe,
+    LucideShieldCheck,
+    LucideHeadphones,
+  ],
   templateUrl: './benefits-section.component.html',
   styleUrl: './benefits-section.component.css',
 })

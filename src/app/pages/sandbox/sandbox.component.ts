@@ -26,6 +26,22 @@ import {
   PaginationComponent,
 } from '../../shared/components';
 
+import {
+  LucidePlus,
+  LucideArrowRight,
+  LucideSearch,
+  LucideMail,
+  LucideFilter,
+  LucideLayout,
+  LucideTrash2,
+  LucideX,
+  LucideCircleAlert,
+  LucideCircleCheck,
+  LucideCircleX,
+  LucideTriangleAlert,
+  LucideRefreshCw,
+} from '@lucide/angular';
+
 @Component({
   selector: 'app-sandbox',
   standalone: true,
@@ -48,6 +64,19 @@ import {
     TableComponent,
     TableCellDirective,
     PaginationComponent,
+    LucidePlus,
+    LucideArrowRight,
+    LucideSearch,
+    LucideMail,
+    LucideFilter,
+    LucideLayout,
+    LucideTrash2,
+    LucideX,
+    LucideCircleAlert,
+    LucideCircleCheck,
+    LucideCircleX,
+    LucideTriangleAlert,
+    LucideRefreshCw,
   ],
   templateUrl: './sandbox.component.html',
   styleUrl: './sandbox.component.css',

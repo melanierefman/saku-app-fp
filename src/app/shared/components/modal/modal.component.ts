@@ -6,6 +6,12 @@ import {
   Output,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import {
+  LucideX,
+  LucideCircleAlert,
+  LucideCircleX,
+  LucideCircleCheck,
+} from '@lucide/angular';
 import { ButtonComponent, ButtonVariant } from '../button/button.component';
 
 export type ModalVariant = 'form' | 'confirm' | 'custom';
@@ -14,13 +20,21 @@ export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
 @Component({
   selector: 'app-modal',
   standalone: true,
-  imports: [CommonModule, ButtonComponent],
+  imports: [
+    CommonModule,
+    ButtonComponent,
+    LucideX,
+    LucideCircleAlert,
+    LucideCircleX,
+    LucideCircleCheck,
+  ],
   templateUrl: './modal.component.html',
   styleUrl: './modal.component.css',
 })
 export class ModalComponent {
   @Input() isOpen: boolean = false;
   @Input() title?: string;
+  @Input() message?: string;
   @Input() variant: ModalVariant = 'form';
   @Input() size: ModalSize = 'md';
   @Input() confirmText: string = 'Confirm';

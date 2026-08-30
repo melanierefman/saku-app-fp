@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideChevronDown } from '@lucide/angular';
 
 export interface FaqItem {
   id: number;
@@ -11,7 +12,7 @@ export interface FaqItem {
 @Component({
   selector: 'app-landing-faq',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LucideChevronDown],
   templateUrl: './faq-section.component.html',
   styleUrl: './faq-section.component.css',
 })
