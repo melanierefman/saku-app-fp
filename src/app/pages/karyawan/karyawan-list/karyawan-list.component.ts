@@ -165,6 +165,10 @@ export class KaryawanListComponent implements OnInit {
       }
 
       return true;
+    }).sort((a, b) => {
+      const timeA = a.updatedDate ? new Date(a.updatedDate).getTime() : (a.createdDate ? new Date(a.createdDate).getTime() : 0);
+      const timeB = b.updatedDate ? new Date(b.updatedDate).getTime() : (b.createdDate ? new Date(b.createdDate).getTime() : 0);
+      return timeB - timeA;
     });
   });
 
