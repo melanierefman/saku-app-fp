@@ -1,6 +1,7 @@
 package com.bcafinance.backend_saku.features.master.karyawan;
 
 import com.bcafinance.backend_saku.core.dto.ApiResponse;
+import com.bcafinance.backend_saku.core.dto.PageResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -33,7 +34,7 @@ public class KaryawanController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<KaryawanPageResponse>> findAll(
+    public ResponseEntity<ApiResponse<PageResponse<KaryawanResponse>>> findAll(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size,
             @RequestParam(name = "search", required = false) String search,

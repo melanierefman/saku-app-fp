@@ -1,12 +1,12 @@
 package com.bcafinance.backend_saku.features.master.karyawan;
 
+import com.bcafinance.backend_saku.core.dto.PageResponse;
 import com.bcafinance.backend_saku.core.entity.Cabang;
 import com.bcafinance.backend_saku.core.entity.Karyawan;
 import com.bcafinance.backend_saku.core.entity.Role;
-
 import com.bcafinance.backend_saku.core.exception.BussinessRuleException;
-import com.bcafinance.backend_saku.core.repository.KaryawanRepository;
 import com.bcafinance.backend_saku.core.repository.CabangRepository;
+import com.bcafinance.backend_saku.core.repository.KaryawanRepository;
 import com.bcafinance.backend_saku.core.repository.RoleRepository;
 import jakarta.transaction.Transactional;
 import java.util.Date;
@@ -40,7 +40,7 @@ public class KaryawanService {
         return toResponse(karyawanRepository.save(karyawan));
     }
 
-    public KaryawanPageResponse findAllPaginated(int page, int size, String search, UUID roleId, UUID branchId, Boolean status) {
+    public PageResponse<KaryawanResponse> findAllPaginated(int page, int size, String search, UUID roleId, UUID branchId, Boolean status) {
         if (page < 0) page = 0;
         if (size <= 0) size = 10;
 
@@ -48,23 +48,12 @@ public class KaryawanService {
         String searchTrimmed = (search != null && !search.trim().isEmpty()) ? search.trim() : null;
 
         Page<Karyawan> pageResult = karyawanRepository.findByFilters(searchTrimmed, roleId, branchId, status, pageable);
-        List<KaryawanResponse> content = pageResult.getContent().stream().map(this::toResponse).toList();
-
-        return KaryawanPageResponse.builder()
-                .content(content)
-                .totalElements(pageResult.getTotalElements())
-                .totalPages(pageResult.getTotalPages())
-                .currentPage(pageResult.getNumber())
-                .pageSize(pageResult.getSize())
-                .isFirst(pageResult.isFirst())
-                .isLast(pageResult.isLast())
-                .build();
+        return PageResponse.of(pageResult, this::toResponse);
     }
 
     public List<KaryawanResponse> findAll() {
         return karyawanRepository.findAll().stream().map(this::toResponse).toList();
     }
-
 
     public KaryawanResponse findById(UUID id) {
         return toResponse(getKaryawan(id));
@@ -89,7 +78,6 @@ public class KaryawanService {
                 .orElseThrow(() -> new BussinessRuleException("Role tidak ditemukan"));
         Cabang cabang = cabangRepository.findById(request.getMstBranchId())
                 .orElseThrow(() -> new BussinessRuleException("Cabang tidak ditemukan"));
-
 
         if (!role.getStatus()) {
             throw new BussinessRuleException("Role tidak aktif");
@@ -146,5 +134,4 @@ public class KaryawanService {
         }
         return response;
     }
-
 }
