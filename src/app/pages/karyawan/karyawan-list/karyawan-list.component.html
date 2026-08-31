@@ -1,20 +1,20 @@
 <div class="space-y-4 pb-12">
-  <div class="space-y-2">
-    <div class="pt-1">
-      <app-breadcrumbs [items]="breadcrumbs"></app-breadcrumbs>
-    </div>
-
-    <!-- Page Title -->
-    <div class="flex items-center justify-between">
-      <h1 class="text-2xl font-semibold text-neutral-100 tracking-tight">
-        Daftar Karyawan
-      </h1>
+  <!-- Breadcrumbs & Page Header -->
+  <div class="flex flex-col gap-2">
+    <app-breadcrumbs [items]="breadcrumbs"></app-breadcrumbs>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-semibold text-neutral-90 tracking-tight">Daftar Karyawan</h1>
+        <p class="text-sm text-neutral-40 mt-0.5">
+          Kelola data karyawan dalam sistem
+        </p>
+      </div>
     </div>
   </div>
 
   <!-- Main Card Container -->
   <div class="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs overflow-hidden">
-    <!-- 1. Toolbar Filters & Action -->
+    <!-- Toolbar Filters & Action -->
     <div class="p-4 flex flex-wrap items-center justify-between gap-3.5">
       <!-- Left Filters -->
       <div class="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
@@ -62,15 +62,15 @@
       </div>
     </div>
 
-    <!-- 2. Data Table -->
-    <app-table [columns]="columns" [data]="tableData()" [loading]="isLoading()" rowKey="id"
+    <!-- Karyawan Data Table -->
+    <app-table [columns]="columns" [data]="tableData()" [loading]="isLoading()" rowKey="id" minWidth="980px"
+      [sortKey]="sortKey()" [sortDirection]="sortDirection()" (sortChange)="onSortChange($event)"
       emptyMessage="Tidak ada data karyawan yang ditemukan.">
-      <!-- Custom Karyawan Name Template (Clickable Primary) -->
+      <!-- Custom Karyawan Name Template -->
       <ng-template appTableCell="nama" let-row="row">
-        <button type="button" (click)="navigateToEdit(row.id)"
-          class="font-medium text-primary hover:text-primary-hover hover:underline transition-colors text-left cursor-pointer focus:outline-none">
+        <span class="text-neutral-70">
           {{ row.nama || '-' }}
-        </button>
+        </span>
       </ng-template>
 
       <!-- Custom Role Template -->
@@ -95,12 +95,42 @@
         <app-badge variant="error" size="sm">Tidak Aktif</app-badge>
         }
       </ng-template>
+
+      <!-- Custom Actions Template -->
+      <ng-template appTableCell="actions" let-row="row">
+        <div class="flex items-center justify-center gap-1">
+          <!-- Edit Karyawan Button -->
+          <button type="button" (click)="navigateToEdit(row.id)"
+            class="p-1.5 text-neutral-50 hover:text-primary-60 hover:bg-primary-10 rounded-lg transition-colors cursor-pointer"
+            title="Edit Karyawan">
+            <svg lucidePencil [size]="16" class="w-4 h-4"></svg>
+          </button>
+
+          <!-- Delete Karyawan Button -->
+          <button type="button" (click)="openDeleteModal(row)"
+            class="p-1.5 text-neutral-50 hover:text-error-60 hover:bg-error-10/50 rounded-lg transition-colors cursor-pointer"
+            title="Hapus Karyawan">
+            <svg lucideTrash2 [size]="16" class="w-4 h-4"></svg>
+          </button>
+        </div>
+      </ng-template>
     </app-table>
 
-    <!-- 3. Bottom Pagination -->
+    <!-- Pagination Footer -->
     <div class="px-5 py-3.5 bg-[#F9FAFB]">
       <app-pagination [currentPage]="currentPage()" [pageSize]="pageSize()" [totalItems]="totalElements()"
         (pageChange)="onPageChange($event)"></app-pagination>
     </div>
   </div>
+
+  <!-- Delete Confirmation Modal -->
+  <app-modal [isOpen]="isDeleteModalOpen()" variant="confirm" icon="error" title="Hapus Karyawan"
+    confirmText="Hapus Karyawan" cancelText="Batal" confirmVariant="error" [loading]="isDeleting()"
+    (confirm)="confirmDelete()" (close)="closeDeleteModal()" (cancel)="closeDeleteModal()">
+    <p class="text-sm text-neutral leading-relaxed">
+      Apakah Anda yakin ingin menghapus data karyawan
+      <span class="font-semibold text-neutral-90">"{{ karyawanToDelete()?.nama || 'ini' }}"</span>?
+      Data yang dihapus tidak dapat dipulihkan.
+    </p>
+  </app-modal>
 </div>

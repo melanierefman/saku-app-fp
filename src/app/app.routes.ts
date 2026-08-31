@@ -8,6 +8,10 @@ import { FeaturePlaceholderComponent } from './pages/feature-placeholder/feature
 import { ProfileComponent } from './pages/profile/profile.component';
 import { KaryawanListComponent } from './pages/karyawan/karyawan-list/karyawan-list.component';
 import { KaryawanFormComponent } from './pages/karyawan/karyawan-form/karyawan-form.component';
+import { RoleAccessComponent } from './pages/role-access/role-access.component';
+import { RoleComponent } from './pages/role/role.component';
+import { MenuComponent } from './pages/menu/menu.component';
+import { PermissionComponent } from './pages/permission/permission.component';
 import { MainLayoutComponent } from './shared/layouts/main-layout/main-layout.component';
 import { authGuard, guestGuard } from './core/guards/auth.guard';
 
@@ -64,23 +68,39 @@ export const routes: Routes = [
       // Superadmin / RBAC Routes
       {
         path: 'rbac/role-access',
-        component: FeaturePlaceholderComponent,
-        data: { title: 'Role Access' },
+        component: RoleAccessComponent,
+      },
+      {
+        path: 'master/role-access',
+        redirectTo: 'rbac/role-access',
+        pathMatch: 'full',
       },
       {
         path: 'rbac/role',
-        component: FeaturePlaceholderComponent,
-        data: { title: 'Role' },
+        component: RoleComponent,
+      },
+      {
+        path: 'master/role',
+        redirectTo: 'rbac/role',
+        pathMatch: 'full',
       },
       {
         path: 'rbac/permission',
-        component: FeaturePlaceholderComponent,
-        data: { title: 'Permission' },
+        component: PermissionComponent,
+      },
+      {
+        path: 'master/permission',
+        redirectTo: 'rbac/permission',
+        pathMatch: 'full',
       },
       {
         path: 'rbac/menu',
-        component: FeaturePlaceholderComponent,
-        data: { title: 'Menu' },
+        component: MenuComponent,
+      },
+      {
+        path: 'master/menu',
+        redirectTo: 'rbac/menu',
+        pathMatch: 'full',
       },
 
       // Superadmin / Master Data Routes

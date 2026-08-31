@@ -1,16 +1,38 @@
-<div class="w-full bg-white border-y border-[#E5E7EB] overflow-hidden">
-  <div class="overflow-x-auto">
-    <table class="w-full text-left border-collapse">
+<div class="w-full bg-white border-t border-[#E5E7EB] overflow-hidden">
+  <div class="overflow-x-auto w-full" (scroll)="onScroll($event)">
+    <table [style.min-width]="minWidth" class="w-full text-left border-separate border-spacing-0">
       <!-- Table Header -->
       <thead>
-        <tr class="border-b border-[#E5E7EB] bg-[#F9FAFB]">
-          @for (col of columns; track col.key) {
-          <th [style.width]="col.width" [class]="col.headerClass || ''" [class.text-center]="col.align === 'center'"
-            [class.text-right]="col.align === 'right'" [class.text-left]="!col.align || col.align === 'left'"
-            class="px-6 py-3.5 text-sm font-medium text-neutral-40 select-none normal-case">
+        <tr class="bg-[#F9FAFB]">
+          @for (col of columns; track col.key; let colIndex = $index) {
+          <th [style.width]="col.width" [style.min-width]="col.minWidth || col.width"
+            [ngStyle]="getStickyStyle(colIndex, col)" [class]="col.headerClass || ''"
+            [class.text-center]="col.align === 'center'" [class.text-right]="col.align === 'right'"
+            [class.text-left]="!col.align || col.align === 'left'" [class.bg-[#F9FAFB]]="true" [class.z-20]="col.sticky"
+            [class.cursor-pointer]="col.sortable" [class.hover:bg-neutral-10/20]="col.sortable"
+            [class.border-r]="isLastStickyLeft(colIndex) && isScrolled()"
+            [class.border-r-[#E5E7EB]]="isLastStickyLeft(colIndex) && isScrolled()"
+            [class.border-l]="isFirstStickyRight(colIndex) && isScrolled()"
+            [class.border-l-[#E5E7EB]]="isFirstStickyRight(colIndex) && isScrolled()"
+            [class.shadow-[3px_0_6px_-2px_rgba(0,0,0,0.06)]]="isLastStickyLeft(colIndex) && isScrolled()"
+            (click)="onHeaderClick(col)"
+            class="px-6 py-3.5 text-sm font-medium text-neutral-40 select-none normal-case whitespace-nowrap border-b border-[#E5E7EB] transition-all">
             <div class="inline-flex items-center gap-1.5" [class.justify-center]="col.align === 'center'"
               [class.justify-end]="col.align === 'right'">
               <span>{{ col.header }}</span>
+
+              <!-- Column Sorting Icons -->
+              @if (col.sortable) {
+              <span class="inline-flex items-center text-neutral-40 transition-colors">
+                @if (sortKey === col.key && sortDirection === 'asc') {
+                <svg lucideChevronUp [size]="14" class="w-3.5 h-3.5 text-primary"></svg>
+                } @else if (sortKey === col.key && sortDirection === 'desc') {
+                <svg lucideChevronDown [size]="14" class="w-3.5 h-3.5 text-primary"></svg>
+                } @else {
+                <svg lucideChevronsUpDown [size]="14" class="w-3.5 h-3.5 text-neutral-30 hover:text-neutral-60"></svg>
+                }
+              </span>
+              }
 
               <!-- Column Tooltip / Info Icon -->
               @if (col.tooltip) {
@@ -26,13 +48,19 @@
       </thead>
 
       <!-- Table Body -->
-      <tbody class="divide-y divide-[#E5E7EB]">
+      <tbody>
         <!-- Loading Shimmer Skeleton State -->
         @if (loading) {
         @for (s of dummySkeletonRows; track s) {
         <tr class="animate-pulse">
-          @for (col of columns; track col.key) {
-          <td class="px-6 py-4">
+          @for (col of columns; track col.key; let colIndex = $index) {
+          <td [style.width]="col.width" [ngStyle]="getStickyStyle(colIndex, col)" [class.bg-white]="col.sticky"
+            [class.z-10]="col.sticky" [class.border-r]="isLastStickyLeft(colIndex) && isScrolled()"
+            [class.border-r-[#E5E7EB]]="isLastStickyLeft(colIndex) && isScrolled()"
+            [class.border-l]="isFirstStickyRight(colIndex) && isScrolled()"
+            [class.border-l-[#E5E7EB]]="isFirstStickyRight(colIndex) && isScrolled()"
+            [class.shadow-[3px_0_6px_-2px_rgba(0,0,0,0.06)]]="isLastStickyLeft(colIndex) && isScrolled()"
+            class="px-6 py-4 border-b border-[#E5E7EB] transition-all">
             <div class="h-4 bg-neutral-10/70 rounded-md w-3/4"></div>
           </td>
           }
@@ -41,7 +69,7 @@
         } @else if (data.length === 0) {
         <!-- Empty State -->
         <tr>
-          <td [attr.colspan]="columns.length" class="px-6 py-12 text-center">
+          <td [attr.colspan]="columns.length" class="px-6 py-12 text-center border-b border-[#E5E7EB]">
             <div class="flex flex-col items-center justify-center gap-2">
               <div class="w-12 h-12 rounded-full bg-neutral-0 flex items-center justify-center text-neutral-40 mb-1">
                 <svg lucideInbox [size]="24" class="w-6 h-6"></svg>
@@ -55,10 +83,18 @@
         <!-- Data Rows -->
         @for (row of data; track (row[rowKey] || $index); let rowIndex = $index) {
         <tr class="hover:bg-[#F9FAFB]/80 transition-colors group">
-          @for (col of columns; track col.key) {
-          <td [class]="col.cellClass || ''" [class.text-center]="col.align === 'center'"
-            [class.text-right]="col.align === 'right'" [class.text-left]="!col.align || col.align === 'left'"
-            class="px-6 py-3.5 text-sm font-normal text-neutral-50 align-middle">
+          @for (col of columns; track col.key; let colIndex = $index) {
+          <td [style.width]="col.width" [style.min-width]="col.minWidth || col.width"
+            [ngStyle]="getStickyStyle(colIndex, col)" [class]="col.cellClass || ''"
+            [class.text-center]="col.align === 'center'" [class.text-right]="col.align === 'right'"
+            [class.text-left]="!col.align || col.align === 'left'" [class.bg-white]="col.sticky"
+            [class.group-hover:bg-[#F9FAFB]]="col.sticky" [class.z-10]="col.sticky"
+            [class.border-r]="isLastStickyLeft(colIndex) && isScrolled()"
+            [class.border-r-[#E5E7EB]]="isLastStickyLeft(colIndex) && isScrolled()"
+            [class.border-l]="isFirstStickyRight(colIndex) && isScrolled()"
+            [class.border-l-[#E5E7EB]]="isFirstStickyRight(colIndex) && isScrolled()"
+            [class.shadow-[3px_0_6px_-2px_rgba(0,0,0,0.06)]]="isLastStickyLeft(colIndex) && isScrolled()"
+            class="px-6 py-3.5 text-sm font-normal text-neutral-50 align-middle whitespace-nowrap border-b border-[#E5E7EB] transition-all">
             <!-- Check if custom template provided -->
             @if (getTemplate(col.key); as templateRef) {
             <ng-container [ngTemplateOutlet]="templateRef"

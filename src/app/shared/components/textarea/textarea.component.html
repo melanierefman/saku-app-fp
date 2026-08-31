@@ -37,9 +37,9 @@
 
   <!-- Helper Text or Error Message -->
   @if (errorMessage) {
-    <p class="text-xs text-error flex items-center gap-1 mt-1">
-      <svg lucideCircleAlert [size]="14" class="w-3.5 h-3.5 shrink-0"></svg>
-      <span>{{ errorMessage }}</span>
+    <p class="text-xs text-error flex items-start gap-1 mt-1">
+      <svg lucideCircleAlert [size]="14" class="w-3.5 h-3.5 shrink-0 mt-0.5"></svg>
+      <span class="leading-tight">{{ errorMessage }}</span>
     </p>
   } @else if (helperText) {
     <p class="text-xs text-neutral-40 mt-1">

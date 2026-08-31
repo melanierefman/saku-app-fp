@@ -29,7 +29,7 @@ import {
   CabangService,
   formatRoleName,
 } from '../../../core';
-import { LucideEye, LucideEyeOff } from '@lucide/angular';
+import { LucideEye, LucideEyeOff, LucideCircleAlert } from '@lucide/angular';
 
 @Component({
   selector: 'app-karyawan-form',
@@ -46,6 +46,7 @@ import { LucideEye, LucideEyeOff } from '@lucide/angular';
     ModalComponent,
     LucideEye,
     LucideEyeOff,
+    LucideCircleAlert,
   ],
   templateUrl: './karyawan-form.component.html',
   styleUrl: './karyawan-form.component.css',
@@ -83,6 +84,7 @@ export class KaryawanFormComponent implements OnInit {
   passwordError: string = '';
   branchError: string = '';
   roleError: string = '';
+  statusError: string = '';
 
   // Dropdown options & raw lists
   roles: Role[] = [];
@@ -93,7 +95,7 @@ export class KaryawanFormComponent implements OnInit {
   get breadcrumbs(): BreadcrumbItem[] {
     return [
       { label: 'Dashboard', url: '/dashboard' },
-      { label: 'Daftar Karyawan', url: '/master/karyawan' },
+      { label: 'Karyawan', url: '/master/karyawan' },
       {
         label: this.isEditMode ? 'Edit Karyawan' : 'Tambah Karyawan',
         active: true,
@@ -226,6 +228,12 @@ export class KaryawanFormComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
+  onStatusChange(): void {
+    if (this.statusError) {
+      this.statusError = '';
+    }
+  }
+
   validate(): boolean {
     let isValid = true;
     this.namaError = '';
@@ -234,14 +242,27 @@ export class KaryawanFormComponent implements OnInit {
     this.passwordError = '';
     this.branchError = '';
     this.roleError = '';
+    this.statusError = '';
 
     if (!this.nama.trim()) {
       this.namaError = 'Nama karyawan wajib diisi';
+      isValid = false;
+    } else if (this.nama.trim().length < 3) {
+      this.namaError = 'Nama karyawan minimal terdiri dari 3 karakter';
       isValid = false;
     }
 
     if (!this.username.trim()) {
       this.usernameError = 'Username karyawan wajib diisi';
+      isValid = false;
+    } else if (this.username.trim().length < 3) {
+      this.usernameError = 'Username minimal terdiri dari 3 karakter';
+      isValid = false;
+    } else if (this.username.includes(' ')) {
+      this.usernameError = 'Username tidak boleh mengandung spasi';
+      isValid = false;
+    } else if (!/^[a-z0-9_.]+$/.test(this.username.trim())) {
+      this.usernameError = 'Username hanya boleh berisi huruf kecil, angka, titik (.), atau underscore (_)';
       isValid = false;
     }
 
@@ -249,12 +270,15 @@ export class KaryawanFormComponent implements OnInit {
       this.emailError = 'Email karyawan wajib diisi';
       isValid = false;
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email.trim())) {
-      this.emailError = 'Format email tidak valid';
+      this.emailError = 'Format email tidak valid (contoh: user@saku.id)';
       isValid = false;
     }
 
     if (!this.password.trim()) {
       this.passwordError = 'Password wajib diisi';
+      isValid = false;
+    } else if (this.password.trim().length < 6) {
+      this.passwordError = 'Password minimal terdiri dari 6 karakter';
       isValid = false;
     }
 
@@ -265,6 +289,11 @@ export class KaryawanFormComponent implements OnInit {
 
     if (!this.mstRoleId) {
       this.roleError = 'Role wajib dipilih';
+      isValid = false;
+    }
+
+    if (this.status === null || this.status === undefined || this.status === '') {
+      this.statusError = 'Status karyawan wajib dipilih';
       isValid = false;
     }
 

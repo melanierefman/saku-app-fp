@@ -21,6 +21,7 @@ import {
   InputComponent,
   DropdownComponent,
   DropdownOption,
+  ModalComponent,
   ToastService,
 } from '../../../shared/components';
 import {
@@ -36,6 +37,8 @@ import {
   LucideSearch,
   LucidePlus,
   LucideX,
+  LucidePencil,
+  LucideTrash2,
 } from '@lucide/angular';
 
 @Component({
@@ -53,9 +56,12 @@ import {
     BadgeComponent,
     InputComponent,
     DropdownComponent,
+    ModalComponent,
     LucideSearch,
     LucidePlus,
     LucideX,
+    LucidePencil,
+    LucideTrash2,
   ],
   templateUrl: './karyawan-list.component.html',
   styleUrl: './karyawan-list.component.css',
@@ -70,18 +76,28 @@ export class KaryawanListComponent implements OnInit {
 
   breadcrumbs: BreadcrumbItem[] = [
     { label: 'Dashboard', url: '/dashboard' },
-    { label: 'Daftar Karyawan', active: true },
+    { label: 'Karyawan', active: true },
   ];
 
   columns: TableColumn[] = [
-    { key: 'no', header: 'No', width: '64px' },
-    { key: 'nama', header: 'Karyawan' },
-    { key: 'username', header: 'Username' },
-    { key: 'email', header: 'Email' },
-    { key: 'role', header: 'Role' },
-    { key: 'cabang', header: 'Cabang' },
-    { key: 'status', header: 'Status' },
+    { key: 'no', header: 'No', width: '64px', sticky: 'left' },
+    { key: 'nama', header: 'Karyawan', width: '180px', sticky: 'left', sortable: true },
+    { key: 'username', header: 'Username', width: '160px', sortable: true },
+    { key: 'email', header: 'Email', width: '220px', sortable: true },
+    { key: 'role', header: 'Role', width: '160px', sortable: true },
+    { key: 'cabang', header: 'Cabang', width: '160px', sortable: true },
+    { key: 'status', header: 'Status', width: '130px', sortable: true },
+    { key: 'actions', header: 'Aksi', width: '110px', align: 'center' },
   ];
+
+  // Sorting Signals
+  sortKey = signal<string>('');
+  sortDirection = signal<'asc' | 'desc' | ''>('');
+
+  // Delete Modal State
+  isDeleteModalOpen = signal<boolean>(false);
+  karyawanToDelete = signal<Karyawan | null>(null);
+  isDeleting = signal<boolean>(false);
 
   // Reactive State Signals (Clean API data)
   allKaryawanList = signal<Karyawan[]>([]);
@@ -166,6 +182,47 @@ export class KaryawanListComponent implements OnInit {
 
       return true;
     }).sort((a, b) => {
+      const key = this.sortKey();
+      const dir = this.sortDirection();
+
+      if (key && dir) {
+        let valA: any = '';
+        let valB: any = '';
+
+        switch (key) {
+          case 'nama':
+            valA = (a.nama || '').toLowerCase();
+            valB = (b.nama || '').toLowerCase();
+            break;
+          case 'username':
+            valA = (a.username || '').toLowerCase();
+            valB = (b.username || '').toLowerCase();
+            break;
+          case 'email':
+            valA = (a.email || '').toLowerCase();
+            valB = (b.email || '').toLowerCase();
+            break;
+          case 'role':
+            valA = (a.roleNama || a.roleName || this.resolveRoleName(a.mstRoleId)).toLowerCase();
+            valB = (b.roleNama || b.roleName || this.resolveRoleName(b.mstRoleId)).toLowerCase();
+            break;
+          case 'cabang':
+            valA = (a.cabangNama || a.branchName || this.resolveBranchName(a.mstBranchId)).toLowerCase();
+            valB = (b.cabangNama || b.branchName || this.resolveBranchName(b.mstBranchId)).toLowerCase();
+            break;
+          case 'status':
+            valA = a.status ? 1 : 0;
+            valB = b.status ? 1 : 0;
+            break;
+          default:
+            valA = (a as any)[key] || '';
+            valB = (b as any)[key] || '';
+        }
+
+        if (valA < valB) return dir === 'asc' ? -1 : 1;
+        if (valA > valB) return dir === 'asc' ? 1 : -1;
+      }
+
       const timeA = a.updatedDate ? new Date(a.updatedDate).getTime() : (a.createdDate ? new Date(a.createdDate).getTime() : 0);
       const timeB = b.updatedDate ? new Date(b.updatedDate).getTime() : (b.createdDate ? new Date(b.createdDate).getTime() : 0);
       return timeB - timeA;
@@ -194,6 +251,11 @@ export class KaryawanListComponent implements OnInit {
         this.resolveBranchName(item.mstBranchId),
     }));
   });
+
+  onSortChange(event: { key: string; direction: 'asc' | 'desc' }): void {
+    this.sortKey.set(event.key);
+    this.sortDirection.set(event.direction);
+  }
 
   // Reactive Computed: Has Active Filters
   hasActiveFilters = computed(() => {
@@ -317,5 +379,37 @@ export class KaryawanListComponent implements OnInit {
 
   navigateToEdit(id: string): void {
     this.router.navigate(['/master/karyawan/edit', id]);
+  }
+
+  openDeleteModal(karyawan: Karyawan): void {
+    this.karyawanToDelete.set(karyawan);
+    this.isDeleteModalOpen.set(true);
+  }
+
+  closeDeleteModal(): void {
+    this.isDeleteModalOpen.set(false);
+    this.karyawanToDelete.set(null);
+  }
+
+  confirmDelete(): void {
+    const karyawan = this.karyawanToDelete();
+    if (!karyawan) return;
+
+    this.isDeleting.set(true);
+    this.karyawanService.delete(karyawan.id).subscribe({
+      next: () => {
+        this.isDeleting.set(false);
+        this.closeDeleteModal();
+        this.toastService.success(`Data karyawan ${karyawan.nama} berhasil dihapus.`);
+        this.fetchKaryawan();
+      },
+      error: (err) => {
+        this.isDeleting.set(false);
+        console.error('Failed to delete karyawan:', err);
+        this.toastService.error(
+          err?.error?.message || 'Gagal menghapus data karyawan.'
+        );
+      },
+    });
   }
 }

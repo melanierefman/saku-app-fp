@@ -51,11 +51,21 @@
 
     <!-- Status Radio Group -->
     <div class="space-y-1.5 pt-1">
-      <label class="block text-sm text-neutral-60">Status</label>
+      <label class="block text-sm text-neutral-70">
+        Status Karyawan <span class="text-error">*</span>
+      </label>
       <div class="flex items-center gap-6 pt-1">
-        <app-radio name="karyawanStatus" value="true" label="Aktif" [(ngModel)]="status"></app-radio>
-        <app-radio name="karyawanStatus" value="false" label="Tidak Aktif" [(ngModel)]="status"></app-radio>
+        <app-radio name="karyawanStatus" value="true" label="Aktif" [(ngModel)]="status"
+          (ngModelChange)="onStatusChange()"></app-radio>
+        <app-radio name="karyawanStatus" value="false" label="Tidak Aktif" [(ngModel)]="status"
+          (ngModelChange)="onStatusChange()"></app-radio>
       </div>
+      @if (statusError) {
+      <p class="text-xs text-error flex items-start gap-1 mt-1">
+        <svg lucideCircleAlert [size]="14" class="w-3.5 h-3.5 shrink-0 mt-0.5"></svg>
+        <span class="leading-tight">{{ statusError }}</span>
+      </p>
+      }
     </div>
 
     <!-- Divider -->
@@ -84,16 +94,23 @@
 
   <!-- Create / Update Confirmation Dialog Modal -->
   <app-modal [isOpen]="isConfirmModalOpen" variant="confirm" icon="alert"
-    [message]="isEditMode ? 'Apakah Anda yakin ingin memperbarui data karyawan ini?' : 'Apakah Anda yakin ingin menambahkan data karyawan baru ini?'"
     [confirmText]="isEditMode ? 'Ya, Simpan' : 'Ya, Tambah'" cancelText="Batal" confirmVariant="primary"
     [loading]="isSubmitting" (confirm)="confirmSubmit()" (close)="isConfirmModalOpen = false"
     (cancel)="isConfirmModalOpen = false">
+    <p class="text-sm text-neutral leading-relaxed">
+      Apakah Anda yakin ingin {{ isEditMode ? 'memperbarui data' : 'menambahkan' }} karyawan
+      <span class="font-semibold text-neutral-90">"{{ nama }}"</span>?
+    </p>
   </app-modal>
 
   <!-- Delete Confirmation Modal -->
-  <app-modal [isOpen]="isDeleteModalOpen" variant="confirm" icon="alert"
-    message="Apakah Anda yakin ingin menghapus data karyawan ini? Tindakan ini tidak dapat dibatalkan."
+  <app-modal [isOpen]="isDeleteModalOpen" variant="confirm" icon="error" title="Hapus Karyawan"
     confirmText="Hapus Karyawan" cancelText="Batal" confirmVariant="error" [loading]="isSubmitting"
     (close)="closeDeleteModal()" (cancel)="closeDeleteModal()" (confirm)="confirmDelete()">
+    <p class="text-sm text-neutral leading-relaxed">
+      Apakah Anda yakin ingin menghapus data karyawan
+      <span class="font-semibold text-neutral-90">"{{ nama || 'ini' }}"</span>?
+      Data yang dihapus tidak dapat dipulihkan.
+    </p>
   </app-modal>
 </div>

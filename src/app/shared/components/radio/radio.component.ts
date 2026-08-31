@@ -69,7 +69,11 @@ export class RadioComponent implements ControlValueAccessor {
   }
 
   get isChecked(): boolean {
-    return this.selectedValue === this.value;
+    if (this.selectedValue === this.value) return true;
+    if (this.selectedValue !== undefined && this.selectedValue !== null && this.value !== undefined && this.value !== null) {
+      return String(this.selectedValue) === String(this.value);
+    }
+    return false;
   }
 
   get circleClasses(): string {

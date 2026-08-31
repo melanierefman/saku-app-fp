@@ -1,9 +1,36 @@
+import type { Permission } from './permission.model';
+export type { Permission };
+
 export interface Role {
   id: string;
   nama: string;
   code?: string;
   deskripsi?: string;
   status?: boolean;
+  totalPermissions?: number;
+  permissions?: Permission[] | string[];
+  createdDate?: string;
+  updatedDate?: string;
+}
+
+export interface RoleDetailResponse {
+  id: string;
+  nama: string;
+  status: boolean;
+  totalPermissions?: number;
+  permissions?: Permission[] | string[];
+  createdDate?: string;
+  updatedDate?: string;
+}
+
+export interface RoleRequest {
+  nama: string;
+  status: boolean;
+  deskripsi?: string;
+}
+
+export interface AssignPermissionsRequest {
+  permissionIds: string[];
 }
 
 export function formatRoleName(role?: string | null): string {

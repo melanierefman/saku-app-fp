@@ -1,0 +1,166 @@
+<div class="space-y-4 pb-12">
+  <!-- Breadcrumbs & Page Header -->
+  <div class="flex flex-col gap-2">
+    <app-breadcrumbs [items]="breadcrumbs"></app-breadcrumbs>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-semibold text-neutral-90 tracking-tight">Daftar Role</h1>
+        <p class="text-sm text-neutral-40 mt-0.5">
+          Kelola daftar role dalam sistem
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Card Container -->
+  <div class="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs overflow-hidden">
+    <!-- Toolbar Filters & Actions -->
+    <div class="p-4 flex flex-wrap items-center justify-between gap-3.5">
+      <!-- Left Filters -->
+      <div class="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
+        <!-- Search Input -->
+        <div class="w-64 max-w-full">
+          <app-input placeholder="Cari Role" [ngModel]="searchQuery()" (ngModelChange)="onSearchChange($event)">
+            <svg lucideSearch [size]="16" iconLeft class="w-4 h-4 text-neutral-40"></svg>
+          </app-input>
+        </div>
+
+        <!-- Status Filter Dropdown -->
+        <div class="w-44 max-w-full">
+          <app-dropdown [options]="statusFilterOptions" placeholder="Pilih Status" [ngModel]="selectedStatusFilter()"
+            [clearable]="true" (optionChange)="onStatusFilterChange($event)"></app-dropdown>
+        </div>
+
+        <!-- Reset Filters Action -->
+        @if (hasActiveFilters()) {
+        <button type="button" (click)="clearFilters()"
+          class="p-2 text-neutral-40 hover:text-neutral-90 hover:bg-neutral-0 rounded-lg transition-colors cursor-pointer"
+          title="Reset semua filter">
+          <svg lucideX [size]="16" class="w-4 h-4"></svg>
+        </button>
+        }
+      </div>
+
+      <!-- Right Action: Tambah Role Button -->
+      <div class="shrink-0">
+        <app-button variant="primary" (btnClick)="openCreateModal()">
+          <svg lucidePlus [size]="16" iconLeft class="w-4 h-4 mr-1.5 shrink-0"></svg>
+          Tambah Role
+        </app-button>
+      </div>
+    </div>
+
+    <!-- Role Data Table -->
+    <app-table [columns]="columns" [data]="tableData()" [loading]="isLoading()" rowKey="id" [sortKey]="sortKey()"
+      [sortDirection]="sortDirection()" (sortChange)="onSortChange($event)"
+      emptyMessage="Tidak ada data role yang ditemukan.">
+      <!-- Custom Role Name Template -->
+      <ng-template appTableCell="nama" let-row="row">
+        <div class="flex flex-col">
+          <span class="text-neutral-70">
+            {{ row.displayName }}
+          </span>
+          @if (row.rawName !== row.displayName) {
+          <span class="text-xs text-neutral-40 font-mono mt-0.5">
+            {{ row.rawName }}
+          </span>
+          }
+        </div>
+      </ng-template>
+
+      <!-- Custom Total Permissions Badge Template -->
+      <ng-template appTableCell="totalPermissions" let-row="row">
+        <div class="flex items-center gap-1.5">
+          <app-badge variant="primary" size="sm">
+            {{ row.permissionsCount }} Permissions
+          </app-badge>
+        </div>
+      </ng-template>
+
+      <!-- Custom Status Badge Template -->
+      <ng-template appTableCell="status" let-row="row">
+        @if (row.status === true || row.status === 'true' || row.status === 1) {
+        <app-badge variant="success" size="sm">Aktif</app-badge>
+        } @else {
+        <app-badge variant="error" size="sm">Tidak Aktif</app-badge>
+        }
+      </ng-template>
+
+      <!-- Custom Actions Template -->
+      <ng-template appTableCell="actions" let-row="row">
+        <div class="flex items-center justify-center gap-1">
+          <!-- Edit Role Button -->
+          <button type="button" (click)="openEditModal(row)"
+            class="p-1.5 text-neutral-50 hover:text-primary-60 hover:bg-primary-10 rounded-lg transition-colors cursor-pointer"
+            title="Edit Role">
+            <svg lucidePencil [size]="16" class="w-4 h-4"></svg>
+          </button>
+
+          <!-- Delete Role Button -->
+          <button type="button" (click)="openDeleteModal(row)"
+            class="p-1.5 text-neutral-50 hover:text-error-60 hover:bg-error-10/50 rounded-lg transition-colors cursor-pointer"
+            title="Hapus Role">
+            <svg lucideTrash2 [size]="16" class="w-4 h-4"></svg>
+          </button>
+        </div>
+      </ng-template>
+    </app-table>
+
+    <!-- Pagination Footer -->
+    <div class="px-5 py-3.5 bg-[#F9FAFB]">
+      <app-pagination [currentPage]="currentPage()" [pageSize]="pageSize()" [totalItems]="totalElements()"
+        (pageChange)="onPageChange($event)"></app-pagination>
+    </div>
+  </div>
+
+  <!-- Modal 1: Form tambah/edit role -->
+  <app-modal [isOpen]="isFormModalOpen()" variant="form" size="md" [title]="isEditMode() ? 'Edit Role' : 'Tambah Role'"
+    [confirmText]="isEditMode() ? 'Simpan Perubahan' : 'Tambah Role'" cancelText="Batal" confirmVariant="primary"
+    [loading]="isSubmitting()" (confirm)="submitRoleForm()" (close)="closeFormModal()" (cancel)="closeFormModal()">
+    <div modalBody class="space-y-4 pt-1">
+      <!-- Nama Role Input -->
+      <app-input label="Nama Role" placeholder="Contoh: SUPERADMIN, MARKETING, dll" [(ngModel)]="formNama"
+        (ngModelChange)="onNamaChange()" [errorMessage]="formNamaError" [required]="true"
+        helperText="Gunakan huruf kapital tanpa spasi (disarankan)"></app-input>
+
+      <!-- Status Radio Group -->
+      <div class="space-y-1.5 pt-1">
+        <label class="block text-sm text-neutral-70">Status Role <span class="text-error">*</span></label>
+        <div class="flex items-center gap-6 pt-1">
+          <app-radio name="roleStatus" label="Aktif" [value]="true" [(ngModel)]="formStatus"
+            (ngModelChange)="onStatusChange()"></app-radio>
+          <app-radio name="roleStatus" label="Tidak Aktif" [value]="false" [(ngModel)]="formStatus"
+            (ngModelChange)="onStatusChange()"></app-radio>
+        </div>
+        @if (formStatusError) {
+        <p class="text-xs text-error flex items-start gap-1 mt-1">
+          <svg lucideCircleAlert [size]="14" class="w-3.5 h-3.5 shrink-0 mt-0.5"></svg>
+          <span class="leading-tight">{{ formStatusError }}</span>
+        </p>
+        }
+      </div>
+    </div>
+  </app-modal>
+
+  <!-- Modal 2: Konfirmasi hapus -->
+  <app-modal [isOpen]="isDeleteModalOpen()" variant="confirm" icon="error" title="Hapus Role" confirmText="Hapus Role"
+    cancelText="Batal" confirmVariant="error" [loading]="isSubmitting()" (confirm)="confirmDeleteRole()"
+    (close)="closeDeleteModal()" (cancel)="closeDeleteModal()">
+    <p class="text-sm text-neutral leading-relaxed">
+      Apakah Anda yakin ingin menghapus data role
+      <span class="font-semibold text-neutral-90">"{{ roleToDelete()?.nama || 'ini' }}"</span>?
+      Data yang dihapus tidak dapat dipulihkan.
+    </p>
+  </app-modal>
+
+  <!-- Modal 3: Dialog Konfirmasi Simpan Tambah / Edit -->
+  <app-modal [isOpen]="isConfirmModalOpen()" variant="confirm" icon="alert"
+    [confirmText]="isEditMode() ? 'Ya, Simpan' : 'Ya, Tambah'" cancelText="Batal" confirmVariant="primary"
+    [loading]="isSubmitting()" (confirm)="confirmSubmitRole()" (close)="closeConfirmModal()"
+    (cancel)="closeConfirmModal()">
+    <p class="text-sm text-neutral leading-relaxed">
+      Apakah Anda yakin ingin {{ isEditMode() ? 'memperbarui data' : 'menambahkan' }} role
+      <span class="font-semibold text-neutral-90">"{{ formNama }}"</span>?
+    </p>
+  </app-modal>
+</div>

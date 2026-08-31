@@ -42,8 +42,8 @@ export class ModalComponent {
   @Input() confirmVariant: ButtonVariant = 'primary';
   @Input() cancelVariant: ButtonVariant = 'cancel';
   @Input() showCloseButton: boolean = true;
-  @Input() closeOnBackdrop: boolean = true;
-  @Input() closeOnEscape: boolean = true;
+  @Input() closeOnBackdrop: boolean = false;
+  @Input() closeOnEscape: boolean = false;
   @Input() loading: boolean = false;
   @Input() icon: 'alert' | 'error' | 'success' | 'warning' | 'none' = 'alert';
 

@@ -1,0 +1,188 @@
+<div class="space-y-4 pb-12">
+  <!-- Breadcrumbs & Page Header -->
+  <div class="flex flex-col gap-2">
+    <app-breadcrumbs [items]="breadcrumbs"></app-breadcrumbs>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-semibold text-neutral-90 tracking-tight">Daftar Role Access</h1>
+        <p class="text-sm text-neutral-40 mt-0.5">
+          Kelola pemetaan hak akses dan perizinan untuk setiap role
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Card Container -->
+  <div class="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs overflow-hidden">
+    <!-- Top Toolbar: Role Selector Dropdown & Simpan Access Button -->
+    <div class="p-4 flex flex-wrap items-center justify-between gap-4">
+      <!-- Left: Role Dropdown -->
+      <div class="w-64 max-w-full">
+        <app-dropdown [options]="roleOptions()" placeholder="Pilih Role" [ngModel]="selectedRoleId()" [clearable]="true"
+          (optionChange)="onRoleDropdownChange($event)">
+        </app-dropdown>
+      </div>
+
+      <!-- Right: Simpan Access Button -->
+      <div class="shrink-0">
+        <app-button variant="primary" [loading]="isSubmitting()" [disabled]="!selectedRoleId() || isLoading()"
+          (btnClick)="openSaveConfirmModal()">
+          Simpan Access
+        </app-button>
+      </div>
+    </div>
+
+    <!-- Role Access Matrix Table using App Table Component -->
+    <app-table [columns]="columns" [data]="tableData()" [loading]="isLoading() || isLoadingPermissions()" rowKey="id"
+      emptyMessage="Tidak ada data menu yang tersedia.">
+
+      <!-- Custom Menu Name Template -->
+      <ng-template appTableCell="nama" let-row="row">
+        <span class="hover:text-primary transition-colors cursor-pointer select-none font-normal text-neutral-70"
+          (click)="toggleAllForMenu(row.id)" title="Klik untuk checklist/unchecklist semua aksi menu ini">
+          {{ row.nama }}
+        </span>
+      </ng-template>
+
+      <!-- View Column Template -->
+      <ng-template appTableCell="view" let-row="row">
+        @if (findPermission(row.id, 'view'); as perm) {
+        <div class="flex items-center justify-center">
+          <app-checkbox [checked]="isPermissionChecked(row.id, 'view')" [disabled]="!selectedRoleId() || isSubmitting()"
+            (change)="togglePermission(row.id, 'view')">
+          </app-checkbox>
+        </div>
+        } @else {
+        <div class="flex items-center justify-center">
+          <div class="w-4 h-4 rounded border border-dashed border-neutral-20 bg-neutral-0/40 opacity-40"
+            title="Aksi View belum tersedia untuk menu ini"></div>
+        </div>
+        }
+      </ng-template>
+
+      <!-- Create Column Template -->
+      <ng-template appTableCell="create" let-row="row">
+        @if (findPermission(row.id, 'create'); as perm) {
+        <div class="flex items-center justify-center">
+          <app-checkbox [checked]="isPermissionChecked(row.id, 'create')"
+            [disabled]="!selectedRoleId() || isSubmitting()" (change)="togglePermission(row.id, 'create')">
+          </app-checkbox>
+        </div>
+        } @else {
+        <div class="flex items-center justify-center">
+          <div class="w-4 h-4 rounded border border-dashed border-neutral-20 bg-neutral-0/40 opacity-40"
+            title="Aksi Create belum tersedia untuk menu ini"></div>
+        </div>
+        }
+      </ng-template>
+
+      <!-- Update Column Template -->
+      <ng-template appTableCell="update" let-row="row">
+        @if (findPermission(row.id, 'update'); as perm) {
+        <div class="flex items-center justify-center">
+          <app-checkbox [checked]="isPermissionChecked(row.id, 'update')"
+            [disabled]="!selectedRoleId() || isSubmitting()" (change)="togglePermission(row.id, 'update')">
+          </app-checkbox>
+        </div>
+        } @else {
+        <div class="flex items-center justify-center">
+          <div class="w-4 h-4 rounded border border-dashed border-neutral-20 bg-neutral-0/40 opacity-40"
+            title="Aksi Update belum tersedia untuk menu ini"></div>
+        </div>
+        }
+      </ng-template>
+
+      <!-- Delete Column Template -->
+      <ng-template appTableCell="delete" let-row="row">
+        @if (findPermission(row.id, 'delete'); as perm) {
+        <div class="flex items-center justify-center">
+          <app-checkbox [checked]="isPermissionChecked(row.id, 'delete')"
+            [disabled]="!selectedRoleId() || isSubmitting()" (change)="togglePermission(row.id, 'delete')">
+          </app-checkbox>
+        </div>
+        } @else {
+        <div class="flex items-center justify-center">
+          <div class="w-4 h-4 rounded border border-dashed border-neutral-20 bg-neutral-0/40 opacity-40"
+            title="Aksi Delete belum tersedia untuk menu ini"></div>
+        </div>
+        }
+      </ng-template>
+
+      <!-- Review Column Template -->
+      <ng-template appTableCell="review" let-row="row">
+        @if (findPermission(row.id, 'review'); as perm) {
+        <div class="flex items-center justify-center">
+          <app-checkbox [checked]="isPermissionChecked(row.id, 'review')"
+            [disabled]="!selectedRoleId() || isSubmitting()" (change)="togglePermission(row.id, 'review')">
+          </app-checkbox>
+        </div>
+        } @else {
+        <div class="flex items-center justify-center">
+          <div class="w-4 h-4 rounded border border-dashed border-neutral-20 bg-neutral-0/40 opacity-40"
+            title="Aksi Review belum tersedia untuk menu ini"></div>
+        </div>
+        }
+      </ng-template>
+
+      <!-- Approve Column Template -->
+      <ng-template appTableCell="approve" let-row="row">
+        @if (findPermission(row.id, 'approve'); as perm) {
+        <div class="flex items-center justify-center">
+          <app-checkbox [checked]="isPermissionChecked(row.id, 'approve')"
+            [disabled]="!selectedRoleId() || isSubmitting()" (change)="togglePermission(row.id, 'approve')">
+          </app-checkbox>
+        </div>
+        } @else {
+        <div class="flex items-center justify-center">
+          <div class="w-4 h-4 rounded border border-dashed border-neutral-20 bg-neutral-0/40 opacity-40"
+            title="Aksi Approve belum tersedia untuk menu ini"></div>
+        </div>
+        }
+      </ng-template>
+
+      <!-- Verify Column Template -->
+      <ng-template appTableCell="verify" let-row="row">
+        @if (findPermission(row.id, 'verify'); as perm) {
+        <div class="flex items-center justify-center">
+          <app-checkbox [checked]="isPermissionChecked(row.id, 'verify')"
+            [disabled]="!selectedRoleId() || isSubmitting()" (change)="togglePermission(row.id, 'verify')">
+          </app-checkbox>
+        </div>
+        } @else {
+        <div class="flex items-center justify-center">
+          <div class="w-4 h-4 rounded border border-dashed border-neutral-20 bg-neutral-0/40 opacity-40"
+            title="Aksi Verify belum tersedia untuk menu ini"></div>
+        </div>
+        }
+      </ng-template>
+    </app-table>
+
+    <!-- Table Footer / Pagination Style -->
+    <div class="px-5 py-3.5 bg-[#F9FAFB]">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 select-none text-sm text-neutral-50">
+        <!-- Summary Text -->
+        <div class="text-xs sm:text-sm text-neutral-40">
+          Showing <span class="font-bold text-neutral-50">{{ allMenus().length > 0 ? 1 : 0 }}-{{ allMenus().length
+            }}</span> of <span class="font-bold text-neutral-50">{{ allMenus().length }}</span>
+        </div>
+
+        <!-- Total Active Permissions Info -->
+        @if (selectedRole()) {
+        <div class="text-xs sm:text-sm text-neutral-40">
+          Total Hak Akses Aktif: <span class="font-bold text-primary">{{ totalActivePermissionsCount() }}</span>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Dialog Konfirmasi Simpan Role Access -->
+<app-modal [isOpen]="isConfirmModalOpen()" variant="confirm" icon="alert" confirmText="Ya, Simpan" cancelText="Batal"
+  confirmVariant="primary" [loading]="isSubmitting()" (confirm)="confirmSaveAccess()"
+  (close)="closeSaveConfirmModal()" (cancel)="closeSaveConfirmModal()">
+  <p class="text-sm text-neutral leading-relaxed">
+    Apakah Anda yakin ingin menyimpan perubahan hak akses untuk role
+    <span class="font-semibold text-neutral-90">"{{ selectedRoleName() }}"</span>?
+  </p>
+</app-modal>
