@@ -1,0 +1,214 @@
+<div class="space-y-4 pb-12">
+  <!-- Breadcrumbs & Page Header -->
+  <div class="flex flex-col gap-2">
+    <app-breadcrumbs [items]="breadcrumbs"></app-breadcrumbs>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-semibold text-neutral-90 tracking-tight">Daftar Cabang</h1>
+        <p class="text-sm text-neutral-40 mt-0.5">
+          Kelola data kantor cabang dan status operasional sistem
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Card -->
+  <div class="bg-white rounded-2xl border border-[#E5E7EB] shadow-xs overflow-hidden">
+    <!-- Toolbar: Search & Action -->
+    <div class="p-5 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+      <!-- Left Filters -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
+        <!-- Search Input -->
+        <div class="w-full sm:w-72">
+          <app-input placeholder="Cari cabang atau kota..." [ngModel]="searchQuery()"
+            (ngModelChange)="onSearchChange($event)">
+            <svg lucideSearch [size]="16" iconLeft class="w-4 h-4"></svg>
+          </app-input>
+        </div>
+
+        <!-- Status Filter Dropdown -->
+        <div class="w-full sm:w-44">
+          <app-dropdown placeholder="Semua Status" [options]="statusFilterOptions" [ngModel]="selectedStatusFilter()"
+            (optionChange)="onStatusFilterChange($event)" [clearable]="true">
+          </app-dropdown>
+        </div>
+
+        <!-- Tipe Kantor Filter Dropdown -->
+        <div class="w-full sm:w-48">
+          <app-dropdown placeholder="Semua Tipe Kantor" [options]="defaultFilterOptions"
+            [ngModel]="selectedDefaultFilter()" (optionChange)="onDefaultFilterChange($event)" [clearable]="true">
+          </app-dropdown>
+        </div>
+
+        <!-- Clear Filter Action Button -->
+        @if (hasActiveFilters()) {
+        <button type="button" (click)="clearFilters()"
+          class="p-2 text-neutral-40 hover:text-neutral-90 hover:bg-neutral-0 rounded-lg transition-colors cursor-pointer"
+          title="Reset semua filter">
+          <svg lucideX [size]="16" class="w-4 h-4"></svg>
+        </button>
+        }
+      </div>
+
+      <!-- Right Action: Tambah Cabang Button -->
+      <div class="shrink-0">
+        <app-button variant="primary" (btnClick)="openCreateModal()">
+          <svg lucidePlus [size]="16" iconLeft class="w-4 h-4 mr-1.5 shrink-0"></svg>
+          Tambah Cabang
+        </app-button>
+      </div>
+    </div>
+
+    <!-- Cabang Data Table -->
+    <app-table [columns]="columns" [data]="paginatedCabang()" [loading]="isLoading()" rowKey="id" [sortKey]="sortKey()"
+      [sortDirection]="sortDirection()" (sortChange)="onSortChange($event)"
+      emptyMessage="Tidak ada data cabang yang ditemukan.">
+
+      <!-- Custom Number Template -->
+      <ng-template appTableCell="no" let-row="row" let-i="index">
+        <span class="text-neutral-40 text-xs font-medium">
+          {{ (currentPage() - 1) * pageSize() + i + 1 }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Nama Cabang Template -->
+      <ng-template appTableCell="nama" let-row="row">
+        <div class="flex items-center gap-2.5">
+          <!-- <div class="w-8 h-8 rounded-lg bg-primary-10 text-primary flex items-center justify-center shrink-0">
+            <svg lucideBuilding2 [size]="16" class="w-4 h-4"></svg>
+          </div> -->
+          <div>
+            <div class="text-neutral-90 text-sm flex items-center gap-1.5">
+              <span>{{ row.nama }}</span>
+              @if (row.isDefault) {
+              <span
+                class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#FFF5EE] text-primary border border-primary/20">
+                Pusat
+              </span>
+              }
+            </div>
+            @if (row.kodeCabang) {
+            <span class="text-xs text-neutral-40 font-mono">{{ row.kodeCabang }}</span>
+            }
+          </div>
+        </div>
+      </ng-template>
+
+      <!-- Custom Kota Template -->
+      <ng-template appTableCell="kota" let-row="row">
+        <div class="flex items-center gap-1.5 text-neutral-70 text-sm">
+          <svg lucideMapPin [size]="14" class="w-3.5 h-3.5 text-neutral-40 shrink-0"></svg>
+          <span>{{ row.kota || '-' }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Custom Tipe Kantor Badge Template -->
+      <ng-template appTableCell="isDefault" let-row="row">
+        @if (row.isDefault) {
+        <app-badge variant="primary" size="sm">Kantor Pusat</app-badge>
+        } @else {
+        <app-badge variant="neutral" size="sm">Kantor Cabang</app-badge>
+        }
+      </ng-template>
+
+      <!-- Custom Status Badge Template -->
+      <ng-template appTableCell="status" let-row="row">
+        @if (row.status === true || row.status === 'true' || row.status === 1) {
+        <app-badge variant="success" size="sm">Aktif</app-badge>
+        } @else {
+        <app-badge variant="error" size="sm">Tidak Aktif</app-badge>
+        }
+      </ng-template>
+
+      <!-- Custom Actions Template -->
+      <ng-template appTableCell="actions" let-row="row">
+        <div class="flex items-center justify-center gap-1">
+          <!-- Edit Cabang Button -->
+          <button type="button" (click)="openEditModal(row)"
+            class="p-1.5 text-neutral-50 hover:text-primary-60 hover:bg-primary-10 rounded-lg transition-colors cursor-pointer"
+            title="Edit Cabang">
+            <svg lucidePencil [size]="16" class="w-4 h-4"></svg>
+          </button>
+
+          <!-- Delete Cabang Button -->
+          <button type="button" (click)="openDeleteModal(row)"
+            class="p-1.5 text-neutral-50 hover:text-error-60 hover:bg-error-10/50 rounded-lg transition-colors cursor-pointer"
+            title="Hapus Cabang">
+            <svg lucideTrash2 [size]="16" class="w-4 h-4"></svg>
+          </button>
+        </div>
+      </ng-template>
+    </app-table>
+
+    <!-- Pagination Footer -->
+    <div class="px-5 py-3.5 bg-[#F9FAFB]">
+      <app-pagination [currentPage]="currentPage()" [pageSize]="pageSize()" [totalItems]="totalElements()"
+        (pageChange)="onPageChange($event)"></app-pagination>
+    </div>
+  </div>
+</div>
+
+<!-- Modal 1: Form Tambah / Edit Cabang -->
+<app-modal [isOpen]="isFormModalOpen()" variant="form" [title]="isEditMode() ? 'Edit Cabang' : 'Tambah Cabang Baru'"
+  [confirmText]="isEditMode() ? 'Simpan Perubahan' : 'Simpan Cabang'" cancelText="Batal" confirmVariant="primary"
+  [loading]="isSubmitting()" (confirm)="saveCabang()" (close)="closeFormModal()" (cancel)="closeFormModal()">
+  <div modalBody class="space-y-4 pt-1">
+    <!-- Nama Cabang Input -->
+    <app-input label="Nama Cabang" placeholder="Contoh: Cabang Semarang" [(ngModel)]="formNama"
+      (ngModelChange)="onFormNamaChange()" [errorMessage]="formNamaError" [required]="true"
+      helperText="Nama resmi kantor cabang"></app-input>
+
+    <!-- Kota Cabang Input -->
+    <app-input label="Kota" placeholder="Contoh: Semarang" [(ngModel)]="formKota" (ngModelChange)="onFormKotaChange()"
+      [errorMessage]="formKotaError" [required]="true" helperText="Kota lokasi operasional cabang"></app-input>
+
+    <!-- Tipe Kantor Radio Group -->
+    <div class="space-y-1.5 pt-1">
+      <label class="block text-sm text-neutral-70">Tipe Kantor</label>
+      <div class="flex items-center gap-6 pt-1">
+        <app-radio name="cabangDefault" label="Kantor Pusat" [value]="true" [(ngModel)]="formIsDefault"></app-radio>
+        <app-radio name="cabangDefault" label="Kantor Cabang" [value]="false" [(ngModel)]="formIsDefault"></app-radio>
+      </div>
+      <p class="text-xs text-neutral-40 mt-1">Pilih apakah unit kerja ini berstatus Kantor Pusat atau Kantor Cabang</p>
+    </div>
+
+    <!-- Status Radio Group -->
+    <div class="space-y-1.5 pt-1">
+      <label class="block text-sm text-neutral-70">Status Cabang <span class="text-error">*</span></label>
+      <div class="flex items-center gap-6 pt-1">
+        <app-radio name="cabangStatus" label="Aktif" [value]="true" [(ngModel)]="formStatus"
+          (ngModelChange)="onFormStatusChange()"></app-radio>
+        <app-radio name="cabangStatus" label="Tidak Aktif" [value]="false" [(ngModel)]="formStatus"
+          (ngModelChange)="onFormStatusChange()"></app-radio>
+      </div>
+      @if (formStatusError) {
+      <p class="text-xs text-error flex items-start gap-1 mt-1">
+        <svg lucideCircleAlert [size]="14" class="w-3.5 h-3.5 shrink-0 mt-0.5"></svg>
+        <span class="leading-tight">{{ formStatusError }}</span>
+      </p>
+      }
+    </div>
+  </div>
+</app-modal>
+
+<!-- Modal 2: Konfirmasi Hapus Cabang -->
+<app-modal [isOpen]="isDeleteModalOpen()" variant="confirm" icon="error" title="Hapus Cabang" confirmText="Hapus Cabang"
+  cancelText="Batal" confirmVariant="error" [loading]="isDeleting()" (close)="closeDeleteModal()"
+  (cancel)="closeDeleteModal()" (confirm)="confirmDeleteCabang()">
+  <p class="text-sm text-neutral leading-relaxed">
+    Apakah Anda yakin ingin menghapus data cabang
+    <span class="font-semibold text-neutral-90">"{{ cabangToDelete()?.nama || 'ini' }}"</span>?
+    Data yang dihapus tidak dapat dipulihkan.
+  </p>
+</app-modal>
+
+<!-- Modal 3: Dialog Konfirmasi Simpan Tambah / Edit -->
+<app-modal [isOpen]="isConfirmModalOpen()" variant="confirm" icon="alert"
+  [confirmText]="isEditMode() ? 'Ya, Simpan' : 'Ya, Tambah'" cancelText="Batal" confirmVariant="primary"
+  [loading]="isSubmitting()" (confirm)="confirmSubmitCabang()" (close)="closeConfirmModal()"
+  (cancel)="closeConfirmModal()">
+  <p class="text-sm text-neutral leading-relaxed">
+    Apakah Anda yakin ingin {{ isEditMode() ? 'memperbarui data' : 'menambahkan' }} cabang
+    <span class="font-semibold text-neutral-90">"{{ formNama }}"</span>?
+  </p>
+</app-modal>

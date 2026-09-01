@@ -5,6 +5,7 @@ export * from './models/role.model';
 export * from './models/cabang.model';
 export * from './models/menu.model';
 export * from './models/permission.model';
+export * from './models/plafond.model';
 
 // Services
 export * from './services/base-api.service';
@@ -15,6 +16,7 @@ export * from './services/role.service';
 export * from './services/cabang.service';
 export * from './services/menu.service';
 export * from './services/permission.service';
+export * from './services/plafond.service';
 
 // Store
 export * from './store/auth.store';

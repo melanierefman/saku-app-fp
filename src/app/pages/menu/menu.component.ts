@@ -105,7 +105,7 @@ export class MenuComponent implements OnInit {
   editingMenuId = signal<string>('');
   formNama: string = '';
   formPath: string = '';
-  formStatus: string = 'true';
+  formStatus: boolean = true;
   formNamaError: string = '';
   formPathError: string = '';
 
@@ -262,7 +262,7 @@ export class MenuComponent implements OnInit {
     this.editingMenuId.set('');
     this.formNama = '';
     this.formPath = '';
-    this.formStatus = 'true';
+    this.formStatus = true;
     this.formNamaError = '';
     this.formPathError = '';
     this.formStatusError = '';
@@ -274,7 +274,7 @@ export class MenuComponent implements OnInit {
     this.editingMenuId.set(menu.id);
     this.formNama = menu.nama || '';
     this.formPath = menu.path || '';
-    this.formStatus = menu.status === true || String(menu.status) === 'true' ? 'true' : 'false';
+    this.formStatus = menu.status === true || String(menu.status) === 'true';
     this.formNamaError = '';
     this.formPathError = '';
     this.formStatusError = '';
@@ -345,7 +345,7 @@ export class MenuComponent implements OnInit {
       }
     }
 
-    if (this.formStatus === null || this.formStatus === undefined || this.formStatus === '') {
+    if (this.formStatus === null || this.formStatus === undefined || typeof this.formStatus !== 'boolean') {
       this.formStatusError = 'Status menu wajib dipilih';
       isValid = false;
     }
@@ -368,11 +368,12 @@ export class MenuComponent implements OnInit {
   confirmSubmitMenu(): void {
     const nama = this.formNama.trim();
     const path = this.formPath.trim();
+    const statusBool = this.formStatus === true || String(this.formStatus) === 'true';
 
     const payload: MenuRequest = {
       nama,
       path,
-      status: this.formStatus === 'true',
+      status: statusBool,
     };
 
     this.isSubmitting.set(true);

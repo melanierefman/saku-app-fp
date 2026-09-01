@@ -12,6 +12,9 @@ import { RoleAccessComponent } from './pages/role-access/role-access.component';
 import { RoleComponent } from './pages/role/role.component';
 import { MenuComponent } from './pages/menu/menu.component';
 import { PermissionComponent } from './pages/permission/permission.component';
+import { CabangComponent } from './pages/cabang/cabang.component';
+import { PlafondListComponent } from './pages/plafond/plafond-list/plafond-list.component';
+import { PlafondFormComponent } from './pages/plafond/plafond-form/plafond-form.component';
 import { MainLayoutComponent } from './shared/layouts/main-layout/main-layout.component';
 import { authGuard, guestGuard } from './core/guards/auth.guard';
 
@@ -118,13 +121,29 @@ export const routes: Routes = [
       },
       {
         path: 'master/cabang',
-        component: FeaturePlaceholderComponent,
-        data: { title: 'Master Cabang' },
+        component: CabangComponent,
+      },
+      {
+        path: 'cabang',
+        redirectTo: 'master/cabang',
+        pathMatch: 'full',
       },
       {
         path: 'master/plafond',
-        component: FeaturePlaceholderComponent,
-        data: { title: 'Master Plafond' },
+        component: PlafondListComponent,
+      },
+      {
+        path: 'master/plafond/tambah',
+        component: PlafondFormComponent,
+      },
+      {
+        path: 'master/plafond/edit/:id',
+        component: PlafondFormComponent,
+      },
+      {
+        path: 'plafond',
+        redirectTo: 'master/plafond',
+        pathMatch: 'full',
       },
 
       // Superadmin / Monitoring Routes

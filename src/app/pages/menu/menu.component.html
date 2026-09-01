@@ -138,9 +138,9 @@
         Status Menu <span class="text-error">*</span>
       </label>
       <div class="flex items-center gap-6 pt-1">
-        <app-radio name="menuStatus" value="true" [(ngModel)]="formStatus"
+        <app-radio name="menuStatus" [value]="true" [(ngModel)]="formStatus"
           (ngModelChange)="onFormStatusChange()" label="Aktif"></app-radio>
-        <app-radio name="menuStatus" value="false" [(ngModel)]="formStatus"
+        <app-radio name="menuStatus" [value]="false" [(ngModel)]="formStatus"
           (ngModelChange)="onFormStatusChange()" label="Tidak Aktif"></app-radio>
       </div>
       @if (formStatusError) {

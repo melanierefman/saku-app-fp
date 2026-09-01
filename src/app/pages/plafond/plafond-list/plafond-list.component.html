@@ -1,0 +1,163 @@
+<div class="space-y-4 pb-12">
+  <!-- Breadcrumbs & Page Header -->
+  <div class="flex flex-col gap-2">
+    <app-breadcrumbs [items]="breadcrumbs"></app-breadcrumbs>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-semibold text-neutral-90 tracking-tight">Daftar Plafond</h1>
+        <p class="text-sm text-neutral-40 mt-0.5">Kelola tiering limit pinjaman, suku bunga, dan kriteria skor nasabah
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Card -->
+  <div class="bg-white rounded-2xl border border-[#E5E7EB] shadow-xs overflow-hidden">
+    <!-- Toolbar: Search & Action -->
+    <div class="p-5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+      <!-- Left Filters -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
+        <!-- Search Input -->
+        <div class="w-full sm:w-72">
+          <app-input placeholder="Cari nama plafond..." [ngModel]="searchQuery()"
+            (ngModelChange)="onSearchChange($event)">
+            <svg lucideSearch [size]="16" iconLeft class="w-4 h-4"></svg>
+          </app-input>
+        </div>
+
+        <!-- Status Filter Dropdown -->
+        <div class="w-full sm:w-44">
+          <app-dropdown placeholder="Semua Status" [options]="statusFilterOptions" [ngModel]="selectedStatusFilter()"
+            (optionChange)="onStatusFilterChange($event)" [clearable]="true">
+          </app-dropdown>
+        </div>
+
+        <!-- Clear Filter Action Button -->
+        @if (hasActiveFilters()) {
+        <button type="button" (click)="clearFilters()"
+          class="p-2 text-neutral-40 hover:text-neutral-90 hover:bg-neutral-0 rounded-lg transition-colors cursor-pointer"
+          title="Reset semua filter">
+          <svg lucideX [size]="16" class="w-4 h-4"></svg>
+        </button>
+        }
+      </div>
+
+      <!-- Right Action: Tambah Plafond Button -->
+      <div class="shrink-0">
+        <app-button variant="primary" (btnClick)="navigateToCreate()">
+          <svg lucidePlus [size]="16" iconLeft class="w-4 h-4 mr-1.5 shrink-0"></svg>
+          Tambah Plafond
+        </app-button>
+      </div>
+    </div>
+
+    <!-- Plafond Data Table -->
+    <app-table [columns]="columns" [data]="paginatedPlafond()" [loading]="isLoading()" rowKey="id" [sortKey]="sortKey()"
+      [sortDirection]="sortDirection()" (sortChange)="onSortChange($event)"
+      emptyMessage="Tidak ada data plafond yang ditemukan.">
+
+      <!-- Custom Number Template -->
+      <ng-template appTableCell="no" let-row="row" let-i="index">
+        <span class="text-neutral-40 text-xs font-medium">
+          {{ (currentPage() - 1) * pageSize() + i + 1 }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Nama Plafond Template -->
+      <ng-template appTableCell="nama" let-row="row">
+        <div class="flex items-center gap-2.5">
+          <!-- <div class="w-8 h-8 rounded-lg bg-primary-10 text-primary flex items-center justify-center shrink-0">
+            <svg lucideBanknote [size]="16" class="w-4 h-4"></svg>
+          </div> -->
+          <div>
+            <div class="text-neutral-90 text-sm">
+              {{ row.nama }}
+            </div>
+          </div>
+        </div>
+      </ng-template>
+
+      <!-- Custom Rentang Skor Template -->
+      <ng-template appTableCell="rentangSkor" let-row="row">
+        <span
+          class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-warning-0 text-warning-80 border border-warning-20">
+          {{ row.minSkor }} - {{ row.maxSkor }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Min Pendapatan Template -->
+      <ng-template appTableCell="minPendapatan" let-row="row">
+        <span class="text-neutral-80 text-sm">
+          {{ formatCurrency(row.minPendapatan) }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Rentang Plafond Template -->
+      <ng-template appTableCell="rentangPlafond" let-row="row">
+        <div class="text-neutral-80 text-sm">
+          <span class="text-primary">{{ formatCurrency(row.minPlafond) }}</span>
+          <span class="text-neutral-40 mx-1.5">-</span>
+          <span class="text-neutral-90">{{ formatCurrency(row.maxPlafond || row.plafondMaksimal) }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Custom Bunga & Biaya Admin Template -->
+      <ng-template appTableCell="bungaBiaya" let-row="row">
+        <div class="text-neutral-70 text-xs flex items-center justify-center gap-1.5">
+          <span class="font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+            {{ formatBunga(row.bunga) }}
+          </span>
+          <span class="text-neutral-40 text-sm">|</span>
+          <span class="text-neutral-60 text-sm">
+            {{ formatCurrency(row.biayaAdmin) }}
+          </span>
+        </div>
+      </ng-template>
+
+      <!-- Custom Status Badge Template -->
+      <ng-template appTableCell="status" let-row="row">
+        @if (row.status === true || row.status === 'true' || row.status === 1) {
+        <app-badge variant="success" size="sm">Aktif</app-badge>
+        } @else {
+        <app-badge variant="error" size="sm">Tidak Aktif</app-badge>
+        }
+      </ng-template>
+
+      <!-- Custom Actions Template -->
+      <ng-template appTableCell="actions" let-row="row">
+        <div class="flex items-center justify-center gap-1">
+          <!-- Edit Plafond Button -->
+          <button type="button" (click)="navigateToEdit(row.id)"
+            class="p-1.5 text-neutral-50 hover:text-primary-60 hover:bg-primary-10 rounded-lg transition-colors cursor-pointer"
+            title="Edit Plafond">
+            <svg lucidePencil [size]="16" class="w-4 h-4"></svg>
+          </button>
+
+          <!-- Delete Plafond Button -->
+          <button type="button" (click)="openDeleteModal(row)"
+            class="p-1.5 text-neutral-50 hover:text-error-60 hover:bg-error-10/50 rounded-lg transition-colors cursor-pointer"
+            title="Hapus Plafond">
+            <svg lucideTrash2 [size]="16" class="w-4 h-4"></svg>
+          </button>
+        </div>
+      </ng-template>
+    </app-table>
+
+    <!-- Pagination Footer -->
+    <div class="px-5 py-3.5 bg-[#F9FAFB]">
+      <app-pagination [currentPage]="currentPage()" [pageSize]="pageSize()" [totalItems]="totalElements()"
+        (pageChange)="onPageChange($event)"></app-pagination>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Konfirmasi Hapus Plafond -->
+<app-modal [isOpen]="isDeleteModalOpen()" variant="confirm" icon="error" title="Hapus Plafond"
+  confirmText="Hapus Plafond" cancelText="Batal" confirmVariant="error" [loading]="isDeleting()"
+  (close)="closeDeleteModal()" (cancel)="closeDeleteModal()" (confirm)="confirmDelete()">
+  <p class="text-sm text-neutral leading-relaxed">
+    Apakah Anda yakin ingin menghapus data plafond
+    <span class="font-semibold text-neutral-90">"{{ plafondToDelete()?.nama || 'ini' }}"</span>?
+    Data yang dihapus tidak dapat dipulihkan.
+  </p>
+</app-modal>

@@ -1,8 +1,18 @@
 export interface Cabang {
   id: string;
   nama: string;
+  kota: string;
+  isDefault?: boolean;
+  status: boolean;
   kodeCabang?: string;
   alamat?: string;
-  kota?: string;
-  status?: boolean;
+  createdDate?: string;
+  updatedDate?: string;
+}
+
+export interface CabangRequest {
+  nama: string;
+  kota: string;
+  isDefault: boolean;
+  status: boolean;
 }

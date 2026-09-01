@@ -23,10 +23,8 @@ export class AuthService {
 
   private readonly API_URL = `${environment.apiUrl}/auth`;
 
-  /**
-   * Login Karyawan
-   * POST /api/auth/karyawan/login
-   */
+  // Login Karyawan
+  // POST /api/auth/karyawan/login
   loginKaryawan(credentials: LoginKaryawanRequest): Observable<AuthResponse> {
     const payload = {
       identifier: credentials.identifier || credentials.username || credentials.email,
@@ -46,10 +44,8 @@ export class AuthService {
       );
   }
 
-  /**
-   * Refresh Token Karyawan
-   * POST /api/auth/karyawan/refresh-token
-   */
+  // Refresh Token Karyawan
+  // POST /api/auth/karyawan/refresh-token
   refreshToken(): Observable<AuthResponse> {
     const refreshToken = this.tokenService.getRefreshToken();
     return this.http
@@ -71,10 +67,8 @@ export class AuthService {
       );
   }
 
-  /**
-   * Logout Karyawan
-   * POST /api/auth/karyawan/logout
-   */
+  // Logout Karyawan
+  // POST /api/auth/karyawan/logout
   logout(redirect: boolean = true): void {
     const refreshToken = this.tokenService.getRefreshToken();
 
@@ -82,8 +76,8 @@ export class AuthService {
     this.http
       .post(`${this.API_URL}/karyawan/logout`, { refreshToken })
       .subscribe({
-        next: () => {},
-        error: () => {},
+        next: () => { },
+        error: () => { },
       });
 
     this.authStore.clearAuth();
@@ -93,23 +87,17 @@ export class AuthService {
     }
   }
 
-  /**
-   * Request OTP Forgot Password
-   */
+  // Request OTP Forgot Password
   requestOtp(email: string): Observable<any> {
     return this.http.post(`${this.API_URL}/forgot-password/request-otp`, { email });
   }
 
-  /**
-   * Verify OTP
-   */
+  // Verify OTP
   verifyOtp(email: string, otp: string): Observable<any> {
     return this.http.post(`${this.API_URL}/forgot-password/verify-otp`, { email, otp });
   }
 
-  /**
-   * Reset Password
-   */
+  // Reset Password
   resetPassword(payload: { email: string; otp: string; newPassword: string }): Observable<any> {
     return this.http.post(`${this.API_URL}/forgot-password/reset`, payload);
   }

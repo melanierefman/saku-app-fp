@@ -1,9 +1,4 @@
-import {
-  Component,
-  OnInit,
-  inject,
-  ChangeDetectorRef,
-} from '@angular/core';
+import { Component, OnInit, inject, signal, computed, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -60,22 +55,22 @@ export class KaryawanFormComponent implements OnInit {
   private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
 
-  isEditMode: boolean = false;
+  isEditMode = signal<boolean>(false);
   karyawanId: string = '';
-  isLoading: boolean = false;
-  isSubmitting: boolean = false;
-  isConfirmModalOpen: boolean = false;
-  isDeleteModalOpen: boolean = false;
+  isLoading = signal<boolean>(false);
+  isSubmitting = signal<boolean>(false);
+  isConfirmModalOpen = signal<boolean>(false);
+  isDeleteModalOpen = signal<boolean>(false);
+  showPassword = signal<boolean>(false);
 
   // Form State
   nama: string = '';
   username: string = '';
   email: string = '';
   password: string = '';
-  showPassword: boolean = false;
   mstBranchId: string = '';
   mstRoleId: string = '';
-  status: string = 'true';
+  status: boolean = true;
 
   // Validation Error States
   namaError: string = '';
@@ -86,26 +81,36 @@ export class KaryawanFormComponent implements OnInit {
   roleError: string = '';
   statusError: string = '';
 
-  // Dropdown options & raw lists
-  roles: Role[] = [];
-  branches: Cabang[] = [];
-  roleOptions: DropdownOption[] = [];
-  branchOptions: DropdownOption[] = [];
+  // Dropdown options & raw lists as Signals
+  roles = signal<Role[]>([]);
+  branches = signal<Cabang[]>([]);
 
-  get breadcrumbs(): BreadcrumbItem[] {
-    return [
-      { label: 'Dashboard', url: '/dashboard' },
-      { label: 'Karyawan', url: '/master/karyawan' },
-      {
-        label: this.isEditMode ? 'Edit Karyawan' : 'Tambah Karyawan',
-        active: true,
-      },
-    ];
-  }
+  roleOptions = computed<DropdownOption[]>(() =>
+    this.roles().map((r) => ({
+      value: r.id,
+      label: formatRoleName(r.nama),
+    }))
+  );
 
-  get pageTitle(): string {
-    return this.isEditMode ? 'Edit Karyawan' : 'Tambah Karyawan';
-  }
+  branchOptions = computed<DropdownOption[]>(() =>
+    this.branches().map((b) => ({
+      value: b.id,
+      label: b.nama,
+    }))
+  );
+
+  breadcrumbs = computed<BreadcrumbItem[]>(() => [
+    { label: 'Dashboard', url: '/dashboard' },
+    { label: 'Karyawan', url: '/master/karyawan' },
+    {
+      label: this.isEditMode() ? 'Edit Karyawan' : 'Tambah Karyawan',
+      active: true,
+    },
+  ]);
+
+  pageTitle = computed<string>(() =>
+    this.isEditMode() ? 'Edit Karyawan' : 'Tambah Karyawan'
+  );
 
   ngOnInit(): void {
     this.loadRoles();
@@ -114,20 +119,19 @@ export class KaryawanFormComponent implements OnInit {
     // Check if editing
     this.karyawanId = this.route.snapshot.paramMap.get('id') || '';
     if (this.karyawanId) {
-      this.isEditMode = true;
+      this.isEditMode.set(true);
       this.fetchKaryawanDetail(this.karyawanId);
     }
+  }
+
+  togglePasswordVisibility(): void {
+    this.showPassword.update((val) => !val);
   }
 
   loadRoles(): void {
     this.roleService.getAll().subscribe({
       next: (roles) => {
-        this.roles = roles || [];
-        this.roleOptions = this.roles.map((r) => ({
-          value: r.id,
-          label: formatRoleName(r.nama),
-        }));
-        this.cdr.detectChanges();
+        this.roles.set(roles || []);
       },
       error: (err) => {
         console.error('Failed to load roles:', err);
@@ -138,12 +142,7 @@ export class KaryawanFormComponent implements OnInit {
   loadBranches(): void {
     this.cabangService.getAll().subscribe({
       next: (branches) => {
-        this.branches = branches || [];
-        this.branchOptions = this.branches.map((b) => ({
-          value: b.id,
-          label: b.nama,
-        }));
-        this.cdr.detectChanges();
+        this.branches.set(branches || []);
       },
       error: (err) => {
         console.error('Failed to load branches:', err);
@@ -152,14 +151,14 @@ export class KaryawanFormComponent implements OnInit {
   }
 
   fetchKaryawanDetail(id: string): void {
-    this.isLoading = true;
+    this.isLoading.set(true);
 
     // First try GET /api/karyawan/{id}
     this.karyawanService.getById(id).subscribe({
       next: (karyawan) => {
         if (karyawan && (karyawan.nama || karyawan.id)) {
           this.populateFields(karyawan);
-          this.isLoading = false;
+          this.isLoading.set(false);
           this.cdr.detectChanges();
         } else {
           this.fetchFromListFallback(id);
@@ -180,13 +179,13 @@ export class KaryawanFormComponent implements OnInit {
         } else {
           this.toastService.error('Data karyawan tidak ditemukan.');
         }
-        this.isLoading = false;
+        this.isLoading.set(false);
         this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Failed to fetch karyawan from list:', err);
         this.toastService.error('Gagal memuat data karyawan.');
-        this.isLoading = false;
+        this.isLoading.set(false);
         this.cdr.detectChanges();
       },
     });
@@ -197,9 +196,7 @@ export class KaryawanFormComponent implements OnInit {
     this.username = karyawan.username || '';
     this.email = karyawan.email || '';
     this.status =
-      karyawan.status === true || String(karyawan.status) === 'true'
-        ? 'true'
-        : 'false';
+      karyawan.status === true || String(karyawan.status) === 'true';
 
     // Resolve Role ID
     if (karyawan.mstRoleId) {
@@ -207,7 +204,7 @@ export class KaryawanFormComponent implements OnInit {
     } else if (karyawan.roleId) {
       this.mstRoleId = karyawan.roleId;
     } else if (karyawan.roleNama) {
-      const match = this.roleOptions.find(
+      const match = this.roleOptions().find(
         (r) => r.label.toLowerCase() === karyawan.roleNama.toLowerCase()
       );
       if (match) this.mstRoleId = match.value;
@@ -219,7 +216,7 @@ export class KaryawanFormComponent implements OnInit {
     } else if (karyawan.branchId) {
       this.mstBranchId = karyawan.branchId;
     } else if (karyawan.cabangNama) {
-      const match = this.branchOptions.find(
+      const match = this.branchOptions().find(
         (b) => b.label.toLowerCase() === karyawan.cabangNama.toLowerCase()
       );
       if (match) this.mstBranchId = match.value;
@@ -292,7 +289,7 @@ export class KaryawanFormComponent implements OnInit {
       isValid = false;
     }
 
-    if (this.status === null || this.status === undefined || this.status === '') {
+    if (this.status === null || this.status === undefined || typeof this.status !== 'boolean') {
       this.statusError = 'Status karyawan wajib dipilih';
       isValid = false;
     }
@@ -302,14 +299,20 @@ export class KaryawanFormComponent implements OnInit {
 
   onSubmit(): void {
     if (!this.validate()) return;
-    this.isConfirmModalOpen = true;
+    this.isConfirmModalOpen.set(true);
+  }
+
+  closeConfirmModal(): void {
+    if (this.isSubmitting()) return;
+    this.isConfirmModalOpen.set(false);
   }
 
   confirmSubmit(): void {
-    this.isConfirmModalOpen = false;
-    this.isSubmitting = true;
+    this.isConfirmModalOpen.set(false);
+    this.isSubmitting.set(true);
+    const statusBool = this.status === true || String(this.status) === 'true';
 
-    if (this.isEditMode) {
+    if (this.isEditMode()) {
       // Update (PUT sends all fields)
       const payload: KaryawanUpdateRequest = {
         id: this.karyawanId,
@@ -317,19 +320,19 @@ export class KaryawanFormComponent implements OnInit {
         username: this.username.trim(),
         email: this.email.trim(),
         password: this.password.trim(),
-        status: this.status === 'true',
+        status: statusBool,
         mstRoleId: this.mstRoleId,
         mstBranchId: this.mstBranchId,
       };
 
       this.karyawanService.update(payload).subscribe({
         next: () => {
-          this.isSubmitting = false;
+          this.isSubmitting.set(false);
           this.toastService.success('Data karyawan berhasil diperbarui!');
           this.router.navigate(['/master/karyawan']);
         },
         error: (err) => {
-          this.isSubmitting = false;
+          this.isSubmitting.set(false);
           console.error('Failed to update karyawan:', err);
           this.toastService.error(
             err?.error?.message || 'Gagal memperbarui data karyawan.'
@@ -343,19 +346,19 @@ export class KaryawanFormComponent implements OnInit {
         username: this.username.trim(),
         email: this.email.trim(),
         password: this.password,
-        status: this.status === 'true',
+        status: statusBool,
         mstRoleId: this.mstRoleId,
         mstBranchId: this.mstBranchId,
       };
 
       this.karyawanService.create(payload).subscribe({
         next: () => {
-          this.isSubmitting = false;
+          this.isSubmitting.set(false);
           this.toastService.success('Karyawan baru berhasil ditambahkan!');
           this.router.navigate(['/master/karyawan']);
         },
         error: (err) => {
-          this.isSubmitting = false;
+          this.isSubmitting.set(false);
           console.error('Failed to create karyawan:', err);
           this.toastService.error(
             err?.error?.message || 'Gagal menambahkan karyawan baru.'
@@ -366,25 +369,26 @@ export class KaryawanFormComponent implements OnInit {
   }
 
   openDeleteModal(): void {
-    this.isDeleteModalOpen = true;
+    this.isDeleteModalOpen.set(true);
   }
 
   closeDeleteModal(): void {
-    this.isDeleteModalOpen = false;
+    if (this.isSubmitting()) return;
+    this.isDeleteModalOpen.set(false);
   }
 
   confirmDelete(): void {
-    this.isDeleteModalOpen = false;
-    this.isSubmitting = true;
+    this.isDeleteModalOpen.set(false);
+    this.isSubmitting.set(true);
 
     this.karyawanService.delete(this.karyawanId).subscribe({
       next: () => {
-        this.isSubmitting = false;
+        this.isSubmitting.set(false);
         this.toastService.success('Data karyawan berhasil dihapus.');
         this.router.navigate(['/master/karyawan']);
       },
       error: (err) => {
-        this.isSubmitting = false;
+        this.isSubmitting.set(false);
         console.error('Failed to delete karyawan:', err);
         this.toastService.error(
           err?.error?.message || 'Gagal menghapus data karyawan.'

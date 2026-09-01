@@ -2,13 +2,13 @@
   <div class="space-y-2">
     <!-- Top Breadcrumbs -->
     <div class="pt-1">
-      <app-breadcrumbs [items]="breadcrumbs"></app-breadcrumbs>
+      <app-breadcrumbs [items]="breadcrumbs()"></app-breadcrumbs>
     </div>
 
     <!-- Page Title -->
     <div class="flex items-center justify-between">
       <h1 class="text-2xl font-semibold text-neutral-100 tracking-tight">
-        {{ pageTitle }}
+        {{ pageTitle() }}
       </h1>
     </div>
   </div>
@@ -28,12 +28,12 @@
       [errorMessage]="emailError" [required]="true"></app-input>
 
     <!-- Password Input -->
-    <app-input label="Password" [type]="showPassword ? 'text' : 'password'" placeholder="Masukkan password"
+    <app-input label="Password" [type]="showPassword() ? 'text' : 'password'" placeholder="Masukkan password"
       [(ngModel)]="password" [errorMessage]="passwordError" [required]="true">
-      <button iconRight type="button" (click)="showPassword = !showPassword"
+      <button iconRight type="button" (click)="togglePasswordVisibility()"
         class="p-1 text-neutral-40 hover:text-neutral-70 focus:outline-none cursor-pointer transition-colors flex items-center justify-center"
-        [attr.aria-label]="showPassword ? 'Sembunyikan password' : 'Tampilkan password'">
-        @if (showPassword) {
+        [attr.aria-label]="showPassword() ? 'Sembunyikan password' : 'Tampilkan password'">
+        @if (showPassword()) {
         <svg lucideEyeOff [size]="16" class="w-4 h-4"></svg>
         } @else {
         <svg lucideEye [size]="16" class="w-4 h-4"></svg>
@@ -42,11 +42,11 @@
     </app-input>
 
     <!-- Cabang Dropdown -->
-    <app-dropdown label="Cabang" placeholder="Pilih cabang" [options]="branchOptions" [(ngModel)]="mstBranchId"
+    <app-dropdown label="Cabang" placeholder="Pilih cabang" [options]="branchOptions()" [(ngModel)]="mstBranchId"
       [errorMessage]="branchError" [required]="true"></app-dropdown>
 
     <!-- Role Dropdown -->
-    <app-dropdown label="Role" placeholder="Pilih role" [options]="roleOptions" [(ngModel)]="mstRoleId"
+    <app-dropdown label="Role" placeholder="Pilih role" [options]="roleOptions()" [(ngModel)]="mstRoleId"
       [errorMessage]="roleError" [required]="true"></app-dropdown>
 
     <!-- Status Radio Group -->
@@ -55,9 +55,9 @@
         Status Karyawan <span class="text-error">*</span>
       </label>
       <div class="flex items-center gap-6 pt-1">
-        <app-radio name="karyawanStatus" value="true" label="Aktif" [(ngModel)]="status"
+        <app-radio name="karyawanStatus" [value]="true" label="Aktif" [(ngModel)]="status"
           (ngModelChange)="onStatusChange()"></app-radio>
-        <app-radio name="karyawanStatus" value="false" label="Tidak Aktif" [(ngModel)]="status"
+        <app-radio name="karyawanStatus" [value]="false" label="Tidak Aktif" [(ngModel)]="status"
           (ngModelChange)="onStatusChange()"></app-radio>
       </div>
       @if (statusError) {
@@ -68,44 +68,31 @@
       }
     </div>
 
-    <!-- Divider -->
-    <div class="pt-4 border-t border-[#E5E7EB]/70">
-      <!-- Create Mode Action -->
-      @if (!isEditMode) {
-      <app-button variant="primary" [loading]="isSubmitting" (btnClick)="onSubmit()">
-        Tambah Karyawan
+    <!-- Divider & Action Buttons -->
+    <div class="pt-4 border-t border-[#E5E7EB]/70 flex items-center gap-3">
+      <app-button variant="primary" [loading]="isSubmitting()" (btnClick)="onSubmit()">
+        Simpan Perubahan
       </app-button>
-      }
 
-      <!-- Edit Mode Actions (Update & Delete) -->
-      @if (isEditMode) {
-      <div class="flex items-center gap-3">
-        <app-button variant="primary" [loading]="isSubmitting" (btnClick)="onSubmit()">
-          Update Karyawan
-        </app-button>
-
-        <app-button variant="error" [disabled]="isSubmitting" (btnClick)="openDeleteModal()">
-          Hapus Karyawan
-        </app-button>
-      </div>
-      }
+      <app-button variant="cancel" [disabled]="isSubmitting()" (btnClick)="cancel()">
+        Batal
+      </app-button>
     </div>
   </div>
 
   <!-- Create / Update Confirmation Dialog Modal -->
-  <app-modal [isOpen]="isConfirmModalOpen" variant="confirm" icon="alert"
-    [confirmText]="isEditMode ? 'Ya, Simpan' : 'Ya, Tambah'" cancelText="Batal" confirmVariant="primary"
-    [loading]="isSubmitting" (confirm)="confirmSubmit()" (close)="isConfirmModalOpen = false"
-    (cancel)="isConfirmModalOpen = false">
+  <app-modal [isOpen]="isConfirmModalOpen()" variant="confirm" icon="alert"
+    [confirmText]="isEditMode() ? 'Ya, Simpan' : 'Ya, Tambah'" cancelText="Batal" confirmVariant="primary"
+    [loading]="isSubmitting()" (confirm)="confirmSubmit()" (close)="closeConfirmModal()" (cancel)="closeConfirmModal()">
     <p class="text-sm text-neutral leading-relaxed">
-      Apakah Anda yakin ingin {{ isEditMode ? 'memperbarui data' : 'menambahkan' }} karyawan
+      Apakah Anda yakin ingin {{ isEditMode() ? 'memperbarui data' : 'menambahkan' }} karyawan
       <span class="font-semibold text-neutral-90">"{{ nama }}"</span>?
     </p>
   </app-modal>
 
   <!-- Delete Confirmation Modal -->
-  <app-modal [isOpen]="isDeleteModalOpen" variant="confirm" icon="error" title="Hapus Karyawan"
-    confirmText="Hapus Karyawan" cancelText="Batal" confirmVariant="error" [loading]="isSubmitting"
+  <app-modal [isOpen]="isDeleteModalOpen()" variant="confirm" icon="error" title="Hapus Karyawan"
+    confirmText="Hapus Karyawan" cancelText="Batal" confirmVariant="error" [loading]="isSubmitting()"
     (close)="closeDeleteModal()" (cancel)="closeDeleteModal()" (confirm)="confirmDelete()">
     <p class="text-sm text-neutral leading-relaxed">
       Apakah Anda yakin ingin menghapus data karyawan

@@ -14,6 +14,7 @@ import {
   ButtonComponent,
   ToastService,
 } from '../../../shared/components';
+import { AuthService } from '../../../core/services/auth.service';
 import {
   LucideMail,
   LucideChevronLeft,
@@ -70,6 +71,7 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
     private router: Router,
     private cdr: ChangeDetectorRef,
     private toastService: ToastService,
+    private authService: AuthService,
     @Inject(PLATFORM_ID) platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
@@ -98,13 +100,22 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
 
     this.isLoading = true;
 
-    // Simulate API request to send OTP
-    setTimeout(() => {
-      this.isLoading = false;
-      this.step = 2;
-      this.startCountdown();
-      this.cdr.detectChanges();
-    }, 800);
+    this.authService.requestOtp(this.email.trim()).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.step = 2;
+        this.startCountdown();
+        this.toastService.success('Kode OTP telah dikirim ke email Anda.');
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isLoading = false;
+        const msg = err?.error?.message || 'Gagal mengirim kode OTP. Silakan coba lagi.';
+        this.emailError = msg;
+        this.toastService.error(msg);
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   // --- Step 2: Resend OTP ---
@@ -115,11 +126,21 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
     this.otpError = '';
     this.otpDigits = ['', '', '', '', '', ''];
 
-    setTimeout(() => {
-      this.isLoading = false;
-      this.startCountdown();
-      this.cdr.detectChanges();
-    }, 800);
+    this.authService.requestOtp(this.email.trim()).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.startCountdown();
+        this.toastService.success('Kode OTP baru telah dikirim ke email Anda.');
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isLoading = false;
+        const msg = err?.error?.message || 'Gagal mengirim ulang kode OTP.';
+        this.otpError = msg;
+        this.toastService.error(msg);
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   private startCountdown(): void {
@@ -201,12 +222,20 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
 
     this.isLoading = true;
 
-    // Simulate API verification
-    setTimeout(() => {
-      this.isLoading = false;
-      this.step = 3;
-      this.cdr.detectChanges();
-    }, 800);
+    this.authService.verifyOtp(this.email.trim(), this.otpValue).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.step = 3;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isLoading = false;
+        const msg = err?.error?.message || 'Kode OTP tidak valid atau telah kedaluwarsa.';
+        this.otpError = msg;
+        this.toastService.error(msg);
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   // --- Step 3: Submit Reset Password ---
@@ -234,12 +263,26 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
 
     this.isLoading = true;
 
-    // Simulate API reset password
-    setTimeout(() => {
-      this.isLoading = false;
-      this.toastService.success('Password berhasil diubah! Silakan masuk kembali.');
-      this.router.navigate(['/login']);
-    }, 1000);
+    this.authService
+      .resetPassword({
+        email: this.email.trim(),
+        otp: this.otpValue,
+        newPassword: this.newPassword.trim(),
+      })
+      .subscribe({
+        next: () => {
+          this.isLoading = false;
+          this.toastService.success('Password berhasil diubah! Silakan masuk kembali.');
+          this.router.navigate(['/login']);
+        },
+        error: (err) => {
+          this.isLoading = false;
+          const msg = err?.error?.message || 'Gagal mengubah password. Silakan coba lagi.';
+          this.newPasswordError = msg;
+          this.toastService.error(msg);
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   // Helper to go back to step 1

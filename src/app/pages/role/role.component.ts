@@ -113,7 +113,7 @@ export class RoleComponent implements OnInit {
   isEditMode = signal<boolean>(false);
   editingRoleId = signal<string>('');
   formNama: string = '';
-  formStatus: string = 'true';
+  formStatus: boolean = true;
   formNamaError: string = '';
   formStatusError: string = '';
 
@@ -262,7 +262,7 @@ export class RoleComponent implements OnInit {
     this.isEditMode.set(false);
     this.editingRoleId.set('');
     this.formNama = '';
-    this.formStatus = 'true';
+    this.formStatus = true;
     this.formNamaError = '';
     this.formStatusError = '';
     this.isFormModalOpen.set(true);
@@ -272,7 +272,7 @@ export class RoleComponent implements OnInit {
     this.isEditMode.set(true);
     this.editingRoleId.set(role.id);
     this.formNama = role.nama || '';
-    this.formStatus = role.status === true || String(role.status) === 'true' ? 'true' : 'false';
+    this.formStatus = role.status === true || String(role.status) === 'true';
     this.formNamaError = '';
     this.formStatusError = '';
     this.isFormModalOpen.set(true);
@@ -307,7 +307,7 @@ export class RoleComponent implements OnInit {
       }
     }
 
-    if (this.formStatus === null || this.formStatus === undefined || this.formStatus === '') {
+    if (this.formStatus === null || this.formStatus === undefined || typeof this.formStatus !== 'boolean') {
       this.formStatusError = 'Status role wajib dipilih';
       isValid = false;
     }
@@ -340,9 +340,10 @@ export class RoleComponent implements OnInit {
   confirmSubmitRole(): void {
     this.isSubmitting.set(true);
     const isEdit = this.isEditMode();
+    const statusBool = this.formStatus === true || String(this.formStatus) === 'true';
     const payload: RoleRequest = {
       nama: this.formNama.trim().toUpperCase(),
-      status: this.formStatus === 'true',
+      status: statusBool,
     };
 
     if (isEdit) {
