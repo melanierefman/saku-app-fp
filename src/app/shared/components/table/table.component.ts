@@ -64,10 +64,16 @@ export class TableComponent {
   @Input() minWidth?: string;
   @Input() sortKey?: string;
   @Input() sortDirection: 'asc' | 'desc' | '' = '';
+  @Input() pageIndex: number = 1;
+  @Input() pageSize: number = 10;
 
   @Output() sortChange = new EventEmitter<{ key: string; direction: 'asc' | 'desc' }>();
 
   isScrolled = signal<boolean>(false);
+
+  getRowNumber(rowIndex: number): number {
+    return (this.pageIndex - 1) * this.pageSize + rowIndex + 1;
+  }
 
   @ContentChildren(TableCellDirective) cellTemplates!: QueryList<TableCellDirective>;
 

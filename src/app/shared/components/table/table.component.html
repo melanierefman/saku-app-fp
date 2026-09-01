@@ -99,6 +99,11 @@
             @if (getTemplate(col.key); as templateRef) {
             <ng-container [ngTemplateOutlet]="templateRef"
               [ngTemplateOutletContext]="{ $implicit: row, row: row, index: rowIndex, column: col }"></ng-container>
+            } @else if (col.key === 'no') {
+            <!-- Built-in Auto Numbering with SAKU Typography -->
+            <span class="text-neutral-40 text-xs font-normal">
+              {{ getRowNumber(rowIndex) }}
+            </span>
             } @else {
             <!-- Default Text Rendering -->
             <span class="truncate block">

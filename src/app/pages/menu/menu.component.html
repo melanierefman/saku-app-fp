@@ -54,6 +54,7 @@
     <!-- Menu Data Table -->
     <app-table [columns]="columns" [data]="tableData()" [loading]="isLoading()" rowKey="id" [sortKey]="sortKey()"
       [sortDirection]="sortDirection()" (sortChange)="onSortChange($event)"
+      [pageIndex]="currentPage()" [pageSize]="pageSize()"
       emptyMessage="Tidak ada data menu yang ditemukan.">
       <!-- Custom Menu Name Template -->
       <ng-template appTableCell="nama" let-row="row">
