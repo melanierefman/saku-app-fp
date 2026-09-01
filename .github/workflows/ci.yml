@@ -67,6 +67,6 @@ jobs:
         REDIS_PORT: 6379
         REDIS_TIMEOUT: 2000
         REDIS_KEY_PREFIX: test
-        JWT_SECRET: supersecretkeyforjwttokengenerationsakubackendapplication123456
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
       run: ./mvnw clean test -B
 

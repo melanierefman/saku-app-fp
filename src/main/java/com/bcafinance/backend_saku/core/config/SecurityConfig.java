@@ -54,7 +54,8 @@ public class SecurityConfig {
                                                 .hasRole("BRANCHMANAGER")
                                                 .requestMatchers("/api/karyawan/**", "/api/cabang/**",
                                                                 "/api/plafond/**", "/api/master/**",
-                                                                "/api/role/**", "/api/menu/**", "/api/permission/**")
+                                                                "/api/role/**", "/api/menu/**", "/api/permission/**",
+                                                                "/api/monitoring/**")
                                                 .hasRole("SUPERADMIN")
                                                 .requestMatchers("/api/backoffice/**").hasRole("BACKOFFICE")
 
