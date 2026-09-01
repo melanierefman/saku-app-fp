@@ -12,7 +12,7 @@
   <!-- Amount Input Wrapper -->
   <div [class]="wrapperClasses">
     <!-- Left Icon -->
-    <div class="pl-3.5 flex items-center pointer-events-none text-neutral-50">
+    <div class="pl-3.5 flex items-center pointer-events-none text-neutral-40">
       <ng-content select="[iconLeft]">
         <svg lucideBanknote [size]="16" class="w-4 h-4"></svg>
       </ng-content>
@@ -20,7 +20,7 @@
 
     <!-- Optional Currency Prefix text (e.g. Rp) -->
     @if (currencyPrefix) {
-    <span class="pl-2 text-sm text-neutral-50 font-medium select-none">
+    <span class="pl-2 text-sm text-neutral-40 font-medium select-none">
       {{ currencyPrefix }}
     </span>
     }

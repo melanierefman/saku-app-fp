@@ -1,37 +1,45 @@
 import { Routes } from '@angular/router';
-import { LandingPageComponent } from './pages/landing-page/landing-page.component';
-import { SandboxComponent } from './pages/sandbox/sandbox.component';
-import { LoginComponent } from './pages/auth/login/login.component';
-import { ForgotPasswordComponent } from './pages/auth/forgot-password/forgot-password.component';
-import { DashboardComponent } from './pages/dashboard/dashboard.component';
-import { FeaturePlaceholderComponent } from './pages/feature-placeholder/feature-placeholder.component';
-import { ProfileComponent } from './pages/profile/profile.component';
-import { KaryawanListComponent } from './pages/karyawan/karyawan-list/karyawan-list.component';
-import { KaryawanFormComponent } from './pages/karyawan/karyawan-form/karyawan-form.component';
-import { RoleAccessComponent } from './pages/role-access/role-access.component';
-import { RoleComponent } from './pages/role/role.component';
-import { MenuComponent } from './pages/menu/menu.component';
-import { PermissionComponent } from './pages/permission/permission.component';
-import { CabangComponent } from './pages/cabang/cabang.component';
-import { PlafondListComponent } from './pages/plafond/plafond-list/plafond-list.component';
-import { PlafondFormComponent } from './pages/plafond/plafond-form/plafond-form.component';
 import { MainLayoutComponent } from './shared/layouts/main-layout/main-layout.component';
 import { authGuard, guestGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   // Public Landing Page
-  { path: '', component: LandingPageComponent, pathMatch: 'full' },
-  { path: 'landing-page', component: LandingPageComponent },
+  {
+    path: '',
+    loadComponent: () =>
+      import('./pages/landing-page/landing-page.component').then((m) => m.LandingPageComponent),
+    pathMatch: 'full',
+  },
+  {
+    path: 'landing-page',
+    loadComponent: () =>
+      import('./pages/landing-page/landing-page.component').then((m) => m.LandingPageComponent),
+  },
   { path: 'landing', redirectTo: '', pathMatch: 'full' },
 
   // Public Auth
-  { path: 'login', component: LoginComponent, canActivate: [guestGuard] },
+  {
+    path: 'login',
+    loadComponent: () =>
+      import('./pages/auth/login/login.component').then((m) => m.LoginComponent),
+    canActivate: [guestGuard],
+  },
   { path: 'auth/login', redirectTo: 'login', pathMatch: 'full' },
-  { path: 'forgot-password', component: ForgotPasswordComponent },
+  {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./pages/auth/forgot-password/forgot-password.component').then(
+        (m) => m.ForgotPasswordComponent
+      ),
+  },
   { path: 'auth/forgot-password', redirectTo: 'forgot-password', pathMatch: 'full' },
 
   // Public Component Sandbox (No Login Required)
-  { path: 'sandbox', component: SandboxComponent },
+  {
+    path: 'sandbox',
+    loadComponent: () =>
+      import('./pages/sandbox/sandbox.component').then((m) => m.SandboxComponent),
+  },
 
   // Protected Portal Routes wrapped in MainLayoutComponent
   {
@@ -39,39 +47,56 @@ export const routes: Routes = [
     component: MainLayoutComponent,
     canActivate: [authGuard],
     children: [
-      { path: 'dashboard', component: DashboardComponent },
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./pages/dashboard/dashboard.component').then((m) => m.DashboardComponent),
+      },
       { path: 'beranda', redirectTo: 'dashboard', pathMatch: 'full' },
 
       // Marketing Routes
       {
         path: 'pengajuan-pinjaman',
-        component: FeaturePlaceholderComponent,
+        loadComponent: () =>
+          import('./pages/feature-placeholder/feature-placeholder.component').then(
+            (m) => m.FeaturePlaceholderComponent
+          ),
         data: { title: 'Pengajuan Pinjaman' },
       },
 
       // Branch Manager Routes
       {
         path: 'persetujuan-pinjaman',
-        component: FeaturePlaceholderComponent,
+        loadComponent: () =>
+          import('./pages/feature-placeholder/feature-placeholder.component').then(
+            (m) => m.FeaturePlaceholderComponent
+          ),
         data: { title: 'Persetujuan Pinjaman' },
       },
 
       // Backoffice Routes
       {
         path: 'verifikasi-customer',
-        component: FeaturePlaceholderComponent,
+        loadComponent: () =>
+          import('./pages/feature-placeholder/feature-placeholder.component').then(
+            (m) => m.FeaturePlaceholderComponent
+          ),
         data: { title: 'Verifikasi Customer' },
       },
       {
         path: 'pencairan',
-        component: FeaturePlaceholderComponent,
+        loadComponent: () =>
+          import('./pages/feature-placeholder/feature-placeholder.component').then(
+            (m) => m.FeaturePlaceholderComponent
+          ),
         data: { title: 'Pencairan' },
       },
 
       // Superadmin / RBAC Routes
       {
         path: 'rbac/role-access',
-        component: RoleAccessComponent,
+        loadComponent: () =>
+          import('./pages/role-access/role-access.component').then((m) => m.RoleAccessComponent),
       },
       {
         path: 'master/role-access',
@@ -80,7 +105,8 @@ export const routes: Routes = [
       },
       {
         path: 'rbac/role',
-        component: RoleComponent,
+        loadComponent: () =>
+          import('./pages/role/role.component').then((m) => m.RoleComponent),
       },
       {
         path: 'master/role',
@@ -89,7 +115,8 @@ export const routes: Routes = [
       },
       {
         path: 'rbac/permission',
-        component: PermissionComponent,
+        loadComponent: () =>
+          import('./pages/permission/permission.component').then((m) => m.PermissionComponent),
       },
       {
         path: 'master/permission',
@@ -98,7 +125,8 @@ export const routes: Routes = [
       },
       {
         path: 'rbac/menu',
-        component: MenuComponent,
+        loadComponent: () =>
+          import('./pages/menu/menu.component').then((m) => m.MenuComponent),
       },
       {
         path: 'master/menu',
@@ -109,19 +137,29 @@ export const routes: Routes = [
       // Superadmin / Master Data Routes
       {
         path: 'master/karyawan',
-        component: KaryawanListComponent,
+        loadComponent: () =>
+          import('./pages/karyawan/karyawan-list/karyawan-list.component').then(
+            (m) => m.KaryawanListComponent
+          ),
       },
       {
         path: 'master/karyawan/tambah',
-        component: KaryawanFormComponent,
+        loadComponent: () =>
+          import('./pages/karyawan/karyawan-form/karyawan-form.component').then(
+            (m) => m.KaryawanFormComponent
+          ),
       },
       {
         path: 'master/karyawan/edit/:id',
-        component: KaryawanFormComponent,
+        loadComponent: () =>
+          import('./pages/karyawan/karyawan-form/karyawan-form.component').then(
+            (m) => m.KaryawanFormComponent
+          ),
       },
       {
         path: 'master/cabang',
-        component: CabangComponent,
+        loadComponent: () =>
+          import('./pages/cabang/cabang.component').then((m) => m.CabangComponent),
       },
       {
         path: 'cabang',
@@ -130,15 +168,24 @@ export const routes: Routes = [
       },
       {
         path: 'master/plafond',
-        component: PlafondListComponent,
+        loadComponent: () =>
+          import('./pages/plafond/plafond-list/plafond-list.component').then(
+            (m) => m.PlafondListComponent
+          ),
       },
       {
         path: 'master/plafond/tambah',
-        component: PlafondFormComponent,
+        loadComponent: () =>
+          import('./pages/plafond/plafond-form/plafond-form.component').then(
+            (m) => m.PlafondFormComponent
+          ),
       },
       {
         path: 'master/plafond/edit/:id',
-        component: PlafondFormComponent,
+        loadComponent: () =>
+          import('./pages/plafond/plafond-form/plafond-form.component').then(
+            (m) => m.PlafondFormComponent
+          ),
       },
       {
         path: 'plafond',
@@ -149,20 +196,39 @@ export const routes: Routes = [
       // Superadmin / Monitoring Routes
       {
         path: 'monitoring/pengajuan',
-        component: FeaturePlaceholderComponent,
+        loadComponent: () =>
+          import('./pages/monitoring/monitoring-pengajuan/monitoring-pengajuan.component').then(
+            (m) => m.MonitoringPengajuanComponent
+          ),
         data: { title: 'Monitoring Pengajuan' },
       },
       {
+        path: 'master/monitoring-pengajuan',
+        redirectTo: 'monitoring/pengajuan',
+        pathMatch: 'full',
+      },
+      {
         path: 'monitoring/audit-log',
-        component: FeaturePlaceholderComponent,
+        loadComponent: () =>
+          import('./pages/monitoring/audit-log/audit-log.component').then(
+            (m) => m.AuditLogComponent
+          ),
         data: { title: 'Audit Log' },
+      },
+      {
+        path: 'master/audit-log',
+        redirectTo: 'monitoring/audit-log',
+        pathMatch: 'full',
       },
 
       // Profile
-      { path: 'profile', component: ProfileComponent },
+      {
+        path: 'profile',
+        loadComponent: () =>
+          import('./pages/profile/profile.component').then((m) => m.ProfileComponent),
+      },
     ],
   },
 
   { path: '**', redirectTo: '' },
 ];
-

@@ -57,8 +57,6 @@ import {
     LucideX,
     LucidePencil,
     LucideTrash2,
-    LucideBanknote,
-    LucidePercent,
   ],
   templateUrl: './plafond-list.component.html',
   styleUrl: './plafond-list.component.css',

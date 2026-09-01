@@ -12,13 +12,13 @@
   <!-- Input Wrapper -->
   <div [class]="inputWrapperClasses">
     <!-- Left Icon Slot -->
-    <div class="pl-3.5 flex items-center justify-center shrink-0 pointer-events-none text-neutral-50 empty:hidden">
+    <div class="pl-3.5 flex items-center justify-center shrink-0 pointer-events-none text-neutral-40 empty:hidden">
       <ng-content select="[iconLeft]"></ng-content>
     </div>
 
     <!-- Prefix Text Addon -->
     @if (prefixText) {
-    <span class="pl-3.5 flex items-center text-sm text-neutral-50 font-medium select-none shrink-0">
+    <span class="pl-3.5 flex items-center text-sm text-neutral-40 font-medium select-none shrink-0">
       {{ prefixText }}
     </span>
     }
@@ -30,13 +30,13 @@
 
     <!-- Suffix Text Addon -->
     @if (suffixText) {
-    <span class="pr-3.5 flex items-center text-sm text-neutral-50 font-medium select-none shrink-0">
+    <span class="pr-3.5 flex items-center text-sm text-neutral-40 font-medium select-none shrink-0">
       {{ suffixText }}
     </span>
     }
 
     <!-- Right Icon Slot -->
-    <div class="pr-3.5 flex items-center justify-center shrink-0 text-neutral-50 empty:hidden">
+    <div class="pr-3.5 flex items-center justify-center shrink-0 text-neutral-40 empty:hidden">
       <ng-content select="[iconRight]"></ng-content>
     </div>
   </div>

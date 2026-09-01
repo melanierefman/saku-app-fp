@@ -60,7 +60,6 @@ import {
     LucideX,
     LucidePencil,
     LucideTrash2,
-    LucideBuilding2,
     LucideMapPin,
     LucideCircleAlert,
   ],
