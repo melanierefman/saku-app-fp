@@ -1,7 +1,8 @@
-package com.bcafinance.backend_saku.features.marketing.dto;
+package com.bcafinance.backend_saku.features.master.monitoring.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,7 +15,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class MarketingPengajuanItemResponse {
+public class MonitoringPengajuanItemResponse {
 
     private UUID pengajuanId;
     private String noPengajuan;
@@ -28,7 +29,16 @@ public class MarketingPengajuanItemResponse {
     private Integer tenor;
     private String cabang;
     private String status;
-    private String hasilReviewTerakhir;
-    private String catatanReviewTerakhir;
-    private LocalDateTime tanggalReviewTerakhir;
+
+    // Per-role status (hanya status & tanggal)
+    private RoleStatusResponse marketing;
+    private RoleStatusResponse branchManager;
+    private RoleStatusResponse backoffice;
+
+    // Riwayat (array of status & tanggal per role)
+    private List<RiwayatRoleStatusResponse> riwayat;
+
+    public RoleStatusResponse getBm() {
+        return branchManager;
+    }
 }

@@ -1,0 +1,19 @@
+package com.bcafinance.backend_saku.features.master.monitoring.dto;
+
+import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class RiwayatRoleStatusResponse {
+    private String role;
+    private String status;
+    private LocalDateTime tanggal;
+}
