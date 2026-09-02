@@ -1,14 +1,29 @@
-@import url('https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&f[]=overused-grotesk@400,500,600,700&display=swap');
+/* ========================================================= */
+/* 1. PRIMARY FONT: OVERUSED GROTESK (SELF-HOSTED LOCAL ASSET) */
+/* ========================================================= */
+@font-face {
+  font-family: 'Overused Grotesk';
+  src: url('/fonts/OverusedGrotesk-VF.woff2') format('woff2-variations'),
+       url('/fonts/OverusedGrotesk-VF.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+}
+
+/* ========================================================= */
+/* 2. FALLBACK FONT: GOOGLE FONTS (PLUS JAKARTA SANS & INTER) */
+/* ========================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: 'Overused Grotesk', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-sans: 'Overused Grotesk', 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   /* --font-mono: 'JetBrains Mono', monospace; */
 }
 
 html,
 body {
-  font-family: 'Overused Grotesk', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Overused Grotesk', 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   overflow-x: hidden;
   width: 100%;
   margin: 0;
