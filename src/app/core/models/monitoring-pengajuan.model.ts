@@ -26,13 +26,16 @@ export interface RiwayatPengajuanItem {
 }
 
 export interface ReviewHistoryItem {
+  id?: string;
   tahap?: string;
   reviewerNama?: string;
   reviewer?: string;
   role?: string;
   status?: string;
+  hasilReview?: string;
   catatan?: string;
   tanggal?: string | null;
+  tanggalReview?: string | null;
   createdDate?: string;
 }
 
@@ -42,6 +45,34 @@ export interface DokumenPengajuanItem {
   namaDokumen?: string;
   fileUrl?: string;
   statusVerifikasi?: string;
+}
+
+export interface AlamatInfo {
+  jenisAlamat?: string;
+  alamatLengkap?: string;
+  rt?: string;
+  rw?: string;
+  kelurahan?: string;
+  kecamatan?: string;
+  kotaKabupaten?: string;
+  provinsi?: string;
+  kodePos?: string;
+  formattedAddress?: string;
+}
+
+export interface DokumenPinjamanItem {
+  id?: string;
+  docType?: string;
+  fileUrl?: string;
+  createdDate?: string;
+}
+
+export interface BreakdownInfo {
+  dbrDetail?: string;
+  pendapatanDetail?: string;
+  lamaBekerjaDetail?: string;
+  statusPekerjaanDetail?: string;
+  lamaNasabahDetail?: string;
 }
 
 export interface NasabahDetail {
@@ -128,56 +159,104 @@ export interface MarketingPengajuanItemResponse {
 export interface MarketingPengajuanDetailResponse {
   id?: string;
   pengajuanId?: string;
-  noPengajuan?: string;
   nomorPengajuan?: string;
-  status?: string;
+  noPengajuan?: string;
   tanggalPengajuan?: string;
   createdDate?: string;
   updatedDate?: string;
-  
+  statusPengajuan?: string;
+  status?: string;
+  catatanPengajuan?: string;
+
   // Data Nasabah / Customer
   customerId?: string;
   customer?: any;
+  namaLengkap?: string;
   namaNasabah?: string;
   nama?: string;
   nik?: string;
   email?: string;
   noHp?: string;
-  alamat?: string;
   pekerjaan?: string;
+  tempatKerja?: string;
+  statusPekerjaan?: string;
+  pendapatan?: number;
+  penghasilanBulanan?: number;
   pendapatanBulanan?: number;
+  namaBank?: string;
+  noRekening?: string;
+  namaRekening?: string;
+  alamatKtp?: AlamatInfo | string;
+  alamatDomisili?: AlamatInfo | string;
+  alamat?: string;
   tempatLahir?: string;
   tanggalLahir?: string;
   jenisKelamin?: string;
   agama?: string;
   statusPernikahan?: string;
-  lamaBekerja?: number;
+
+  // Media / Dokumen
+  fotoSelfie?: string;
+  fotoKtp?: string;
+  slipGaji?: string;
+  rekeningKoran?: string;
+  npwp?: string;
+  dokumenPinjamanList?: DokumenPinjamanItem[];
+  dokumen?: DokumenPengajuanItem[];
+  documents?: DokumenPengajuanItem[];
+
+  // Scoring
+  scoringStatusPekerjaan?: string;
+  scoringPenghasilan?: number;
+  lamaBekerjaBulan?: number;
   lamaKerja?: number;
+  lamaBekerja?: number;
   masaKerja?: number;
-  skorKredit?: number;
+  lamaJadiNasabahBulan?: number;
+  cicilanBerjalan?: number;
   skor?: number;
+  skorKredit?: number;
+  statusScoring?: string;
+  keputusanSistem?: string;
   dbr?: number;
+  dbrPercentage?: number;
+  plafonNama?: string;
   rekomendasiPlafond?: string;
-  
+  plafonMaksimal?: number;
+  estimasiPlafondDisetujui?: number;
+  isAmbigu?: boolean;
+  notesAmbigu?: string[];
+  ringkasanAnalisis?: string;
+  breakdown?: BreakdownInfo;
+
   nasabah?: NasabahDetail;
   pinjaman?: PinjamanDetail;
   scoring?: ScoringDetail;
 
   // Data Pinjaman
+  jumlahPinjaman?: number;
   jumlah?: number;
   nominalPinjaman?: number;
   nominal?: number;
+  tenorBulan?: number;
   tenor?: number;
   bunga?: number;
   angsuranBulanan?: number;
   biayaAdmin?: number;
+  estimasiCicilan?: number;
   tujuanPinjaman?: string;
 
   // Cabang
+  branchId?: string;
+  namaCabang?: string;
   cabang?: any;
   cabangNama?: string;
+  kotaCabang?: string;
 
   // Review Status
+  latestReview?: any;
+  reviewHistory?: ReviewHistoryItem[];
+  reviews?: ReviewHistoryItem[];
   hasilReviewTerakhir?: string;
   catatanReviewTerakhir?: string;
   tanggalReviewTerakhir?: string;
@@ -187,8 +266,4 @@ export interface MarketingPengajuanDetailResponse {
   branchManager?: BranchManagerReviewStage;
   backoffice?: BackofficeReviewStage;
   riwayat?: RiwayatPengajuanItem[];
-  reviews?: ReviewHistoryItem[];
-  reviewHistory?: ReviewHistoryItem[];
-  dokumen?: DokumenPengajuanItem[];
-  documents?: DokumenPengajuanItem[];
 }

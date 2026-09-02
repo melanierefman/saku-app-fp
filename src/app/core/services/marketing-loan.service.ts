@@ -8,22 +8,26 @@ import {
   MarketingPengajuanItemResponse,
   MarketingPengajuanDetailResponse,
 } from '../models/monitoring-pengajuan.model';
+import {
+  ReviewPengajuanRequest,
+  ReviewPengajuanResponse,
+} from '../models/marketing-loan.model';
 
 @Injectable({
   providedIn: 'root',
 })
-export class MonitoringPengajuanService {
+export class MarketingLoanService {
   private http = inject(HttpClient);
-  private readonly baseUrl = `${environment.apiUrl}/master/monitoring-pengajuan`;
-  private readonly fallbackUrl = `${environment.apiUrl}/monitoring/pengajuan`;
+  private readonly baseUrl = `${environment.apiUrl}/marketing/pengajuan-pinjaman`;
 
-  // Get Paginated Data All
+  // 1. Get Paginated List
   findAllPaginated(params?: {
     page?: number;
     size?: number;
     search?: string;
     status?: string;
-    branchId?: string;
+    tanggalPengajuan?: string;
+    tanggalReview?: string;
   }): Observable<PageResponse<MarketingPengajuanItemResponse>> {
     let httpParams = new HttpParams();
     if (params) {
@@ -31,7 +35,8 @@ export class MonitoringPengajuanService {
       if (params.size !== undefined) httpParams = httpParams.set('size', String(params.size));
       if (params.search) httpParams = httpParams.set('search', params.search);
       if (params.status) httpParams = httpParams.set('status', params.status);
-      if (params.branchId) httpParams = httpParams.set('branchId', params.branchId);
+      if (params.tanggalPengajuan) httpParams = httpParams.set('tanggalPengajuan', params.tanggalPengajuan);
+      if (params.tanggalReview) httpParams = httpParams.set('tanggalReview', params.tanggalReview);
     }
 
     return this.http
@@ -41,26 +46,19 @@ export class MonitoringPengajuanService {
       .pipe(
         map((res: any) => this.parseResponse(res, params?.size || 10)),
         catchError((err) => {
-          console.warn('Primary monitoring-pengajuan URL failed, trying fallback:', err);
-          return this.http
-            .get<any>(this.fallbackUrl, { params: httpParams })
-            .pipe(
-              map((res: any) => this.parseResponse(res, params?.size || 10)),
-              catchError(() =>
-                of({
-                  content: [],
-                  totalElements: 0,
-                  totalPages: 0,
-                  currentPage: 0,
-                  pageSize: params?.size || 10,
-                })
-              )
-            );
+          console.warn('Failed to fetch marketing loan applications:', err);
+          return of({
+            content: [],
+            totalElements: 0,
+            totalPages: 0,
+            currentPage: 0,
+            pageSize: params?.size || 10,
+          });
         })
       );
   }
 
-  // Get Unpaginated Data All
+  // 2. Get All List (Unpaginated)
   findAll(status?: string): Observable<MarketingPengajuanItemResponse[]> {
     let httpParams = new HttpParams();
     if (status) httpParams = httpParams.set('status', status);
@@ -71,32 +69,32 @@ export class MonitoringPengajuanService {
       })
       .pipe(
         map((res: any) => this.normalizeList(res)),
-        catchError(() => {
-          return this.http
-            .get<any>(`${this.fallbackUrl}/all`, { params: httpParams })
-            .pipe(
-              map((res: any) => this.normalizeList(res)),
-              catchError(() => of([]))
-            );
-        })
+        catchError(() => of([]))
       );
   }
 
-  // Get Detail Data
+  // 3. Get Detail By ID
   getDetail(id: string): Observable<MarketingPengajuanDetailResponse | null> {
     return this.http
       .get<ApiResponse<MarketingPengajuanDetailResponse> | any>(`${this.baseUrl}/${id}`)
       .pipe(
         map((res: any) => res?.data || res || null),
-        catchError(() => {
-          return this.http
-            .get<any>(`${this.fallbackUrl}/${id}`)
-            .pipe(
-              map((res: any) => res?.data || res || null),
-              catchError(() => of(null))
-            );
+        catchError((err) => {
+          console.warn('Failed to fetch marketing detail loan:', err);
+          return of(null);
         })
       );
+  }
+
+  // 4. Submit Review Decision (PUT /api/marketing/pengajuan-pinjaman/{id})
+  review(
+    id: string,
+    payload: ReviewPengajuanRequest
+  ): Observable<ApiResponse<ReviewPengajuanResponse>> {
+    return this.http.put<ApiResponse<ReviewPengajuanResponse>>(
+      `${this.baseUrl}/${id}`,
+      payload
+    );
   }
 
   private normalizeList(res: any): MarketingPengajuanItemResponse[] {

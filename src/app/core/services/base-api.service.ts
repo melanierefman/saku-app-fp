@@ -40,11 +40,11 @@ export abstract class BaseApiService<
     return this.http
       .get<any>(this.fullUrl, { params: httpParams })
       .pipe(
-        timeout(5000),
+        timeout(15000),
         map((res: any) => this.parsePageResponse(res, params?.['pageSize'] || 10)),
         catchError(() => {
           return this.http.get<any>(this.fullUrl).pipe(
-            timeout(5000),
+            timeout(15000),
             map((res: any) => this.parsePageResponse(res, params?.['pageSize'] || 10)),
             catchError(() =>
               of({
@@ -69,7 +69,7 @@ export abstract class BaseApiService<
         return {
           content: res.data,
           totalElements: res.data.length,
-          totalPages: Math.ceil(res.data.length / defaultPageSize) || 1,
+          totalPages: 1,
           currentPage: 0,
           pageSize: defaultPageSize,
         };
@@ -82,7 +82,7 @@ export abstract class BaseApiService<
       return {
         content: res,
         totalElements: res.length,
-        totalPages: Math.ceil(res.length / defaultPageSize) || 1,
+        totalPages: 1,
         currentPage: 0,
         pageSize: defaultPageSize,
       };
@@ -103,7 +103,7 @@ export abstract class BaseApiService<
     return this.http
       .get<any>(this.fullUrl, { params: httpParams })
       .pipe(
-        timeout(5000),
+        timeout(15000),
         map((res: any) => {
           if (res && typeof res === 'object' && 'data' in res) {
             if (Array.isArray(res.data)) {
@@ -117,7 +117,8 @@ export abstract class BaseApiService<
             return res.content;
           }
           return Array.isArray(res) ? res : [];
-        })
+        }),
+        catchError(() => of([]))
       );
   }
 
@@ -126,20 +127,21 @@ export abstract class BaseApiService<
     return this.http
       .get<any>(`${this.fullUrl}/all`)
       .pipe(
-        timeout(5000),
+        timeout(15000),
         map((res: any) => {
           if (res && typeof res === 'object' && 'data' in res && Array.isArray(res.data)) {
             return res.data;
           }
           return Array.isArray(res) ? res : [];
-        })
+        }),
+        catchError(() => of([]))
       );
   }
 
   // Get By Id
   getById(id: string | number): Observable<T> {
     return this.http.get<ApiResponse<T> | T>(`${this.fullUrl}/${id}`).pipe(
-      timeout(5000),
+      timeout(15000),
       map((res) => {
         if (res && typeof res === 'object' && 'data' in res) {
           return (res as ApiResponse<T>).data;

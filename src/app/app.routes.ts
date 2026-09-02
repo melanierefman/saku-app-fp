@@ -58,10 +58,23 @@ export const routes: Routes = [
       {
         path: 'pengajuan-pinjaman',
         loadComponent: () =>
-          import('./pages/feature-placeholder/feature-placeholder.component').then(
-            (m) => m.FeaturePlaceholderComponent
-          ),
+          import(
+            './pages/marketing/pengajuan-pinjaman/pengajuan-pinjaman-list/pengajuan-pinjaman-list.component'
+          ).then((m) => m.PengajuanPinjamanListComponent),
         data: { title: 'Pengajuan Pinjaman' },
+      },
+      {
+        path: 'pengajuan-pinjaman/detail/:id',
+        loadComponent: () =>
+          import(
+            './pages/marketing/pengajuan-pinjaman/pengajuan-pinjaman-detail/pengajuan-pinjaman-detail.component'
+          ).then((m) => m.PengajuanPinjamanDetailComponent),
+        data: { title: 'Detail Pengajuan Pinjaman' },
+      },
+      {
+        path: 'pengajuan-pinjaman/review/:id',
+        redirectTo: 'pengajuan-pinjaman/detail/:id',
+        pathMatch: 'full',
       },
 
       // Branch Manager Routes
