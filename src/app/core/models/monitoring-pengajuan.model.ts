@@ -1,10 +1,101 @@
+export interface MarketingReviewStage {
+  status?: string;
+  catatan?: string;
+  reviewer?: string;
+  tanggal?: string | null;
+}
+
+export interface BranchManagerReviewStage {
+  status?: string;
+  catatan?: string;
+  approver?: string;
+  tanggal?: string | null;
+}
+
+export interface BackofficeReviewStage {
+  status?: string;
+  catatan?: string;
+  disburser?: string;
+  tanggal?: string | null;
+}
+
+export interface RiwayatPengajuanItem {
+  role?: string;
+  status?: string;
+  tanggal?: string | null;
+}
+
+export interface ReviewHistoryItem {
+  tahap?: string;
+  reviewerNama?: string;
+  reviewer?: string;
+  role?: string;
+  status?: string;
+  catatan?: string;
+  tanggal?: string | null;
+  createdDate?: string;
+}
+
+export interface DokumenPengajuanItem {
+  id?: string;
+  jenisDokumen?: string;
+  namaDokumen?: string;
+  fileUrl?: string;
+  statusVerifikasi?: string;
+}
+
+export interface NasabahDetail {
+  id?: string;
+  namaLengkap?: string;
+  nama?: string;
+  nik?: string;
+  noHp?: string;
+  email?: string;
+  alamat?: string;
+  pendapatanBulanan?: number;
+  pekerjaan?: string;
+  tempatLahir?: string;
+  tanggalLahir?: string;
+  jenisKelamin?: string;
+  lamaBekerja?: number;
+  lamaKerja?: number;
+  masaKerja?: number;
+  lamaBekerjaBulan?: number;
+  skorKredit?: number;
+  skor?: number;
+  dbr?: number;
+  rekomendasiPlafond?: string;
+}
+
+export interface PinjamanDetail {
+  nominal?: number;
+  jumlah?: number;
+  tenor?: number;
+  bunga?: number;
+  angsuranBulanan?: number;
+  biayaAdmin?: number;
+  tujuanPinjaman?: string;
+}
+
+export interface ScoringDetail {
+  skorKredit?: number;
+  skor?: number;
+  rekomendasiPlafond?: string;
+  maxLimit?: number;
+  dbr?: number;
+  lamaBekerja?: number;
+  lamaKerja?: number;
+  masaKerja?: number;
+  catatanScoring?: string;
+}
+
 export interface MarketingPengajuanItemResponse {
   pengajuanId?: string;
   id?: string;
   noPengajuan?: string;
   nomorPengajuan?: string;
   customerId?: string;
-  customer?: string;
+  customer?: any;
   namaNasabah?: string;
   nama?: string;
   email?: string;
@@ -17,7 +108,7 @@ export interface MarketingPengajuanItemResponse {
   nominal?: number;
   tenor?: number;
   bunga?: number;
-  cabang?: string | { id?: string; nama?: string; kota?: string };
+  cabang?: any;
   cabangNama?: string;
   status?: string;
   hasilReviewTerakhir?: string;
@@ -26,25 +117,12 @@ export interface MarketingPengajuanItemResponse {
   skorKredit?: number;
   skor?: number;
   updatedDate?: string;
-}
 
-export interface ReviewHistoryItem {
-  tahap?: string;
-  reviewerNama?: string;
-  reviewer?: string;
-  role?: string;
-  status?: string;
-  catatan?: string;
-  tanggal?: string;
-  createdDate?: string;
-}
-
-export interface DokumenPengajuanItem {
-  id?: string;
-  jenisDokumen?: string;
-  namaDokumen?: string;
-  fileUrl?: string;
-  statusVerifikasi?: string;
+  // Stages & Riwayat
+  marketing?: MarketingReviewStage;
+  branchManager?: BranchManagerReviewStage;
+  backoffice?: BackofficeReviewStage;
+  riwayat?: RiwayatPengajuanItem[];
 }
 
 export interface MarketingPengajuanDetailResponse {
@@ -57,7 +135,8 @@ export interface MarketingPengajuanDetailResponse {
   createdDate?: string;
   updatedDate?: string;
   
-  // Data Nasabah / Customer (Support flat & nested)
+  // Data Nasabah / Customer
+  customerId?: string;
   customer?: any;
   namaNasabah?: string;
   nama?: string;
@@ -72,23 +151,19 @@ export interface MarketingPengajuanDetailResponse {
   jenisKelamin?: string;
   agama?: string;
   statusPernikahan?: string;
+  lamaBekerja?: number;
+  lamaKerja?: number;
+  masaKerja?: number;
+  skorKredit?: number;
+  skor?: number;
+  dbr?: number;
+  rekomendasiPlafond?: string;
   
-  nasabah?: {
-    id?: string;
-    namaLengkap?: string;
-    nama?: string;
-    nik?: string;
-    noHp?: string;
-    email?: string;
-    alamat?: string;
-    pendapatanBulanan?: number;
-    pekerjaan?: string;
-    tempatLahir?: string;
-    tanggalLahir?: string;
-    jenisKelamin?: string;
-  };
+  nasabah?: NasabahDetail;
+  pinjaman?: PinjamanDetail;
+  scoring?: ScoringDetail;
 
-  // Data Pinjaman (Support flat & nested)
+  // Data Pinjaman
   jumlah?: number;
   nominalPinjaman?: number;
   nominal?: number;
@@ -98,43 +173,20 @@ export interface MarketingPengajuanDetailResponse {
   biayaAdmin?: number;
   tujuanPinjaman?: string;
 
-  pinjaman?: {
-    nominal?: number;
-    jumlah?: number;
-    tenor?: number;
-    bunga?: number;
-    angsuranBulanan?: number;
-    biayaAdmin?: number;
-    tujuanPinjaman?: string;
-  };
-
-  // Scoring & Plafond (Support flat & nested)
-  skorKredit?: number;
-  skor?: number;
-  rekomendasiPlafond?: string;
-  maxLimit?: number;
-  dbr?: number;
-  lamaBekerja?: number;
-  catatanScoring?: string;
-
-  scoring?: {
-    skorKredit?: number;
-    skor?: number;
-    rekomendasiPlafond?: string;
-    maxLimit?: number;
-    dbr?: number;
-    lamaBekerja?: number;
-    catatanScoring?: string;
-  };
-
   // Cabang
   cabang?: any;
   cabangNama?: string;
 
-  // Review & Approval Status
+  // Review Status
   hasilReviewTerakhir?: string;
   catatanReviewTerakhir?: string;
   tanggalReviewTerakhir?: string;
+
+  // Stages & Riwayat
+  marketing?: MarketingReviewStage;
+  branchManager?: BranchManagerReviewStage;
+  backoffice?: BackofficeReviewStage;
+  riwayat?: RiwayatPengajuanItem[];
   reviews?: ReviewHistoryItem[];
   reviewHistory?: ReviewHistoryItem[];
   dokumen?: DokumenPengajuanItem[];

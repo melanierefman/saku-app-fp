@@ -33,12 +33,12 @@
       <div class="space-y-0.5">
         @for (item of group.items; track item.id) {
         <a [routerLink]="item.url || null" (click)="onSelect(item, $event)" [title]="collapsed ? item.label : ''"
-          [class]="
-            isActive(item)
-              ? 'bg-primary-10/50 text-primary font-semibold'
-              : 'text-[#434656] hover:text-neutral-90 hover:bg-neutral-0/70'
-          "
-          class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-colors cursor-pointer group">
+          routerLinkActive="!bg-primary-10/50 !text-primary font-semibold"
+          [routerLinkActiveOptions]="{ exact: isExactMatch(item) }"
+          [class.bg-primary-10/50]="!item.url && isActive(item)"
+          [class.text-primary]="!item.url && isActive(item)"
+          [class.font-semibold]="!item.url && isActive(item)"
+          class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-colors cursor-pointer group text-[#434656] hover:text-neutral-90 hover:bg-neutral-0/70">
           <!-- Icon Slot -->
           <span class="shrink-0 transition-colors flex items-center justify-center">
             @switch (item.icon) {

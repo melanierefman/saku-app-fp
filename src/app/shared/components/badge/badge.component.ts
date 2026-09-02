@@ -50,7 +50,7 @@ export class BadgeComponent {
 
   get badgeClasses(): string {
     const classes: string[] = [
-      'inline-flex items-center font-medium tracking-tight select-none transition-colors duration-150',
+      'inline-flex items-center font-medium tracking-tight select-none whitespace-nowrap transition-colors duration-150',
     ];
 
     // Sizes

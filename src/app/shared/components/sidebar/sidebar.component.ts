@@ -255,10 +255,24 @@ export class SidebarComponent implements OnInit {
     this.itemSelect.emit(item);
   }
 
+  isExactMatch(item: NavItem): boolean {
+    if (!item.url) return true;
+    return (
+      item.url === '/dashboard' ||
+      item.url === '/beranda' ||
+      item.url === '/' ||
+      item.url === '/profile'
+    );
+  }
+
   isActive(item: NavItem): boolean {
-    if (item.url && this.router.url === item.url) {
-      return true;
+    if (!item.url) {
+      return this.activeId === item.id;
     }
-    return this.activeId === item.id;
+    const currentUrl = this.router.url.split('?')[0].split('#')[0];
+    if (item.url === '/dashboard' || item.url === '/beranda' || item.url === '/') {
+      return currentUrl === '/dashboard' || currentUrl === '/beranda';
+    }
+    return currentUrl === item.url || currentUrl.startsWith(item.url + '/');
   }
 }

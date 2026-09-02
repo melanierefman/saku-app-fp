@@ -42,6 +42,9 @@ export class ModalComponent {
   @Input() confirmVariant: ButtonVariant = 'primary';
   @Input() cancelVariant: ButtonVariant = 'cancel';
   @Input() showCloseButton: boolean = true;
+  @Input() showFooter: boolean = true;
+  @Input() showConfirmButton: boolean = true;
+  @Input() showCancelButton: boolean = true;
   @Input() closeOnBackdrop: boolean = false;
   @Input() closeOnEscape: boolean = false;
   @Input() loading: boolean = false;

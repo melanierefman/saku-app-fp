@@ -28,6 +28,7 @@ import {
 import {
   MarketingPengajuanItemResponse,
   MarketingPengajuanDetailResponse,
+  RiwayatPengajuanItem,
   ReviewHistoryItem,
   DokumenPengajuanItem,
   MonitoringPengajuanService,
@@ -39,11 +40,6 @@ import {
   LucideX,
   LucideEye,
   LucideFileText,
-  LucideUser,
-  LucideDollarSign,
-  LucideSparkles,
-  LucideCheckCircle2,
-  LucideClock,
 } from '@lucide/angular';
 
 @Component({
@@ -65,11 +61,6 @@ import {
     LucideX,
     LucideEye,
     LucideFileText,
-    LucideUser,
-    LucideDollarSign,
-    LucideSparkles,
-    LucideCheckCircle2,
-    LucideClock,
   ],
   templateUrl: './monitoring-pengajuan.component.html',
   styleUrl: './monitoring-pengajuan.component.css',
@@ -123,6 +114,7 @@ export class MonitoringPengajuanComponent implements OnInit {
     { value: 'SELESAI_DIREVIEW', label: 'Selesai Direview' },
     { value: 'DOKUMEN_DIREVISI', label: 'Dokumen Direvisi' },
     { value: 'DISETUJUI', label: 'Disetujui' },
+    { value: 'DICAIRKAN', label: 'Dicairkan' },
     { value: 'DITOLAK', label: 'Ditolak' },
     { value: 'DISBURSED', label: 'Telah Cair' },
   ];
@@ -321,20 +313,25 @@ export class MonitoringPengajuanComponent implements OnInit {
         next: (detail) => {
           if (detail) {
             this.selectedDetail.set({
+              ...item,
               ...detail,
               // Merge fallback values if some fields are not provided in detail endpoint
               customer: detail.customer || item.customer || item.namaNasabah || item.nama,
               email: detail.email || item.email,
               noHp: detail.noHp || item.noHp,
+              nik: detail.nik || item.nik,
               noPengajuan: detail.noPengajuan || item.noPengajuan || item.nomorPengajuan,
               jumlah: detail.jumlah ?? item.jumlah ?? item.nominalPinjaman ?? item.nominal ?? 0,
               tenor: detail.tenor ?? item.tenor ?? 12,
               cabang: detail.cabang || item.cabang,
               hasilReviewTerakhir: detail.hasilReviewTerakhir || item.hasilReviewTerakhir,
-              catatanReviewTerakhir: detail.catatanReviewTerakhir || item.catatanReviewTerakhir,
               tanggalReviewTerakhir: detail.tanggalReviewTerakhir || item.tanggalReviewTerakhir,
               tanggalPengajuan: detail.tanggalPengajuan || item.tanggalPengajuan || item.createdDate,
               status: detail.status || item.status,
+              marketing: detail.marketing || item.marketing,
+              branchManager: detail.branchManager || item.branchManager,
+              backoffice: detail.backoffice || item.backoffice,
+              riwayat: detail.riwayat || item.riwayat,
             });
           } else {
             this.selectedDetail.set(this.constructFallbackDetail(item));
@@ -368,9 +365,6 @@ export class MonitoringPengajuanComponent implements OnInit {
       noPengajuan: item.noPengajuan || item.nomorPengajuan,
       status: item.status || 'MENUNGGU_REVIEW',
       tanggalPengajuan: item.tanggalPengajuan || item.createdDate || '-',
-      hasilReviewTerakhir: item.hasilReviewTerakhir,
-      catatanReviewTerakhir: item.catatanReviewTerakhir,
-      tanggalReviewTerakhir: item.tanggalReviewTerakhir,
       customer: item.customer || item.namaNasabah || item.nama,
       email: item.email,
       noHp: item.noHp,
@@ -378,7 +372,94 @@ export class MonitoringPengajuanComponent implements OnInit {
       jumlah: item.jumlah || item.nominalPinjaman || item.nominal || 0,
       tenor: item.tenor || 12,
       cabang: this.getCabangName(item),
+      marketing: item.marketing,
+      branchManager: item.branchManager,
+      backoffice: item.backoffice,
+      riwayat: item.riwayat,
     };
+  }
+
+  getRiwayatList(): RiwayatPengajuanItem[] {
+    const d = this.selectedDetail();
+    if (!d) return [];
+
+    if (Array.isArray(d.riwayat) && d.riwayat.length > 0) {
+      return d.riwayat;
+    }
+
+    const list: RiwayatPengajuanItem[] = [];
+    if (d.marketing) {
+      list.push({
+        role: 'MARKETING',
+        status: d.marketing.status || 'MENUNGGU_REVIEW',
+        tanggal: d.marketing.tanggal,
+      });
+    }
+    if (d.branchManager) {
+      list.push({
+        role: 'BRANCH_MANAGER',
+        status: d.branchManager.status || '-',
+        tanggal: d.branchManager.tanggal,
+      });
+    }
+    if (d.backoffice) {
+      list.push({
+        role: 'BACKOFFICE',
+        status: d.backoffice.status || '-',
+        tanggal: d.backoffice.tanggal,
+      });
+    }
+    return list;
+  }
+
+  getRoleLabel(role?: string): string {
+    const r = (role || '').toUpperCase();
+    if (r === 'MARKETING') return 'Marketing';
+    if (r === 'BRANCH_MANAGER' || r === 'BM') return 'Branch Manager';
+    if (r === 'BACKOFFICE' || r === 'BACK_OFFICE') return 'Back Office';
+    return role || 'Petugas';
+  }
+
+  getRoleStepNumber(role?: string): number {
+    const r = (role || '').toUpperCase();
+    if (r === 'MARKETING') return 1;
+    if (r === 'BRANCH_MANAGER' || r === 'BM') return 2;
+    if (r === 'BACKOFFICE' || r === 'BACK_OFFICE') return 3;
+    return 1;
+  }
+
+  getStageBadgeVariant(status?: string | null): BadgeVariant {
+    const s = (status || '').toUpperCase();
+    if (s === 'DISETUJUI' || s === 'DICAIRKAN' || s === 'BERHASIL' || s === 'CAIR' || s === 'SELESAI') return 'success';
+    if (s === 'PERLU_REVISI' || s === 'DOKUMEN_DIREVISI') return 'warning';
+    if (s === 'MENUNGGU_REVIEW' || s === 'MENUNGGU_PERSETUJUAN' || s === 'PROSES') return 'warning';
+    if (s === 'DITOLAK' || s === 'GAGAL') return 'error';
+    return 'neutral';
+  }
+
+  getStageLabel(status?: string | null): string {
+    return this.formatHumanReadableStatus(status);
+  }
+
+  formatHumanReadableStatus(status?: string | null): string {
+    if (!status || status === '-' || status.trim() === '') return 'Belum Diproses';
+    const s = status.toUpperCase().trim();
+    if (s === 'MENUNGGU_REVIEW') return 'Menunggu Review';
+    if (s === 'SELESAI_DIREVIEW') return 'Selesai Direview';
+    if (s === 'DOKUMEN_DIREVISI') return 'Dokumen Direvisi';
+    if (s === 'PERLU_REVISI') return 'Perlu Revisi';
+    if (s === 'MENUNGGU_PERSETUJUAN') return 'Menunggu Persetujuan';
+    if (s === 'DISETUJUI') return 'Disetujui';
+    if (s === 'DICAIRKAN') return 'Dicairkan';
+    if (s === 'DITOLAK') return 'Ditolak';
+    if (s === 'DISBURSED') return 'Telah Cair';
+    if (s === 'BERHASIL') return 'Berhasil Cair';
+    if (s === 'PENDING') return 'Menunggu';
+
+    return s
+      .split('_')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
   }
 
   // Detail Modal Data Getters (Support both flat and nested objects)
@@ -474,25 +555,110 @@ export class MonitoringPengajuanComponent implements OnInit {
   getDetailSkor(): number | null {
     const d = this.selectedDetail();
     if (!d) return null;
-    return d.scoring?.skorKredit ?? d.scoring?.skor ?? d.skorKredit ?? d.skor ?? null;
+    const val =
+      d.scoring?.skorKredit ??
+      d.scoring?.skor ??
+      d.skorKredit ??
+      d.skor ??
+      d.customer?.skorKredit ??
+      d.customer?.skor ??
+      d.nasabah?.skorKredit ??
+      null;
+
+    if (val !== null && val !== undefined && !isNaN(Number(val))) {
+      return Number(val);
+    }
+
+    if (d.catatanReviewTerakhir) {
+      const match = d.catatanReviewTerakhir.match(/skor\s+kredit\s+(\d+)/i);
+      if (match && match[1]) {
+        return Number(match[1]);
+      }
+    }
+
+    return null;
   }
 
   getDetailRekomendasiPlafond(): string {
     const d = this.selectedDetail();
     if (!d) return '';
-    return d.scoring?.rekomendasiPlafond ?? d.rekomendasiPlafond ?? '';
+    const val =
+      d.scoring?.rekomendasiPlafond ??
+      d.rekomendasiPlafond ??
+      d.customer?.rekomendasiPlafond ??
+      d.nasabah?.rekomendasiPlafond ??
+      '';
+
+    if (val) return String(val);
+
+    if (d.catatanReviewTerakhir) {
+      const match = d.catatanReviewTerakhir.match(/(Plafond\s+Tier\s+\d+(?:\s*-\s*[A-Za-z]+)?)/i);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+
+    return '';
   }
 
-  getDetailDbr(): number | null {
+  getDetailDbr(): string | null {
     const d = this.selectedDetail();
     if (!d) return null;
-    return d.scoring?.dbr ?? d.dbr ?? null;
+    const val =
+      d.scoring?.dbr ??
+      d.dbr ??
+      d.customer?.dbr ??
+      d.nasabah?.dbr ??
+      null;
+
+    if (val !== null && val !== undefined && !isNaN(Number(val))) {
+      const num = Number(val);
+      if (num > 0 && num < 1) {
+        return (num * 100).toFixed(2).replace('.', ',');
+      }
+      return String(num);
+    }
+
+    if (d.catatanReviewTerakhir) {
+      const match = d.catatanReviewTerakhir.match(/DBR\s+(?:rendah\s+)?\(?([\d.,]+)%?\)?/i);
+      if (match && match[1]) {
+        return match[1].replace('%', '');
+      }
+    }
+
+    return null;
   }
 
   getDetailLamaBekerja(): number | null {
     const d = this.selectedDetail();
     if (!d) return null;
-    return d.scoring?.lamaBekerja ?? d.lamaBekerja ?? null;
+    const val =
+      d.customer?.lamaBekerja ??
+      d.customer?.lamaKerja ??
+      d.customer?.masaKerja ??
+      d.customer?.lamaBekerjaBulan ??
+      d.nasabah?.lamaBekerja ??
+      d.nasabah?.lamaKerja ??
+      d.scoring?.lamaBekerja ??
+      d.scoring?.lamaKerja ??
+      d.scoring?.masaKerja ??
+      d.lamaBekerja ??
+      d.lamaKerja ??
+      d.masaKerja ??
+      null;
+
+    if (val !== null && val !== undefined && !isNaN(Number(val))) {
+      return Number(val);
+    }
+
+    if (d.catatanReviewTerakhir) {
+      const match = d.catatanReviewTerakhir.match(/lama\s+bekerja\s+(\d+)\s*bulan/i);
+      if (match && match[1]) {
+        return Number(match[1]);
+      }
+    }
+
+    return null;
   }
 
   getDetailReviews(): ReviewHistoryItem[] {
@@ -542,10 +708,10 @@ export class MonitoringPengajuanComponent implements OnInit {
     const s = (status || '').toUpperCase();
     const h = (hasilReview || '').toUpperCase();
 
-    if (h === 'DISETUJUI' || s === 'DISETUJUI' || s === 'DISBURSED') return 'success';
+    if (h === 'DISETUJUI' || s === 'DISETUJUI' || s === 'DICAIRKAN' || s === 'DISBURSED' || s === 'BERHASIL') return 'success';
     if (h === 'DITOLAK' || s === 'DITOLAK') return 'error';
     if (s === 'SELESAI_DIREVIEW') return 'primary';
-    if (s === 'MENUNGGU_REVIEW' || h === 'DOKUMEN_DIREVISI') return 'warning';
+    if (s === 'MENUNGGU_REVIEW' || h === 'DOKUMEN_DIREVISI' || s === 'DOKUMEN_DIREVISI') return 'warning';
     return 'neutral';
   }
 
@@ -553,12 +719,14 @@ export class MonitoringPengajuanComponent implements OnInit {
     const s = (status || '').toUpperCase();
     const h = (hasilReview || '').toUpperCase();
 
+    if (s === 'DICAIRKAN') return 'Dicairkan';
     if (h === 'DISETUJUI') return 'Disetujui';
     if (h === 'DITOLAK') return 'Ditolak';
-    if (h === 'DOKUMEN_DIREVISI') return 'Dokumen Direvisi';
+    if (h === 'DOKUMEN_DIREVISI' || s === 'DOKUMEN_DIREVISI' || h === 'PERLU_REVISI' || s === 'PERLU_REVISI') return 'Dokumen Direvisi';
     if (s === 'SELESAI_DIREVIEW') return 'Selesai Direview';
     if (s === 'MENUNGGU_REVIEW') return 'Menunggu Review';
-    if (s === 'DISBURSED') return 'Telah Cair';
-    return status || 'Pending';
+    if (s === 'MENUNGGU_PERSETUJUAN') return 'Menunggu Persetujuan';
+    if (s === 'DISBURSED' || s === 'BERHASIL') return 'Telah Cair';
+    return this.formatHumanReadableStatus(status || hasilReview);
   }
 }

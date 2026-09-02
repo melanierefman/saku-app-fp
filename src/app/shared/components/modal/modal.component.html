@@ -36,18 +36,23 @@
       <ng-content></ng-content>
     </div>
 
-    <!-- Inset Divider (Footer) -->
+    <!-- Inset Divider & Footer (Optional, default: true) -->
+    @if (showFooter && (showConfirmButton || showCancelButton)) {
     <div class="h-px bg-[#E5E7EB] mx-6"></div>
 
-    <!-- Footer -->
     <div class="px-6 py-5 flex items-center justify-start gap-3">
+      @if (showConfirmButton) {
       <app-button [variant]="confirmVariant" [loading]="loading" (btnClick)="handleConfirm()">
         {{ confirmText }}
       </app-button>
+      }
+      @if (showCancelButton) {
       <app-button [variant]="cancelVariant" (btnClick)="handleCancel()">
         {{ computedCancelText }}
       </app-button>
+      }
     </div>
+    }
     }
 
     <!-- ========================================== -->
