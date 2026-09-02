@@ -221,33 +221,80 @@ export class SidebarComponent implements OnInit {
     }
   }
 
+  get resolvedMenuGroups(): NavGroup[] {
+    if (this.menuGroups && this.menuGroups.length > 0) {
+      return this.menuGroups;
+    }
+    return this.resolveMenuForRole();
+  }
+
   get computedSubtitle(): string {
     if (this.brandSubtitle) return this.brandSubtitle;
-    const role = this.authStore.userRole()?.toUpperCase();
-    if (role === 'MARKETING') return 'MARKETING PORTAL';
-    if (role === 'BRANCH_MANAGER' || role === 'BM') return 'BRANCH MANAGER PORTAL';
-    if (role === 'BACKOFFICE' || role === 'BACK_OFFICE') return 'BACKOFFICE PORTAL';
-    if (role === 'SUPERADMIN' || role === 'ADMIN') return 'SUPERADMIN PORTAL';
+    const raw = this.authStore.userRole() || '';
+    const clean = raw
+      .toUpperCase()
+      .replace(/^ROLE_/, '')
+      .replace(/[\s\-_]+/g, '');
+
+    if (clean === 'MARKETING') return 'MARKETING PORTAL';
+    if (
+      clean === 'BRANCHMANAGER' ||
+      clean === 'BM' ||
+      clean.includes('BRANCH') ||
+      clean.includes('MANAGER')
+    ) {
+      return 'BRANCH MANAGER PORTAL';
+    }
+    if (
+      clean === 'BACKOFFICE' ||
+      clean === 'BO' ||
+      clean.includes('BACKOFFICE')
+    ) {
+      return 'BACKOFFICE PORTAL';
+    }
+    if (
+      clean === 'SUPERADMIN' ||
+      clean === 'ADMIN' ||
+      clean.includes('ADMIN')
+    ) {
+      return 'SUPERADMIN PORTAL';
+    }
     return 'KARYAWAN PORTAL';
   }
 
   resolveMenuForRole(): NavGroup[] {
-    const role = this.authStore.userRole()?.toUpperCase();
-    switch (role) {
-      case 'MARKETING':
-        return MARKETING_MENU_GROUPS;
-      case 'BRANCH_MANAGER':
-      case 'BM':
-        return BM_MENU_GROUPS;
-      case 'BACKOFFICE':
-      case 'BACK_OFFICE':
-        return BACKOFFICE_MENU_GROUPS;
-      case 'SUPERADMIN':
-      case 'ADMIN':
-        return SUPERADMIN_MENU_GROUPS;
-      default:
-        return MARKETING_MENU_GROUPS;
+    const raw = this.authStore.userRole() || '';
+    const clean = raw
+      .toUpperCase()
+      .replace(/^ROLE_/, '')
+      .replace(/[\s\-_]+/g, '');
+
+    if (clean === 'MARKETING') {
+      return MARKETING_MENU_GROUPS;
     }
+    if (
+      clean === 'BRANCHMANAGER' ||
+      clean === 'BM' ||
+      clean.includes('BRANCH') ||
+      clean.includes('MANAGER')
+    ) {
+      return BM_MENU_GROUPS;
+    }
+    if (
+      clean === 'BACKOFFICE' ||
+      clean === 'BO' ||
+      clean.includes('BACKOFFICE')
+    ) {
+      return BACKOFFICE_MENU_GROUPS;
+    }
+    if (
+      clean === 'SUPERADMIN' ||
+      clean === 'ADMIN' ||
+      clean.includes('ADMIN')
+    ) {
+      return SUPERADMIN_MENU_GROUPS;
+    }
+    return BM_MENU_GROUPS;
   }
 
   onSelect(item: NavItem, event: MouseEvent): void {

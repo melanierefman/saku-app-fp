@@ -32,7 +32,9 @@ import {
   LucideShieldCheck,
   LucideClipboardCheck,
   LucideClock,
-  LucideAlertTriangle,
+  LucideAlertCircle,
+  LucideInfo,
+  LucideSend,
 } from '@lucide/angular';
 import { environment } from '../../../../../environments/environment';
 
@@ -60,7 +62,9 @@ export interface DisplayDocItem {
     LucideShieldCheck,
     LucideClipboardCheck,
     LucideClock,
-    LucideAlertTriangle,
+    LucideAlertCircle,
+    LucideInfo,
+    LucideSend,
   ],
   templateUrl: './pengajuan-pinjaman-detail.component.html',
   styleUrl: './pengajuan-pinjaman-detail.component.css',
@@ -303,21 +307,21 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
   getScoreColorClass(): string {
     const s = this.getSkor();
     const status = (this.detail()?.statusScoring || '').toUpperCase();
-    if (status === 'REJECTED' || s < 60) return 'text-red-600';
-    if (status === 'REVIEW' || (s >= 60 && s < 75)) return 'text-amber-600';
-    return 'text-emerald-600';
+    if (status === 'REJECTED' || s < 60) return 'text-error-60';
+    if (status === 'REVIEW' || (s >= 60 && s < 75)) return 'text-warning-60';
+    return 'text-success-60';
   }
 
   getScoreBadgeClass(): string {
     const s = this.getSkor();
     const status = (this.detail()?.statusScoring || '').toUpperCase();
     if (status === 'REJECTED' || s < 60) {
-      return 'bg-red-50 text-red-700 border border-red-200';
+      return 'bg-error-0 text-error-70 border border-error-20';
     }
     if (status === 'REVIEW' || (s >= 60 && s < 75)) {
-      return 'bg-amber-50 text-amber-800 border border-amber-200';
+      return 'bg-warning-0 text-warning-80 border border-warning-20';
     }
-    return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+    return 'bg-success-0 text-success-70 border border-success-20';
   }
 
   getPlafonNama(): string {
@@ -345,6 +349,24 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
       return pct.toFixed(2).replace('.', ',');
     }
     return '17,78';
+  }
+
+  getDbrColorClass(): string {
+    const raw = this.detail()?.dbrPercentage ?? this.detail()?.dbr ?? 0;
+    const num = Number(raw) <= 1 && Number(raw) > 0 ? Number(raw) * 100 : Number(raw);
+    if (num <= 30) return 'text-success-60';
+    if (num <= 40) return 'text-warning-60';
+    return 'text-error-60';
+  }
+
+  getKeputusanSistemLabel(): string {
+    const d = this.detail();
+    const skor = this.getSkor();
+    const status = (d?.statusScoring || '').toUpperCase();
+    if (d?.keputusanSistem) return d.keputusanSistem;
+    if (status === 'APPROVED' || skor >= 75) return 'LAYAK (APPROVED)';
+    if (status === 'REVIEW' || (skor >= 60 && skor < 75)) return 'PERLU REVIEW (REVIEW)';
+    return 'TIDAK LAYAK (REJECTED)';
   }
 
   isAmbigu(): boolean {
@@ -529,6 +551,23 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
     return list;
   }
 
+  openDocument(fileUrl?: string, docType?: string): void {
+    if (!fileUrl) {
+      this.toastService.warning(`Dokumen ${docType || ''} tidak tersedia`);
+      return;
+    }
+
+    if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) {
+      window.open(fileUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    const cleanPath = fileUrl.replace(/^\/+/, '');
+    const baseUrl = environment.apiUrl.replace(/\/api\/?$/, '');
+    const absoluteUrl = `${baseUrl}/uploads/${cleanPath}`;
+    window.open(absoluteUrl, '_blank', 'noopener,noreferrer');
+  }
+
   private resolveUrl(path?: string): string {
     return this.getFileUrl(path);
   }
@@ -627,14 +666,14 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
   getStatusPillClass(): string {
     const label = this.getStatusDisplayLabel();
     if (label === 'Disetujui Marketing') {
-      return 'bg-emerald-50 border border-emerald-200 text-emerald-700';
+      return 'bg-success-0 border border-success-20 text-success-70';
     }
     if (label === 'Ditolak Marketing') {
-      return 'bg-red-50 border border-red-200 text-red-700';
+      return 'bg-error-0 border border-error-20 text-error-70';
     }
     if (label === 'Perlu Revisi') {
-      return 'bg-amber-50 border border-amber-200 text-amber-700';
+      return 'bg-warning-0 border border-warning-20 text-warning-80';
     }
-    return 'bg-[#FEF9C3] border border-[#FDE047] text-[#854D0E]';
+    return 'bg-warning-0 border border-warning-20 text-warning-80';
   }
 }

@@ -63,6 +63,8 @@ export interface AlamatInfo {
 export interface DokumenPinjamanItem {
   id?: string;
   docType?: string;
+  jenisDokumen?: string;
+  namaDokumen?: string;
   fileUrl?: string;
   createdDate?: string;
 }

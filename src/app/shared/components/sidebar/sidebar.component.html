@@ -20,7 +20,7 @@
 
   <!-- Navigation Groups (Scrollable with hidden scrollbar) -->
   <div class="flex-1 space-y-3 overflow-y-auto pb-4 sidebar-scroll">
-    @for (group of (menuGroups || []); track group.title || $index) {
+    @for (group of (resolvedMenuGroups || []); track group.title || $index) {
     <div class="space-y-1">
       <!-- Group Section Heading -->
       @if (group.title && !collapsed) {

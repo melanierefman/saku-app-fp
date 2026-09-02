@@ -8,6 +8,7 @@ export * from './models/permission.model';
 export * from './models/plafond.model';
 export * from './models/monitoring-pengajuan.model';
 export * from './models/marketing-loan.model';
+export * from './models/branch-manager-approval.model';
 export * from './models/audit-log.model';
 
 // Services
@@ -22,6 +23,7 @@ export * from './services/permission.service';
 export * from './services/plafond.service';
 export * from './services/monitoring-pengajuan.service';
 export * from './services/marketing-loan.service';
+export * from './services/branch-manager-approval.service';
 export * from './services/audit-log.service';
 
 // Store

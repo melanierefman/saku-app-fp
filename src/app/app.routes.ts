@@ -81,10 +81,23 @@ export const routes: Routes = [
       {
         path: 'persetujuan-pinjaman',
         loadComponent: () =>
-          import('./pages/feature-placeholder/feature-placeholder.component').then(
-            (m) => m.FeaturePlaceholderComponent
-          ),
+          import(
+            './pages/branch-manager/persetujuan-pinjaman/persetujuan-pinjaman-list/persetujuan-pinjaman-list.component'
+          ).then((m) => m.PersetujuanPinjamanListComponent),
         data: { title: 'Persetujuan Pinjaman' },
+      },
+      {
+        path: 'persetujuan-pinjaman/detail/:id',
+        loadComponent: () =>
+          import(
+            './pages/branch-manager/persetujuan-pinjaman/persetujuan-pinjaman-detail/persetujuan-pinjaman-detail.component'
+          ).then((m) => m.PersetujuanPinjamanDetailComponent),
+        data: { title: 'Detail Persetujuan Pinjaman' },
+      },
+      {
+        path: 'persetujuan-pinjaman/persetujuan/:id',
+        redirectTo: 'persetujuan-pinjaman/detail/:id',
+        pathMatch: 'full',
       },
 
       // Backoffice Routes
