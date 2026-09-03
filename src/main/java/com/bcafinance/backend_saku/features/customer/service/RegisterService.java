@@ -121,7 +121,6 @@ public class RegisterService {
         scoring.setPenghasilanBulanan(req.pendapatan());
         scoring.setStatusPekerjaan(req.statusPekerjaan());
         scoring.setLamaBekerjaBulan(req.lamaBekerjaBulan());
-        scoring.setLamaJadiNasabahBulan(req.lamaJadiNasabahBulan());
         scoring.setTotalCicilanLainBulanan(req.totalCicilanLainnya());
         scoring.setMstCustomerId(customer.getId());
         scoring.setPekerjaan(req.pekerjaan());
@@ -130,8 +129,7 @@ public class RegisterService {
                 req.totalCicilanLainnya(),
                 req.pendapatan(),
                 req.lamaBekerjaBulan(),
-                req.statusPekerjaan(),
-                req.lamaJadiNasabahBulan());
+                req.statusPekerjaan());
         scoring.setSkor((int) Math.round(result.score()));
         scoring.setStatusScoring(result.decision());
         scoring.setCreatedDate(LocalDateTime.now());

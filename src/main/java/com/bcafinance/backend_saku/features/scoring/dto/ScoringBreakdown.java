@@ -17,5 +17,4 @@ public class ScoringBreakdown {
     private String pendapatanDetail;
     private String lamaBekerjaDetail;
     private String statusPekerjaanDetail;
-    private String lamaNasabahDetail;
 }

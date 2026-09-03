@@ -48,10 +48,6 @@ public class ScoringCustomer {
     private Integer lamaBekerjaBulan;
 
     @NotNull
-    @Column(name = "lama_jadi_nasabah_bulan", nullable = false)
-    private Integer lamaJadiNasabahBulan;
-
-    @NotNull
     @Digits(integer = 13, fraction = 2)
     @Column(name = "total_cicilan_lain_bulanan", nullable = false, precision = 15, scale = 2)
     private BigDecimal totalCicilanLainBulanan;

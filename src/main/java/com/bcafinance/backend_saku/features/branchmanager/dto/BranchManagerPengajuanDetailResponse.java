@@ -60,7 +60,6 @@ public class BranchManagerPengajuanDetailResponse {
     private String statusPekerjaanScoring;
     private BigDecimal penghasilanBulananScoring;
     private Integer lamaBekerjaBulan;
-    private Integer lamaJadiNasabahBulan;
     private BigDecimal cicilanBerjalan;
     private Integer skor;
     private String statusScoring;

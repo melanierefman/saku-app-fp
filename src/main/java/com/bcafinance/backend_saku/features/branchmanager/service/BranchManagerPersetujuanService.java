@@ -326,7 +326,6 @@ public class BranchManagerPersetujuanService {
                 .statusPekerjaanScoring(scoringOpt.map(ScoringCustomer::getStatusPekerjaan).orElse(null))
                 .penghasilanBulananScoring(scoringOpt.map(ScoringCustomer::getPenghasilanBulanan).orElse(null))
                 .lamaBekerjaBulan(scoringOpt.map(ScoringCustomer::getLamaBekerjaBulan).orElse(null))
-                .lamaJadiNasabahBulan(scoringOpt.map(ScoringCustomer::getLamaJadiNasabahBulan).orElse(null))
                 .cicilanBerjalan(scoringOpt.map(ScoringCustomer::getTotalCicilanLainBulanan).orElse(null))
                 .skor(scoringOpt.map(ScoringCustomer::getSkor).orElse(null))
                 .statusScoring(scoringOpt.map(ScoringCustomer::getStatusScoring).orElse(null))

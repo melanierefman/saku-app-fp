@@ -55,7 +55,6 @@ public class MonitoringPengajuanDetailResponse {
     private String scoringStatusPekerjaan;
     private BigDecimal scoringPenghasilan;
     private Integer lamaBekerjaBulan;
-    private Integer lamaJadiNasabahBulan;
     private BigDecimal cicilanBerjalan;
     private Integer skor;
     private String statusScoring;

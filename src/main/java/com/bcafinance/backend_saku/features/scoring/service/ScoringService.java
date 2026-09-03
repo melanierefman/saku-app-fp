@@ -26,15 +26,13 @@ public class ScoringService {
             BigDecimal totalCicilanLainnya,
             BigDecimal pendapatan,
             int lamaBekerjaBulan,
-            String statusPekerjaan,
-            int lamaJadiNasabahBulan) {
+            String statusPekerjaan) {
         BigDecimal dbr = totalCicilanLainnya.divide(pendapatan, 6, java.math.RoundingMode.HALF_UP);
 
         double skorAkhir = (scoreDbr(dbr) * 0.35)
-                + (scorePendapatan(pendapatan) * 0.20)
-                + (scoreLamaBekerja(lamaBekerjaBulan) * 0.20)
-                + (scoreStatusPekerjaan(statusPekerjaan) * 0.15)
-                + (scoreLamaNasabah(lamaJadiNasabahBulan) * 0.10);
+                + (scorePendapatan(pendapatan) * 0.25)
+                + (scoreLamaBekerja(lamaBekerjaBulan) * 0.25)
+                + (scoreStatusPekerjaan(statusPekerjaan) * 0.15);
 
         return new ScoringResult(skorAkhir, mapSkorToKeputusan(skorAkhir));
     }
@@ -168,7 +166,6 @@ public class ScoringService {
                 .pendapatanDetail(String.format("Pendapatan: Rp %s", formatRupiah(pendapatan)))
                 .lamaBekerjaDetail(String.format("Lama Bekerja: %d Bulan", scoring.getLamaBekerjaBulan() != null ? scoring.getLamaBekerjaBulan() : 0))
                 .statusPekerjaanDetail(String.format("Status Pekerjaan: %s", scoring.getStatusPekerjaan() != null ? scoring.getStatusPekerjaan() : "-"))
-                .lamaNasabahDetail(String.format("Lama Jadi Nasabah: %d Bulan", scoring.getLamaJadiNasabahBulan() != null ? scoring.getLamaJadiNasabahBulan() : 0))
                 .build();
 
         return ScoringAnalysisResponse.builder()
@@ -253,15 +250,6 @@ public class ScoringService {
 
 
 
-    private double scoreLamaNasabah(int bulan) {
-        if (bulan >= 24)
-            return 100;
-        if (bulan >= 12)
-            return 70;
-        if (bulan >= 1)
-            return 40;
-        return 20;
-    }
 
     private String mapSkorToKeputusan(double skor) {
         if (skor >= 75)

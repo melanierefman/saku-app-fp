@@ -284,7 +284,6 @@ public class MarketingReviewService {
                 .scoringStatusPekerjaan(scoringOpt.map(ScoringCustomer::getStatusPekerjaan).orElse(null))
                 .scoringPenghasilan(scoringOpt.map(ScoringCustomer::getPenghasilanBulanan).orElse(null))
                 .lamaBekerjaBulan(scoringOpt.map(ScoringCustomer::getLamaBekerjaBulan).orElse(null))
-                .lamaJadiNasabahBulan(scoringOpt.map(ScoringCustomer::getLamaJadiNasabahBulan).orElse(null))
                 .cicilanBerjalan(scoringOpt.map(ScoringCustomer::getTotalCicilanLainBulanan).orElse(null))
                 .skor(analysis != null ? analysis.getSkor() : (scoringOpt.map(ScoringCustomer::getSkor).orElse(null)))
                 .statusScoring(analysis != null ? analysis.getStatusScoring()

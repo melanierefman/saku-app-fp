@@ -20,6 +20,5 @@ public record RegisterStep2Request(
         @NotBlank String statusPekerjaan,
         @NotNull @Positive BigDecimal pendapatan,
         @NotNull @Min(0) Integer lamaBekerjaBulan,
-        @NotNull @Min(0) Integer lamaJadiNasabahBulan,
         @NotNull @DecimalMin("0") BigDecimal totalCicilanLainnya) {
 }

@@ -320,15 +320,9 @@ public class CustomerProfileService {
         int lamaBekerja = scoring.getLamaBekerjaBulan() != null ? scoring.getLamaBekerjaBulan() : 0;
         String statusPekerjaan = scoring.getStatusPekerjaan() != null ? scoring.getStatusPekerjaan() : "KARYAWAN_TETAP";
 
-        int lamaNasabah = 1;
-        if (customer.getCreatedDate() != null) {
-            long months = java.time.temporal.ChronoUnit.MONTHS.between(customer.getCreatedDate().toLocalDate(), java.time.LocalDate.now());
-            lamaNasabah = Math.max(1, (int) months);
-        }
-
         if (pendapatan.compareTo(BigDecimal.ZERO) > 0) {
             com.bcafinance.backend_saku.features.scoring.service.ScoringService.ScoringResult res =
-                    scoringService.calculateScore(cicilan, pendapatan, lamaBekerja, statusPekerjaan, lamaNasabah);
+                    scoringService.calculateScore(cicilan, pendapatan, lamaBekerja, statusPekerjaan);
             scoring.setSkor((int) Math.round(res.score()));
             scoring.setStatusScoring(res.decision());
         }

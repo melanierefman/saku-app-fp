@@ -123,7 +123,6 @@ public class MonitoringPengajuanService {
                 .scoringStatusPekerjaan(base.getScoringStatusPekerjaan())
                 .scoringPenghasilan(base.getScoringPenghasilan())
                 .lamaBekerjaBulan(base.getLamaBekerjaBulan())
-                .lamaJadiNasabahBulan(base.getLamaJadiNasabahBulan())
                 .cicilanBerjalan(base.getCicilanBerjalan())
                 .skor(base.getSkor())
                 .statusScoring(base.getStatusScoring())
