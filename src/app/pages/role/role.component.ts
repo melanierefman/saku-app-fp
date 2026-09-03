@@ -11,8 +11,6 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import {
-  BreadcrumbsComponent,
-  BreadcrumbItem,
   TableComponent,
   TableCellDirective,
   TableColumn,
@@ -50,7 +48,6 @@ import {
     CommonModule,
     FormsModule,
     RouterModule,
-    BreadcrumbsComponent,
     TableComponent,
     TableCellDirective,
     PaginationComponent,
@@ -75,12 +72,6 @@ export class RoleComponent implements OnInit {
   private toastService = inject(ToastService);
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
-
-  breadcrumbs: BreadcrumbItem[] = [
-    { label: 'Dashboard', url: '/dashboard' },
-    { label: 'RBAC', url: '/rbac/role' },
-    { label: 'Role', active: true },
-  ];
 
   columns: TableColumn[] = [
     { key: 'no', header: 'No', width: '64px' },

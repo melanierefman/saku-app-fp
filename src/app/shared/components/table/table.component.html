@@ -94,7 +94,8 @@
             [class.border-l]="isFirstStickyRight(colIndex) && isScrolled()"
             [class.border-l-[#E5E7EB]]="isFirstStickyRight(colIndex) && isScrolled()"
             [class.shadow-[3px_0_6px_-2px_rgba(0,0,0,0.06)]]="isLastStickyLeft(colIndex) && isScrolled()"
-            class="px-6 py-3.5 text-sm font-normal text-neutral-50 align-middle whitespace-nowrap border-b border-[#E5E7EB] transition-all">
+            class="px-6 py-3.5 text-sm font-normal text-neutral-50 align-middle border-b border-[#E5E7EB] transition-all"
+            [class.whitespace-nowrap]="!col.cellClass?.includes('whitespace-normal')">
             <!-- Check if custom template provided -->
             @if (getTemplate(col.key); as templateRef) {
             <ng-container [ngTemplateOutlet]="templateRef"

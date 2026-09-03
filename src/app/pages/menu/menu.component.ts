@@ -13,8 +13,6 @@ import {
   TableCellDirective,
   TableColumn,
   PaginationComponent,
-  BreadcrumbsComponent,
-  BreadcrumbItem,
   ButtonComponent,
   BadgeComponent,
   InputComponent,
@@ -44,7 +42,6 @@ import {
     TableComponent,
     TableCellDirective,
     PaginationComponent,
-    BreadcrumbsComponent,
     ButtonComponent,
     BadgeComponent,
     InputComponent,
@@ -66,12 +63,6 @@ export class MenuComponent implements OnInit {
   private menuService = inject(MenuService);
   private toastService = inject(ToastService);
   private platformId = inject(PLATFORM_ID);
-
-  breadcrumbs: BreadcrumbItem[] = [
-    { label: 'Dashboard', url: '/dashboard' },
-    { label: 'RBAC', url: '/rbac/menu' },
-    { label: 'Menu', active: true },
-  ];
 
   columns: TableColumn[] = [
     { key: 'no', header: 'No', width: '64px' },

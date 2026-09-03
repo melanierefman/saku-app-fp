@@ -1,0 +1,21 @@
+<div [class]="getContainerClass()">
+  @for (item of items; track item.key) {
+  <button
+    type="button"
+    [disabled]="item.disabled"
+    [class]="getTabClass(item)"
+    (click)="onTabClick(item)">
+    @if (item.dotColor && variant === 'segmented') {
+    <span class="w-2 h-2 rounded-full shrink-0" [ngClass]="item.dotColor"></span>
+    }
+    <span>{{ item.label }}</span>
+    @if (item.count !== undefined && item.count !== null) {
+    <span
+      class="px-2 py-0.5 rounded-full text-xs font-medium"
+      [ngClass]="activeKey === item.key ? 'bg-primary-0 text-primary' : 'bg-neutral-0 text-neutral-60'">
+      {{ item.count }}
+    </span>
+    }
+  </button>
+  }
+</div>

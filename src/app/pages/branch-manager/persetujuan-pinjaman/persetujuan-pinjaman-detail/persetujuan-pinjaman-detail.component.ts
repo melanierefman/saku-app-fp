@@ -11,10 +11,9 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {
-  BreadcrumbsComponent,
-  BreadcrumbItem,
   DropdownComponent,
   DropdownOption,
+  ModalComponent,
   ToastService,
 } from '../../../../shared/components';
 import {
@@ -37,8 +36,11 @@ import {
   LucideShieldCheck,
   LucideMessageSquare,
   LucideInfo,
+  LucideBriefcase,
+  LucideArrowLeft,
 } from '@lucide/angular';
 import { environment } from '../../../../../environments/environment';
+import { formatDate as formatDateHelper } from '../../../../shared/utils/date.util';
 
 @Component({
   selector: 'app-persetujuan-pinjaman-detail',
@@ -47,8 +49,8 @@ import { environment } from '../../../../../environments/environment';
     CommonModule,
     FormsModule,
     RouterModule,
-    BreadcrumbsComponent,
     DropdownComponent,
+    ModalComponent,
     LucideFileText,
     LucideExternalLink,
     LucideUser,
@@ -60,6 +62,8 @@ import { environment } from '../../../../../environments/environment';
     LucideShieldCheck,
     LucideMessageSquare,
     LucideInfo,
+    LucideBriefcase,
+    LucideArrowLeft,
   ],
   templateUrl: './persetujuan-pinjaman-detail.component.html',
   styleUrl: './persetujuan-pinjaman-detail.component.css',
@@ -72,10 +76,15 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private platformId = inject(PLATFORM_ID);
 
+  goBack(): void {
+    this.router.navigate(['/persetujuan-pinjaman']);
+  }
+
   // Signals
   detail = signal<BranchManagerPengajuanDetailResponse | null>(null);
   isLoading = signal<boolean>(true);
   isSubmitting = signal<boolean>(false);
+  isConfirmModalOpen = signal<boolean>(false);
   pengajuanId = signal<string>('');
   photoError = signal<boolean>(false);
 
@@ -87,16 +96,6 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
     { value: 'DISETUJUI', label: 'Disetujui' },
     { value: 'DITOLAK', label: 'Ditolak' },
   ];
-
-  // Breadcrumbs
-  breadcrumbs = computed<BreadcrumbItem[]>(() => [
-    { label: 'Dashboard', url: '/dashboard' },
-    { label: 'Persetujuan Pinjaman', url: '/persetujuan-pinjaman' },
-    {
-      label: this.detail()?.nomorPengajuan || this.detail()?.noPengajuan || 'Detail Persetujuan',
-      active: true,
-    },
-  ]);
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -148,14 +147,26 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
     }
   }
 
-  submitPersetujuan(): void {
-    const id = this.pengajuanId();
+  openConfirmModal(): void {
     const keputusan = this.selectedKeputusan();
-
     if (!keputusan) {
       this.toastService.warning('Silakan pilih Keputusan Persetujuan terlebih dahulu');
       return;
     }
+    if (!this.catatanPersetujuan().trim()) {
+      this.toastService.warning('Catatan persetujuan / penolakan wajib diisi');
+      return;
+    }
+    this.isConfirmModalOpen.set(true);
+  }
+
+  closeConfirmModal(): void {
+    this.isConfirmModalOpen.set(false);
+  }
+
+  confirmSubmitPersetujuan(): void {
+    const id = this.pengajuanId();
+    const keputusan = this.selectedKeputusan();
 
     const payload: PersetujuanPinjamanRequest = {
       hasilPersetujuan: keputusan,
@@ -166,6 +177,7 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
     this.bmService.persetujuan(id, payload).subscribe({
       next: () => {
         this.isSubmitting.set(false);
+        this.isConfirmModalOpen.set(false);
         this.toastService.success('Keputusan persetujuan pinjaman berhasil disimpan');
         this.loadDetail(id);
       },
@@ -198,6 +210,11 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
     const baseUrl = environment.apiUrl.replace(/\/api\/?$/, '');
     const absoluteUrl = `${baseUrl}/uploads/${cleanPath}`;
     window.open(absoluteUrl, '_blank', 'noopener,noreferrer');
+  }
+
+  getCustomerName(): string {
+    const d = this.detail();
+    return d?.namaLengkap || d?.customer || 'Customer';
   }
 
   getFotoSelfieUrl(): string | null {
@@ -314,10 +331,6 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
     return this.detail()?.lamaBekerjaBulan ?? 0;
   }
 
-  getLamaMenjadiNasabah(): number {
-    return this.detail()?.lamaJadiNasabahBulan ?? 0;
-  }
-
   getKeputusanSistemLabel(): string {
     const d = this.detail();
     const skor = this.getSkor();
@@ -362,6 +375,16 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
     return 'bg-success-0 text-success-70 border border-success-20';
   }
 
+  isPending(): boolean {
+    const d = this.detail();
+    const h = (d?.hasilPersetujuanBM || '').toUpperCase();
+    const s = (d?.statusPengajuan || d?.status || '').toUpperCase();
+    if (h === 'DISETUJUI' || h === 'DITOLAK' || s === 'DISETUJUI' || s === 'DITOLAK' || s === 'DICAIRKAN' || s === 'DISBURSED' || s === 'LUNAS') {
+      return false;
+    }
+    return true;
+  }
+
   getStatusDisplayLabel(): string {
     const d = this.detail();
     const h = (d?.hasilPersetujuanBM || '').toUpperCase();
@@ -387,6 +410,28 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
     return 'bg-warning-0 border border-warning-20 text-warning-80';
   }
 
+  getCatatanBM(): string {
+    const d = this.detail();
+    if (d?.catatanBM) return d.catatanBM;
+    if (d?.persetujuanHistory && d.persetujuanHistory.length > 0) {
+      return d.persetujuanHistory[0].catatan || '';
+    }
+    return '';
+  }
+
+  getNamaApprover(): string {
+    const d = this.detail();
+    if (d?.persetujuanHistory && d.persetujuanHistory.length > 0) {
+      return d.persetujuanHistory[0].namaApprover || 'Branch Manager';
+    }
+    return 'Branch Manager';
+  }
+
+  getTanggalPersetujuanBM(): string {
+    const d = this.detail();
+    return d?.tanggalPersetujuanBM || (d?.persetujuanHistory && d.persetujuanHistory[0]?.tanggalPersetujuan) || '';
+  }
+
   getReviewMarketingHistory(): ReviewMarketingHistoryItem[] {
     return this.detail()?.reviewMarketingHistory || [];
   }
@@ -401,20 +446,7 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
   }
 
   formatDate(dateStr?: string | null): string {
-    if (!dateStr) return '-';
-    try {
-      const d = new Date(dateStr);
-      if (isNaN(d.getTime())) return dateStr;
-      return d.toLocaleDateString('id-ID', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    } catch {
-      return dateStr;
-    }
+    return formatDateHelper(dateStr);
   }
 
   formatPercent(val?: number | null): string {

@@ -1,12 +1,11 @@
 <div class="space-y-4 pb-12">
-  <!-- Breadcrumbs & Page Header -->
+  <!-- Page Header -->
   <div class="flex flex-col gap-2">
-    <app-breadcrumbs [items]="breadcrumbs"></app-breadcrumbs>
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
         <h1 class="text-2xl font-semibold text-neutral-90 tracking-tight">Monitoring Pengajuan</h1>
         <p class="text-sm text-neutral-40 mt-0.5">
-          Pantau seluruh berkas dan status pinjaman nasabah secara nasional
+          Pantau seluruh berkas dan status pinjaman customer secara nasional
         </p>
       </div>
     </div>
@@ -60,7 +59,7 @@
       <!-- Custom Nomor Pengajuan Template -->
       <ng-template appTableCell="noPengajuan" let-row="row">
         <div class="flex items-center gap-2">
-          <span class="font-mono text-sm text-neutral-90 font-medium">
+          <span class="text-sm text-neutral-90">
             {{ row.noPengajuan || row.nomorPengajuan }}
           </span>
         </div>
@@ -68,9 +67,13 @@
 
       <!-- Custom Customer Template -->
       <ng-template appTableCell="customer" let-row="row">
-        <div class="flex flex-col">
-          <span class="text-neutral-90 text-sm">
-            {{ row.customer || row.namaNasabah || row.nama || '-' }}
+        <div class="flex items-center gap-3">
+          <div
+            class="w-8 h-8 rounded-full bg-primary-0 text-primary flex items-center justify-center font-semibold text-xs shrink-0">
+            {{ ((row.customer || row.namaCustomer || row.nama || 'C').trim().substring(0, 1) || 'C').toUpperCase() }}
+          </div>
+          <span class="font-medium text-neutral-90 text-sm">
+            {{ row.customer || row.namaCustomer || row.nama || '-' }}
           </span>
         </div>
       </ng-template>
@@ -85,7 +88,7 @@
       <!-- Custom Jumlah & Tenor Template -->
       <ng-template appTableCell="jumlahTenor" let-row="row">
         <div class="flex flex-col">
-          <span class="text-primary text-sm font-medium">
+          <span class="text-primary text-sm font-semibold">
             {{ formatCurrency(row.jumlah || row.nominalPinjaman || row.nominal) }}
           </span>
           <span class="text-neutral-40 text-xs">
@@ -148,7 +151,7 @@
         </div>
         <div>
           <div class="text-xs text-neutral-40 font-medium">Nomor Pengajuan</div>
-          <div class="text-sm font-semibold text-neutral-90 font-mono">
+          <div class="text-sm font-semibold text-neutral-90">
             {{ selectedDetail()?.noPengajuan || selectedDetail()?.nomorPengajuan || 'PJ-SAKU-2026' }}
           </div>
         </div>
@@ -161,32 +164,31 @@
       </div>
     </div>
 
-    <!-- Section 2: Data Customer / Nasabah -->
+    <!-- Section 2: Data Customer -->
     <div class="space-y-2">
       <h3 class="text-xs font-semibold text-neutral-50 uppercase tracking-wider flex items-center gap-1.5">
-        <!-- <svg lucideUser [size]="14" class="w-3.5 h-3.5"></svg> -->
         Informasi Customer
       </h3>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-xl bg-white border border-[#E5E7EB] text-xs">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-xl bg-white border border-[#E5E7EB]">
         <div>
-          <span class="text-neutral-40 block">Nama Lengkap</span>
+          <span class="text-xs text-neutral-40 block">Nama Lengkap</span>
           <span class="font-medium text-neutral-90 text-sm">{{ getDetailCustomerName() }}</span>
         </div>
         <div>
-          <span class="text-neutral-40 block">NIK KTP</span>
+          <span class="text-xs text-neutral-40 block">NIK KTP</span>
           <span class="font-medium text-neutral-90 text-sm">{{ getDetailNik() }}</span>
         </div>
         <div>
-          <span class="text-neutral-40 block">No. Handphone</span>
+          <span class="text-xs text-neutral-40 block">No. Handphone</span>
           <span class="font-medium text-neutral-90 text-sm">{{ getDetailNoHp() }}</span>
         </div>
         <div>
-          <span class="text-neutral-40 block">Email</span>
+          <span class="text-xs text-neutral-40 block">Email</span>
           <span class="font-medium text-neutral-90 text-sm">{{ getDetailEmail() }}</span>
         </div>
         @if (getDetailAlamat() !== '-') {
         <div class="sm:col-span-2">
-          <span class="text-neutral-40 block">Alamat Domisili</span>
+          <span class="text-xs text-neutral-40 block">Alamat Domisili</span>
           <span class="font-medium text-neutral-90 text-sm">{{ getDetailAlamat() }}</span>
         </div>
         }
@@ -196,22 +198,21 @@
     <!-- Section 3: Fasilitas Pinjaman & Unit Kerja -->
     <div class="space-y-2">
       <h3 class="text-xs font-semibold text-neutral-50 uppercase tracking-wider flex items-center gap-1.5">
-        <!-- <svg lucideDollarSign [size]="14" class="w-3.5 h-3.5"></svg> -->
         Fasilitas Pinjaman
       </h3>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-xl bg-white border border-[#E5E7EB] text-xs">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-xl bg-white border border-[#E5E7EB]">
         <div>
-          <span class="text-neutral-40 block">Jumlah Pengajuan</span>
-          <span class="font-medium text-primary text-sm">
+          <span class="text-xs text-neutral-40 block">Jumlah Pengajuan</span>
+          <span class="font-semibold text-primary text-sm">
             {{ formatCurrency(getDetailJumlah()) }}
           </span>
         </div>
         <div>
-          <span class="text-neutral-40 block">Tenor Pinjaman</span>
+          <span class="text-xs text-neutral-40 block">Tenor Pinjaman</span>
           <span class="font-medium text-neutral-90 text-sm">{{ getDetailTenor() }} Bulan</span>
         </div>
         <div>
-          <span class="text-neutral-40 block">Kantor Cabang</span>
+          <span class="text-xs text-neutral-40 block">Kantor Cabang</span>
           <span class="font-medium text-neutral-90 text-sm">{{ getDetailCabang() }}</span>
         </div>
       </div>
@@ -221,31 +222,30 @@
     @if (getDetailSkor() !== null || getDetailRekomendasiPlafond()) {
     <div class="space-y-2">
       <h3 class="text-xs font-semibold text-neutral-50 uppercase tracking-wider flex items-center gap-1.5">
-        <!-- <svg lucideSparkles [size]="14" class="w-3.5 h-3.5 text-amber-500"></svg> -->
         Hasil Credit Scoring & Plafond
       </h3>
-      <div class="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-white border border-[#E5E7EB] text-xs">
+      <div class="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-white border border-[#E5E7EB]">
         @if (getDetailSkor() !== null) {
         <div>
-          <span class="text-neutral-40 block">Skor Kredit</span>
+          <span class="text-xs text-neutral-40 block">Skor Kredit</span>
           <span class="font-medium text-emerald-600 text-sm">{{ getDetailSkor() }} / 100</span>
         </div>
         }
         @if (getDetailRekomendasiPlafond()) {
         <div>
-          <span class="text-neutral-40 block">Rekomendasi Plafond</span>
+          <span class="text-xs text-neutral-40 block">Rekomendasi Plafond</span>
           <span class="font-medium text-neutral-90 text-sm">{{ getDetailRekomendasiPlafond() }}</span>
         </div>
         }
         @if (getDetailDbr() !== null) {
         <div>
-          <span class="text-neutral-40 block">DBR (Debt Ratio)</span>
+          <span class="text-xs text-neutral-40 block">DBR (Debt Ratio)</span>
           <span class="font-medium text-neutral-90 text-sm">{{ getDetailDbr() }}%</span>
         </div>
         }
         @if (getDetailLamaBekerja() !== null) {
         <div>
-          <span class="text-neutral-40 block">Lama Bekerja</span>
+          <span class="text-xs text-neutral-40 block">Lama Bekerja</span>
           <span class="font-medium text-neutral-90 text-sm">{{ getDetailLamaBekerja() }} Bulan</span>
         </div>
         }

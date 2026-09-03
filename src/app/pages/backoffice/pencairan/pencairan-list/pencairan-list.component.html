@@ -1,0 +1,189 @@
+<div class="space-y-4 pb-12">
+  <!-- Page Header -->
+  <div class="flex flex-col gap-2">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-semibold text-neutral-90 tracking-tight">Pencairan Pinjaman</h1>
+        <p class="text-sm text-neutral-40 mt-0.5">
+          Kelola proses pencairan dana pinjaman customer yang telah disetujui Branch Manager
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Card Container -->
+  <div class="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs overflow-hidden">
+    <!-- Toolbar Filters & Action -->
+    <div class="p-4 flex flex-wrap items-center justify-between gap-3.5">
+      <!-- Left Filters -->
+      <div class="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
+        <!-- Search Input -->
+        <div class="w-64 max-w-full">
+          <app-input placeholder="Cari No. Pengajuan, Nama..." [ngModel]="searchQuery()"
+            (ngModelChange)="onSearchChange($event)">
+            <svg lucideSearch [size]="16" iconLeft class="w-4 h-4 text-neutral-40"></svg>
+          </app-input>
+        </div>
+
+        <!-- Tanggal Persetujuan Datepicker -->
+        <div class="w-44 max-w-full">
+          <app-date-picker placeholder="Tgl Persetujuan" mode="single" [showPresets]="false"
+            [ngModel]="selectedTanggalDisetujui()" (dateChange)="onTanggalDisetujuiChange($event)">
+          </app-date-picker>
+        </div>
+
+        <!-- Tanggal Pencairan Datepicker -->
+        <div class="w-44 max-w-full">
+          <app-date-picker placeholder="Tgl Pencairan" mode="single" [showPresets]="false"
+            [ngModel]="selectedTanggalPencairan()" (dateChange)="onTanggalPencairanChange($event)">
+          </app-date-picker>
+        </div>
+
+        <!-- Status Filter Dropdown -->
+        <div class="w-52 max-w-full">
+          <app-dropdown [options]="statusOptions" placeholder="Pilih Status" [ngModel]="selectedStatus()"
+            [clearable]="true" (optionChange)="onStatusChange($event)">
+          </app-dropdown>
+        </div>
+
+        <!-- Clear Filter Action Button -->
+        @if (hasActiveFilters()) {
+        <button type="button" (click)="clearFilters()"
+          class="p-2 text-neutral-40 hover:text-neutral-90 hover:bg-neutral-0 rounded-lg transition-colors cursor-pointer"
+          title="Reset semua filter">
+          <svg lucideX [size]="16" class="w-4 h-4"></svg>
+        </button>
+        }
+      </div>
+    </div>
+
+    <!-- Main Table -->
+    <app-table [columns]="columns" [data]="items()" [loading]="isLoading()" rowKey="pengajuanId" [sortKey]="sortKey()"
+      minWidth="1380px" [sortDirection]="sortDirection()" (sortChange)="onSortChange($event)"
+      [pageIndex]="currentPage()" [pageSize]="pageSize()"
+      emptyMessage="Tidak ada data pencairan pinjaman yang ditemukan.">
+
+      <!-- Custom Cell: No. Pengajuan (Sticky Left) -->
+      <ng-template appTableCell="noPengajuan" let-row="row">
+        <span class="text-neutral-90 text-sm tracking-tight font-medium">
+          {{ formatNomorPengajuan(row.noPengajuan || row.nomorPengajuan) }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Cell: Nama Customer -->
+      <ng-template appTableCell="namaCustomer" let-row="row">
+        <div class="flex items-center gap-3">
+          <div
+            class="w-8 h-8 rounded-full bg-primary-0 text-primary flex items-center justify-center font-semibold text-xs shrink-0">
+            {{ ((row.namaCustomer || row.namaLengkap || 'C').trim().substring(0, 1) || 'C').toUpperCase() }}
+          </div>
+          <span class="font-medium text-neutral-90 text-sm">
+            {{ row.namaCustomer || row.namaLengkap || '-' }}
+          </span>
+        </div>
+      </ng-template>
+
+      <!-- Custom Cell: Jumlah Pinjaman -->
+      <ng-template appTableCell="jumlahPinjaman" let-row="row">
+        <span class="text-sm text-primary font-semibold">
+          {{ formatCurrency(row.jumlahPinjaman) }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Cell: Biaya Admin -->
+      <ng-template appTableCell="biayaAdmin" let-row="row">
+        <span class="text-sm text-error-50 font-medium">
+          - {{ formatCurrency(row.biayaAdmin) }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Cell: Total Cair Bersih -->
+      <ng-template appTableCell="jumlahPencairan" let-row="row">
+        <span class="text-sm text-primary font-semibold">
+          {{ formatCurrency(row.jumlahPencairan || row.jumlahPencairanBersih) }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Cell: Tenor -->
+      <ng-template appTableCell="tenorBulan" let-row="row">
+        <span class="text-xs font-medium bg-neutral-10/30 text-neutral-50 px-2 py-1 rounded-md">
+          {{ row.tenorBulan || 0 }} Bln
+        </span>
+      </ng-template>
+
+      <!-- Custom Cell: Tanggal Persetujuan -->
+      <ng-template appTableCell="tanggalDisetujuiBM" let-row="row">
+        <span class="text-sm text-neutral-80">
+          {{ formatDate(row.tanggalDisetujuiBM || row.tanggalPersetujuanBM || row.tanggalPersetujuan) }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Cell: Tanggal Pencairan -->
+      <ng-template appTableCell="tanggalPencairan" let-row="row">
+        <span class="text-sm text-neutral-80">
+          {{ formatDate(row.tanggalPencairan) }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Cell: Status Pencairan -->
+      <ng-template appTableCell="statusPencairan" let-row="row">
+        <app-badge [variant]="getStatusBadgeVariant(row.statusPencairan)" size="sm">
+          {{ getStatusLabel(row.statusPencairan) }}
+        </app-badge>
+      </ng-template>
+
+      <!-- Custom Cell: Actions -->
+      <ng-template appTableCell="actions" let-row="row">
+        <div class="flex items-center justify-center">
+          <!-- Action: View Detail -->
+          <button type="button" (click)="navigateToDetail(row)"
+            class="p-1.5 text-neutral-50 hover:text-primary hover:bg-primary-10 rounded-lg transition-colors cursor-pointer"
+            [title]="isAlreadyDisbursed(row.statusPencairan) ? 'Lihat Detail & Jadwal Angsuran' : 'Lihat Detail Pengajuan'">
+            <svg lucideEye [size]="16" class="w-4 h-4"></svg>
+          </button>
+        </div>
+      </ng-template>
+    </app-table>
+
+    <!-- Pagination Footer -->
+    <div class="px-5 py-3.5 bg-[#F9FAFB]">
+      <app-pagination [currentPage]="currentPage()" [pageSize]="pageSize()" [totalItems]="totalElements()"
+        (pageChange)="onPageChange($event)">
+      </app-pagination>
+    </div>
+  </div>
+
+  <!-- Modal Quick Konfirmasi Pencairan Dana -->
+  <app-modal [isOpen]="isQuickCairModalOpen()" variant="confirm" icon="alert" title="Konfirmasi Pencairan Dana Pinjaman"
+    confirmText="Ya, Cairkan Dana Sekarang" cancelText="Batal" confirmVariant="primary" [loading]="isSubmittingQuick()"
+    (confirm)="confirmQuickCair()" (close)="closeQuickCairModal()" (cancel)="closeQuickCairModal()">
+    <div class="space-y-3 text-xs text-neutral-80 leading-relaxed">
+      <p>
+        Apakah Anda yakin ingin memproses pencairan dana pinjaman untuk pengajuan nomor
+        <span class="font-bold text-neutral-90">"{{ formatNomorPengajuan(selectedItemForDisburse()?.noPengajuan)
+          }}"</span>?
+      </p>
+      <div class="p-3 bg-neutral-0 rounded-xl border border-[#E5E7EB] space-y-1">
+        <div>Customer: <span class="font-bold text-neutral-90">{{ selectedItemForDisburse()?.namaCustomer ||
+            selectedItemForDisburse()?.namaLengkap }}</span></div>
+        <div>Bank Tujuan: <span class="font-bold text-neutral-90">{{ selectedItemForDisburse()?.namaBank }} - {{
+            selectedItemForDisburse()?.noRekening }}</span></div>
+        <div>Atas Nama: <span class="font-bold text-neutral-90">{{ selectedItemForDisburse()?.namaRekening ||
+            selectedItemForDisburse()?.namaCustomer }}</span></div>
+        <div>Total Transfer Bersih: <span class="font-bold text-primary text-sm">{{
+            formatCurrency(selectedItemForDisburse()?.jumlahPencairan ||
+            selectedItemForDisburse()?.jumlahPencairanBersih) }}</span></div>
+      </div>
+      <div class="space-y-1">
+        <label class="block font-medium text-neutral-70">Catatan Transfer (Opsional):</label>
+        <textarea rows="2" [ngModel]="quickCatatan()" (ngModelChange)="quickCatatan.set($event)"
+          placeholder="Catatan transfer pencairan..."
+          class="w-full p-2.5 text-xs border border-[#E5E7EB] rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all resize-none bg-white text-neutral-90"></textarea>
+      </div>
+      <p class="text-[11px] text-neutral-40">
+        *Setelah dikonfirmasi, status pinjaman otomatis berubah menjadi "Telah Cair" dan jadwal angsuran langsung terbit
+        di sistem.
+      </p>
+    </div>
+  </app-modal>
+</div>

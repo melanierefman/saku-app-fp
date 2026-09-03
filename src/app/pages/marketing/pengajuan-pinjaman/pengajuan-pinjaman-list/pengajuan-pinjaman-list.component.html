@@ -1,12 +1,11 @@
 <div class="space-y-4 pb-12">
-  <!-- Breadcrumbs & Page Header -->
+  <!-- Page Header -->
   <div class="flex flex-col gap-2">
-    <app-breadcrumbs [items]="breadcrumbs"></app-breadcrumbs>
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
         <h1 class="text-2xl font-semibold text-neutral-90 tracking-tight">Pengajuan Pinjaman</h1>
         <p class="text-sm text-neutral-40 mt-0.5">
-          Kelola dan tinjau berkas pengajuan pinjaman nasabah
+          Kelola dan tinjau berkas pengajuan pinjaman customer
         </p>
       </div>
     </div>
@@ -64,26 +63,27 @@
 
       <!-- Custom Cell: No. Pengajuan -->
       <ng-template appTableCell="noPengajuan" let-row="row">
-        <span class="text-sm text-neutral-90 font-mono">
+        <span class="text-sm text-neutral-90 font-medium">
           {{ row.noPengajuan || row.nomorPengajuan || '-' }}
         </span>
       </ng-template>
 
       <!-- Custom Cell: Customer -->
       <ng-template appTableCell="customer" let-row="row">
-        <div class="flex flex-col">
-          <span class="text-neutral-90 text-sm">
-            {{ row.customer || row.namaNasabah || row.nama || '-' }}
-          </span>
-          <span class="text-neutral-40 text-xs">
-            {{ row.email || row.noHp || '-' }}
+        <div class="flex items-center gap-3">
+          <div
+            class="w-8 h-8 rounded-full bg-primary-0 text-primary flex items-center justify-center font-semibold text-xs shrink-0">
+            {{ ((row.customer || row.namaCustomer || row.nama || 'C').trim().substring(0, 1) || 'C').toUpperCase() }}
+          </div>
+          <span class="font-medium text-neutral-90 text-sm">
+            {{ row.customer || row.namaCustomer || row.nama || '-' }}
           </span>
         </div>
       </ng-template>
 
       <!-- Custom Cell: Jumlah Pinjaman -->
       <ng-template appTableCell="jumlah" let-row="row">
-        <span class="font-medium text-primary text-sm">
+        <span class="font-semibold text-primary text-sm">
           {{ formatCurrency(row.jumlah || row.nominalPinjaman || row.nominal) }}
         </span>
       </ng-template>

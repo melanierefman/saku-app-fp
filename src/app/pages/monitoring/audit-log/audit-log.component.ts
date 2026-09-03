@@ -11,8 +11,6 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import {
-  BreadcrumbsComponent,
-  BreadcrumbItem,
   TableComponent,
   TableCellDirective,
   TableColumn,
@@ -31,10 +29,8 @@ import {
   LucideX,
   LucideEye,
   LucideUser,
-  LucideClock,
   LucideLayers,
   LucideTerminal,
-  LucideBuilding2,
 } from '@lucide/angular';
 
 @Component({
@@ -44,7 +40,6 @@ import {
     CommonModule,
     FormsModule,
     RouterModule,
-    BreadcrumbsComponent,
     TableComponent,
     TableCellDirective,
     PaginationComponent,
@@ -56,9 +51,8 @@ import {
     LucideX,
     LucideEye,
     LucideUser,
-    LucideClock,
     LucideLayers,
-    LucideTerminal
+    LucideTerminal,
   ],
   templateUrl: './audit-log.component.html',
   styleUrl: './audit-log.component.css',
@@ -69,18 +63,18 @@ export class AuditLogComponent implements OnInit {
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
 
-  breadcrumbs: BreadcrumbItem[] = [
-    { label: 'Dashboard', url: '/dashboard' },
-    { label: 'Audit Log', active: true },
-  ];
-
   columns: TableColumn[] = [
     { key: 'no', header: 'No', width: '60px', align: 'center' },
     { key: 'timestamp', header: 'Waktu Aktivitas', sortable: true },
     { key: 'user', header: 'Pengguna & Role', sortable: true },
-    { key: 'action', header: 'Aksi', width: '130px', sortable: true, align: 'center' },
+    { key: 'action', header: 'Aksi', sortable: true, align: 'center' },
     { key: 'entity', header: 'Entitas', sortable: true },
-    { key: 'description', header: 'Deskripsi Aktivitas' },
+    {
+      key: 'description',
+      header: 'Deskripsi Aktivitas',
+      width: '400px',
+      cellClass: 'whitespace-normal',
+    },
     { key: 'actions', header: 'Detail', width: '80px', align: 'center' },
   ];
 
@@ -316,6 +310,28 @@ export class AuditLogComponent implements OnInit {
     if (a === 'DELETE' || a === 'REJECT') return 'error';
     if (a === 'LOGIN' || a === 'LOGOUT') return 'primary';
     return 'neutral';
+  }
+
+  formatRole(role?: string): string {
+    if (!role) return '-';
+    const r = role.toUpperCase().replace(/[_\s-]+/g, '');
+    switch (r) {
+      case 'SUPERADMIN':
+        return 'Super Admin';
+      case 'BRANCHMANAGER':
+        return 'Branch Manager';
+      case 'MARKETING':
+        return 'Marketing';
+      case 'BACKOFFICE':
+        return 'Backoffice';
+      case 'CUSTOMER':
+        return 'Customer';
+      default:
+        return role
+          .replace(/[_-]/g, ' ')
+          .toLowerCase()
+          .replace(/\b\w/g, (c) => c.toUpperCase());
+    }
   }
 
   getDetailsJson(details: any): string {

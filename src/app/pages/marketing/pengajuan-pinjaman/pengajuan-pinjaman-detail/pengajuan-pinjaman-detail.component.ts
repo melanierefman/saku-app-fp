@@ -11,10 +11,9 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {
-  BreadcrumbsComponent,
-  BreadcrumbItem,
   DropdownComponent,
   DropdownOption,
+  ModalComponent,
   ToastService,
 } from '../../../../shared/components';
 import {
@@ -35,8 +34,11 @@ import {
   LucideAlertCircle,
   LucideInfo,
   LucideSend,
+  LucideBriefcase,
+  LucideArrowLeft,
 } from '@lucide/angular';
 import { environment } from '../../../../../environments/environment';
+import { formatDate as formatDateHelper } from '../../../../shared/utils/date.util';
 
 export interface DisplayDocItem {
   id?: string;
@@ -53,8 +55,8 @@ export interface DisplayDocItem {
     CommonModule,
     FormsModule,
     RouterModule,
-    BreadcrumbsComponent,
     DropdownComponent,
+    ModalComponent,
     LucideFileText,
     LucideExternalLink,
     LucideUser,
@@ -65,6 +67,8 @@ export interface DisplayDocItem {
     LucideAlertCircle,
     LucideInfo,
     LucideSend,
+    LucideBriefcase,
+    LucideArrowLeft,
   ],
   templateUrl: './pengajuan-pinjaman-detail.component.html',
   styleUrl: './pengajuan-pinjaman-detail.component.css',
@@ -77,6 +81,10 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
 
+  goBack(): void {
+    this.router.navigate(['/pengajuan-pinjaman']);
+  }
+
   pengajuanId: string = '';
   isLoading = signal<boolean>(true);
   detail = signal<MarketingPengajuanDetailResponse | null>(null);
@@ -85,6 +93,7 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
   selectedReviewStatus = signal<string>('');
   catatanReview = signal<string>('');
   isSubmitting = signal<boolean>(false);
+  isConfirmModalOpen = signal<boolean>(false);
 
   // Photo error fallback handling
   photoError = signal<boolean>(false);
@@ -98,15 +107,6 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
     { value: 'PERLU_REVISI', label: 'Perlu Revisi' },
     { value: 'DITOLAK', label: 'Ditolak' },
   ];
-
-  readonly breadcrumbs = computed<BreadcrumbItem[]>(() => [
-    { label: 'Dashboard', url: '/dashboard' },
-    { label: 'Daftar Pengajuan Pinjaman', url: '/pengajuan-pinjaman' },
-    {
-      label: `No. ${this.getFormattedNomorPengajuan()}`,
-      active: true,
-    },
-  ]);
 
   ngOnInit(): void {
     this.pengajuanId = this.route.snapshot.paramMap.get('id') || '';
@@ -146,7 +146,7 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
     }
   }
 
-  submitReview(): void {
+  openConfirmModal(): void {
     const decision = this.selectedReviewStatus();
     const note = this.catatanReview().trim();
 
@@ -155,10 +155,21 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
       return;
     }
 
-    if (decision === 'DITOLAK' && !note) {
-      this.toastService.warning('Catatan wajib diisi jika menolak pengajuan');
+    if (!note) {
+      this.toastService.warning('Catatan pertimbangan review wajib diisi');
       return;
     }
+
+    this.isConfirmModalOpen.set(true);
+  }
+
+  closeConfirmModal(): void {
+    this.isConfirmModalOpen.set(false);
+  }
+
+  confirmSubmitReview(): void {
+    const decision = this.selectedReviewStatus();
+    const note = this.catatanReview().trim();
 
     const payload: ReviewPengajuanRequest = {
       hasilReview: decision,
@@ -170,6 +181,7 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
     this.marketingService.review(this.pengajuanId, payload).subscribe({
       next: () => {
         this.isSubmitting.set(false);
+        this.isConfirmModalOpen.set(false);
         this.toastService.success(
           `Keputusan review berhasil disimpan: ${this.getDecisionLabel(decision)}`
         );
@@ -194,7 +206,7 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
 
   getCustomerName(): string {
     const d = this.detail();
-    return d?.namaLengkap || d?.namaNasabah || d?.nama || d?.customer?.nama || '-';
+    return d?.namaLengkap || d?.namaCustomer || d?.nama || d?.customer?.nama || '-';
   }
 
   getNik(): string {
@@ -289,11 +301,6 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
     return d?.lamaBekerjaBulan ?? d?.lamaBekerja ?? d?.lamaKerja ?? 20;
   }
 
-  getLamaMenjadiNasabah(): number {
-    const d = this.detail();
-    return d?.lamaJadiNasabahBulan ?? 0;
-  }
-
   getCicilanBerjalan(): number {
     const d = this.detail();
     return d?.cicilanBerjalan ?? 800000;
@@ -386,7 +393,7 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
     const d = this.detail();
     return (
       d?.ringkasanAnalisis ||
-      'Sistem mendeteksi adanya inkonsistensi/faktor ambigu antara skor kredit, pendapatan, atau rasio cicilan. Disarankan memeriksa kelengkapan dokumen dan kemampuan bayar nasabah.'
+      'Sistem mendeteksi adanya inkonsistensi/faktor ambigu antara skor kredit, pendapatan, atau rasio cicilan. Disarankan memeriksa kelengkapan dokumen dan kemampuan bayar customer.'
     );
   }
 
@@ -596,19 +603,7 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
   }
 
   formatDate(dateStr?: string | null): string {
-    if (!dateStr) return '-';
-    try {
-      const d = new Date(dateStr);
-      if (isNaN(d.getTime())) return dateStr;
-      return d.toLocaleDateString('id-ID', {
-        day: '2-digit',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    } catch {
-      return dateStr;
-    }
+    return formatDateHelper(dateStr);
   }
 
   getDecisionLabel(decision: string): string {
@@ -622,6 +617,27 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
       default:
         return decision;
     }
+  }
+
+  isPending(): boolean {
+    const d = this.detail();
+    const s = (d?.statusPengajuan || d?.status || 'MENUNGGU_REVIEW').toUpperCase();
+    return s === 'MENUNGGU_REVIEW' || s === 'PENDING' || s === 'MENUNGGU_REVIEW_MARKETING';
+  }
+
+  getCatatanReview(): string {
+    const d = this.detail();
+    return d?.catatanReviewTerakhir || d?.latestReview?.catatan || d?.catatanPengajuan || '';
+  }
+
+  getNamaReviewer(): string {
+    const d = this.detail();
+    return d?.latestReview?.namaReviewer || d?.latestReview?.reviewerNama || 'Marketing SAKU';
+  }
+
+  getTanggalReview(): string {
+    const d = this.detail();
+    return d?.tanggalReviewTerakhir || d?.latestReview?.tanggalReview || d?.tanggalPengajuan || '';
   }
 
   getStatusDisplayLabel(): string {

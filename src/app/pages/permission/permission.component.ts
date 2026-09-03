@@ -10,8 +10,6 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import {
-  BreadcrumbsComponent,
-  BreadcrumbItem,
   TableComponent,
   TableCellDirective,
   TableColumn,
@@ -48,7 +46,6 @@ import {
     CommonModule,
     FormsModule,
     RouterModule,
-    BreadcrumbsComponent,
     TableComponent,
     TableCellDirective,
     PaginationComponent,
@@ -72,12 +69,6 @@ export class PermissionComponent implements OnInit {
   private menuService = inject(MenuService);
   private toastService = inject(ToastService);
   private platformId = inject(PLATFORM_ID);
-
-  breadcrumbs: BreadcrumbItem[] = [
-    { label: 'Dashboard', url: '/dashboard' },
-    { label: 'RBAC', url: '/rbac/permission' },
-    { label: 'Permission', active: true },
-  ];
 
   columns: TableColumn[] = [
     { key: 'no', header: 'No', width: '64px' },

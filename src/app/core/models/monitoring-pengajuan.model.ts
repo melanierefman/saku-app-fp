@@ -74,10 +74,10 @@ export interface BreakdownInfo {
   pendapatanDetail?: string;
   lamaBekerjaDetail?: string;
   statusPekerjaanDetail?: string;
-  lamaNasabahDetail?: string;
+  lamaCustomerDetail?: string;
 }
 
-export interface NasabahDetail {
+export interface CustomerDetail {
   id?: string;
   namaLengkap?: string;
   nama?: string;
@@ -129,7 +129,7 @@ export interface MarketingPengajuanItemResponse {
   nomorPengajuan?: string;
   customerId?: string;
   customer?: any;
-  namaNasabah?: string;
+  namaCustomer?: string;
   nama?: string;
   email?: string;
   noHp?: string;
@@ -170,11 +170,11 @@ export interface MarketingPengajuanDetailResponse {
   status?: string;
   catatanPengajuan?: string;
 
-  // Data Nasabah / Customer
+  // Data Customer
   customerId?: string;
   customer?: any;
   namaLengkap?: string;
-  namaNasabah?: string;
+  namaCustomer?: string;
   nama?: string;
   nik?: string;
   email?: string;
@@ -188,38 +188,45 @@ export interface MarketingPengajuanDetailResponse {
   namaBank?: string;
   noRekening?: string;
   namaRekening?: string;
-  alamatKtp?: AlamatInfo | string;
-  alamatDomisili?: AlamatInfo | string;
   alamat?: string;
+  alamatKtp?: AlamatInfo;
+  alamatDomisili?: AlamatInfo;
   tempatLahir?: string;
   tanggalLahir?: string;
   jenisKelamin?: string;
   agama?: string;
   statusPernikahan?: string;
 
-  // Media / Dokumen
-  fotoSelfie?: string;
-  fotoKtp?: string;
-  slipGaji?: string;
-  rekeningKoran?: string;
-  npwp?: string;
+  // Dokumen & Lampiran
+  dokumenList?: DokumenPinjamanItem[];
   dokumenPinjamanList?: DokumenPinjamanItem[];
-  dokumen?: DokumenPengajuanItem[];
   documents?: DokumenPengajuanItem[];
+  dokumen?: any;
+  fotoKtp?: string;
+  fotoKtpUrl?: string;
+  fotoSelfie?: string;
+  fotoSelfieUrl?: string;
+  slipGaji?: string;
+  slipGajiUrl?: string;
+  rekeningKoran?: string;
+  rekeningKoranUrl?: string;
+  npwp?: string;
+  npwpUrl?: string;
+  dokumenLainnya?: string;
+  dokumenLainnyaUrl?: string;
 
-  // Scoring
+  // Scoring AI & Plafon
+  skorKredit?: number;
+  skor?: number;
+  statusScoring?: string;
+  keputusanSistem?: string;
   scoringStatusPekerjaan?: string;
   scoringPenghasilan?: number;
   lamaBekerjaBulan?: number;
   lamaKerja?: number;
   lamaBekerja?: number;
   masaKerja?: number;
-  lamaJadiNasabahBulan?: number;
   cicilanBerjalan?: number;
-  skor?: number;
-  skorKredit?: number;
-  statusScoring?: string;
-  keputusanSistem?: string;
   dbr?: number;
   dbrPercentage?: number;
   plafonNama?: string;
@@ -231,7 +238,7 @@ export interface MarketingPengajuanDetailResponse {
   ringkasanAnalisis?: string;
   breakdown?: BreakdownInfo;
 
-  nasabah?: NasabahDetail;
+  customerDetail?: CustomerDetail;
   pinjaman?: PinjamanDetail;
   scoring?: ScoringDetail;
 
@@ -247,6 +254,8 @@ export interface MarketingPengajuanDetailResponse {
   biayaAdmin?: number;
   estimasiCicilan?: number;
   tujuanPinjaman?: string;
+  tujuan?: string;
+  keperluan?: string;
 
   // Cabang
   branchId?: string;

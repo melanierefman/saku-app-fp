@@ -8,10 +8,8 @@ import {
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import {
-  BreadcrumbsComponent,
-  BreadcrumbItem,
   TableComponent,
   TableColumn,
   TableCellDirective,
@@ -41,7 +39,6 @@ import {
     CommonModule,
     FormsModule,
     RouterModule,
-    BreadcrumbsComponent,
     TableComponent,
     TableCellDirective,
     PaginationComponent,
@@ -60,14 +57,9 @@ export class PengajuanPinjamanListComponent implements OnInit {
   private marketingService = inject(MarketingLoanService);
   private toastService = inject(ToastService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
-
-  // Breadcrumbs
-  readonly breadcrumbs: BreadcrumbItem[] = [
-    { label: 'Dashboard', url: '/dashboard' },
-    { label: 'Pengajuan Pinjaman', active: true },
-  ];
 
   // Table Configuration
   readonly columns: TableColumn[] = [
@@ -80,7 +72,7 @@ export class PengajuanPinjamanListComponent implements OnInit {
       headerClass: 'border-r border-[#E5E7EB]',
       cellClass: 'border-r border-[#E5E7EB]',
     },
-    { key: 'customer', header: 'Customer', sortable: true, minWidth: '180px' },
+    { key: 'customer', header: 'Nama Customer', sortable: true, minWidth: '180px' },
     { key: 'jumlah', header: 'Jumlah Pinjaman', sortable: true, minWidth: '160px' },
     { key: 'tenor', header: 'Tenor', sortable: true, width: '100px' },
     { key: 'cabang', header: 'Cabang', sortable: true, minWidth: '180px' },
@@ -103,7 +95,7 @@ export class PengajuanPinjamanListComponent implements OnInit {
   isLoading = signal<boolean>(false);
   totalElements = signal<number>(0);
   totalPages = signal<number>(1);
-  currentPage = signal<number>(0);
+  currentPage = signal<number>(1);
   pageSize = signal<number>(10);
 
   // Filters & Sorting
@@ -116,7 +108,12 @@ export class PengajuanPinjamanListComponent implements OnInit {
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      this.loadData();
+      this.route.queryParams.subscribe((params) => {
+        const statusParam = params['status'] ?? '';
+        this.selectedStatus.set(statusParam);
+        this.currentPage.set(1);
+        this.loadData();
+      });
     }
   }
 
@@ -125,9 +122,10 @@ export class PengajuanPinjamanListComponent implements OnInit {
 
     const tglPengajuanYMD = this.formatDateToYMD(this.selectedTanggalPengajuan());
     const tglReviewYMD = this.formatDateToYMD(this.selectedTanggalReview());
+    const apiPage = Math.max(0, this.currentPage() - 1);
 
     const params = {
-      page: this.currentPage(),
+      page: apiPage,
       size: this.pageSize(),
       search: this.searchQuery() || undefined,
       status: this.selectedStatus() || undefined,
@@ -138,6 +136,7 @@ export class PengajuanPinjamanListComponent implements OnInit {
     this.marketingService.findAllPaginated(params).subscribe({
       next: (res) => {
         let contentList = res?.content || [];
+        const total = res?.totalElements ?? contentList.length;
 
         // Client-side date filter refinement if API doesn't filter exact date
         if (tglPengajuanYMD) {
@@ -156,11 +155,24 @@ export class PengajuanPinjamanListComponent implements OnInit {
           });
         }
 
+        // If backend returned unpaginated full list, slice client-side
+        if (contentList.length > this.pageSize()) {
+          const startIndex = (this.currentPage() - 1) * this.pageSize();
+          const pagedList = contentList.slice(startIndex, startIndex + this.pageSize());
+          this.totalElements.set(contentList.length);
+          this.totalPages.set(Math.ceil(contentList.length / this.pageSize()));
+          this.items.set(pagedList);
+        } else {
+          this.totalElements.set(total);
+          this.totalPages.set(res?.totalPages ?? Math.max(1, Math.ceil(total / this.pageSize())));
+          this.items.set(contentList);
+        }
+
         // Client sort
         const field = this.sortKey();
         const dir = this.sortDirection();
-        if (field && contentList.length > 0) {
-          contentList = [...contentList].sort((a: any, b: any) => {
+        if (field && this.items().length > 0) {
+          const sorted = [...this.items()].sort((a: any, b: any) => {
             const valA = a[field] ?? '';
             const valB = b[field] ?? '';
             let cmp = 0;
@@ -171,11 +183,9 @@ export class PengajuanPinjamanListComponent implements OnInit {
             }
             return dir === 'asc' ? cmp : -cmp;
           });
+          this.items.set(sorted);
         }
 
-        this.items.set(contentList);
-        this.totalElements.set(res?.totalElements ?? contentList.length);
-        this.totalPages.set(res?.totalPages ?? 1);
         this.isLoading.set(false);
         this.cdr.detectChanges();
       },
@@ -194,7 +204,7 @@ export class PengajuanPinjamanListComponent implements OnInit {
   // Filter & Search Handlers
   onSearchChange(query: string): void {
     this.searchQuery.set(query);
-    this.currentPage.set(0);
+    this.currentPage.set(1);
     this.loadData();
   }
 
@@ -206,7 +216,7 @@ export class PengajuanPinjamanListComponent implements OnInit {
     } else {
       this.selectedStatus.set(String(event));
     }
-    this.currentPage.set(0);
+    this.currentPage.set(1);
     this.loadData();
   }
 
@@ -214,7 +224,7 @@ export class PengajuanPinjamanListComponent implements OnInit {
     this.selectedTanggalPengajuan.set(
       date instanceof Date ? date : date ? new Date(date) : null
     );
-    this.currentPage.set(0);
+    this.currentPage.set(1);
     this.loadData();
   }
 
@@ -222,7 +232,7 @@ export class PengajuanPinjamanListComponent implements OnInit {
     this.selectedTanggalReview.set(
       date instanceof Date ? date : date ? new Date(date) : null
     );
-    this.currentPage.set(0);
+    this.currentPage.set(1);
     this.loadData();
   }
 
@@ -248,7 +258,7 @@ export class PengajuanPinjamanListComponent implements OnInit {
     this.selectedStatus.set('');
     this.selectedTanggalPengajuan.set(null);
     this.selectedTanggalReview.set(null);
-    this.currentPage.set(0);
+    this.currentPage.set(1);
     this.loadData();
   }
 

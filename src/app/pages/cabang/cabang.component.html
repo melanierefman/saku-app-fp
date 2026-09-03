@@ -1,7 +1,6 @@
 <div class="space-y-4 pb-12">
-  <!-- Breadcrumbs & Page Header -->
+  <!-- Page Header -->
   <div class="flex flex-col gap-2">
-    <app-breadcrumbs [items]="breadcrumbs"></app-breadcrumbs>
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
         <h1 class="text-2xl font-semibold text-neutral-90 tracking-tight">Daftar Cabang</h1>
@@ -75,14 +74,11 @@
             <div class="text-neutral-90 text-sm flex items-center gap-1.5">
               <span>{{ row.nama }}</span>
               @if (row.isDefault) {
-              <span
-                class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#FFF5EE] text-primary border border-primary/20">
-                Pusat
-              </span>
+              <app-badge variant="primary" size="sm">Pusat</app-badge>
               }
             </div>
             @if (row.kodeCabang) {
-            <span class="text-xs text-neutral-40 font-mono">{{ row.kodeCabang }}</span>
+            <span class="text-xs text-neutral-40">{{ row.kodeCabang }}</span>
             }
           </div>
         </div>

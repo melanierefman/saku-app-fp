@@ -10,8 +10,6 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import {
-  BreadcrumbsComponent,
-  BreadcrumbItem,
   ButtonComponent,
   CheckboxComponent,
   DropdownComponent,
@@ -46,7 +44,6 @@ export interface ActionColumn {
     CommonModule,
     FormsModule,
     RouterModule,
-    BreadcrumbsComponent,
     ButtonComponent,
     CheckboxComponent,
     DropdownComponent,
@@ -63,12 +60,6 @@ export class RoleAccessComponent implements OnInit {
   private permissionService = inject(PermissionService);
   private toastService = inject(ToastService);
   private platformId = inject(PLATFORM_ID);
-
-  breadcrumbs: BreadcrumbItem[] = [
-    { label: 'Dashboard', url: '/dashboard' },
-    { label: 'RBAC', url: '/rbac/role-access' },
-    { label: 'Role Access', active: true },
-  ];
 
   // Table Columns Definition matching app-table
   columns: TableColumn[] = [

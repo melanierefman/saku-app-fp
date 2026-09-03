@@ -3,8 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {
-  BreadcrumbsComponent,
-  BreadcrumbItem,
   ButtonComponent,
   InputComponent,
   DropdownComponent,
@@ -24,7 +22,7 @@ import {
   CabangService,
   formatRoleName,
 } from '../../../core';
-import { LucideEye, LucideEyeOff, LucideCircleAlert } from '@lucide/angular';
+import { LucideEye, LucideEyeOff, LucideCircleAlert, LucideArrowLeft } from '@lucide/angular';
 
 @Component({
   selector: 'app-karyawan-form',
@@ -33,7 +31,6 @@ import { LucideEye, LucideEyeOff, LucideCircleAlert } from '@lucide/angular';
     CommonModule,
     FormsModule,
     RouterModule,
-    BreadcrumbsComponent,
     ButtonComponent,
     InputComponent,
     DropdownComponent,
@@ -42,6 +39,7 @@ import { LucideEye, LucideEyeOff, LucideCircleAlert } from '@lucide/angular';
     LucideEye,
     LucideEyeOff,
     LucideCircleAlert,
+    LucideArrowLeft,
   ],
   templateUrl: './karyawan-form.component.html',
   styleUrl: './karyawan-form.component.css',
@@ -98,15 +96,6 @@ export class KaryawanFormComponent implements OnInit {
       label: b.nama,
     }))
   );
-
-  breadcrumbs = computed<BreadcrumbItem[]>(() => [
-    { label: 'Dashboard', url: '/dashboard' },
-    { label: 'Karyawan', url: '/master/karyawan' },
-    {
-      label: this.isEditMode() ? 'Edit Karyawan' : 'Tambah Karyawan',
-      active: true,
-    },
-  ]);
 
   pageTitle = computed<string>(() =>
     this.isEditMode() ? 'Edit Karyawan' : 'Tambah Karyawan'

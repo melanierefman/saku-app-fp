@@ -11,8 +11,6 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import {
-  BreadcrumbsComponent,
-  BreadcrumbItem,
   TableComponent,
   TableCellDirective,
   TableColumn,
@@ -43,7 +41,6 @@ import {
     CommonModule,
     FormsModule,
     RouterModule,
-    BreadcrumbsComponent,
     TableComponent,
     TableCellDirective,
     PaginationComponent,
@@ -67,11 +64,6 @@ export class PlafondListComponent implements OnInit {
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
-
-  breadcrumbs: BreadcrumbItem[] = [
-    { label: 'Dashboard', url: '/dashboard' },
-    { label: 'Plafond', active: true },
-  ];
 
   columns: TableColumn[] = [
     { key: 'no', header: 'No', width: '60px', align: 'center' },

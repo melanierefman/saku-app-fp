@@ -104,18 +104,75 @@ export const routes: Routes = [
       {
         path: 'verifikasi-customer',
         loadComponent: () =>
-          import('./pages/feature-placeholder/feature-placeholder.component').then(
-            (m) => m.FeaturePlaceholderComponent
-          ),
+          import(
+            './pages/backoffice/verifikasi-customer/verifikasi-customer-list/verifikasi-customer-list.component'
+          ).then((m) => m.VerifikasiCustomerListComponent),
         data: { title: 'Verifikasi Customer' },
       },
       {
+        path: 'verifikasi-customer/detail/:id',
+        loadComponent: () =>
+          import(
+            './pages/backoffice/verifikasi-customer/verifikasi-customer-detail/verifikasi-customer-detail.component'
+          ).then((m) => m.VerifikasiCustomerDetailComponent),
+        data: { title: 'Detail Verifikasi Customer' },
+      },
+      {
+        path: 'verifikasi-customer/:id',
+        redirectTo: 'verifikasi-customer/detail/:id',
+        pathMatch: 'full',
+      },
+      {
+        path: 'backoffice/verifikasi-customer',
+        redirectTo: 'verifikasi-customer',
+        pathMatch: 'full',
+      },
+      {
+        path: 'backoffice/verifikasi-customer/detail/:id',
+        redirectTo: 'verifikasi-customer/detail/:id',
+        pathMatch: 'full',
+      },
+      {
+        path: 'backoffice/verifikasi-customer/:id',
+        redirectTo: 'verifikasi-customer/detail/:id',
+        pathMatch: 'full',
+      },
+      // Backoffice Routes - Pencairan
+      {
         path: 'pencairan',
         loadComponent: () =>
-          import('./pages/feature-placeholder/feature-placeholder.component').then(
-            (m) => m.FeaturePlaceholderComponent
-          ),
-        data: { title: 'Pencairan' },
+          import(
+            './pages/backoffice/pencairan/pencairan-list/pencairan-list.component'
+          ).then((m) => m.PencairanListComponent),
+        data: { title: 'Pencairan Pinjaman' },
+      },
+      {
+        path: 'pencairan/detail/:id',
+        loadComponent: () =>
+          import(
+            './pages/backoffice/pencairan/pencairan-detail/pencairan-detail.component'
+          ).then((m) => m.PencairanDetailComponent),
+        data: { title: 'Detail Pencairan Pinjaman' },
+      },
+      {
+        path: 'pencairan/:id',
+        redirectTo: 'pencairan/detail/:id',
+        pathMatch: 'full',
+      },
+      {
+        path: 'backoffice/pencairan',
+        redirectTo: 'pencairan',
+        pathMatch: 'full',
+      },
+      {
+        path: 'backoffice/pencairan/detail/:id',
+        redirectTo: 'pencairan/detail/:id',
+        pathMatch: 'full',
+      },
+      {
+        path: 'backoffice/pencairan/:id',
+        redirectTo: 'pencairan/detail/:id',
+        pathMatch: 'full',
       },
 
       // Superadmin / RBAC Routes

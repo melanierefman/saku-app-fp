@@ -6,7 +6,7 @@ export interface BranchManagerPengajuanItemResponse {
   nomorPengajuan?: string;
   noPengajuan?: string;
   customerId?: string;
-  namaNasabah?: string;
+  namaCustomer?: string;
   customer?: string;
   nama?: string;
   email?: string;
@@ -105,7 +105,6 @@ export interface BranchManagerPengajuanDetailResponse {
   statusPekerjaanScoring?: string;
   penghasilanBulananScoring?: number;
   lamaBekerjaBulan?: number;
-  lamaJadiNasabahBulan?: number;
   cicilanBerjalan?: number;
   skor?: number;
   skorKredit?: number;

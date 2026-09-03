@@ -11,8 +11,6 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import {
-  BreadcrumbsComponent,
-  BreadcrumbItem,
   TableComponent,
   TableCellDirective,
   TableColumn,
@@ -41,6 +39,7 @@ import {
   LucideEye,
   LucideFileText,
 } from '@lucide/angular';
+import { formatDate as formatDateHelper } from '../../../shared/utils/date.util';
 
 @Component({
   selector: 'app-monitoring-pengajuan',
@@ -49,7 +48,6 @@ import {
     CommonModule,
     FormsModule,
     RouterModule,
-    BreadcrumbsComponent,
     TableComponent,
     TableCellDirective,
     PaginationComponent,
@@ -72,15 +70,10 @@ export class MonitoringPengajuanComponent implements OnInit {
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
 
-  breadcrumbs: BreadcrumbItem[] = [
-    { label: 'Dashboard', url: '/dashboard' },
-    { label: 'Monitoring Pengajuan', active: true },
-  ];
-
   columns: TableColumn[] = [
     { key: 'no', header: 'No', width: '60px', align: 'center' },
     { key: 'noPengajuan', header: 'No. Pengajuan', sortable: true },
-    { key: 'customer', header: 'Customer', sortable: true },
+    { key: 'customer', header: 'Nama Customer', sortable: true },
     { key: 'cabang', header: 'Cabang', sortable: true },
     { key: 'jumlahTenor', header: 'Jumlah & Tenor', sortable: true },
     { key: 'tanggalPengajuan', header: 'Tgl Pengajuan', sortable: true },
@@ -136,7 +129,7 @@ export class MonitoringPengajuanComponent implements OnInit {
       // 1. Search Query
       if (q) {
         const no = (item.noPengajuan || item.nomorPengajuan || '').toLowerCase();
-        const nama = (item.customer || item.namaNasabah || item.nama || '').toLowerCase();
+        const nama = (item.customer || item.namaCustomer || item.nama || '').toLowerCase();
         const email = (item.email || '').toLowerCase();
         const noHp = (item.noHp || '').toLowerCase();
         const nik = (item.nik || '').toLowerCase();
@@ -190,8 +183,8 @@ export class MonitoringPengajuanComponent implements OnInit {
           valA = this.getCabangName(a);
           valB = this.getCabangName(b);
         } else if (key === 'customer') {
-          valA = a.customer || a.namaNasabah || a.nama || '';
-          valB = b.customer || b.namaNasabah || b.nama || '';
+          valA = a.customer || a.namaCustomer || a.nama || '';
+          valB = b.customer || b.namaCustomer || b.nama || '';
         } else if (key === 'noPengajuan') {
           valA = a.noPengajuan || a.nomorPengajuan || '';
           valB = b.noPengajuan || b.nomorPengajuan || '';
@@ -316,7 +309,7 @@ export class MonitoringPengajuanComponent implements OnInit {
               ...item,
               ...detail,
               // Merge fallback values if some fields are not provided in detail endpoint
-              customer: detail.customer || item.customer || item.namaNasabah || item.nama,
+              customer: detail.customer || item.customer || item.namaCustomer || item.nama,
               email: detail.email || item.email,
               noHp: detail.noHp || item.noHp,
               nik: detail.nik || item.nik,
@@ -365,7 +358,7 @@ export class MonitoringPengajuanComponent implements OnInit {
       noPengajuan: item.noPengajuan || item.nomorPengajuan,
       status: item.status || 'MENUNGGU_REVIEW',
       tanggalPengajuan: item.tanggalPengajuan || item.createdDate || '-',
-      customer: item.customer || item.namaNasabah || item.nama,
+      customer: item.customer || item.namaCustomer || item.nama,
       email: item.email,
       noHp: item.noHp,
       nik: item.nik,
@@ -469,9 +462,8 @@ export class MonitoringPengajuanComponent implements OnInit {
     if (typeof d.customer === 'object' && d.customer?.nama) return d.customer.nama;
     if (typeof d.customer === 'object' && d.customer?.namaLengkap) return d.customer.namaLengkap;
     if (typeof d.customer === 'string' && d.customer) return d.customer;
-    if (d.nasabah?.namaLengkap) return d.nasabah.namaLengkap;
-    if (d.nasabah?.nama) return d.nasabah.nama;
-    if (d.namaNasabah) return d.namaNasabah;
+    if (d.namaLengkap) return d.namaLengkap;
+    if (d.namaCustomer) return d.namaCustomer;
     if (d.nama) return d.nama;
     return '-';
   }
@@ -481,7 +473,6 @@ export class MonitoringPengajuanComponent implements OnInit {
     if (!d) return '-';
     if (typeof d.customer === 'object' && d.customer?.nik) return d.customer.nik;
     if (d.nik) return d.nik;
-    if (d.nasabah?.nik) return d.nasabah.nik;
     return '-';
   }
 
@@ -490,7 +481,6 @@ export class MonitoringPengajuanComponent implements OnInit {
     if (!d) return '-';
     if (typeof d.customer === 'object' && d.customer?.noHp) return d.customer.noHp;
     if (d.noHp) return d.noHp;
-    if (d.nasabah?.noHp) return d.nasabah.noHp;
     return '-';
   }
 
@@ -499,7 +489,6 @@ export class MonitoringPengajuanComponent implements OnInit {
     if (!d) return '-';
     if (typeof d.customer === 'object' && d.customer?.email) return d.customer.email;
     if (d.email) return d.email;
-    if (d.nasabah?.email) return d.nasabah.email;
     return '-';
   }
 
@@ -508,7 +497,6 @@ export class MonitoringPengajuanComponent implements OnInit {
     if (!d) return '-';
     if (typeof d.customer === 'object' && d.customer?.alamat) return d.customer.alamat;
     if (d.alamat) return d.alamat;
-    if (d.nasabah?.alamat) return d.nasabah.alamat;
     return '-';
   }
 
@@ -517,7 +505,6 @@ export class MonitoringPengajuanComponent implements OnInit {
     if (!d) return 'Karyawan Swasta';
     if (typeof d.customer === 'object' && d.customer?.pekerjaan) return d.customer.pekerjaan;
     if (d.pekerjaan) return d.pekerjaan;
-    if (d.nasabah?.pekerjaan) return d.nasabah.pekerjaan;
     return 'Karyawan Swasta';
   }
 
@@ -527,7 +514,6 @@ export class MonitoringPengajuanComponent implements OnInit {
     if (typeof d.customer === 'object' && d.customer?.pendapatanBulanan)
       return d.customer.pendapatanBulanan;
     if (d.pendapatanBulanan) return d.pendapatanBulanan;
-    if (d.nasabah?.pendapatanBulanan) return d.nasabah.pendapatanBulanan;
     return null;
   }
 
@@ -537,7 +523,14 @@ export class MonitoringPengajuanComponent implements OnInit {
     if (typeof d.cabang === 'object' && d.cabang?.nama) return d.cabang.nama;
     if (typeof d.cabang === 'string' && d.cabang) return d.cabang;
     if (d.cabangNama) return d.cabangNama;
+    if (typeof d.cabang === 'string') return d.cabang;
     return 'Kantor Pusat';
+  }
+
+  getDetailTujuan(): string {
+    const d = this.selectedDetail();
+    if (!d) return '-';
+    return d.tujuanPinjaman || d.tujuan || d.keperluan || 'Modal Usaha / Konsumtif';
   }
 
   getDetailJumlah(): number {
@@ -562,7 +555,6 @@ export class MonitoringPengajuanComponent implements OnInit {
       d.skor ??
       d.customer?.skorKredit ??
       d.customer?.skor ??
-      d.nasabah?.skorKredit ??
       null;
 
     if (val !== null && val !== undefined && !isNaN(Number(val))) {
@@ -586,7 +578,6 @@ export class MonitoringPengajuanComponent implements OnInit {
       d.scoring?.rekomendasiPlafond ??
       d.rekomendasiPlafond ??
       d.customer?.rekomendasiPlafond ??
-      d.nasabah?.rekomendasiPlafond ??
       '';
 
     if (val) return String(val);
@@ -608,7 +599,6 @@ export class MonitoringPengajuanComponent implements OnInit {
       d.scoring?.dbr ??
       d.dbr ??
       d.customer?.dbr ??
-      d.nasabah?.dbr ??
       null;
 
     if (val !== null && val !== undefined && !isNaN(Number(val))) {
@@ -637,8 +627,6 @@ export class MonitoringPengajuanComponent implements OnInit {
       d.customer?.lamaKerja ??
       d.customer?.masaKerja ??
       d.customer?.lamaBekerjaBulan ??
-      d.nasabah?.lamaBekerja ??
-      d.nasabah?.lamaKerja ??
       d.scoring?.lamaBekerja ??
       d.scoring?.lamaKerja ??
       d.scoring?.masaKerja ??
@@ -688,20 +676,7 @@ export class MonitoringPengajuanComponent implements OnInit {
   }
 
   formatDate(dateStr: string | null | undefined): string {
-    if (!dateStr) return '-';
-    try {
-      const date = new Date(dateStr);
-      if (isNaN(date.getTime())) return dateStr;
-      return date.toLocaleDateString('id-ID', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    } catch {
-      return dateStr;
-    }
+    return formatDateHelper(dateStr);
   }
 
   getStatusBadgeVariant(status?: string, hasilReview?: string): BadgeVariant {

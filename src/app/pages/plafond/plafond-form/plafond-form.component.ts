@@ -10,8 +10,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {
-  BreadcrumbsComponent,
-  BreadcrumbItem,
   ButtonComponent,
   InputComponent,
   InputNumberComponent,
@@ -21,7 +19,7 @@ import {
   ToastService,
 } from '../../../shared/components';
 import { Plafond, PlafondRequest, PlafondService } from '../../../core';
-import { LucideCircleAlert } from '@lucide/angular';
+import { LucideCircleAlert, LucideArrowLeft } from '@lucide/angular';
 
 @Component({
   selector: 'app-plafond-form',
@@ -30,7 +28,6 @@ import { LucideCircleAlert } from '@lucide/angular';
     CommonModule,
     FormsModule,
     RouterModule,
-    BreadcrumbsComponent,
     ButtonComponent,
     InputComponent,
     InputNumberComponent,
@@ -38,6 +35,7 @@ import { LucideCircleAlert } from '@lucide/angular';
     RadioComponent,
     ModalComponent,
     LucideCircleAlert,
+    LucideArrowLeft,
   ],
   templateUrl: './plafond-form.component.html',
   styleUrl: './plafond-form.component.css',
@@ -77,15 +75,6 @@ export class PlafondFormComponent implements OnInit {
   bungaError: string = '';
   biayaAdminError: string = '';
   statusError: string = '';
-
-  breadcrumbs = computed<BreadcrumbItem[]>(() => [
-    { label: 'Dashboard', url: '/dashboard' },
-    { label: 'Plafond', url: '/master/plafond' },
-    {
-      label: this.isEditMode() ? 'Edit Plafond' : 'Tambah Plafond',
-      active: true,
-    },
-  ]);
 
   pageTitle = computed<string>(() =>
     this.isEditMode() ? 'Edit Plafond' : 'Tambah Plafond'

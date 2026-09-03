@@ -1,19 +1,18 @@
-<div class="space-y-6">
-  <!-- Page Header & Breadcrumbs -->
-  <div class="space-y-2">
-    <app-breadcrumbs [items]="breadcrumbs"></app-breadcrumbs>
+<div class="space-y-4 pb-12">
+  <!-- Page Header -->
+  <div class="flex flex-col gap-2">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold text-neutral-90 tracking-tight">Persetujuan Pinjaman</h1>
-        <p class="text-sm text-neutral-40 mt-1">
-          Tinjau dan berikan persetujuan akhir pengajuan pinjaman nasabah cabang.
+        <h1 class="text-2xl font-semibold text-neutral-90 tracking-tight">Persetujuan Pinjaman</h1>
+        <p class="text-sm text-neutral-40 mt-0.5">
+          Tinjau dan berikan persetujuan akhir pengajuan pinjaman customer cabang
         </p>
       </div>
     </div>
   </div>
 
   <!-- Main Card Container (Single Integrated Container) -->
-  <div class="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs">
+  <div class="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs overflow-hidden">
     <!-- Toolbar Filters & Action -->
     <div class="p-4 flex flex-wrap items-center justify-between gap-3.5">
       <!-- Left Filters -->
@@ -64,28 +63,28 @@
 
       <!-- Custom Cell: No. Pengajuan (Plain text sticky column with right border) -->
       <ng-template appTableCell="noPengajuan" let-row="row">
-        <span class="font-mono text-sm text-neutral-90 font-medium">
+        <span class="text-sm text-neutral-90 font-medium">
           {{ row.noPengajuan || row.nomorPengajuan || '-' }}
         </span>
       </ng-template>
 
       <!-- Custom Cell: Customer -->
       <ng-template appTableCell="customer" let-row="row">
-        <div class="flex flex-col">
+        <div class="flex items-center gap-3">
+          <div
+            class="w-8 h-8 rounded-full bg-primary-0 text-primary flex items-center justify-center font-semibold text-xs shrink-0">
+            {{ ((row.customer || row.namaLengkap || row.namaCustomer || 'C').trim().substring(0, 1) ||
+            'C').toUpperCase() }}
+          </div>
           <span class="font-medium text-neutral-90 text-sm">
-            {{ row.customer || row.namaLengkap || row.namaNasabah || '-' }}
+            {{ row.customer || row.namaLengkap || row.namaCustomer || '-' }}
           </span>
-          @if (row.email || row.noHp) {
-          <span class="text-xs text-neutral-40 mt-0.5">
-            {{ row.email || row.noHp }}
-          </span>
-          }
         </div>
       </ng-template>
 
       <!-- Custom Cell: Jumlah Pinjaman -->
       <ng-template appTableCell="jumlah" let-row="row">
-        <span class="text-sm font-medium text-neutral-90">
+        <span class="text-sm font-semibold text-primary">
           {{ formatCurrency(row.jumlah ?? row.jumlahPinjaman ?? row.nominalPinjaman ?? row.nominal) }}
         </span>
       </ng-template>

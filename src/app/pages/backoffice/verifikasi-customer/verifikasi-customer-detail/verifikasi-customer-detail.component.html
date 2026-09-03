@@ -1,0 +1,426 @@
+<div class="space-y-4 max-w-7xl mx-auto">
+  <!-- Top Navigation & Header -->
+  <div class="space-y-3 shrink-0">
+    <button type="button" (click)="goBack()"
+      class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-70 hover:text-neutral-90 hover:bg-neutral-0/80 rounded-lg transition-colors cursor-pointer border border-[#E5E7EB] bg-white self-start shadow-2xs">
+      <svg lucideArrowLeft [size]="14" class="w-3.5 h-3.5"></svg>
+      <span>Kembali</span>
+    </button>
+
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2.5">
+          <h1 class="text-2xl font-bold text-neutral-90 tracking-tight">
+            {{ detail()?.namaLengkap || detail()?.namaCustomer || 'Data Customer' }}
+          </h1>
+          <span [class]="getStatusPillClass()"
+            class="px-2.5 py-0.5 rounded-full text-xs font-medium uppercase tracking-wider">
+            {{ getStatusDisplayLabel() }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+  <!-- Skeleton Loading State -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+    <div class="lg:col-span-2 space-y-6">
+      <div class="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-xs animate-pulse space-y-4">
+        <div class="h-6 bg-neutral-10 rounded w-1/3"></div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="h-44 bg-neutral-10 rounded-xl"></div>
+          <div class="h-44 bg-neutral-10 rounded-xl"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-4 pt-4">
+          <div class="h-4 bg-neutral-10 rounded w-3/4"></div>
+          <div class="h-4 bg-neutral-10 rounded w-2/3"></div>
+        </div>
+      </div>
+    </div>
+    <div class="space-y-5">
+      <div class="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-xs animate-pulse space-y-4">
+        <div class="h-5 bg-neutral-10 rounded w-1/2"></div>
+        <div class="h-10 bg-neutral-10 rounded-xl"></div>
+        <div class="h-24 bg-neutral-10 rounded-xl"></div>
+        <div class="h-10 bg-neutral-10 rounded-xl"></div>
+      </div>
+    </div>
+  </div>
+  } @else if (detail()) {
+  <!-- Main 2-Column Content Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+
+    <!-- LEFT COLUMN -->
+    <div class="lg:col-span-2 space-y-6 lg:overflow-y-auto lg:h-[calc(100vh-170px)] lg:pr-2 lg:pb-8 custom-scrollbar">
+
+      <!-- CARD 1: DOKUMEN FOTO KYC (SELFIE & KTP) -->
+      <div class="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-xs space-y-5">
+        <div class="flex items-center justify-between pb-3 border-b border-[#F3F4F6]">
+          <div class="flex items-center gap-2.5">
+            <div class="w-7 h-7 rounded-lg bg-primary-10 text-primary flex items-center justify-center shrink-0">
+              <svg lucideShieldCheck [size]="16" class="w-4 h-4"></svg>
+            </div>
+            <div>
+              <h2 class="text-base font-semibold text-neutral-90">Dokumen Verifikasi KYC</h2>
+              <p class="text-xs text-neutral-40 mt-0.5">Periksa keaslian dan kesesuaian foto selfie dengan KTP customer
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2 Photo Grid: Foto Selfie & Foto KTP -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <!-- Foto Selfie -->
+          <div
+            class="bg-[#F9FAFB] border border-[#E5E7EB] rounded-2xl p-4 flex flex-col items-center text-center group relative overflow-hidden">
+            <span class="text-xs font-semibold text-neutral-70 block mb-2.5">Foto Selfie Customer</span>
+            <div
+              class="w-full h-52 rounded-xl bg-white border border-[#E5E7EB] overflow-hidden flex items-center justify-center relative cursor-pointer"
+              (click)="openInNewTab(detail()?.fotoSelfie)" title="Klik untuk buka di tab baru">
+              @if (detail()?.fotoSelfie && !selfieError()) {
+              <img [src]="getFotoUrl(detail()?.fotoSelfie)" alt="Foto Selfie Customer" (error)="selfieError.set(true)"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+              <div
+                class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white">
+                <svg lucideExternalLink [size]="18" class="w-4.5 h-4.5"></svg>
+                <span class="text-xs font-medium">Buka Tab Baru</span>
+              </div>
+              } @else {
+              <div class="flex flex-col items-center justify-center text-neutral-30 p-4">
+                <svg lucideUser [size]="48" class="w-12 h-12 mb-2 text-neutral-30"></svg>
+                <span class="text-xs text-neutral-40">Foto selfie tidak tersedia</span>
+              </div>
+              }
+            </div>
+            <div class="w-full flex items-center justify-between mt-3 pt-2 border-t border-[#E5E7EB]/60 text-xs">
+              <span class="text-neutral-40">Tipe: Foto Wajah</span>
+              @if (detail()?.fotoSelfie) {
+              <button type="button" (click)="openInNewTab(detail()?.fotoSelfie)"
+                class="text-primary hover:text-primary-60 font-medium flex items-center gap-1 cursor-pointer">
+                <span>Buka Tab Baru</span>
+                <svg lucideExternalLink [size]="12" class="w-3 h-3"></svg>
+              </button>
+              }
+            </div>
+          </div>
+
+          <!-- Foto KTP -->
+          <div
+            class="bg-[#F9FAFB] border border-[#E5E7EB] rounded-2xl p-4 flex flex-col items-center text-center group relative overflow-hidden">
+            <span class="text-xs font-semibold text-neutral-70 block mb-2.5">Foto e-KTP Asli</span>
+            <div
+              class="w-full h-52 rounded-xl bg-white border border-[#E5E7EB] overflow-hidden flex items-center justify-center relative cursor-pointer"
+              (click)="openInNewTab(detail()?.fotoKtp)" title="Klik untuk buka di tab baru">
+              @if (detail()?.fotoKtp && !ktpError()) {
+              <img [src]="getFotoUrl(detail()?.fotoKtp)" alt="Foto KTP Customer" (error)="ktpError.set(true)"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+              <div
+                class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white">
+                <svg lucideExternalLink [size]="18" class="w-4.5 h-4.5"></svg>
+                <span class="text-xs font-medium">Buka Tab Baru</span>
+              </div>
+              } @else {
+              <div class="flex flex-col items-center justify-center text-neutral-30 p-4">
+                <svg lucideCreditCard [size]="48" class="w-12 h-12 mb-2 text-neutral-30"></svg>
+                <span class="text-xs text-neutral-40">Foto KTP tidak tersedia</span>
+              </div>
+              }
+            </div>
+            <div class="w-full flex items-center justify-between mt-3 pt-2 border-t border-[#E5E7EB]/60 text-xs">
+              <span class="text-neutral-40">Tipe: Kartu Identitas</span>
+              @if (detail()?.fotoKtp) {
+              <button type="button" (click)="openInNewTab(detail()?.fotoKtp)"
+                class="text-primary hover:text-primary-60 font-medium flex items-center gap-1 cursor-pointer">
+                <span>Buka Tab Baru</span>
+                <svg lucideExternalLink [size]="12" class="w-3 h-3"></svg>
+              </button>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 2: INFORMASI CUSTOMER (DATA PRIBADI & KONTAK) -->
+      <div class="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-xs space-y-5">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-[#F3F4F6]">
+          <div class="w-7 h-7 rounded-lg bg-primary-10 text-primary flex items-center justify-center shrink-0">
+            <svg lucideUser [size]="16" class="w-4 h-4"></svg>
+          </div>
+          <h2 class="text-base font-semibold text-neutral-90">Informasi Customer</h2>
+        </div>
+
+        <!-- Customer Info 2-Column Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 text-xs">
+          <div>
+            <span class="text-neutral-40 block mb-0.5">Nama Lengkap</span>
+            <span class="font-medium text-neutral-90 text-sm block">
+              {{ detail()?.namaLengkap || detail()?.namaCustomer || '-' }}
+            </span>
+          </div>
+          <div>
+            <span class="text-neutral-40 block mb-0.5">NIK</span>
+            <span class="font-medium text-neutral-90 text-sm block">
+              {{ detail()?.nik || '-' }}
+            </span>
+          </div>
+          <div>
+            <span class="text-neutral-40 block mb-0.5">Username Akun</span>
+            <span class="font-medium text-neutral-90 text-sm block">
+              {{ detail()?.username || '-' }}
+            </span>
+          </div>
+          <div>
+            <span class="text-neutral-40 block mb-0.5">Email</span>
+            <span class="font-medium text-neutral-90 text-sm block">
+              {{ detail()?.email || '-' }}
+            </span>
+          </div>
+          <div>
+            <span class="text-neutral-40 block mb-0.5">No. Handphone</span>
+            <span class="font-medium text-neutral-90 text-sm block">
+              {{ detail()?.noHp || '-' }}
+            </span>
+          </div>
+          <div>
+            <span class="text-neutral-40 block mb-0.5">Tanggal Register</span>
+            <span class="font-medium text-neutral-90 text-sm block">
+              {{ formatDate(detail()?.tanggalRegister || detail()?.tanggalPengajuan || detail()?.createdDate) }}
+            </span>
+          </div>
+
+          <!-- Alamat KTP & Domisili -->
+          <div class="sm:col-span-2">
+            <span class="text-neutral-40 block mb-0.5">Alamat KTP</span>
+            <span class="font-medium text-neutral-90 text-sm leading-relaxed block">
+              {{ detail()?.alamatKtp?.formattedAddress || detail()?.alamatKtp?.alamatLengkap || '-' }}
+            </span>
+          </div>
+          <div class="sm:col-span-2">
+            <span class="text-neutral-40 block mb-0.5">Alamat Domisili</span>
+            <span class="font-medium text-neutral-90 text-sm leading-relaxed block">
+              {{ detail()?.alamatDomisili?.formattedAddress || detail()?.alamatDomisili?.alamatLengkap || '-' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 3: INFORMASI PEKERJAAN & KEUANGAN -->
+      <div class="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-xs space-y-5">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-[#F3F4F6]">
+          <div class="w-7 h-7 rounded-lg bg-primary-10 text-primary flex items-center justify-center shrink-0">
+            <svg lucideBriefcase [size]="16" class="w-4 h-4"></svg>
+          </div>
+          <h2 class="text-base font-semibold text-neutral-90">Informasi Pekerjaan & Keuangan</h2>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 text-xs">
+          <div>
+            <span class="text-neutral-40 block mb-0.5">Bidang / Profesi Pekerjaan</span>
+            <span class="font-medium text-neutral-90 text-sm block">
+              {{ detail()?.pekerjaan || '-' }}
+            </span>
+          </div>
+          <div>
+            <span class="text-neutral-40 block mb-0.5">Nama Perusahaan / Tempat Kerja</span>
+            <span class="font-medium text-neutral-90 text-sm block">
+              {{ detail()?.tempatKerja || '-' }}
+            </span>
+          </div>
+          <div>
+            <span class="text-neutral-40 block mb-0.5">Status Kepegawaian</span>
+            <span class="font-medium text-neutral-90 text-sm block">
+              {{ formatStatusPekerjaan(detail()?.statusPekerjaan) }}
+            </span>
+          </div>
+          <div>
+            <span class="text-neutral-40 block mb-0.5">Penghasilan Bulanan</span>
+            <span class="font-bold text-primary text-sm block">
+              {{ formatCurrency(detail()?.penghasilanBulanan || detail()?.pendapatan) }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="space-y-4">
+
+      <!-- 1. PANEL FORM KEPUTUSAN VERIFIKASI BACKOFFICE -->
+      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs space-y-4">
+        <div class="flex items-center gap-2 pb-3 border-b border-[#F3F4F6]">
+          <div class="w-6 h-6 rounded-md bg-primary-10 text-primary flex items-center justify-center shrink-0">
+            <svg lucideShieldCheck [size]="14" class="w-3.5 h-3.5"></svg>
+          </div>
+          <h2 class="text-xs font-semibold text-neutral-80 uppercase tracking-wider">
+            Keputusan Verifikasi KYC
+          </h2>
+        </div>
+
+        @if (isPending()) {
+        <!-- State: Menunggu Verifikasi (Form Input Aktif) -->
+        <div class="space-y-4">
+          <!-- Input Status Verifikasi Dropdown -->
+          <div class="space-y-1.5">
+            <label class="block text-xs font-medium text-neutral-70">
+              Status Verifikasi <span class="text-error-50">*</span>
+            </label>
+            <app-dropdown [options]="statusVerifikasiOptions" placeholder="Pilih Keputusan Verifikasi"
+              [ngModel]="selectedStatusVerifikasi()" (optionChange)="onStatusChange($event)">
+            </app-dropdown>
+          </div>
+
+          <!-- Input Catatan Verifikasi -->
+          <div class="space-y-1.5">
+            <label class="block text-xs font-medium text-neutral-70">
+              Catatan Verifikasi <span class="text-error-50">*</span>
+            </label>
+            <textarea rows="3" [ngModel]="catatanVerifikasi()" (ngModelChange)="catatanVerifikasi.set($event)"
+              placeholder="Tuliskan catatan verifikasi, alasan persetujuan, revisi berkas, atau penolakan..."
+              class="w-full text-xs p-3 border border-[#E5E7EB] rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all resize-none bg-[#F9FAFB] focus:bg-white text-neutral-90">
+            </textarea>
+          </div>
+
+          <!-- Submit Action Button -->
+          <button type="button" (click)="openConfirmModal()"
+            [disabled]="isSubmitting() || !selectedStatusVerifikasi() || !catatanVerifikasi().trim()"
+            class="w-full py-3 px-4 bg-primary hover:bg-primary-60 disabled:bg-neutral-20 disabled:cursor-not-allowed text-white font-semibold text-xs rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer">
+            @if (isSubmitting()) {
+            <div class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <span>Menyimpan Keputusan...</span>
+            } @else {
+            <svg lucideSend [size]="14" class="w-3.5 h-3.5"></svg>
+            <span>Kirim Keputusan Verifikasi</span>
+            }
+          </button>
+        </div>
+        } @else {
+        <!-- State: Sudah Diverifikasi (Ringkasan Keputusan Elegan) -->
+        <div class="p-4 rounded-xl text-xs space-y-3 bg-[#F9FAFB] border border-[#E5E7EB]">
+          <div class="flex items-center justify-between">
+            <span class="text-neutral-50 text-xs font-medium">Hasil Verifikasi</span>
+            <span [class]="getStatusPillClass()"
+              class="px-2.5 py-0.5 rounded-full text-[11px] font-medium uppercase tracking-wider">
+              {{ getStatusDisplayLabel() }}
+            </span>
+          </div>
+
+          @if (detail()?.catatanVerifikasi) {
+          <div class="space-y-1 pt-1">
+            <span class="text-neutral-40 text-[11px] block">Catatan Verifikator:</span>
+            <p class="text-neutral-80 font-medium text-xs italic bg-white p-3 rounded-lg border border-[#E5E7EB]">
+              "{{ detail()?.catatanVerifikasi }}"
+            </p>
+          </div>
+          }
+
+          <div class="pt-2 border-t border-[#E5E7EB]/60 text-[11px] text-neutral-40 flex items-center justify-between">
+            <span>Petugas: <strong class="text-neutral-70 font-semibold">Tim Backoffice</strong></span>
+            <span>{{ formatDate(detail()?.tanggalVerifikasi || detail()?.createdDate) }}</span>
+          </div>
+        </div>
+        }
+      </div>
+
+      <!-- 3. RIWAYAT VERIFIKASI & AKTIVITAS -->
+      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs space-y-4">
+        <div class="flex items-center gap-2 pb-2.5 border-b border-[#F3F4F6]">
+          <div class="w-6 h-6 rounded-md bg-neutral-0 text-neutral-60 flex items-center justify-center shrink-0">
+            <svg lucideClock [size]="14" class="w-3.5 h-3.5"></svg>
+          </div>
+          <span class="text-[11px] font-semibold text-neutral-50 uppercase tracking-wider block">
+            Riwayat Verifikasi
+          </span>
+        </div>
+
+        <div
+          class="relative pl-5 space-y-4 before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-[#E5E7EB]">
+          <!-- Event 1: Customer Register -->
+          <div class="relative">
+            <div class="absolute -left-[19px] top-1 w-2.5 h-2.5 rounded-full bg-success-50 ring-4 ring-white"></div>
+            <span class="text-xs font-semibold text-neutral-90 block">Registrasi Akun Customer</span>
+            <span class="text-[11px] text-neutral-40 block mt-0.5">
+              {{ formatDate(detail()?.tanggalRegister || detail()?.tanggalPengajuan || detail()?.createdDate) }} &bull;
+              Customer
+            </span>
+          </div>
+
+          <!-- Event 2: Verifikasi Backoffice (Jika sudah ada tanggal verifikasi) -->
+          @if (detail()?.tanggalVerifikasi) {
+          <div class="relative">
+            <div class="absolute -left-[19px] top-1 w-2.5 h-2.5 rounded-full bg-primary ring-4 ring-white"></div>
+            <span class="text-xs font-semibold text-neutral-90 block">
+              Diverifikasi: {{ getStatusDisplayLabel(detail()?.statusVerifikasi) }}
+            </span>
+            <span class="text-[11px] text-neutral-40 block mt-0.5">
+              {{ formatDate(detail()?.tanggalVerifikasi) }} &bull; {{ detail()?.namaVerifikator || 'Tim Backoffice' }}
+            </span>
+          </div>
+          } @else {
+          <div class="relative">
+            <div class="absolute -left-[19px] top-1 w-2.5 h-2.5 rounded-full bg-warning-40 ring-4 ring-white"></div>
+            <span class="text-xs font-semibold text-warning-70 block">Menunggu Verifikasi Backoffice</span>
+            <span class="text-[11px] text-neutral-40 block mt-0.5">
+              Berkas identitas sedang dalam antrean verifikasi
+            </span>
+          </div>
+          }
+        </div>
+      </div>
+
+    </div>
+  </div>
+  } @else {
+  <!-- Not Found State -->
+  <div class="bg-white border border-[#E5E7EB] rounded-2xl p-12 text-center max-w-lg mx-auto">
+    <div class="w-12 h-12 rounded-full bg-error-0 text-error-50 flex items-center justify-center mx-auto mb-3">
+      <svg lucideAlertCircle [size]="24" class="w-6 h-6"></svg>
+    </div>
+    <h3 class="text-base font-bold text-neutral-90">Data Customer Tidak Ditemukan</h3>
+    <p class="text-sm text-neutral-40 mt-1 mb-4">Data customer atau berkas KYC yang dicari tidak tersedia.</p>
+    <a routerLink="/verifikasi-customer"
+      class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white text-xs font-semibold rounded-xl hover:bg-primary-60 transition-colors">
+      Kembali ke Daftar Verifikasi
+    </a>
+  </div>
+  }
+
+  <!-- Modal Konfirmasi Verifikasi -->
+  <app-modal [isOpen]="isConfirmModalOpen()" variant="confirm"
+    [icon]="selectedStatusVerifikasi() === 'REJECTED' ? 'error' : 'alert'" title="Konfirmasi Verifikasi Customer"
+    confirmText="Ya, Kirim Keputusan" cancelText="Batal"
+    [confirmVariant]="selectedStatusVerifikasi() === 'REJECTED' ? 'error' : 'primary'" [loading]="isSubmitting()"
+    (confirm)="confirmSubmitVerifikasi()" (close)="closeConfirmModal()" (cancel)="closeConfirmModal()">
+    <p class="text-sm text-neutral-80 leading-relaxed">
+      Apakah Anda yakin ingin mengirim keputusan verifikasi
+      <span class="font-semibold"
+        [ngClass]="selectedStatusVerifikasi() === 'REJECTED' ? 'text-error-70' : 'text-primary'">
+        "{{ getStatusDisplayLabel(selectedStatusVerifikasi()) }}"
+      </span>
+      untuk customer
+      <span class="font-semibold text-neutral-90">"{{ detail()?.namaLengkap || detail()?.namaCustomer || 'Customer'
+        }}"</span>?
+    </p>
+  </app-modal>
+
+  <!-- Modal Lightbox Preview Foto -->
+  <app-modal [isOpen]="isImageModalOpen()" variant="custom" size="lg" [title]="previewImageTitle()" [showFooter]="false"
+    (close)="closeImageModal()">
+    <div class="flex flex-col items-center justify-center p-2">
+      <img [src]="previewImageUrl()" [alt]="previewImageTitle()"
+        class="max-w-full max-h-[70vh] rounded-xl object-contain shadow-sm border border-[#E5E7EB]" />
+      <div class="mt-4 flex items-center gap-3">
+        <a [href]="previewImageUrl()" target="_blank" rel="noopener noreferrer"
+          class="px-4 py-2 bg-primary text-white text-xs font-semibold rounded-xl hover:bg-primary-60 transition-colors inline-flex items-center gap-1.5">
+          <svg lucideExternalLink [size]="14" class="w-3.5 h-3.5"></svg>
+          <span>Buka di Tab Baru</span>
+        </a>
+        <button type="button" (click)="closeImageModal()"
+          class="px-4 py-2 bg-neutral-0 text-neutral-80 text-xs font-semibold rounded-xl hover:bg-neutral-10 transition-colors">
+          Tutup
+        </button>
+      </div>
+    </div>
+  </app-modal>
+</div>

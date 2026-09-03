@@ -111,8 +111,8 @@ export class MonitoringPengajuanService {
       pengajuanId: item.pengajuanId || item.id || '',
       noPengajuan: item.noPengajuan || item.nomorPengajuan || '',
       nomorPengajuan: item.noPengajuan || item.nomorPengajuan || '',
-      customer: item.customer || item.namaNasabah || item.nama || '',
-      namaNasabah: item.customer || item.namaNasabah || item.nama || '',
+      customer: item.customer || item.namaCustomer || item.nama || '',
+      namaCustomer: item.customer || item.namaCustomer || item.nama || '',
       jumlah: item.jumlah ?? item.nominalPinjaman ?? item.nominal ?? 0,
       nominalPinjaman: item.jumlah ?? item.nominalPinjaman ?? item.nominal ?? 0,
     };
