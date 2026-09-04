@@ -1,0 +1,13 @@
+:host {
+  display: block;
+}
+
+.card-icon-box:empty,
+.card-icon-box:not(:has(*)) {
+  display: none !important;
+}
+
+.card-actions-box:empty,
+.card-actions-box:not(:has(*)) {
+  display: none !important;
+}

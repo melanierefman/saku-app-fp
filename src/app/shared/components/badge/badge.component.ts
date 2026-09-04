@@ -9,6 +9,11 @@ export type BadgeVariant =
   | 'success'
   | 'warning'
   | 'error'
+  | 'purple'
+  | 'indigo'
+  | 'info'
+  | 'cyan'
+  | 'orange'
   | 'outline'
   | 'solid-primary'
   | 'solid-neutral'
@@ -33,6 +38,7 @@ export class BadgeComponent {
   @Input() dot: boolean = false;
   @Input() dotPulse: boolean = false;
   @Input() removable: boolean = false;
+  @Input() wrap: boolean = false;
   @Input() ariaLabel?: string;
 
   @Output() removed = new EventEmitter<void>();
@@ -50,13 +56,19 @@ export class BadgeComponent {
 
   get badgeClasses(): string {
     const classes: string[] = [
-      'inline-flex items-center font-medium tracking-tight select-none whitespace-nowrap transition-colors duration-150',
+      'inline-flex items-center font-medium tracking-tight select-none transition-colors duration-150',
     ];
+
+    if (this.wrap) {
+      classes.push('whitespace-normal text-center leading-snug');
+    } else {
+      classes.push('whitespace-nowrap');
+    }
 
     // Sizes
     switch (this.size) {
       case 'sm':
-        classes.push('px-2 py-0.5 text-[11px] gap-1');
+        classes.push(this.wrap ? 'px-2 py-1 text-[11px] gap-1' : 'px-2 py-0.5 text-[11px] gap-1');
         break;
       case 'md':
         classes.push('px-2.5 py-0.5 text-xs gap-1.5');
@@ -111,8 +123,23 @@ export class BadgeComponent {
       case 'solid-error':
         classes.push('bg-error text-white shadow-xs');
         break;
+      case 'purple':
+        classes.push('bg-purple-50 text-purple-700 border border-purple-200');
+        break;
+      case 'indigo':
+        classes.push('bg-indigo-50 text-indigo-700 border border-indigo-200');
+        break;
+      case 'info':
+        classes.push('bg-blue-50 text-blue-700 border border-blue-200');
+        break;
+      case 'cyan':
+        classes.push('bg-cyan-50 text-cyan-700 border border-cyan-200');
+        break;
+      case 'orange':
+        classes.push('bg-orange-50 text-orange-700 border border-orange-200');
+        break;
       case 'outline':
-        classes.push('bg-white text-neutral-50 border border-neutral-20');
+        classes.push('bg-white text-neutral-50 border border-neutral-200');
         break;
     }
 
@@ -138,6 +165,16 @@ export class BadgeComponent {
       case 'error':
       case 'solid-error':
         return `${base} bg-error`;
+      case 'purple':
+        return `${base} bg-purple-600`;
+      case 'indigo':
+        return `${base} bg-indigo-600`;
+      case 'info':
+        return `${base} bg-blue-600`;
+      case 'cyan':
+        return `${base} bg-cyan-600`;
+      case 'orange':
+        return `${base} bg-orange-600`;
     }
   }
 
@@ -160,6 +197,16 @@ export class BadgeComponent {
       case 'error':
       case 'solid-error':
         return `${base} bg-error`;
+      case 'purple':
+        return `${base} bg-purple-600`;
+      case 'indigo':
+        return `${base} bg-indigo-600`;
+      case 'info':
+        return `${base} bg-blue-600`;
+      case 'cyan':
+        return `${base} bg-cyan-600`;
+      case 'orange':
+        return `${base} bg-orange-600`;
     }
   }
 }

@@ -1,6 +1,6 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
-import { UserProfile, LoginResponseData } from '../models/auth.models';
-import { TokenService } from '../services/token.service';
+import { UserProfile, LoginResponseData } from '../models/auth/auth.models';
+import { TokenService } from '../services/auth/token.service';
 
 @Injectable({
   providedIn: 'root',

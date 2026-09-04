@@ -790,7 +790,55 @@
   </section>
 
   <!-- ========================================== -->
-  <!-- 14. COLOR TOKENS SECTION -->
+  <!-- 14. CARD COMPONENT SECTION -->
+  <!-- ========================================== -->
+  <section class="space-y-6">
+    <div class="border-b border-neutral-10 pb-2">
+      <h2 class="text-lg font-bold text-neutral-100">Card Component</h2>
+      <p class="text-xs text-neutral-40">app-card — Komponen seragam untuk panel detail, form keputusan, dan riwayat aktivitas</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+      <!-- 1. Default Card with Icon & Title -->
+      <app-card title="Informasi Customer" iconVariant="primary">
+        <svg card-icon lucideUser [size]="16" class="w-4 h-4"></svg>
+        <div class="text-xs space-y-2 text-neutral-70">
+          <p>Standard card panel dengan icon badge, header border, dan rounded 2xl border seragam.</p>
+          <div class="grid grid-cols-2 gap-2 pt-1 font-medium">
+            <div>Nama: <span class="text-neutral-90 font-semibold">Budi Santoso</span></div>
+            <div>NIK: <span class="text-neutral-90 font-semibold">3171012345670001</span></div>
+          </div>
+        </div>
+      </app-card>
+
+      <!-- 2. Card with Subtitle & Header Actions -->
+      <app-card title="Dokumen Verifikasi KYC" subtitle="Periksa keaslian dan kesesuaian dokumen" iconVariant="success">
+        <svg card-icon lucideShieldCheck [size]="16" class="w-4 h-4"></svg>
+        <div card-actions>
+          <app-badge variant="success" size="sm">Terverifikasi</app-badge>
+        </div>
+        <p class="text-xs text-neutral-60 leading-relaxed">
+          Card ini mendemonstrasikan slot <code>subtitle</code> dan slot <code>card-actions</code> di pojok kanan atas header.
+        </p>
+      </app-card>
+
+      <!-- 3. Icon Variants (Warning & Error) -->
+      <app-card title="Riwayat & Catatan Peringatan" iconVariant="warning">
+        <svg card-icon lucideClock [size]="16" class="w-4 h-4"></svg>
+        <p class="text-xs text-neutral-60">
+          Varian icon warna peringatan (<code>iconVariant="warning"</code>). Tersedia juga <code>success</code>, <code>error</code>, <code>info</code>, dan <code>neutral</code>.
+        </p>
+      </app-card>
+
+      <!-- 4. Skeleton Loading State -->
+      <app-card title="Card Skeleton State" [loading]="true">
+        <p>Loading State</p>
+      </app-card>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- 15. COLOR TOKENS SECTION -->
   <!-- ========================================== -->
   <section class="space-y-6">
     <div class="border-b border-neutral-10 pb-2">

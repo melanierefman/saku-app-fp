@@ -2,8 +2,8 @@ import { inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map, timeout, of, catchError } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ApiResponse } from '../models/auth.models';
-import { PageResponse } from '../models/karyawan.model';
+import { ApiResponse } from '../models/auth/auth.models';
+import { PageResponse } from '../models/superadmin/karyawan.model';
 
 export abstract class BaseApiService<
   T,

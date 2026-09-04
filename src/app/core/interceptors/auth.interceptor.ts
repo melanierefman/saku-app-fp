@@ -14,8 +14,8 @@ import {
   take,
   BehaviorSubject,
 } from 'rxjs';
-import { TokenService } from '../services/token.service';
-import { AuthService } from '../services/auth.service';
+import { TokenService } from '../services/auth/token.service';
+import { AuthService } from '../services/auth/auth.service';
 import { ToastService } from '../../shared/components/toast/toast.service';
 
 let isRefreshing = false;

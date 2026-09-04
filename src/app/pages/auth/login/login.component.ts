@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { InputComponent, ButtonComponent } from '../../../shared/components';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthService } from '../../../core/services/auth/auth.service';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { LucideEye, LucideEyeOff } from '@lucide/angular';
 

@@ -50,7 +50,7 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         loadComponent: () =>
-          import('./pages/dashboard/dashboard.component').then((m) => m.DashboardComponent),
+          import('./pages/superadmin/dashboard/dashboard.component').then((m) => m.DashboardComponent),
       },
       { path: 'beranda', redirectTo: 'dashboard', pathMatch: 'full' },
 
@@ -82,7 +82,7 @@ export const routes: Routes = [
         path: 'persetujuan-pinjaman',
         loadComponent: () =>
           import(
-            './pages/branch-manager/persetujuan-pinjaman/persetujuan-pinjaman-list/persetujuan-pinjaman-list.component'
+            './pages/branchmanager/persetujuan-pinjaman/persetujuan-pinjaman-list/persetujuan-pinjaman-list.component'
           ).then((m) => m.PersetujuanPinjamanListComponent),
         data: { title: 'Persetujuan Pinjaman' },
       },
@@ -90,7 +90,7 @@ export const routes: Routes = [
         path: 'persetujuan-pinjaman/detail/:id',
         loadComponent: () =>
           import(
-            './pages/branch-manager/persetujuan-pinjaman/persetujuan-pinjaman-detail/persetujuan-pinjaman-detail.component'
+            './pages/branchmanager/persetujuan-pinjaman/persetujuan-pinjaman-detail/persetujuan-pinjaman-detail.component'
           ).then((m) => m.PersetujuanPinjamanDetailComponent),
         data: { title: 'Detail Persetujuan Pinjaman' },
       },
@@ -179,7 +179,7 @@ export const routes: Routes = [
       {
         path: 'rbac/role-access',
         loadComponent: () =>
-          import('./pages/role-access/role-access.component').then((m) => m.RoleAccessComponent),
+          import('./pages/superadmin/role-access/role-access.component').then((m) => m.RoleAccessComponent),
       },
       {
         path: 'master/role-access',
@@ -189,7 +189,7 @@ export const routes: Routes = [
       {
         path: 'rbac/role',
         loadComponent: () =>
-          import('./pages/role/role.component').then((m) => m.RoleComponent),
+          import('./pages/superadmin/role/role.component').then((m) => m.RoleComponent),
       },
       {
         path: 'master/role',
@@ -199,7 +199,7 @@ export const routes: Routes = [
       {
         path: 'rbac/permission',
         loadComponent: () =>
-          import('./pages/permission/permission.component').then((m) => m.PermissionComponent),
+          import('./pages/superadmin/permission/permission.component').then((m) => m.PermissionComponent),
       },
       {
         path: 'master/permission',
@@ -209,7 +209,7 @@ export const routes: Routes = [
       {
         path: 'rbac/menu',
         loadComponent: () =>
-          import('./pages/menu/menu.component').then((m) => m.MenuComponent),
+          import('./pages/superadmin/menu/menu.component').then((m) => m.MenuComponent),
       },
       {
         path: 'master/menu',
@@ -221,28 +221,28 @@ export const routes: Routes = [
       {
         path: 'master/karyawan',
         loadComponent: () =>
-          import('./pages/karyawan/karyawan-list/karyawan-list.component').then(
+          import('./pages/superadmin/karyawan/karyawan-list/karyawan-list.component').then(
             (m) => m.KaryawanListComponent
           ),
       },
       {
         path: 'master/karyawan/tambah',
         loadComponent: () =>
-          import('./pages/karyawan/karyawan-form/karyawan-form.component').then(
+          import('./pages/superadmin/karyawan/karyawan-form/karyawan-form.component').then(
             (m) => m.KaryawanFormComponent
           ),
       },
       {
         path: 'master/karyawan/edit/:id',
         loadComponent: () =>
-          import('./pages/karyawan/karyawan-form/karyawan-form.component').then(
+          import('./pages/superadmin/karyawan/karyawan-form/karyawan-form.component').then(
             (m) => m.KaryawanFormComponent
           ),
       },
       {
         path: 'master/cabang',
         loadComponent: () =>
-          import('./pages/cabang/cabang.component').then((m) => m.CabangComponent),
+          import('./pages/superadmin/cabang/cabang.component').then((m) => m.CabangComponent),
       },
       {
         path: 'cabang',
@@ -252,21 +252,21 @@ export const routes: Routes = [
       {
         path: 'master/plafond',
         loadComponent: () =>
-          import('./pages/plafond/plafond-list/plafond-list.component').then(
+          import('./pages/superadmin/plafond/plafond-list/plafond-list.component').then(
             (m) => m.PlafondListComponent
           ),
       },
       {
         path: 'master/plafond/tambah',
         loadComponent: () =>
-          import('./pages/plafond/plafond-form/plafond-form.component').then(
+          import('./pages/superadmin/plafond/plafond-form/plafond-form.component').then(
             (m) => m.PlafondFormComponent
           ),
       },
       {
         path: 'master/plafond/edit/:id',
         loadComponent: () =>
-          import('./pages/plafond/plafond-form/plafond-form.component').then(
+          import('./pages/superadmin/plafond/plafond-form/plafond-form.component').then(
             (m) => m.PlafondFormComponent
           ),
       },
@@ -280,7 +280,7 @@ export const routes: Routes = [
       {
         path: 'monitoring/pengajuan',
         loadComponent: () =>
-          import('./pages/monitoring/monitoring-pengajuan/monitoring-pengajuan.component').then(
+          import('./pages/superadmin/monitoring/monitoring-pengajuan/monitoring-pengajuan.component').then(
             (m) => m.MonitoringPengajuanComponent
           ),
         data: { title: 'Monitoring Pengajuan' },
@@ -291,15 +291,25 @@ export const routes: Routes = [
         pathMatch: 'full',
       },
       {
+        path: 'monitoring-pengajuan',
+        redirectTo: 'monitoring/pengajuan',
+        pathMatch: 'full',
+      },
+      {
         path: 'monitoring/audit-log',
         loadComponent: () =>
-          import('./pages/monitoring/audit-log/audit-log.component').then(
+          import('./pages/superadmin/monitoring/audit-log/audit-log.component').then(
             (m) => m.AuditLogComponent
           ),
         data: { title: 'Audit Log' },
       },
       {
         path: 'master/audit-log',
+        redirectTo: 'monitoring/audit-log',
+        pathMatch: 'full',
+      },
+      {
+        path: 'audit-log',
         redirectTo: 'monitoring/audit-log',
         pathMatch: 'full',
       },

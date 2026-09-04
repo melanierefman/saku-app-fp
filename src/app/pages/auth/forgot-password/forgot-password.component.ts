@@ -14,7 +14,7 @@ import {
   ButtonComponent,
   ToastService,
 } from '../../../shared/components';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthService } from '../../../core/services/auth/auth.service';
 import {
   LucideMail,
   LucideChevronLeft,

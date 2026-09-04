@@ -9,7 +9,7 @@ import {
   LucideLogOut,
 } from '@lucide/angular';
 import { AuthStore } from '../../../core/store/auth.store';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthService } from '../../../core/services/auth/auth.service';
 import { formatRoleName } from '../../../core';
 import { ModalComponent } from '../modal/modal.component';
 

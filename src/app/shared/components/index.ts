@@ -28,5 +28,6 @@ export * from './date-picker/date-picker.component';
 export * from './table/table.component';
 export * from './pagination/pagination.component';
 export * from './tabs/tabs.component';
+export * from './card/card.component';
 
 

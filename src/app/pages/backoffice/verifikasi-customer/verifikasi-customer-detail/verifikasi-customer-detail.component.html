@@ -55,19 +55,9 @@
     <div class="lg:col-span-2 space-y-6 lg:overflow-y-auto lg:h-[calc(100vh-170px)] lg:pr-2 lg:pb-8 custom-scrollbar">
 
       <!-- CARD 1: DOKUMEN FOTO KYC (SELFIE & KTP) -->
-      <div class="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-xs space-y-5">
-        <div class="flex items-center justify-between pb-3 border-b border-[#F3F4F6]">
-          <div class="flex items-center gap-2.5">
-            <div class="w-7 h-7 rounded-lg bg-primary-10 text-primary flex items-center justify-center shrink-0">
-              <svg lucideShieldCheck [size]="16" class="w-4 h-4"></svg>
-            </div>
-            <div>
-              <h2 class="text-base font-semibold text-neutral-90">Dokumen Verifikasi KYC</h2>
-              <p class="text-xs text-neutral-40 mt-0.5">Periksa keaslian dan kesesuaian foto selfie dengan KTP customer
-              </p>
-            </div>
-          </div>
-        </div>
+      <app-card title="Dokumen Verifikasi KYC"
+        subtitle="Periksa keaslian dan kesesuaian foto selfie dengan KTP customer">
+        <svg card-icon lucideShieldCheck [size]="16" class="w-4 h-4"></svg>
 
         <!-- 2 Photo Grid: Foto Selfie & Foto KTP -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -139,16 +129,11 @@
             </div>
           </div>
         </div>
-      </div>
+      </app-card>
 
       <!-- CARD 2: INFORMASI CUSTOMER (DATA PRIBADI & KONTAK) -->
-      <div class="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-xs space-y-5">
-        <div class="flex items-center gap-2.5 pb-3 border-b border-[#F3F4F6]">
-          <div class="w-7 h-7 rounded-lg bg-primary-10 text-primary flex items-center justify-center shrink-0">
-            <svg lucideUser [size]="16" class="w-4 h-4"></svg>
-          </div>
-          <h2 class="text-base font-semibold text-neutral-90">Informasi Customer</h2>
-        </div>
+      <app-card title="Informasi Customer">
+        <svg card-icon lucideUser [size]="16" class="w-4 h-4"></svg>
 
         <!-- Customer Info 2-Column Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 text-xs">
@@ -185,7 +170,7 @@
           <div>
             <span class="text-neutral-40 block mb-0.5">Tanggal Register</span>
             <span class="font-medium text-neutral-90 text-sm block">
-              {{ formatDate(detail()?.tanggalRegister || detail()?.tanggalPengajuan || detail()?.createdDate) }}
+              {{ getTanggalRegister(detail()) }}
             </span>
           </div>
 
@@ -203,16 +188,11 @@
             </span>
           </div>
         </div>
-      </div>
+      </app-card>
 
       <!-- CARD 3: INFORMASI PEKERJAAN & KEUANGAN -->
-      <div class="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-xs space-y-5">
-        <div class="flex items-center gap-2.5 pb-3 border-b border-[#F3F4F6]">
-          <div class="w-7 h-7 rounded-lg bg-primary-10 text-primary flex items-center justify-center shrink-0">
-            <svg lucideBriefcase [size]="16" class="w-4 h-4"></svg>
-          </div>
-          <h2 class="text-base font-semibold text-neutral-90">Informasi Pekerjaan & Keuangan</h2>
-        </div>
+      <app-card title="Informasi Pekerjaan & Keuangan">
+        <svg card-icon lucideBriefcase [size]="16" class="w-4 h-4"></svg>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 text-xs">
           <div>
@@ -240,7 +220,7 @@
             </span>
           </div>
         </div>
-      </div>
+      </app-card>
 
     </div>
 
@@ -248,15 +228,8 @@
     <div class="space-y-4">
 
       <!-- 1. PANEL FORM KEPUTUSAN VERIFIKASI BACKOFFICE -->
-      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs space-y-4">
-        <div class="flex items-center gap-2 pb-3 border-b border-[#F3F4F6]">
-          <div class="w-6 h-6 rounded-md bg-primary-10 text-primary flex items-center justify-center shrink-0">
-            <svg lucideShieldCheck [size]="14" class="w-3.5 h-3.5"></svg>
-          </div>
-          <h2 class="text-xs font-semibold text-neutral-80 uppercase tracking-wider">
-            Keputusan Verifikasi KYC
-          </h2>
-        </div>
+      <app-card title="Keputusan Verifikasi KYC">
+        <svg card-icon lucideShieldCheck [size]="16" class="w-4 h-4"></svg>
 
         @if (isPending()) {
         <!-- State: Menunggu Verifikasi (Form Input Aktif) -->
@@ -321,10 +294,10 @@
           </div>
         </div>
         }
-      </div>
+      </app-card>
 
       <!-- 3. RIWAYAT VERIFIKASI & AKTIVITAS -->
-      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs space-y-4">
+      <div class="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-xs space-y-4">
         <div class="flex items-center gap-2 pb-2.5 border-b border-[#F3F4F6]">
           <div class="w-6 h-6 rounded-md bg-neutral-0 text-neutral-60 flex items-center justify-center shrink-0">
             <svg lucideClock [size]="14" class="w-3.5 h-3.5"></svg>
@@ -375,7 +348,7 @@
   <!-- Not Found State -->
   <div class="bg-white border border-[#E5E7EB] rounded-2xl p-12 text-center max-w-lg mx-auto">
     <div class="w-12 h-12 rounded-full bg-error-0 text-error-50 flex items-center justify-center mx-auto mb-3">
-      <svg lucideAlertCircle [size]="24" class="w-6 h-6"></svg>
+      <svg lucideCircleAlert [size]="24" class="w-6 h-6"></svg>
     </div>
     <h3 class="text-base font-bold text-neutral-90">Data Customer Tidak Ditemukan</h3>
     <p class="text-sm text-neutral-40 mt-1 mb-4">Data customer atau berkas KYC yang dicari tidak tersedia.</p>

@@ -2,7 +2,7 @@ import { Component, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthStore } from '../../core/store/auth.store';
 import { ButtonComponent, ModalComponent } from '../../shared/components';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService } from '../../core/services/auth/auth.service';
 import { formatRoleName } from '../../core';
 
 @Component({

@@ -15,6 +15,7 @@ import {
   DropdownOption,
   ModalComponent,
   ToastService,
+  CardComponent,
 } from '../../../../shared/components';
 import {
   VerifikasiCustomerService,
@@ -25,7 +26,7 @@ import {
   LucideExternalLink,
   LucideUser,
   LucideSend,
-  LucideAlertCircle,
+  LucideCircleAlert,
   LucideClock,
   LucideShieldCheck,
   LucideBriefcase,
@@ -44,10 +45,11 @@ import { formatDate as formatDateHelper } from '../../../../shared/utils/date.ut
     RouterModule,
     DropdownComponent,
     ModalComponent,
+    CardComponent,
     LucideExternalLink,
     LucideUser,
     LucideSend,
-    LucideAlertCircle,
+    LucideCircleAlert,
     LucideClock,
     LucideShieldCheck,
     LucideBriefcase,
@@ -297,6 +299,24 @@ export class VerifikasiCustomerDetailComponent implements OnInit {
   formatCurrency(val?: number | null): string {
     if (val === null || val === undefined || isNaN(val)) return 'Rp 0';
     return 'Rp ' + new Intl.NumberFormat('id-ID').format(val);
+  }
+
+  getTanggalRegister(row?: any): string {
+    if (!row) return '-';
+    const val =
+      row.tanggalRegister ||
+      row.tanggalRegistrasi ||
+      row.tanggalDaftar ||
+      row.createdDate ||
+      row.createdAt ||
+      row.registrationDate ||
+      row.registeredAt ||
+      row.tglRegister ||
+      row.tglRegistrasi ||
+      row.tglDaftar ||
+      row.tanggalPengajuan ||
+      row.tanggalVerifikasi;
+    return this.formatDate(val);
   }
 
   formatDate(dateStr?: string | null): string {

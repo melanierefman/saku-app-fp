@@ -100,7 +100,7 @@
       <!-- Custom Cell: Tanggal Register -->
       <ng-template appTableCell="tanggalRegister" let-row="row">
         <span class="text-sm text-neutral-80">
-          {{ formatDate(row.tanggalRegister || row.createdDate) }}
+          {{ getTanggalRegister(row) }}
         </span>
       </ng-template>
 

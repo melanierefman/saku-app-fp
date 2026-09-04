@@ -142,7 +142,7 @@ export class VerifikasiCustomerListComponent implements OnInit {
         // Client-side fallback filter
         if (tglRegisterYMD) {
           contentList = contentList.filter((item) => {
-            const itemDate = item.tanggalRegister || item.createdDate;
+            const itemDate = this.extractRawRegisterDate(item);
             return itemDate ? itemDate.startsWith(tglRegisterYMD) : false;
           });
         }
@@ -172,8 +172,12 @@ export class VerifikasiCustomerListComponent implements OnInit {
         const dir = this.sortDirection();
         if (field && this.items().length > 0) {
           const sorted = [...this.items()].sort((a: any, b: any) => {
-            const valA = a[field] ?? '';
-            const valB = b[field] ?? '';
+            let valA = a[field] ?? '';
+            let valB = b[field] ?? '';
+            if (field === 'tanggalRegister') {
+              valA = this.extractRawRegisterDate(a) || '';
+              valB = this.extractRawRegisterDate(b) || '';
+            }
             let cmp = 0;
             if (typeof valA === 'number' && typeof valB === 'number') {
               cmp = valA - valB;
@@ -321,6 +325,30 @@ export class VerifikasiCustomerListComponent implements OnInit {
       default:
         return 'Menunggu Verifikasi';
     }
+  }
+
+  extractRawRegisterDate(row?: any): string | undefined {
+    if (!row) return undefined;
+    return (
+      row.tanggalRegister ||
+      row.tanggalRegistrasi ||
+      row.tanggalDaftar ||
+      row.createdDate ||
+      row.createdAt ||
+      row.registrationDate ||
+      row.registeredAt ||
+      row.tglRegister ||
+      row.tglRegistrasi ||
+      row.tglDaftar ||
+      row.tanggalPengajuan ||
+      row.tanggalVerifikasi ||
+      undefined
+    );
+  }
+
+  getTanggalRegister(row?: any): string {
+    const raw = this.extractRawRegisterDate(row);
+    return this.formatDate(raw);
   }
 
   formatDate(dateStr?: string | null): string {

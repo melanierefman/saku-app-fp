@@ -24,6 +24,7 @@ import {
   TableCellDirective,
   TableColumn,
   PaginationComponent,
+  CardComponent,
 } from '../../shared/components';
 
 import {
@@ -40,6 +41,9 @@ import {
   LucideCircleX,
   LucideTriangleAlert,
   LucideRefreshCw,
+  LucideUser,
+  LucideShieldCheck,
+  LucideClock,
 } from '@lucide/angular';
 
 @Component({
@@ -64,6 +68,7 @@ import {
     TableComponent,
     TableCellDirective,
     PaginationComponent,
+    CardComponent,
     LucidePlus,
     LucideArrowRight,
     LucideSearch,
@@ -77,6 +82,9 @@ import {
     LucideCircleX,
     LucideTriangleAlert,
     LucideRefreshCw,
+    LucideUser,
+    LucideShieldCheck,
+    LucideClock,
   ],
   templateUrl: './sandbox.component.html',
   styleUrl: './sandbox.component.css',
