@@ -34,7 +34,7 @@ public class AuthKaryawanService {
     private final KaryawanRepository karyawanRepository;
     private final OtpService otpService;
     private final PasswordEncoder passwordEncoder;
-    private final com.bcafinance.backend_saku.features.master.auditlog.service.AuditLogService auditLogService;
+    private final com.bcafinance.backend_saku.features.superadmin.auditlog.service.AuditLogService auditLogService;
 
     public AuthKaryawanService(
             JwtService jwtService,
@@ -42,7 +42,7 @@ public class AuthKaryawanService {
             KaryawanRepository karyawanRepository,
             OtpService otpService,
             PasswordEncoder passwordEncoder,
-            com.bcafinance.backend_saku.features.master.auditlog.service.AuditLogService auditLogService) {
+            com.bcafinance.backend_saku.features.superadmin.auditlog.service.AuditLogService auditLogService) {
         this.jwtService = jwtService;
         this.karyawanAuthenticationManager = karyawanAuthenticationManager;
         this.karyawanRepository = karyawanRepository;

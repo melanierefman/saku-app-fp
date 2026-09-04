@@ -57,7 +57,7 @@ public class MarketingReviewService {
     private final CabangRepository cabangRepository;
     private final ScoringService scoringService;
     private final com.bcafinance.backend_saku.features.customer.service.NotifikasiService notifikasiService;
-    private final com.bcafinance.backend_saku.features.master.auditlog.service.AuditLogService auditLogService;
+    private final com.bcafinance.backend_saku.features.superadmin.auditlog.service.AuditLogService auditLogService;
 
     public PageResponse<MarketingPengajuanItemResponse> findAllPaginated(int page, int size, String search, String statusFilter, UUID karyawanId) {
         List<MarketingPengajuanItemResponse> all = findAll(statusFilter, karyawanId);

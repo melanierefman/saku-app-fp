@@ -3,8 +3,8 @@ package com.bcafinance.backend_saku.features.backoffice.service;
 import com.bcafinance.backend_saku.core.dto.AlamatDetailResponse;
 import com.bcafinance.backend_saku.features.backoffice.dto.PendingCustomerResponse;
 import com.bcafinance.backend_saku.core.dto.PageResponse;
-import com.bcafinance.backend_saku.features.master.plafond.PlafondCalculationResponse;
-import com.bcafinance.backend_saku.features.master.plafond.PlafondService;
+import com.bcafinance.backend_saku.features.superadmin.plafond.PlafondCalculationResponse;
+import com.bcafinance.backend_saku.features.superadmin.plafond.PlafondService;
 import com.bcafinance.backend_saku.features.backoffice.dto.VerifikasiCustomerDetailResponse;
 
 import com.bcafinance.backend_saku.features.backoffice.dto.VerifikasiCustomerItemResponse;
@@ -39,7 +39,7 @@ public class VerifikasiCustomerService {
     private final AlamatCustomerRepository alamatRepository;
     private final DokumenCustomerRepository dokumenRepository;
     private final PlafondService plafondService;
-    private final com.bcafinance.backend_saku.features.master.auditlog.service.AuditLogService auditLogService;
+    private final com.bcafinance.backend_saku.features.superadmin.auditlog.service.AuditLogService auditLogService;
 
     public PageResponse<VerifikasiCustomerItemResponse> findAllPaginated(int page, int size, String search, String statusFilter) {
         List<VerifikasiCustomerItemResponse> all = findAll(statusFilter);

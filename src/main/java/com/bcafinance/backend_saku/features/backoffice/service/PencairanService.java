@@ -65,7 +65,7 @@ public class PencairanService {
     private final ReviewPengajuanRepository reviewPengajuanRepository;
     private final PersetujuanRepository persetujuanRepository;
     private final com.bcafinance.backend_saku.features.customer.service.NotifikasiService notifikasiService;
-    private final com.bcafinance.backend_saku.features.master.auditlog.service.AuditLogService auditLogService;
+    private final com.bcafinance.backend_saku.features.superadmin.auditlog.service.AuditLogService auditLogService;
 
     public PageResponse<PencairanItemResponse> findAllPaginated(int page, int size, String search, String statusFilter) {
         List<PencairanItemResponse> all = findAll(statusFilter);
