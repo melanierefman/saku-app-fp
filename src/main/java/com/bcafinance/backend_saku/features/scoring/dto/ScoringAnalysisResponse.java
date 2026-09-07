@@ -29,6 +29,9 @@ public class ScoringAnalysisResponse {
     private BigDecimal matchedMinPendapatan;
     private BigDecimal matchedPlafondMaksimal;
     private BigDecimal estimasiPlafondDisetujui;
+    private BigDecimal totalPlafond;
+    private BigDecimal usedPlafond;
+    private BigDecimal availablePlafond;
 
     // Analisis Ambigu Scoring
     private Boolean isAmbigu;

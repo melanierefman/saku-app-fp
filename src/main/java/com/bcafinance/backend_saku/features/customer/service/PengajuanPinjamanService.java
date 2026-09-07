@@ -50,6 +50,7 @@ public class PengajuanPinjamanService {
     private final AlamatCustomerRepository alamatRepository;
     private final FileStorageService fileStorageService;
     private final NotifikasiService notifikasiService;
+    private final CustomerPlafondService customerPlafondService;
 
     @Transactional
     public PengajuanStepResponse step1(UUID customerId, PengajuanPinjamanRequest request) {
@@ -65,7 +66,7 @@ public class PengajuanPinjamanService {
 
         Plafond plafond = resolvePlafond(scoring);
 
-        validateLoanAmount(request.getJumlahPinjaman(), plafond);
+        validateLoanAmount(customerId, request.getJumlahPinjaman(), plafond);
 
         Cabang cabang = resolveCabang(customerId, request.getMstBranchId());
 
@@ -276,18 +277,20 @@ public class PengajuanPinjamanService {
                 .orElseThrow(() -> new BussinessRuleException("Produk plafond belum tersedia di sistem"));
     }
 
-    private void validateLoanAmount(BigDecimal jumlahPinjaman, Plafond plafond) {
+    private void validateLoanAmount(UUID customerId, BigDecimal jumlahPinjaman, Plafond plafond) {
         BigDecimal minSystemLoan = BigDecimal.valueOf(500_000);
-        if (jumlahPinjaman.compareTo(minSystemLoan) < 0) {
+        if (jumlahPinjaman == null || jumlahPinjaman.compareTo(minSystemLoan) < 0) {
             throw new BussinessRuleException(
                     "Jumlah pinjaman minimal adalah Rp 500.000");
         }
 
-        BigDecimal maxLimit = plafond.getPlafondMaksimal() != null ? plafond.getPlafondMaksimal()
-                : (plafond.getMaxPlafond() != null ? plafond.getMaxPlafond() : BigDecimal.valueOf(50_000_000));
-        if (maxLimit != null && jumlahPinjaman.compareTo(maxLimit) > 0) {
+        CustomerPlafondService.CustomerPlafondSummary summary = customerPlafondService.calculatePlafondSummary(customerId);
+        BigDecimal availableLimit = summary.availablePlafond();
+
+        if (jumlahPinjaman.compareTo(availableLimit) > 0) {
             throw new BussinessRuleException(
-                    "Jumlah pinjaman melebihi batas maksimum plafond yang disetujui: Rp " + maxLimit);
+                    "Jumlah pinjaman (Rp " + CustomerPlafondService.formatRupiah(jumlahPinjaman)
+                            + ") melebihi sisa plafon yang tersedia (Rp " + CustomerPlafondService.formatRupiah(availableLimit) + ")");
         }
     }
 

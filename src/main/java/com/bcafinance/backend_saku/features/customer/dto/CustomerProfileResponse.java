@@ -60,6 +60,11 @@ public class CustomerProfileResponse {
     private Integer skorKredit;
     private String statusScoring;
 
+    // Limit & Plafond Pinjaman
+    private BigDecimal totalPlafond;
+    private BigDecimal usedPlafond;
+    private BigDecimal availablePlafond;
+
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdDate;
 }

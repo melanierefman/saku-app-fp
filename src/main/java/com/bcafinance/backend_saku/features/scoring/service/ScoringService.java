@@ -5,6 +5,7 @@ import com.bcafinance.backend_saku.features.scoring.dto.ScoringBreakdown;
 import com.bcafinance.backend_saku.core.entity.Plafond;
 import com.bcafinance.backend_saku.core.entity.ScoringCustomer;
 import com.bcafinance.backend_saku.core.repository.PlafondRepository;
+import com.bcafinance.backend_saku.features.customer.service.CustomerPlafondService;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 public class ScoringService {
 
     private final PlafondRepository plafondRepository;
+    private final CustomerPlafondService customerPlafondService;
 
     public ScoringResult calculateScore(
             BigDecimal totalCicilanLainnya,
@@ -168,6 +170,17 @@ public class ScoringService {
                 .statusPekerjaanDetail(String.format("Status Pekerjaan: %s", scoring.getStatusPekerjaan() != null ? scoring.getStatusPekerjaan() : "-"))
                 .build();
 
+        CustomerPlafondService.CustomerPlafondSummary plafondSummary = (scoring.getMstCustomerId() != null && customerPlafondService != null)
+                ? customerPlafondService.calculatePlafondSummary(scoring.getMstCustomerId())
+                : new CustomerPlafondService.CustomerPlafondSummary(estimasiPlafondDisetujui, BigDecimal.ZERO, estimasiPlafondDisetujui);
+
+        BigDecimal finalTotalPlafond = (plafondSummary.totalPlafond() != null && plafondSummary.totalPlafond().compareTo(BigDecimal.ZERO) > 0)
+                ? plafondSummary.totalPlafond()
+                : estimasiPlafondDisetujui;
+        BigDecimal finalAvailablePlafond = (plafondSummary.availablePlafond() != null && plafondSummary.totalPlafond().compareTo(BigDecimal.ZERO) > 0)
+                ? plafondSummary.availablePlafond()
+                : estimasiPlafondDisetujui;
+
         return ScoringAnalysisResponse.builder()
                 .skor(skor)
                 .statusScoring(statusScoring)
@@ -179,6 +192,9 @@ public class ScoringService {
                 .matchedMinPendapatan(matchedMinPendapatan)
                 .matchedPlafondMaksimal(matchedPlafondMaksimal)
                 .estimasiPlafondDisetujui(estimasiPlafondDisetujui)
+                .totalPlafond(finalTotalPlafond)
+                .usedPlafond(plafondSummary.usedPlafond())
+                .availablePlafond(finalAvailablePlafond)
                 .isAmbigu(isAmbigu)
                 .indikatorAmbigu(indikatorAmbigu)
                 .ringkasanAnalisis(ringkasanAnalisis)

@@ -41,6 +41,7 @@ public class CustomerProfileService {
     private final VerifikasiCustomerRepository verifikasiRepository;
     private final PasswordEncoder passwordEncoder;
     private final com.bcafinance.backend_saku.features.scoring.service.ScoringService scoringService;
+    private final CustomerPlafondService customerPlafondService;
 
 
     @Transactional(readOnly = true)
@@ -244,6 +245,8 @@ public class CustomerProfileService {
         String statusVerifikasi = determineStatusVerifikasi(customer, verifikasiOpt);
         boolean isKycVerified = "TERVERIFIKASI".equals(statusVerifikasi) || Boolean.TRUE.equals(customer.getStatus());
 
+        CustomerPlafondService.CustomerPlafondSummary plafondSummary = customerPlafondService.calculatePlafondSummary(customerId);
+
         return CustomerProfileResponse.builder()
                 .id(customer.getId())
                 .nik(customer.getNik())
@@ -271,6 +274,9 @@ public class CustomerProfileService {
                 .totalCicilanLainBulanan(scoringOpt.map(ScoringCustomer::getTotalCicilanLainBulanan).orElse(null))
                 .skorKredit(scoringOpt.map(ScoringCustomer::getSkor).orElse(null))
                 .statusScoring(scoringOpt.map(ScoringCustomer::getStatusScoring).orElse(null))
+                .totalPlafond(plafondSummary.totalPlafond())
+                .usedPlafond(plafondSummary.usedPlafond())
+                .availablePlafond(plafondSummary.availablePlafond())
                 .createdDate(customer.getCreatedDate())
                 .build();
     }

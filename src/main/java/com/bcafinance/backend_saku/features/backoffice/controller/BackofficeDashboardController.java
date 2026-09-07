@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/backoffice/dashboard")
+@RequestMapping({"/api/backoffice/dashboard", "/api/bo/dashboard"})
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('BACKOFFICE')")
 public class BackofficeDashboardController {

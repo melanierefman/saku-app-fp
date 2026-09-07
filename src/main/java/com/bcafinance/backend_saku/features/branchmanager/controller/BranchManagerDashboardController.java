@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/branchmanager/dashboard")
+@RequestMapping({"/api/branchmanager/dashboard", "/api/branch-manager/dashboard", "/api/bm/dashboard"})
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('BRANCHMANAGER')")
 public class BranchManagerDashboardController {
