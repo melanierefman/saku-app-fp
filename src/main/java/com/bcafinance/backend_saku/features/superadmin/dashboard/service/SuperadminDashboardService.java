@@ -33,6 +33,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -52,6 +53,7 @@ public class SuperadminDashboardService {
     private static final DateTimeFormatter MONTH_FORMATTER = DateTimeFormatter.ofPattern("MMM yyyy");
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
+    @Cacheable(value = "superadminDashboardStats", key = "'all'")
     public SuperadminDashboardStatsResponse getDashboardStats() {
         List<PengajuanPinjaman> allPengajuan = pengajuanRepository.findAllByOrderByCreatedDateDesc();
         List<Cabang> allCabang = cabangRepository.findAll();

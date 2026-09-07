@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +34,7 @@ public class RoleService {
     private final MenuRepository menuRepository;
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "roleList", key = "'all'")
     public List<RoleResponse> findAll() {
         List<Role> roles = roleRepository.findAllByOrderByCreatedDateDesc();
         return roles.stream()
@@ -67,6 +70,7 @@ public class RoleService {
     }
 
     @Transactional
+    @CacheEvict(value = "roleList", allEntries = true)
     public RoleDetailResponse create(RoleRequest request) {
         String roleName = request.getNama().trim().toUpperCase();
 
@@ -90,6 +94,7 @@ public class RoleService {
     }
 
     @Transactional
+    @CacheEvict(value = "roleList", allEntries = true)
     public RoleDetailResponse update(UUID id, RoleRequest request) {
         Role role = roleRepository.findById(id)
                 .orElseThrow(() -> new BussinessRuleException("Data role tidak ditemukan"));
@@ -114,6 +119,7 @@ public class RoleService {
     }
 
     @Transactional
+    @CacheEvict(value = "roleList", allEntries = true)
     public RoleDetailResponse assignPermissions(UUID roleId, List<UUID> permissionIds) {
         Role role = roleRepository.findById(roleId)
                 .orElseThrow(() -> new BussinessRuleException("Data role tidak ditemukan"));
@@ -123,6 +129,7 @@ public class RoleService {
     }
 
     @Transactional
+    @CacheEvict(value = "roleList", allEntries = true)
     public void delete(UUID id) {
         Role role = roleRepository.findById(id)
                 .orElseThrow(() -> new BussinessRuleException("Data role tidak ditemukan"));

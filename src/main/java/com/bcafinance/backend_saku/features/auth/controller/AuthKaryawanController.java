@@ -1,8 +1,11 @@
 package com.bcafinance.backend_saku.features.auth.controller;
 
 import com.bcafinance.backend_saku.core.dto.ApiResponse;
+import com.bcafinance.backend_saku.core.exception.BussinessRuleException;
+import com.bcafinance.backend_saku.core.security.AppUser;
 import com.bcafinance.backend_saku.features.auth.dto.AuthRequest;
 import com.bcafinance.backend_saku.features.auth.dto.AuthResponse;
+import com.bcafinance.backend_saku.features.auth.dto.ChangePasswordRequest;
 import com.bcafinance.backend_saku.features.auth.dto.ForgotPasswordRequest;
 import com.bcafinance.backend_saku.features.auth.dto.ResetPasswordRequest;
 import com.bcafinance.backend_saku.features.auth.dto.SendOtpResponse;
@@ -10,7 +13,9 @@ import com.bcafinance.backend_saku.features.auth.service.AuthKaryawanService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -48,6 +53,17 @@ public class AuthKaryawanController {
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<String>> logout() {
         return ResponseEntity.ok(ApiResponse.success("Berhasil logout"));
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<ApiResponse<String>> changePassword(
+            @Valid @RequestBody ChangePasswordRequest request,
+            @AuthenticationPrincipal AppUser user) {
+        if (user == null || user.getIdKaryawan() == null) {
+            throw new BussinessRuleException("Sesi login tidak valid. Silakan login terlebih dahulu.");
+        }
+        authKaryawanService.changePassword(user.getIdKaryawan(), request);
+        return ResponseEntity.ok(ApiResponse.success("Password berhasil diubah"));
     }
 }
 

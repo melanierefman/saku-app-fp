@@ -38,6 +38,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import com.bcafinance.backend_saku.core.dto.PageResponse;
@@ -317,6 +320,11 @@ public class MarketingReviewService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "marketingDashboardStats", allEntries = true),
+            @CacheEvict(value = "bmDashboardStats", allEntries = true),
+            @CacheEvict(value = "superadminDashboardStats", allEntries = true)
+    })
     public ReviewPengajuanResponse review(UUID pengajuanId, UUID karyawanId, ReviewPengajuanRequest request) {
         PengajuanPinjaman pengajuan = pengajuanRepository.findById(pengajuanId)
                 .orElseThrow(() -> new BussinessRuleException("Pengajuan pinjaman tidak ditemukan"));
@@ -498,6 +506,7 @@ public class MarketingReviewService {
         return getDashboardStats(null);
     }
 
+    @Cacheable(value = "marketingDashboardStats", key = "#karyawanId != null ? #karyawanId.toString() : 'all'")
     public MarketingDashboardStatsResponse getDashboardStats(UUID karyawanId) {
         UUID branchId = null;
         if (karyawanId != null) {

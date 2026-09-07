@@ -9,8 +9,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,7 @@ public class MenuService {
     private final MenuRepository menuRepository;
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "menuList", key = "'all'")
     public List<MenuResponse> findAll() {
         return menuRepository.findAllByOrderByCreatedDateDesc().stream()
                 .map(this::toResponse)
@@ -35,6 +37,7 @@ public class MenuService {
     }
 
     @Transactional
+    @CacheEvict(value = "menuList", allEntries = true)
     public MenuResponse create(MenuRequest request) {
         if (menuRepository.existsByPathIgnoreCase(request.getPath())) {
             throw new BussinessRuleException("Path menu sudah digunakan");
@@ -52,6 +55,7 @@ public class MenuService {
     }
 
     @Transactional
+    @CacheEvict(value = "menuList", allEntries = true)
     public List<MenuResponse> createBulk(List<MenuRequest> requests) {
         if (requests == null || requests.isEmpty()) {
             return List.of();
@@ -84,6 +88,7 @@ public class MenuService {
 
 
     @Transactional
+    @CacheEvict(value = "menuList", allEntries = true)
     public MenuResponse update(UUID id, MenuRequest request) {
         Menu menu = menuRepository.findById(id)
                 .orElseThrow(() -> new BussinessRuleException("Data menu tidak ditemukan"));
@@ -103,6 +108,7 @@ public class MenuService {
     }
 
     @Transactional
+    @CacheEvict(value = "menuList", allEntries = true)
     public void delete(UUID id) {
         Menu menu = menuRepository.findById(id)
                 .orElseThrow(() -> new BussinessRuleException("Data menu tidak ditemukan"));

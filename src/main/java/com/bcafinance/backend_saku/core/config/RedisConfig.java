@@ -61,12 +61,14 @@ public class RedisConfig {
 
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
+        RedisSerializer<Object> jsonSerializer = RedisSerializer.json();
+
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
         template.setKeySerializer(RedisSerializer.string());
-        template.setValueSerializer(RedisSerializer.java());
+        template.setValueSerializer(jsonSerializer);
         template.setHashKeySerializer(RedisSerializer.string());
-        template.setHashValueSerializer(RedisSerializer.java());
+        template.setHashValueSerializer(jsonSerializer);
         template.afterPropertiesSet();
         return template;
     }
@@ -75,15 +77,33 @@ public class RedisConfig {
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
         String prefix = (keyPrefix != null && !keyPrefix.isBlank() ? keyPrefix : "saku") + "::";
 
+        RedisSerializer<Object> jsonSerializer = RedisSerializer.json();
+
         RedisCacheConfiguration defaultCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(60))
+                .entryTtl(Duration.ofMinutes(15))
                 .disableCachingNullValues()
                 .prefixCacheNameWith(prefix)
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(RedisSerializer.string()))
-                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(RedisSerializer.java()));
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jsonSerializer));
 
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
-        // Public Endpoints Cache
+
+        // 1. Dashboard Statistics Cache (TTL 3 Menit)
+        cacheConfigurations.put("superadminDashboardStats", defaultCacheConfig.entryTtl(Duration.ofMinutes(3)));
+        cacheConfigurations.put("bmDashboardStats", defaultCacheConfig.entryTtl(Duration.ofMinutes(3)));
+        cacheConfigurations.put("marketingDashboardStats", defaultCacheConfig.entryTtl(Duration.ofMinutes(3)));
+        cacheConfigurations.put("backofficeDashboardStats", defaultCacheConfig.entryTtl(Duration.ofMinutes(3)));
+
+        // 2. Master Data Cache (TTL 60 Menit)
+        cacheConfigurations.put("cabangList", defaultCacheConfig.entryTtl(Duration.ofMinutes(60)));
+        cacheConfigurations.put("plafondList", defaultCacheConfig.entryTtl(Duration.ofMinutes(60)));
+        cacheConfigurations.put("roleList", defaultCacheConfig.entryTtl(Duration.ofMinutes(60)));
+        cacheConfigurations.put("menuList", defaultCacheConfig.entryTtl(Duration.ofMinutes(60)));
+
+        // 3. Recent Audit Log Cache (TTL 1 Menit)
+        cacheConfigurations.put("recentAuditLogs", defaultCacheConfig.entryTtl(Duration.ofMinutes(1)));
+
+        // 4. Public Endpoints Cache
         cacheConfigurations.put("publicPlafonds", defaultCacheConfig.entryTtl(Duration.ofMinutes(60)));
         cacheConfigurations.put("simulasiPinjaman", defaultCacheConfig.entryTtl(Duration.ofMinutes(30)));
 

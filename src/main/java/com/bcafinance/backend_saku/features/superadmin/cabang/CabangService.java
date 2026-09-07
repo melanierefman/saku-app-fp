@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,6 +19,7 @@ public class CabangService {
     private final CabangRepository cabangRepository;
 
     @Transactional
+    @CacheEvict(value = "cabangList", allEntries = true)
     public CabangResponse create(CabangRequest request) {
         Cabang cabang = new Cabang();
         cabang.setId(UUID.randomUUID());
@@ -25,10 +28,12 @@ public class CabangService {
         return toResponse(cabangRepository.save(cabang));
     }
 
+    @Cacheable(value = "cabangList", key = "'all'")
     public List<CabangResponse> findAll() {
         return cabangRepository.findAll().stream().map(this::toResponse).toList();
     }
 
+    @Cacheable(value = "cabangList", key = "'active'")
     public List<CabangResponse> findAllActive() {
         return cabangRepository.findAllByStatusTrueOrderByNamaAsc().stream()
                 .map(this::toResponse)
@@ -40,6 +45,7 @@ public class CabangService {
     }
 
     @Transactional
+    @CacheEvict(value = "cabangList", allEntries = true)
     public CabangResponse update(UUID id, CabangRequest request) {
         Cabang cabang = getCabang(id);
         applyRequest(cabang, request);
@@ -47,6 +53,7 @@ public class CabangService {
     }
 
     @Transactional
+    @CacheEvict(value = "cabangList", allEntries = true)
     public void delete(UUID id) {
         Cabang cabang = getCabang(id);
         cabangRepository.delete(cabang);

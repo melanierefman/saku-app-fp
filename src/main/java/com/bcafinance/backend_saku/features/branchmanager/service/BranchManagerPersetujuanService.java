@@ -41,6 +41,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import com.bcafinance.backend_saku.core.dto.PageResponse;
@@ -359,6 +362,11 @@ public class BranchManagerPersetujuanService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "bmDashboardStats", allEntries = true),
+            @CacheEvict(value = "backofficeDashboardStats", allEntries = true),
+            @CacheEvict(value = "superadminDashboardStats", allEntries = true)
+    })
     public PersetujuanPinjamanResponse persetujuan(
             UUID pengajuanId, UUID karyawanId, PersetujuanPinjamanRequest request) {
         PengajuanPinjaman pengajuan = pengajuanRepository.findById(pengajuanId)
@@ -530,6 +538,7 @@ public class BranchManagerPersetujuanService {
         return getDashboardStats(null);
     }
 
+    @Cacheable(value = "bmDashboardStats", key = "#karyawanId != null ? #karyawanId.toString() : 'all'")
     public BranchManagerDashboardStatsResponse getDashboardStats(UUID karyawanId) {
         UUID branchId = null;
         if (karyawanId != null) {

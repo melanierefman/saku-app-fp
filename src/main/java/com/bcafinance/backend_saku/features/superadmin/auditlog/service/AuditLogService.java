@@ -12,6 +12,8 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +30,11 @@ public class AuditLogService {
     private final KaryawanRepository karyawanRepository;
 
     @Transactional(readOnly = true)
+    @Cacheable(
+            value = "recentAuditLogs",
+            key = "#size",
+            condition = "#page == 0 && (#action == null || #action.isBlank()) && (#entity == null || #entity.isBlank()) && #karyawanId == null && (#keyword == null || #keyword.isBlank())"
+    )
     public AuditLogPageResponse getAuditLogs(
             String action,
             String entity,
@@ -82,6 +89,7 @@ public class AuditLogService {
 
 
     @Transactional
+    @CacheEvict(value = "recentAuditLogs", allEntries = true)
     public void recordLog(UUID karyawanId, String action, String entity, Integer entityId, String description) {
         if (karyawanId == null) {
             return;

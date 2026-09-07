@@ -45,6 +45,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import com.bcafinance.backend_saku.core.dto.PageResponse;
@@ -305,6 +308,11 @@ public class PencairanService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "backofficeDashboardStats", allEntries = true),
+            @CacheEvict(value = "superadminDashboardStats", allEntries = true),
+            @CacheEvict(value = "bmDashboardStats", allEntries = true)
+    })
     public PencairanResponse cairkanPinjaman(UUID pengajuanId, UUID karyawanId, PencairanRequest request) {
         PengajuanPinjaman pengajuan = pengajuanRepository.findById(pengajuanId)
                 .orElseThrow(() -> new BussinessRuleException("Data pengajuan pinjaman tidak ditemukan"));
@@ -511,6 +519,7 @@ public class PencairanService {
                 .build();
     }
 
+    @Cacheable(value = "backofficeDashboardStats", key = "'all'")
     public BackofficeDashboardStatsResponse getDashboardStats() {
         List<Customer> allCustomers = customerRepository.findAll();
         List<PengajuanPinjaman> allLoans = pengajuanRepository.findAll();

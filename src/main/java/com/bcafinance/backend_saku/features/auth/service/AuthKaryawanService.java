@@ -7,6 +7,7 @@ import com.bcafinance.backend_saku.core.security.AppUser;
 import com.bcafinance.backend_saku.core.security.JwtService;
 import com.bcafinance.backend_saku.features.auth.dto.AuthRequest;
 import com.bcafinance.backend_saku.features.auth.dto.AuthResponse;
+import com.bcafinance.backend_saku.features.auth.dto.ChangePasswordRequest;
 import com.bcafinance.backend_saku.features.auth.dto.ForgotPasswordRequest;
 import com.bcafinance.backend_saku.features.auth.dto.RefreshTokenRequest;
 import com.bcafinance.backend_saku.features.auth.dto.ResetPasswordRequest;
@@ -18,6 +19,7 @@ import io.jsonwebtoken.Claims;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -168,5 +170,41 @@ public class AuthKaryawanService {
         karyawanRepository.save(karyawan);
 
         return "Password karyawan berhasil diubah. Silakan login dengan password baru.";
+    }
+
+    // Ganti Password saat Login (In-Session)
+    @Transactional
+    public void changePassword(UUID karyawanId, ChangePasswordRequest request) {
+        if (karyawanId == null) {
+            throw new BussinessRuleException("Sesi login karyawan tidak valid");
+        }
+
+        Karyawan karyawan = karyawanRepository.findById(karyawanId)
+                .orElseThrow(() -> new BussinessRuleException("Data karyawan tidak ditemukan"));
+
+        if (!passwordEncoder.matches(request.getOldPassword(), karyawan.getPassword())) {
+            throw new BussinessRuleException("Password lama yang Anda masukkan salah");
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new BussinessRuleException("Password baru dan konfirmasi password tidak cocok");
+        }
+
+        if (passwordEncoder.matches(request.getNewPassword(), karyawan.getPassword())) {
+            throw new BussinessRuleException("Password baru tidak boleh sama dengan password saat ini");
+        }
+
+        karyawan.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        karyawan.setUpdatedDate(new java.util.Date());
+        karyawanRepository.save(karyawan);
+
+        // Record Audit Log for Karyawan Change Password
+        if (auditLogService != null) {
+            auditLogService.recordLog(
+                    karyawanId,
+                    "CHANGE_PASSWORD",
+                    "AUTH",
+                    "Karyawan " + karyawan.getUsername() + " (" + (karyawan.getRole() != null ? karyawan.getRole().getNama() : "KARYAWAN") + ") berhasil mengubah password");
+        }
     }
 }

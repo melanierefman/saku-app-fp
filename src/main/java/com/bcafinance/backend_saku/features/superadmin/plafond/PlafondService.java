@@ -10,6 +10,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,6 +21,7 @@ public class PlafondService {
     private final PlafondRepository plafondRepository;
 
     @Transactional
+    @CacheEvict(value = "plafondList", allEntries = true)
     public PlafondResponse create(PlafondRequest request) {
         Plafond plafond = new Plafond();
         plafond.setId(UUID.randomUUID());
@@ -27,6 +30,7 @@ public class PlafondService {
         return toResponse(plafondRepository.save(plafond));
     }
 
+    @Cacheable(value = "plafondList", key = "'all'")
     public List<PlafondResponse> findAll() {
         return plafondRepository.findAll().stream().map(this::toResponse).toList();
     }
@@ -36,6 +40,7 @@ public class PlafondService {
     }
 
     @Transactional
+    @CacheEvict(value = "plafondList", allEntries = true)
     public PlafondResponse update(UUID id, PlafondRequest request) {
         Plafond plafond = getPlafond(id);
         applyRequest(plafond, request);
@@ -43,6 +48,7 @@ public class PlafondService {
     }
 
     @Transactional
+    @CacheEvict(value = "plafondList", allEntries = true)
     public void delete(UUID id) {
         plafondRepository.delete(getPlafond(id));
     }
