@@ -33,3 +33,15 @@ export interface LoginResponseData {
 }
 
 export type AuthResponse = ApiResponse<LoginResponseData>;
+
+export interface ChangePasswordRequest {
+  oldPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface ChangePasswordResponse {
+  status: number;
+  message: string;
+  data: string | null;
+}

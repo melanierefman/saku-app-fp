@@ -6,6 +6,8 @@ import { environment } from '../../../../environments/environment';
 import {
   AuthResponse,
   LoginKaryawanRequest,
+  ChangePasswordRequest,
+  ChangePasswordResponse,
 } from '../../models/auth/auth.models';
 import { AuthStore } from '../../store/auth.store';
 import { TokenService } from './token.service';
@@ -100,5 +102,11 @@ export class AuthService {
   // Reset Password
   resetPassword(payload: { email: string; otp: string; newPassword: string }): Observable<any> {
     return this.http.post(`${this.API_URL}/forgot-password/reset`, payload);
+  }
+
+  // Change Password Karyawan (In-Session)
+  // PUT /api/auth/karyawan/change-password
+  changePassword(payload: ChangePasswordRequest): Observable<ChangePasswordResponse> {
+    return this.http.put<ChangePasswordResponse>(`${this.API_URL}/karyawan/change-password`, payload);
   }
 }

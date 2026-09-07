@@ -45,7 +45,8 @@ export class HeaderComponent {
   }
 
   get userRoleDisplay(): string {
-    return formatRoleName(this.userRole() || 'Karyawan');
+    const role = formatRoleName(this.userRole() || 'Karyawan');
+    return role;
   }
 
   get userInitials(): string {

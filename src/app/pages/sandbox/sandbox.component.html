@@ -893,4 +893,203 @@
       </div>
     </div>
   </section>
+
+  <!-- ========================================== -->
+  <!-- 16. ERROR STATE PAGES SECTION -->
+  <!-- ========================================== -->
+  <section class="space-y-6">
+    <div class="border-b border-neutral-10 pb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <h2 class="text-lg font-bold text-neutral-100">Error State Pages</h2>
+        <p class="text-xs text-neutral-40">Tampilan halaman status error 404 (Not Found), 403 (Forbidden), dan 500 (Internal Server Error)</p>
+      </div>
+
+      <!-- Direct Fullscreen Route Links -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <a routerLink="/404" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 transition-colors">
+          <span>Buka /404</span>
+          <svg lucideExternalLink [size]="12" class="w-3 h-3"></svg>
+        </a>
+        <a routerLink="/403" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 transition-colors">
+          <span>Buka /403</span>
+          <svg lucideExternalLink [size]="12" class="w-3 h-3"></svg>
+        </a>
+        <a routerLink="/500" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 transition-colors">
+          <span>Buka /500</span>
+          <svg lucideExternalLink [size]="12" class="w-3 h-3"></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Interactive In-Sandbox Live Preview -->
+    <div class="bg-neutral-0/40 rounded-2xl border border-neutral-10 p-6 space-y-6">
+      <!-- Tab Switcher -->
+      <div class="flex items-center gap-2 border-b border-neutral-20 pb-4">
+        <button
+          type="button"
+          (click)="selectedErrorType = '404'"
+          class="px-4 py-2 text-xs font-semibold rounded-xl transition-all cursor-pointer"
+          [class.bg-primary]="selectedErrorType === '404'"
+          [class.text-white]="selectedErrorType === '404'"
+          [class.bg-white]="selectedErrorType !== '404'"
+          [class.text-neutral-70]="selectedErrorType !== '404'"
+          [class.border]="selectedErrorType !== '404'"
+          [class.border-[#E5E7EB]]="selectedErrorType !== '404'"
+        >
+          404 - Halaman Tidak Ditemukan
+        </button>
+
+        <button
+          type="button"
+          (click)="selectedErrorType = '403'"
+          class="px-4 py-2 text-xs font-semibold rounded-xl transition-all cursor-pointer"
+          [class.bg-primary]="selectedErrorType === '403'"
+          [class.text-white]="selectedErrorType === '403'"
+          [class.bg-white]="selectedErrorType !== '403'"
+          [class.text-neutral-70]="selectedErrorType !== '403'"
+          [class.border]="selectedErrorType !== '403'"
+          [class.border-[#E5E7EB]]="selectedErrorType !== '403'"
+        >
+          403 - Akses Ditolak (Forbidden)
+        </button>
+
+        <button
+          type="button"
+          (click)="selectedErrorType = '500'"
+          class="px-4 py-2 text-xs font-semibold rounded-xl transition-all cursor-pointer"
+          [class.bg-primary]="selectedErrorType === '500'"
+          [class.text-white]="selectedErrorType === '500'"
+          [class.bg-white]="selectedErrorType !== '500'"
+          [class.text-neutral-70]="selectedErrorType !== '500'"
+          [class.border]="selectedErrorType !== '500'"
+          [class.border-[#E5E7EB]]="selectedErrorType !== '500'"
+        >
+          500 - Gangguan Server
+        </button>
+      </div>
+
+      <!-- Preview Window -->
+      <div class="bg-slate-50 rounded-2xl p-8 border border-[#E5E7EB] flex flex-col items-center justify-center text-center relative overflow-hidden">
+        <!-- 404 Preview -->
+        @if (selectedErrorType === '404') {
+        <div class="w-full max-w-lg bg-white rounded-3xl p-8 border border-[#E5E7EB] shadow-md space-y-5 animate-fadeIn">
+          <div class="relative flex items-center justify-center">
+            <span class="text-7xl sm:text-8xl font-black tracking-tighter text-slate-100 select-none">404</span>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shadow-md border border-white">
+                <svg lucideFileQuestion [size]="32" class="w-8 h-8"></svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-center">
+            <app-badge variant="warning" size="md" rounded="pill">Halaman Tidak Ditemukan</app-badge>
+          </div>
+
+          <div class="space-y-1.5">
+            <h3 class="text-lg font-bold text-neutral-90">Oops! Halaman yang Anda cari tidak tersedia</h3>
+            <p class="text-xs text-neutral-50 leading-relaxed">
+              Halaman yang Anda tuju mungkin telah dipindahkan, dihapus, atau alamat URL yang Anda masukkan tidak valid.
+            </p>
+          </div>
+
+          <div class="flex items-center justify-center gap-3 pt-2">
+            <app-button variant="outline" size="sm">
+              <span class="flex items-center gap-1.5">
+                <svg lucideArrowLeft [size]="14" class="w-3.5 h-3.5"></svg>
+                <span>Halaman Sebelumnya</span>
+              </span>
+            </app-button>
+            <app-button variant="primary" size="sm">
+              <span class="flex items-center gap-1.5">
+                <svg lucideHome [size]="14" class="w-3.5 h-3.5"></svg>
+                <span>Kembali ke Beranda</span>
+              </span>
+            </app-button>
+          </div>
+        </div>
+        }
+
+        <!-- 403 Preview -->
+        @if (selectedErrorType === '403') {
+        <div class="w-full max-w-lg bg-white rounded-3xl p-8 border border-[#E5E7EB] shadow-md space-y-5 animate-fadeIn">
+          <div class="relative flex items-center justify-center">
+            <span class="text-7xl sm:text-8xl font-black tracking-tighter text-slate-100 select-none">403</span>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="w-16 h-16 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center shadow-md border border-white">
+                <svg lucideShieldAlert [size]="32" class="w-8 h-8"></svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-center">
+            <app-badge variant="error" size="md" rounded="pill">Akses Dibatasi</app-badge>
+          </div>
+
+          <div class="space-y-1.5">
+            <h3 class="text-lg font-bold text-neutral-90">Akses Ditolak (Forbidden)</h3>
+            <p class="text-xs text-neutral-50 leading-relaxed">
+              Akun Anda tidak memiliki hak akses atau kewenangan untuk membuka halaman ini. Silakan hubungi Superadmin jika Anda membutuhkan izin akses.
+            </p>
+          </div>
+
+          <div class="flex items-center justify-center gap-3 pt-2">
+            <app-button variant="outline" size="sm">
+              <span class="flex items-center gap-1.5">
+                <svg lucideArrowLeft [size]="14" class="w-3.5 h-3.5"></svg>
+                <span>Halaman Sebelumnya</span>
+              </span>
+            </app-button>
+            <app-button variant="primary" size="sm">
+              <span class="flex items-center gap-1.5">
+                <svg lucideHome [size]="14" class="w-3.5 h-3.5"></svg>
+                <span>Kembali ke Dashboard</span>
+              </span>
+            </app-button>
+          </div>
+        </div>
+        }
+
+        <!-- 500 Preview -->
+        @if (selectedErrorType === '500') {
+        <div class="w-full max-w-lg bg-white rounded-3xl p-8 border border-[#E5E7EB] shadow-md space-y-5 animate-fadeIn">
+          <div class="relative flex items-center justify-center">
+            <span class="text-7xl sm:text-8xl font-black tracking-tighter text-slate-100 select-none">500</span>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="w-16 h-16 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center shadow-md border border-white">
+                <svg lucideServerCrash [size]="32" class="w-8 h-8"></svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-center">
+            <app-badge variant="error" size="md" rounded="pill">Gangguan Sistem</app-badge>
+          </div>
+
+          <div class="space-y-1.5">
+            <h3 class="text-lg font-bold text-neutral-90">Terjadi Kesalahan pada Server</h3>
+            <p class="text-xs text-neutral-50 leading-relaxed">
+              Layanan kami sedang mengalami kendala internal atau dalam proses pemeliharaan. Tim teknis sedang menangani masalah ini.
+            </p>
+          </div>
+
+          <div class="flex items-center justify-center gap-3 pt-2">
+            <app-button variant="outline" size="sm">
+              <span class="flex items-center gap-1.5">
+                <svg lucideHome [size]="14" class="w-3.5 h-3.5"></svg>
+                <span>Kembali ke Beranda</span>
+              </span>
+            </app-button>
+            <app-button variant="primary" size="sm">
+              <span class="flex items-center gap-1.5">
+                <svg lucideRefreshCw [size]="14" class="w-3.5 h-3.5"></svg>
+                <span>Muat Ulang Halaman</span>
+              </span>
+            </app-button>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+  </section>
 </div>

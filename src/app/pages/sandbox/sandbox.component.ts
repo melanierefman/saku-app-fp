@@ -44,7 +44,14 @@ import {
   LucideUser,
   LucideShieldCheck,
   LucideClock,
+  LucideFileQuestion,
+  LucideShieldAlert,
+  LucideServerCrash,
+  LucideExternalLink,
+  LucideHome,
+  LucideArrowLeft,
 } from '@lucide/angular';
+import { RouterLink, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-sandbox',
@@ -52,6 +59,8 @@ import {
   imports: [
     CommonModule,
     FormsModule,
+    RouterLink,
+    RouterModule,
     ButtonComponent,
     BadgeComponent,
     InputComponent,
@@ -85,12 +94,21 @@ import {
     LucideUser,
     LucideShieldCheck,
     LucideClock,
+    LucideFileQuestion,
+    LucideShieldAlert,
+    LucideServerCrash,
+    LucideExternalLink,
+    LucideHome,
+    LucideArrowLeft,
   ],
   templateUrl: './sandbox.component.html',
   styleUrl: './sandbox.component.css',
 })
 export class SandboxComponent {
   readonly toastService = inject(ToastService);
+
+  // Error Pages Demo State
+  selectedErrorType: '404' | '403' | '500' = '404';
 
   // Date Picker Demo States
   demoSingleDate: Date | null = new Date();

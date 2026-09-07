@@ -372,5 +372,36 @@ export const routes: Routes = [
     ],
   },
 
-  { path: '**', redirectTo: '' },
+  // Error Pages (Public/Standalone)
+  {
+    path: '404',
+    loadComponent: () =>
+      import('./pages/error/error-page.component').then((m) => m.ErrorPageComponent),
+    data: { type: '404', title: '404 - Halaman Tidak Ditemukan' },
+  },
+  {
+    path: '403',
+    loadComponent: () =>
+      import('./pages/error/error-page.component').then((m) => m.ErrorPageComponent),
+    data: { type: '403', title: '403 - Akses Ditolak' },
+  },
+  {
+    path: '500',
+    loadComponent: () =>
+      import('./pages/error/error-page.component').then((m) => m.ErrorPageComponent),
+    data: { type: '500', title: '500 - Gangguan Server' },
+  },
+  {
+    path: 'error',
+    loadComponent: () =>
+      import('./pages/error/error-page.component').then((m) => m.ErrorPageComponent),
+  },
+
+  // Wildcard fallback to 404 Error Page
+  {
+    path: '**',
+    loadComponent: () =>
+      import('./pages/error/error-page.component').then((m) => m.ErrorPageComponent),
+    data: { type: '404' },
+  },
 ];
