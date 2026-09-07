@@ -152,6 +152,7 @@ export interface MarketingPengajuanItemResponse {
   tanggalReviewTerakhir?: string;
   skorKredit?: number;
   skor?: number;
+  statusScoring?: string;
   updatedDate?: string;
 
   // Stages & Riwayat

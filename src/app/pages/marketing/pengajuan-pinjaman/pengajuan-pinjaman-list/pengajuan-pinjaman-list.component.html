@@ -31,6 +31,12 @@
           </app-date-picker>
         </div>
 
+        <!-- Skor Kelayakan Filter Dropdown -->
+        <div class="w-44 max-w-full">
+          <app-dropdown [options]="skorOptions" placeholder="Pilih Skor" [ngModel]="selectedSkor()" [clearable]="true"
+            (optionChange)="onSkorChange($event)"></app-dropdown>
+        </div>
+
         <!-- Tanggal Review Datepicker -->
         <div class="w-44 max-w-full">
           <app-date-picker placeholder="Tgl Review" mode="single" [showPresets]="false"
@@ -57,7 +63,7 @@
 
     <!-- Main Table -->
     <app-table [columns]="columns" [data]="items()" [loading]="isLoading()" rowKey="id" [sortKey]="sortKey()"
-      minWidth="1100px" [sortDirection]="sortDirection()" (sortChange)="onSortChange($event)"
+      minWidth="1250px" [sortDirection]="sortDirection()" (sortChange)="onSortChange($event)"
       [pageIndex]="currentPage()" [pageSize]="pageSize()"
       emptyMessage="Tidak ada data pengajuan pinjaman yang ditemukan.">
 
@@ -100,6 +106,21 @@
         <span class="text-neutral-90 text-sm">
           {{ getCabangName(row) }}
         </span>
+      </ng-template>
+
+      <!-- Custom Cell: Skor Kelayakan -->
+      <ng-template appTableCell="skorKelayakan" let-row="row">
+        <div class="flex items-center gap-1.5">
+          @if (getScore(row) > 0) {
+          <app-badge [variant]="getScoreBadgeVariant(getScore(row))" size="sm">
+            Skor {{ getScore(row) }} &bull; {{ getScoreLabel(getScore(row)) }}
+          </app-badge>
+          } @else {
+          <app-badge variant="neutral" size="sm">
+            Belum Dinilai
+          </app-badge>
+          }
+        </div>
       </ng-template>
 
       <!-- Custom Cell: Tanggal Pengajuan -->

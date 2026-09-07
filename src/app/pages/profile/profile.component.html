@@ -1,4 +1,4 @@
-<div class="max-w-4xl mx-auto space-y-6">
+<div class="mx-auto space-y-6">
   <!-- Profile Header Card -->
   <div
     class="bg-white rounded-xl p-6 sm:p-8 border border-[#E5E7EB] flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
@@ -65,16 +65,8 @@
 </div>
 
 <!-- Logout Confirmation Dialog Modal -->
-<app-modal
-  [isOpen]="showLogoutModal"
-  variant="confirm"
-  icon="alert"
-  message="Apakah Anda yakin ingin keluar dari akun Anda?"
-  confirmText="Ya, Keluar"
-  cancelText="Batal"
-  confirmVariant="primary"
-  (confirm)="onConfirmLogout()"
-  (close)="showLogoutModal = false"
-  (cancel)="showLogoutModal = false"
->
+<app-modal [isOpen]="showLogoutModal" variant="confirm" icon="alert"
+  message="Apakah Anda yakin ingin keluar dari akun Anda?" confirmText="Ya, Keluar" cancelText="Batal"
+  confirmVariant="primary" (confirm)="onConfirmLogout()" (close)="showLogoutModal = false"
+  (cancel)="showLogoutModal = false">
 </app-modal>

@@ -72,12 +72,40 @@ export class BranchManagerApprovalService {
       );
   }
 
+  private scoreCache = new Map<string, number>();
+  private statusScoringCache = new Map<string, string>();
+
+  getScoreFromCache(id: string): number | undefined {
+    return this.scoreCache.get(id);
+  }
+
+  cacheScore(id: string, score: number, statusScoring?: string): void {
+    if (id && score !== undefined && score !== null && !isNaN(score)) {
+      this.scoreCache.set(id, score);
+      if (statusScoring) this.statusScoringCache.set(id, statusScoring);
+    }
+  }
+
   // 3. Get Detail By ID
   getDetail(id: string): Observable<BranchManagerPengajuanDetailResponse | null> {
     return this.http
       .get<ApiResponse<BranchManagerPengajuanDetailResponse> | any>(`${this.baseUrl}/${id}`)
       .pipe(
-        map((res: any) => res?.data || res || null),
+        map((res: any) => {
+          const detail = res?.data || res || null;
+          if (detail) {
+            const rawScore =
+              detail.skorKredit ??
+              detail.skor ??
+              detail.scoring?.skorKredit ??
+              detail.scoring?.skor ??
+              detail.customer?.skorKredit;
+            if (rawScore !== undefined && rawScore !== null && !isNaN(Number(rawScore))) {
+              this.cacheScore(id, Number(rawScore), detail.statusScoring);
+            }
+          }
+          return detail;
+        }),
         catchError((err) => {
           console.warn('Failed to fetch BM approval detail:', err);
           return of(null);
@@ -102,9 +130,32 @@ export class BranchManagerApprovalService {
   }
 
   private normalizeItem(item: any): BranchManagerPengajuanItemResponse {
+    const id = item.pengajuanId || item.id || '';
+    const cachedScore = id ? this.scoreCache.get(id) : undefined;
+    const cachedStatusScoring = id ? this.statusScoringCache.get(id) : undefined;
+
+    const rawScore =
+      item.skorKredit ??
+      item.skor ??
+      item.scoring?.skorKredit ??
+      item.scoring?.skor ??
+      item.scoring?.score ??
+      item.scoring?.totalSkor ??
+      item.creditScore ??
+      item.score ??
+      item.nilaiSkor ??
+      item.customer?.skorKredit ??
+      item.customer?.skor ??
+      item.customer?.creditScore ??
+      cachedScore;
+
+    if (id && rawScore !== undefined && rawScore !== null && !isNaN(Number(rawScore))) {
+      this.cacheScore(id, Number(rawScore), item.statusScoring || cachedStatusScoring);
+    }
+
     return {
-      pengajuanId: item.pengajuanId || item.id,
-      id: item.id || item.pengajuanId,
+      pengajuanId: id,
+      id,
       nomorPengajuan: item.nomorPengajuan || item.noPengajuan,
       noPengajuan: item.noPengajuan || item.nomorPengajuan,
       customerId: item.customerId,
@@ -129,6 +180,9 @@ export class BranchManagerApprovalService {
       tanggalPersetujuanTerakhir: item.tanggalPersetujuanTerakhir || item.tanggalPersetujuanBM || item.tanggalPersetujuan,
       tanggalPersetujuan: item.tanggalPersetujuan || item.tanggalPersetujuanBM || item.tanggalPersetujuanTerakhir,
       tanggalPersetujuanBM: item.tanggalPersetujuanBM || item.tanggalPersetujuan || item.tanggalPersetujuanTerakhir,
+      skorKredit: rawScore !== undefined && rawScore !== null ? Number(rawScore) : undefined,
+      skor: rawScore !== undefined && rawScore !== null ? Number(rawScore) : undefined,
+      statusScoring: item.statusScoring || item.scoring?.statusScoring || cachedStatusScoring,
     };
   }
 

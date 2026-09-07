@@ -23,6 +23,9 @@ import {
   BadgeVariant,
   ToastService,
 } from '../../../shared/components';
+import { MarketingDashboardComponent } from '../../marketing/dashboard/marketing-dashboard.component';
+import { BranchManagerDashboardComponent } from '../../branchmanager/dashboard/branch-manager-dashboard.component';
+import { BackofficeDashboardComponent } from '../../backoffice/dashboard/backoffice-dashboard.component';
 import {
   LucideFileText,
   LucideBanknote,
@@ -47,6 +50,9 @@ import {
     CommonModule,
     RouterModule,
     BadgeComponent,
+    MarketingDashboardComponent,
+    BranchManagerDashboardComponent,
+    BackofficeDashboardComponent,
     LucideFileText,
     LucideBanknote,
     LucideCheckCircle2,
@@ -91,6 +97,21 @@ export class DashboardComponent implements OnInit {
   get isSuperAdmin(): boolean {
     const role = (this.userRole() || '').toUpperCase();
     return role.includes('SUPERADMIN') || role.includes('ADMIN');
+  }
+
+  get isMarketing(): boolean {
+    const role = (this.userRole() || '').toUpperCase();
+    return role.includes('MARKETING');
+  }
+
+  get isBranchManager(): boolean {
+    const role = (this.userRole() || '').toUpperCase();
+    return role.includes('BRANCH') || role.includes('BM') || role.includes('BRANCHMANAGER');
+  }
+
+  get isBackoffice(): boolean {
+    const role = (this.userRole() || '').toUpperCase();
+    return role.includes('BACKOFFICE') || role.includes('BO');
   }
 
   // Monthly trends helper max value for bar scale calculation

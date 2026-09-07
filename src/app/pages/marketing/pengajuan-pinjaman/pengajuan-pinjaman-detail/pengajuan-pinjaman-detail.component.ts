@@ -308,7 +308,24 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
 
   getSkor(): number {
     const d = this.detail();
-    return d?.skor ?? d?.skorKredit ?? 72;
+    const val =
+      d?.skorKredit ??
+      d?.skor ??
+      (d as any)?.scoring?.skorKredit ??
+      (d as any)?.scoring?.skor ??
+      (d as any)?.scoring?.score ??
+      (d as any)?.scoring?.totalSkor ??
+      (d as any)?.creditScore ??
+      (d as any)?.score ??
+      (d as any)?.nilaiSkor ??
+      (d as any)?.customer?.skorKredit ??
+      (d as any)?.customer?.skor ??
+      null;
+
+    if (val !== null && val !== undefined && !isNaN(Number(val))) {
+      return Number(val);
+    }
+    return 0;
   }
 
   getScoreColorClass(): string {

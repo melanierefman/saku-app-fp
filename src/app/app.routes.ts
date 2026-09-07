@@ -56,6 +56,14 @@ export const routes: Routes = [
 
       // Marketing Routes
       {
+        path: 'marketing/dashboard',
+        loadComponent: () =>
+          import(
+            './pages/marketing/dashboard/marketing-dashboard.component'
+          ).then((m) => m.MarketingDashboardComponent),
+        data: { title: 'Dashboard Marketing' },
+      },
+      {
         path: 'pengajuan-pinjaman',
         loadComponent: () =>
           import(
@@ -76,8 +84,36 @@ export const routes: Routes = [
         redirectTo: 'pengajuan-pinjaman/detail/:id',
         pathMatch: 'full',
       },
+      {
+        path: 'marketing/pengajuan-pinjaman',
+        redirectTo: 'pengajuan-pinjaman',
+        pathMatch: 'full',
+      },
+      {
+        path: 'marketing/review-pengajuan',
+        redirectTo: 'pengajuan-pinjaman',
+        pathMatch: 'full',
+      },
+      {
+        path: 'marketing/review-pengajuan/:id',
+        redirectTo: 'pengajuan-pinjaman/detail/:id',
+        pathMatch: 'full',
+      },
 
       // Branch Manager Routes
+      {
+        path: 'branch-manager/dashboard',
+        loadComponent: () =>
+          import(
+            './pages/branchmanager/dashboard/branch-manager-dashboard.component'
+          ).then((m) => m.BranchManagerDashboardComponent),
+        data: { title: 'Dashboard Branch Manager' },
+      },
+      {
+        path: 'branchmanager/dashboard',
+        redirectTo: 'branch-manager/dashboard',
+        pathMatch: 'full',
+      },
       {
         path: 'persetujuan-pinjaman',
         loadComponent: () =>
@@ -101,6 +137,19 @@ export const routes: Routes = [
       },
 
       // Backoffice Routes
+      {
+        path: 'backoffice/dashboard',
+        loadComponent: () =>
+          import(
+            './pages/backoffice/dashboard/backoffice-dashboard.component'
+          ).then((m) => m.BackofficeDashboardComponent),
+        data: { title: 'Dashboard Backoffice' },
+      },
+      {
+        path: 'bo/dashboard',
+        redirectTo: 'backoffice/dashboard',
+        pathMatch: 'full',
+      },
       {
         path: 'verifikasi-customer',
         loadComponent: () =>

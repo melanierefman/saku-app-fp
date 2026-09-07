@@ -1,5 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist/new_app/browser",
+  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/(.*)",

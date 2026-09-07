@@ -23,48 +23,45 @@
   @if (isLoading()) {
   <!-- SKELETON LOADING STATE -->
   <div class="space-y-6 animate-pulse">
-    <!-- Top Row Skeleton (2 Large White Container Cards) -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-      <!-- Left Skeleton (Aktivitas & Master Card: 1x4 list) -->
-      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs space-y-4 flex flex-col justify-between">
-        <div class="space-y-1">
-          <div class="h-5 bg-neutral-10 rounded w-56"></div>
-          <div class="h-3.5 bg-neutral-10 rounded w-72"></div>
-        </div>
-        <div class="grid grid-cols-1 gap-2.5 flex-1">
-          @for (i of [1,2,3,4]; track i) {
-          <div class="p-3.5 rounded-xl border border-[#E5E7EB] flex items-center justify-between gap-3">
-            <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-xl bg-neutral-10"></div>
-              <div class="space-y-1">
-                <div class="h-4 bg-neutral-10 rounded w-24"></div>
-                <div class="h-3 bg-neutral-10 rounded w-32"></div>
-              </div>
-            </div>
-            <div class="h-6 bg-neutral-10 rounded w-16"></div>
-          </div>
-          }
-        </div>
+    <!-- Skeleton Container 1 (4 Cards in 1 Row) -->
+    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+      <div class="space-y-1">
+        <div class="h-5 bg-neutral-10 rounded w-56"></div>
+        <div class="h-3.5 bg-neutral-10 rounded w-72"></div>
       </div>
-
-      <!-- Right Skeleton (Realisasi Finansial Card) -->
-      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs space-y-4 flex flex-col justify-between">
-        <div class="space-y-1">
-          <div class="h-5 bg-neutral-10 rounded w-56"></div>
-          <div class="h-3.5 bg-neutral-10 rounded w-72"></div>
-        </div>
-        <div class="grid grid-cols-1 gap-3.5 flex-1">
-          @for (i of [1,2]; track i) {
-          <div class="p-4 rounded-xl border border-[#E5E7EB] space-y-3 flex flex-col justify-between">
-            <div class="flex items-center justify-between">
-              <div class="h-4 bg-neutral-10 rounded w-32"></div>
-              <div class="w-8 h-8 rounded-lg bg-neutral-10"></div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        @for (i of [1,2,3,4]; track i) {
+        <div class="p-3.5 rounded-xl border border-[#E5E7EB] flex items-center justify-between gap-2.5">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-neutral-10"></div>
+            <div class="space-y-1">
+              <div class="h-4 bg-neutral-10 rounded w-24"></div>
+              <div class="h-3 bg-neutral-10 rounded w-20"></div>
             </div>
-            <div class="h-7 bg-neutral-10 rounded w-48"></div>
-            <div class="h-3 bg-neutral-10 rounded w-40"></div>
           </div>
-          }
+          <div class="h-6 bg-neutral-10 rounded w-12"></div>
         </div>
+        }
+      </div>
+    </div>
+
+    <!-- Skeleton Container 2 (2 Cards in 1 Row) -->
+    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+      <div class="space-y-1">
+        <div class="h-5 bg-neutral-10 rounded w-56"></div>
+        <div class="h-3.5 bg-neutral-10 rounded w-72"></div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        @for (i of [1,2]; track i) {
+        <div class="p-4 rounded-xl border border-[#E5E7EB] space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="h-4 bg-neutral-10 rounded w-32"></div>
+            <div class="w-8 h-8 rounded-lg bg-neutral-10"></div>
+          </div>
+          <div class="h-7 bg-neutral-10 rounded w-36"></div>
+          <div class="h-3 bg-neutral-10 rounded w-32"></div>
+        </div>
+        }
       </div>
     </div>
 
@@ -93,10 +90,12 @@
     </div>
   </div>
   } @else {
-  <!-- ROW 1: SPLIT OVERVIEW (2 WHITE CONTAINER CARDS) -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-    <!-- KELOMPOK 1 (KIRI): AKTIVITAS & MASTER DATA NASIONAL (1x4 LIST) -->
-    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-4">
+
+  <!-- ROW 1: STATISTIK NASIONAL (FULL-WIDTH 1 BARIS KESAMPING PER KELOMPOK) -->
+  <div class="space-y-6">
+
+    <!-- KELOMPOK 1: AKTIVITAS & MASTER DATA NASIONAL (1 BARIS KESAMPING / 4 KOLOM) -->
+    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
       <!-- Header -->
       <div class="space-y-0.5">
         <h2 class="text-base font-semibold text-neutral-90 tracking-tight flex items-center gap-2">
@@ -104,23 +103,23 @@
           <span>Aktivitas & Master Data Nasional</span>
         </h2>
         <p class="text-xs text-neutral-40">
-          Ringkasan berkas pengajuan, rasio persetujuan kredit, nasabah, dan unit cabang
+          Ringkasan berkas pengajuan, rasio persetujuan kredit, nasabah, dan unit cabang operasional
         </p>
       </div>
 
-      <!-- Inner 4 Rows (1x4 Stack Vertikal) -->
-      <div class="grid grid-cols-1 gap-2.5 flex-1">
+      <!-- Inner 4 Cards (1 Baris Kesamping) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- 1. Total Pengajuan Masuk -->
         <div
-          class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-primary-30 hover:bg-neutral-0/40 transition-all flex items-center justify-between gap-3 group">
-          <div class="flex items-center gap-3 min-w-0">
+          class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-primary-30 hover:bg-neutral-0/40 transition-all flex items-center justify-between gap-2.5 group">
+          <div class="flex items-center gap-2.5 min-w-0">
             <div
               class="w-9 h-9 rounded-xl bg-primary-0/60 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <svg lucideFileText [size]="18" class="w-4.5 h-4.5"></svg>
             </div>
             <div class="min-w-0 truncate">
               <p class="text-xs font-semibold text-neutral-90 truncate">Total Pengajuan</p>
-              <p class="text-[11px] text-neutral-40 truncate">Berkas masuk nasional</p>
+              <p class="text-[11px] text-neutral-40 truncate">Berkas masuk</p>
             </div>
           </div>
           <div class="text-right shrink-0">
@@ -133,22 +132,22 @@
 
         <!-- 2. Approval Rate Nasional -->
         <div
-          class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-amber-200 hover:bg-amber-50/20 transition-all flex items-center justify-between gap-3 group">
-          <div class="flex items-center gap-3 min-w-0">
+          class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-amber-200 hover:bg-amber-50/20 transition-all flex items-center justify-between gap-2.5 group">
+          <div class="flex items-center gap-2.5 min-w-0">
             <div
               class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <svg lucideTrendingUp [size]="18" class="w-4.5 h-4.5"></svg>
             </div>
             <div class="min-w-0 truncate">
               <p class="text-xs font-semibold text-neutral-90 truncate">Approval Rate</p>
-              <p class="text-[11px] text-neutral-40 truncate">Tingkat persetujuan kredit</p>
+              <p class="text-[11px] text-neutral-40 truncate">Persetujuan kredit</p>
             </div>
           </div>
           <div class="text-right shrink-0">
             <div class="text-lg font-bold text-amber-600 tracking-tight">
               {{ formatNumber(stats()?.approvalRateNasional, 1) }}%
             </div>
-            <div class="w-16 bg-neutral-10 rounded-full h-1 mt-1 overflow-hidden ml-auto">
+            <div class="w-14 bg-neutral-10 rounded-full h-1 mt-1 overflow-hidden ml-auto">
               <div class="bg-amber-500 h-1 rounded-full transition-all duration-500"
                 [style.width.%]="stats()?.approvalRateNasional || 0"></div>
             </div>
@@ -157,15 +156,15 @@
 
         <!-- 3. Total Customer Terdaftar -->
         <div
-          class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-purple-200 hover:bg-purple-50/20 transition-all flex items-center justify-between gap-3 group">
-          <div class="flex items-center gap-3 min-w-0">
+          class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-purple-200 hover:bg-purple-50/20 transition-all flex items-center justify-between gap-2.5 group">
+          <div class="flex items-center gap-2.5 min-w-0">
             <div
               class="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <svg lucideUsers [size]="18" class="w-4.5 h-4.5"></svg>
             </div>
             <div class="min-w-0 truncate">
-              <p class="text-xs font-semibold text-neutral-90 truncate">Total Customer</p>
-              <p class="text-[11px] text-neutral-40 truncate">Nasabah aktif terdaftar</p>
+              <p class="text-xs font-semibold text-neutral-90 truncate">Total Nasabah</p>
+              <p class="text-[11px] text-neutral-40 truncate">Nasabah terdaftar</p>
             </div>
           </div>
           <div class="text-right shrink-0">
@@ -178,8 +177,8 @@
 
         <!-- 4. Total Cabang Aktif -->
         <div
-          class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-indigo-200 hover:bg-indigo-50/20 transition-all flex items-center justify-between gap-3 group">
-          <div class="flex items-center gap-3 min-w-0">
+          class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-indigo-200 hover:bg-indigo-50/20 transition-all flex items-center justify-between gap-2.5 group">
+          <div class="flex items-center gap-2.5 min-w-0">
             <div
               class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <svg lucideBuilding2 [size]="18" class="w-4.5 h-4.5"></svg>
@@ -199,8 +198,8 @@
       </div>
     </div>
 
-    <!-- KELOMPOK 2 (KANAN): REALISASI FINANSIAL PINJAMAN -->
-    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-4">
+    <!-- KELOMPOK 2: REALISASI FINANSIAL PINJAMAN (1 BARIS KESAMPING / 2 KOLOM) -->
+    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
       <!-- Header -->
       <div class="space-y-0.5">
         <h2 class="text-base font-semibold text-neutral-90 tracking-tight flex items-center gap-2">
@@ -212,8 +211,8 @@
         </p>
       </div>
 
-      <!-- Inner 2 Sub-Cards (Stacked 1x2) -->
-      <div class="grid grid-cols-1 gap-3.5 flex-1">
+      <!-- Inner 2 Sub-Cards (1 Baris Kesamping) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <!-- Financial Card 1: Total Nominal Diajukan -->
         <div
           class="p-4 rounded-xl border border-[#E5E7EB] bg-white hover:border-blue-200 hover:bg-neutral-0/40 transition-all flex flex-col justify-between group">
@@ -231,9 +230,8 @@
             </div>
 
             <div class="mt-2.5">
-              <span class="text-[11px] font-medium text-neutral-40 uppercase tracking-wider">Total Nominal
-                Diajukan</span>
-              <div class="text-2xl font-bold text-neutral-90 tracking-tight mt-0.5 truncate"
+              <span class="text-[11px] font-medium text-neutral-40 uppercase tracking-wider">Total Nominal Diajukan</span>
+              <div class="text-xl sm:text-2xl font-bold text-neutral-90 tracking-tight mt-0.5 truncate"
                 [title]="formatCurrency(stats()?.totalNominalDiajukan)">
                 {{ formatCurrency(stats()?.totalNominalDiajukan) }}
               </div>
@@ -241,9 +239,8 @@
           </div>
 
           <div class="mt-2.5 pt-2 border-t border-[#E5E7EB] flex items-center justify-between text-xs text-neutral-50">
-            <span class="text-neutral-40 truncate text-[11px]">Akumulasi nilai permohonan pinjaman</span>
-            <span class="font-medium text-blue-700 shrink-0 text-xs ml-2">{{ stats()?.totalPengajuan || 0 }}
-              Berkas</span>
+            <span class="text-neutral-40 truncate text-[11px]">Permohonan</span>
+            <span class="font-medium text-blue-700 shrink-0 text-xs ml-2">{{ stats()?.totalPengajuan || 0 }} Berkas</span>
           </div>
         </div>
 
@@ -255,7 +252,7 @@
               <span
                 class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-xs font-medium border border-emerald-100/60">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                Realisasi Penyaluran Dana
+                Realisasi Penyaluran
               </span>
               <div
                 class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
@@ -265,7 +262,7 @@
 
             <div class="mt-2.5">
               <span class="text-[11px] font-medium text-neutral-40 uppercase tracking-wider">Total Dana Dicairkan</span>
-              <div class="text-2xl font-bold text-neutral-90 tracking-tight mt-0.5 truncate"
+              <div class="text-xl sm:text-2xl font-bold text-neutral-90 tracking-tight mt-0.5 truncate"
                 [title]="formatCurrency(stats()?.totalNominalDicairkan)">
                 {{ formatCurrency(stats()?.totalNominalDicairkan) }}
               </div>
@@ -273,13 +270,13 @@
           </div>
 
           <div class="mt-2.5 pt-2 border-t border-[#E5E7EB] flex items-center justify-between text-xs text-neutral-50">
-            <span class="text-neutral-40 truncate text-[11px]">Total dana sukses disalurkan</span>
-            <span class="font-medium text-emerald-700 shrink-0 text-xs ml-2">{{ stats()?.telahDicairkan || 0 }} Berkas
-              Cair</span>
+            <span class="text-neutral-40 truncate text-[11px]">Sukses cair</span>
+            <span class="font-medium text-emerald-700 shrink-0 text-xs ml-2">{{ stats()?.telahDicairkan || 0 }} Berkas Cair</span>
           </div>
         </div>
       </div>
     </div>
+
   </div>
 
   <!-- ROW 2: PIPELINE LOAN LIFECYCLE FUNNEL -->
@@ -592,10 +589,9 @@
                       class="w-7 h-7 rounded-full bg-primary-0 text-primary flex items-center justify-center font-semibold text-xs shrink-0">
                       {{ ((row.namaCustomer || 'C').trim().substring(0, 1) || 'C').toUpperCase() }}
                     </div>
-                    <div class="min-w-0">
-                      <p class="font-medium text-neutral-90 text-xs truncate max-w-[130px]">{{ row.namaCustomer }}</p>
-                      <p class="text-[11px] text-neutral-40 truncate max-w-[130px]">{{ row.namaCabang }}</p>
-                    </div>
+                    <span class="font-medium text-neutral-90 text-xs truncate max-w-[150px]">
+                      {{ row.namaCustomer || '-' }}
+                    </span>
                   </div>
                 </td>
                 <td class="py-2.5 px-3.5 text-left whitespace-nowrap">
@@ -689,16 +685,20 @@
     </div>
   </div>
   }
+  } @else if (isMarketing) {
+  <!-- DASHBOARD MARKETING -->
+  <app-marketing-dashboard></app-marketing-dashboard>
+  } @else if (isBranchManager) {
+  <!-- DASHBOARD BRANCH MANAGER -->
+  <app-branch-manager-dashboard></app-branch-manager-dashboard>
+  } @else if (isBackoffice) {
+  <!-- DASHBOARD BACKOFFICE -->
+  <app-backoffice-dashboard></app-backoffice-dashboard>
   } @else {
-  <!-- DASHBOARD MARKETING / BM / BACKOFFICE -->
+  <!-- DASHBOARD DEFAULT / ROLE LAINNYA -->
   <div
     class="bg-white rounded-2xl p-6 sm:p-8 border border-[#E5E7EB] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
     <div class="space-y-2">
-      <div
-        class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-primary-0/80 text-primary text-xs font-semibold">
-        <svg lucideShield [size]="14" class="w-3.5 h-3.5"></svg>
-        <span>Portal {{ userRoleDisplay }}</span>
-      </div>
       <h1 class="text-2xl font-bold text-neutral-90 tracking-tight">
         Selamat Datang, <span class="text-primary">{{ userName }}!</span>
       </h1>
@@ -710,13 +710,6 @@
 
     <!-- Quick Action Shortcuts based on role -->
     <div class="flex flex-wrap gap-3 shrink-0">
-      @if (userRole()?.includes('MARKETING')) {
-      <a routerLink="/pengajuan-pinjaman"
-        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-60 text-white text-xs font-semibold shadow-xs transition-colors">
-        <svg lucideFileText [size]="16" class="w-4 h-4"></svg>
-        <span>Buka Pengajuan Pinjaman</span>
-      </a>
-      }
       @if (userRole()?.includes('BRANCH') || userRole()?.includes('BM')) {
       <a routerLink="/persetujuan-pinjaman"
         class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-60 text-white text-xs font-semibold shadow-xs transition-colors">

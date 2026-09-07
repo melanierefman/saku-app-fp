@@ -35,6 +35,9 @@ export interface BranchManagerPengajuanItemResponse {
   tanggalPersetujuanTerakhir?: string;
   tanggalPersetujuan?: string;
   tanggalPersetujuanBM?: string;
+  skorKredit?: number;
+  skor?: number;
+  statusScoring?: string;
 }
 
 export interface ReviewMarketingHistoryItem {

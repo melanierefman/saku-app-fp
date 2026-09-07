@@ -9,6 +9,7 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
+import { forkJoin, of, map, catchError, switchMap, Observable } from 'rxjs';
 import {
   TableComponent,
   TableColumn,
@@ -75,7 +76,8 @@ export class PersetujuanPinjamanListComponent implements OnInit {
     { key: 'customer', header: 'Nama Customer', sortable: true, minWidth: '180px' },
     { key: 'jumlah', header: 'Jumlah Pinjaman', sortable: true, minWidth: '160px' },
     { key: 'tenor', header: 'Tenor', sortable: true, width: '100px' },
-    { key: 'cabang', header: 'Cabang', sortable: true, minWidth: '180px' },
+    { key: 'cabang', header: 'Cabang', sortable: true, minWidth: '160px' },
+    { key: 'skorKelayakan', header: 'Skor Kelayakan', sortable: true, width: '160px' },
     { key: 'tanggalReviewMarketing', header: 'Tanggal Review Marketing', sortable: true, width: '180px' },
     { key: 'tanggalPersetujuan', header: 'Tanggal Persetujuan', sortable: true, width: '180px' },
     { key: 'status', header: 'Status Keputusan', sortable: true, width: '170px' },
@@ -83,11 +85,17 @@ export class PersetujuanPinjamanListComponent implements OnInit {
   ];
 
   readonly statusOptions: DropdownOption[] = [
-    { value: '', label: 'Semua Status' },
     { value: 'MENUNGGU_PERSETUJUAN', label: 'Menunggu Persetujuan' },
     { value: 'DISETUJUI', label: 'Disetujui' },
     { value: 'DITOLAK', label: 'Ditolak' },
     { value: 'PERLU_REVISI', label: 'Perlu Revisi' },
+  ];
+
+  readonly skorOptions: DropdownOption[] = [
+    { value: 'TINGGI', label: 'Tinggi (≥ 75)' },
+    { value: 'SEDANG', label: 'Sedang (60 - 74)' },
+    { value: 'RENDAH', label: 'Rendah (< 60)' },
+    { value: 'BELUM_DINILAI', label: 'Belum Dinilai' },
   ];
 
   // Signals
@@ -101,10 +109,12 @@ export class PersetujuanPinjamanListComponent implements OnInit {
   // Filters & Sorting
   searchQuery = signal<string>('');
   selectedStatus = signal<string>('');
+  selectedSkor = signal<string>('');
   selectedTanggalReview = signal<Date | null>(null);
   selectedTanggalPersetujuan = signal<Date | null>(null);
   sortKey = signal<string>('tanggalReviewMarketing');
   sortDirection = signal<'asc' | 'desc'>('desc');
+  private searchDebounceTimer?: any;
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -127,7 +137,7 @@ export class PersetujuanPinjamanListComponent implements OnInit {
     const params = {
       page: apiPage,
       size: this.pageSize(),
-      search: this.searchQuery() || undefined,
+      search: this.searchQuery().trim() || undefined,
       status: this.selectedStatus() || undefined,
       tanggalReviewMarketing: tglReviewYMD,
       tanggalPersetujuan: tglPersetujuanYMD,
@@ -145,8 +155,7 @@ export class PersetujuanPinjamanListComponent implements OnInit {
               item.tanggalReviewMarketing ||
               item.tanggalReviewTerakhir ||
               item.tanggalReview;
-            if (!itemDate) return false;
-            return itemDate.startsWith(tglReviewYMD);
+            return itemDate && itemDate.startsWith(tglReviewYMD);
           });
         }
 
@@ -156,8 +165,20 @@ export class PersetujuanPinjamanListComponent implements OnInit {
               item.tanggalPersetujuan ||
               item.tanggalPersetujuanBM ||
               item.tanggalPersetujuanTerakhir;
-            if (!itemDate) return false;
-            return itemDate.startsWith(tglPersetujuanYMD);
+            return itemDate && itemDate.startsWith(tglPersetujuanYMD);
+          });
+        }
+
+        // Client-side Skor filter refinement
+        const skorFilter = this.selectedSkor();
+        if (skorFilter) {
+          contentList = contentList.filter((item: any) => {
+            const s = this.getScore(item);
+            if (skorFilter === 'TINGGI') return s >= 75;
+            if (skorFilter === 'SEDANG') return s >= 60 && s < 75;
+            if (skorFilter === 'RENDAH') return s > 0 && s < 60;
+            if (skorFilter === 'BELUM_DINILAI') return s === 0;
+            return true;
           });
         }
 
@@ -170,30 +191,16 @@ export class PersetujuanPinjamanListComponent implements OnInit {
           this.items.set(pagedList);
         } else {
           this.totalElements.set(total);
-          this.totalPages.set(res?.totalPages ?? Math.max(1, Math.ceil(total / this.pageSize())));
+          this.totalPages.set(Math.max(1, Math.ceil(total / this.pageSize())));
           this.items.set(contentList);
         }
 
-        // Client sort
-        const field = this.sortKey();
-        const dir = this.sortDirection();
-        if (field && this.items().length > 0) {
-          const sorted = [...this.items()].sort((a: any, b: any) => {
-            const valA = a[field] ?? '';
-            const valB = b[field] ?? '';
-            let cmp = 0;
-            if (typeof valA === 'number' && typeof valB === 'number') {
-              cmp = valA - valB;
-            } else {
-              cmp = String(valA).localeCompare(String(valB));
-            }
-            return dir === 'asc' ? cmp : -cmp;
-          });
-          this.items.set(sorted);
-        }
-
+        this.applySorting();
         this.isLoading.set(false);
         this.cdr.detectChanges();
+
+        // Background non-blocking enrichment for visible page items
+        this.enrichVisibleScoresAsync();
       },
       error: (err) => {
         console.error('Failed to load BM persetujuan list:', err);
@@ -201,16 +208,109 @@ export class PersetujuanPinjamanListComponent implements OnInit {
         this.totalElements.set(0);
         this.totalPages.set(1);
         this.isLoading.set(false);
+        this.toastService.error('Gagal memuat daftar persetujuan pinjaman');
         this.cdr.detectChanges();
       },
     });
   }
 
+  private enrichVisibleScoresAsync(): void {
+    const currentList = this.items();
+    const itemsNeedingScore = currentList.filter(
+      (item) => (item.pengajuanId || item.id) && this.getScore(item) === 0
+    );
+
+    if (itemsNeedingScore.length === 0) return;
+
+    const observables = itemsNeedingScore.map((item) => {
+      const id = (item.pengajuanId || item.id)!;
+      return this.bmService.getDetail(id).pipe(
+        map((detail) => {
+          if (!detail) return null;
+          const realScore =
+            detail.skorKredit ??
+            detail.skor ??
+            (detail as any).scoring?.skorKredit ??
+            (detail as any).scoring?.skor ??
+            (detail as any).customer?.skorKredit ??
+            (detail as any).customer?.skor;
+
+          return {
+            id,
+            skorKredit: realScore !== undefined && realScore !== null ? Number(realScore) : undefined,
+            statusScoring: detail.statusScoring || (item as any).statusScoring,
+          };
+        }),
+        catchError(() => of(null))
+      );
+    });
+
+    forkJoin(observables).subscribe({
+      next: (results) => {
+        const scoreMap = new Map<string, any>();
+        results.forEach((r) => {
+          if (r && r.id) scoreMap.set(r.id, r);
+        });
+
+        if (scoreMap.size > 0) {
+          const updated = this.items().map((item) => {
+            const id = item.pengajuanId || item.id;
+            if (id && scoreMap.has(id)) {
+              const res = scoreMap.get(id);
+              return {
+                ...item,
+                skorKredit: res.skorKredit ?? item.skorKredit,
+                skor: res.skorKredit ?? item.skor,
+                statusScoring: res.statusScoring || item.statusScoring,
+              };
+            }
+            return item;
+          });
+
+          this.items.set(updated);
+          this.applySorting();
+          this.cdr.detectChanges();
+        }
+      },
+      error: () => {},
+    });
+  }
+
+  private applySorting(): void {
+    const field = this.sortKey();
+    const dir = this.sortDirection();
+    if (field && this.items().length > 0) {
+      const sorted = [...this.items()].sort((a: any, b: any) => {
+        let valA = a[field] ?? '';
+        let valB = b[field] ?? '';
+
+        if (field === 'skorKelayakan' || field === 'skorKredit' || field === 'skor') {
+          valA = this.getScore(a);
+          valB = this.getScore(b);
+        }
+
+        let cmp = 0;
+        if (typeof valA === 'number' && typeof valB === 'number') {
+          cmp = valA - valB;
+        } else {
+          cmp = String(valA).localeCompare(String(valB));
+        }
+        return dir === 'asc' ? cmp : -cmp;
+      });
+      this.items.set(sorted);
+    }
+  }
+
   // Filter & Search Handlers
   onSearchChange(query: string): void {
     this.searchQuery.set(query);
-    this.currentPage.set(1);
-    this.loadData();
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer);
+    }
+    this.searchDebounceTimer = setTimeout(() => {
+      this.currentPage.set(1);
+      this.loadData();
+    }, 350);
   }
 
   onStatusChange(event: DropdownOption | null | string): void {
@@ -220,6 +320,18 @@ export class PersetujuanPinjamanListComponent implements OnInit {
       this.selectedStatus.set(event.value || '');
     } else {
       this.selectedStatus.set(String(event));
+    }
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onSkorChange(event: DropdownOption | null | string): void {
+    if (!event) {
+      this.selectedSkor.set('');
+    } else if (typeof event === 'object' && 'value' in event) {
+      this.selectedSkor.set(event.value || '');
+    } else {
+      this.selectedSkor.set(String(event));
     }
     this.currentPage.set(1);
     this.loadData();
@@ -253,6 +365,7 @@ export class PersetujuanPinjamanListComponent implements OnInit {
     return !!(
       this.searchQuery() ||
       this.selectedStatus() ||
+      this.selectedSkor() ||
       this.selectedTanggalReview() ||
       this.selectedTanggalPersetujuan()
     );
@@ -261,6 +374,7 @@ export class PersetujuanPinjamanListComponent implements OnInit {
   clearFilters(): void {
     this.searchQuery.set('');
     this.selectedStatus.set('');
+    this.selectedSkor.set('');
     this.selectedTanggalReview.set(null);
     this.selectedTanggalPersetujuan.set(null);
     this.currentPage.set(1);
@@ -270,7 +384,7 @@ export class PersetujuanPinjamanListComponent implements OnInit {
   onSortChange(event: { key: string; direction: 'asc' | 'desc' }): void {
     this.sortKey.set(event.key);
     this.sortDirection.set(event.direction);
-    this.loadData();
+    this.applySorting();
   }
 
   onPageChange(page: number): void {
@@ -342,5 +456,41 @@ export class PersetujuanPinjamanListComponent implements OnInit {
       return 'Ditolak BM';
     }
     return 'Menunggu Persetujuan BM';
+  }
+
+  getScore(item: any): number {
+    const val =
+      item?.skorKredit ??
+      item?.skor ??
+      item?.scoring?.skorKredit ??
+      item?.scoring?.skor ??
+      item?.scoring?.score ??
+      item?.scoring?.totalSkor ??
+      item?.creditScore ??
+      item?.score ??
+      item?.nilaiSkor ??
+      item?.customer?.skorKredit ??
+      item?.customer?.skor ??
+      item?.customer?.creditScore ??
+      null;
+
+    if (val !== null && val !== undefined && !isNaN(Number(val))) {
+      return Number(val);
+    }
+    return 0;
+  }
+
+  getScoreBadgeVariant(score: number): BadgeVariant {
+    if (score >= 75) return 'success';
+    if (score >= 60) return 'warning';
+    if (score > 0) return 'error';
+    return 'neutral';
+  }
+
+  getScoreLabel(score: number): string {
+    if (score >= 75) return 'Tinggi';
+    if (score >= 60) return 'Sedang';
+    if (score > 0) return 'Rendah';
+    return 'Belum Dinilai';
   }
 }
