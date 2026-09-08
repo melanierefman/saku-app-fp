@@ -1,0 +1,77 @@
+name: SAKU Backend CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: saku_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Cache Maven packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+
+    - name: Make Maven Wrapper Executable
+      run: chmod +x mvnw
+
+    - name: Build and Test with Maven
+      env:
+        DB_URL: jdbc:postgresql://localhost:5433/saku_db
+        DB_USERNAME: postgres
+
+        DB_PASSWORD: password
+        REDIS_HOST: localhost
+        REDIS_PORT: 6379
+        REDIS_TIMEOUT: 2000
+        REDIS_KEY_PREFIX: test
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      run: ./mvnw clean test -B
+
