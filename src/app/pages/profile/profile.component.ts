@@ -1,5 +1,5 @@
-import { Component, inject, ChangeDetectorRef, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, ChangeDetectorRef, signal, computed, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthStore } from '../../core/store/auth.store';
 import {
@@ -9,6 +9,7 @@ import {
   BadgeComponent,
   ModalComponent,
   ToastService,
+  SkeletonComponent,
 } from '../../shared/components';
 import { AuthService } from '../../core/services/auth/auth.service';
 import { formatRoleName } from '../../core';
@@ -33,6 +34,7 @@ import {
     ButtonComponent,
     BadgeComponent,
     ModalComponent,
+    SkeletonComponent,
     LucideLock,
     LucideKey,
     LucideEye,
@@ -44,13 +46,15 @@ import {
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.css',
 })
-export class ProfileComponent {
+export class ProfileComponent implements OnInit {
   private authStore = inject(AuthStore);
   private authService = inject(AuthService);
   private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
+  private platformId = inject(PLATFORM_ID);
 
   readonly user = this.authStore.currentUser;
+  isLoading = signal<boolean>(true);
   showLogoutModal = false;
 
   // Change Password Form Signals
@@ -69,6 +73,17 @@ export class ProfileComponent {
   isSubmitting = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
+
+  ngOnInit(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      setTimeout(() => {
+        this.isLoading.set(false);
+        this.cdr.markForCheck();
+      }, 300);
+    } else {
+      this.isLoading.set(false);
+    }
+  }
 
   get roleDisplay(): string {
     const role = formatRoleName(this.user()?.role || 'Karyawan');

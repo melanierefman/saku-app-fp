@@ -24,12 +24,48 @@
   <!-- Skeleton Loading State -->
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <div class="lg:col-span-2 space-y-6">
-      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 h-64 animate-pulse"></div>
-      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 h-64 animate-pulse"></div>
+      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs space-y-4">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-[#F3F4F6]">
+          <app-skeleton variant="rect" width="w-7" height="h-7" rounded="lg"></app-skeleton>
+          <app-skeleton variant="text" width="w-48" height="h-5"></app-skeleton>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          @for (i of [1,2,3,4]; track i) {
+          <div class="space-y-1.5">
+            <app-skeleton variant="text" width="w-24" height="h-3"></app-skeleton>
+            <app-skeleton variant="text" width="w-40" height="h-4"></app-skeleton>
+          </div>
+          }
+        </div>
+      </div>
+      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs space-y-4">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-[#F3F4F6]">
+          <app-skeleton variant="rect" width="w-7" height="h-7" rounded="lg"></app-skeleton>
+          <app-skeleton variant="text" width="w-44" height="h-5"></app-skeleton>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          @for (i of [1,2,3,4]; track i) {
+          <div class="space-y-1.5">
+            <app-skeleton variant="text" width="w-28" height="h-3"></app-skeleton>
+            <app-skeleton variant="text" width="w-36" height="h-4"></app-skeleton>
+          </div>
+          }
+        </div>
+      </div>
     </div>
     <div class="space-y-6">
-      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 h-48 animate-pulse"></div>
-      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 h-64 animate-pulse"></div>
+      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs space-y-4">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-[#F3F4F6]">
+          <app-skeleton variant="rect" width="w-7" height="h-7" rounded="lg"></app-skeleton>
+          <app-skeleton variant="text" width="w-36" height="h-5"></app-skeleton>
+        </div>
+        <app-skeleton variant="rect" width="w-full" height="h-24" rounded="xl"></app-skeleton>
+      </div>
+      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs space-y-4">
+        <app-skeleton variant="text" width="w-40" height="h-5"></app-skeleton>
+        <app-skeleton variant="rect" width="w-full" height="h-28" rounded="xl"></app-skeleton>
+        <app-skeleton variant="button" width="w-full" height="h-10"></app-skeleton>
+      </div>
     </div>
   </div>
   } @else if (detail()) {

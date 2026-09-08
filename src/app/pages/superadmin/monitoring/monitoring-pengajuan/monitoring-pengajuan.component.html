@@ -146,10 +146,35 @@
 <app-modal [isOpen]="isDetailModalOpen()" variant="form" title="Detail Berkas Pengajuan Pinjaman" [showFooter]="false"
   (close)="closeDetailModal()">
   <div modalBody class="space-y-4 pt-1">
+    <!-- Skeleton Loading State -->
     @if (isLoadingDetail()) {
-    <div class="py-14 flex flex-col items-center justify-center gap-3">
-      <div class="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-      <p class="text-xs text-neutral-40">Mengambil detail berkas dari server...</p>
+    <div class="space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-[#F3F4F6]">
+        <div class="flex items-center gap-3">
+          <app-skeleton variant="rect" width="w-9" height="h-9" rounded="xl"></app-skeleton>
+          <div class="space-y-1">
+            <app-skeleton variant="text" width="w-24" height="h-3"></app-skeleton>
+            <app-skeleton variant="text" width="w-36" height="h-4"></app-skeleton>
+          </div>
+        </div>
+        <app-skeleton variant="button" width="w-28" height="h-7"></app-skeleton>
+      </div>
+      <div class="p-3.5 rounded-xl border border-[#E5E7EB] space-y-3">
+        <app-skeleton variant="text" width="w-32" height="h-4"></app-skeleton>
+        <div class="grid grid-cols-2 gap-3">
+          <app-skeleton variant="text" width="w-full" height="h-4"></app-skeleton>
+          <app-skeleton variant="text" width="w-full" height="h-4"></app-skeleton>
+          <app-skeleton variant="text" width="w-full" height="h-4"></app-skeleton>
+          <app-skeleton variant="text" width="w-full" height="h-4"></app-skeleton>
+        </div>
+      </div>
+      <div class="p-3.5 rounded-xl border border-[#E5E7EB] space-y-3">
+        <app-skeleton variant="text" width="w-28" height="h-4"></app-skeleton>
+        <div class="grid grid-cols-2 gap-3">
+          <app-skeleton variant="text" width="w-full" height="h-4"></app-skeleton>
+          <app-skeleton variant="text" width="w-full" height="h-4"></app-skeleton>
+        </div>
+      </div>
     </div>
     } @else if (selectedDetail()) {
     <!-- Section 1: Header Summary Badge -->

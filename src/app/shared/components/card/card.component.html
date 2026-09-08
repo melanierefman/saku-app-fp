@@ -1,18 +1,18 @@
 <div [class]="containerClasses">
   @if (loading) {
   <!-- Skeleton Loading State -->
-  <div class="animate-pulse space-y-4">
+  <div class="space-y-4">
     <div class="flex items-center gap-3 pb-3.5 border-b border-[#F3F4F6]">
-      <div class="w-8 h-8 rounded-xl bg-neutral-20 shrink-0"></div>
+      <app-skeleton variant="rect" width="w-8" height="h-8" rounded="xl"></app-skeleton>
       <div class="space-y-1.5 flex-1">
-        <div class="h-4 bg-neutral-20 rounded w-1/3"></div>
-        <div class="h-3 bg-neutral-10 rounded w-1/2"></div>
+        <app-skeleton variant="text" width="w-1/3" height="h-4"></app-skeleton>
+        <app-skeleton variant="text" width="w-1/2" height="h-3"></app-skeleton>
       </div>
     </div>
     <div class="space-y-3 pt-2">
-      <div class="h-3.5 bg-neutral-10 rounded w-full"></div>
-      <div class="h-3.5 bg-neutral-10 rounded w-5/6"></div>
-      <div class="h-3.5 bg-neutral-10 rounded w-4/6"></div>
+      <app-skeleton variant="text" width="w-full" height="h-3.5"></app-skeleton>
+      <app-skeleton variant="text" width="w-5/6" height="h-3.5"></app-skeleton>
+      <app-skeleton variant="text" width="w-4/6" height="h-3.5"></app-skeleton>
     </div>
   </div>
   } @else {

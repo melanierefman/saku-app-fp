@@ -13,6 +13,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {
   ModalComponent,
   ToastService,
+  SkeletonComponent,
 } from '../../../../shared/components';
 import {
   PencairanService,
@@ -45,6 +46,7 @@ import { formatDate as formatDateHelper } from '../../../../shared/utils/date.ut
     FormsModule,
     RouterModule,
     ModalComponent,
+    SkeletonComponent,
     LucideExternalLink,
     LucideUser,
     LucideCreditCard,

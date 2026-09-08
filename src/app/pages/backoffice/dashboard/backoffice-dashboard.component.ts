@@ -22,7 +22,7 @@ import {
   BadgeComponent,
   BadgeVariant,
   ToastService,
-  CardComponent,
+  SkeletonComponent,
 } from '../../../shared/components';
 import {
   LucideCheckCircle2,
@@ -30,7 +30,6 @@ import {
   LucideArrowRight,
   LucideActivity,
   LucideBanknote,
-  LucideShieldCheck,
   LucideCalendarCheck,
   LucideUserCheck,
   LucideWallet,
@@ -55,7 +54,7 @@ export interface BankItemDisplay {
     CommonModule,
     RouterModule,
     BadgeComponent,
-    CardComponent,
+    SkeletonComponent,
     LucideCheckCircle2,
     LucideRefreshCw,
     LucideArrowRight,
@@ -119,11 +118,11 @@ export class BackofficeDashboardComponent implements OnInit {
 
     const palette = [
       { colorClass: 'bg-blue-600', bgClass: 'bg-blue-50/60', borderClass: 'border-blue-200/60' }, // BCA style
-      { colorClass: 'bg-amber-600', bgClass: 'bg-amber-50/60', borderClass: 'border-amber-200/60' }, // Mandiri style
+      { colorClass: 'bg-warning', bgClass: 'bg-warning-0/60', borderClass: 'border-warning-20/60' }, // Mandiri style
       { colorClass: 'bg-blue-700', bgClass: 'bg-sky-50/60', borderClass: 'border-sky-200/60' }, // BRI style
-      { colorClass: 'bg-emerald-600', bgClass: 'bg-emerald-50/60', borderClass: 'border-emerald-200/60' }, // BNI / Syariah
+      { colorClass: 'bg-success', bgClass: 'bg-success-0/60', borderClass: 'border-success-20/60' }, // BNI / Syariah style
       { colorClass: 'bg-primary', bgClass: 'bg-primary-0/40', borderClass: 'border-primary-20/60' },
-      { colorClass: 'bg-rose-500', bgClass: 'bg-error-0/40', borderClass: 'border-error-20/60' },
+      { colorClass: 'bg-error', bgClass: 'bg-error-0/40', borderClass: 'border-error-20/60' },
     ];
 
     const items: BankItemDisplay[] = entries.map(([bankName, val], idx) => {

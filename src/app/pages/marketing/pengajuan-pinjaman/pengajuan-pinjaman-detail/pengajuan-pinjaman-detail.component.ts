@@ -15,6 +15,7 @@ import {
   DropdownOption,
   ModalComponent,
   ToastService,
+  SkeletonComponent,
 } from '../../../../shared/components';
 import {
   MarketingLoanService,
@@ -57,6 +58,7 @@ export interface DisplayDocItem {
     RouterModule,
     DropdownComponent,
     ModalComponent,
+    SkeletonComponent,
     LucideFileText,
     LucideExternalLink,
     LucideUser,

@@ -2,13 +2,8 @@
   <!-- A. Header Dashboard -->
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <div>
-      <div class="flex items-center gap-2.5">
-        <h1 class="text-2xl font-bold text-neutral-90 tracking-tight">Dashboard Marketing</h1>
-        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-10 text-primary border border-primary-20/40">
-          Divisi Marketing
-        </span>
-      </div>
-      <p class="text-sm text-neutral-40 mt-0.5 font-normal">
+      <h1 class="text-2xl font-semibold text-neutral-90 tracking-tight">Dashboard Marketing</h1>
+      <p class="text-sm text-neutral-40 mt-0.5">
         Pantau antrean review pengajuan pinjaman dan performa scoring kredit cabang Anda
       </p>
     </div>
@@ -24,18 +19,27 @@
     </div>
   </div>
 
-  <!-- B. SKELETON LOADING STATE -->
+  <!-- Skeleton Loading State -->
   @if (isLoadingStats()) {
-  <div class="space-y-6 animate-pulse">
+  <div class="space-y-6">
     <!-- Skeleton Container 1 (3 Cards in 1 Row) -->
     <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
       <div class="space-y-1">
-        <div class="h-5 bg-neutral-10 rounded w-56"></div>
-        <div class="h-3.5 bg-neutral-10 rounded w-72"></div>
+        <app-skeleton variant="text" width="w-56" height="h-5"></app-skeleton>
+        <app-skeleton variant="text" width="w-72" height="h-3.5"></app-skeleton>
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         @for (i of [1,2,3]; track i) {
-        <div class="p-3.5 rounded-xl border border-[#E5E7EB] h-16 bg-neutral-5"></div>
+        <div class="p-3.5 rounded-xl border border-[#E5E7EB] flex items-center justify-between gap-2.5">
+          <div class="flex items-center gap-2.5">
+            <app-skeleton variant="rect" width="w-9" height="h-9" rounded="xl"></app-skeleton>
+            <div class="space-y-1">
+              <app-skeleton variant="text" width="w-24" height="h-4"></app-skeleton>
+              <app-skeleton variant="text" width="w-20" height="h-3"></app-skeleton>
+            </div>
+          </div>
+          <app-skeleton variant="text" width="w-12" height="h-6"></app-skeleton>
+        </div>
         }
       </div>
     </div>
@@ -43,20 +47,41 @@
     <!-- Skeleton Container 2 (3 Cards in 1 Row) -->
     <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
       <div class="space-y-1">
-        <div class="h-5 bg-neutral-10 rounded w-56"></div>
-        <div class="h-3.5 bg-neutral-10 rounded w-72"></div>
+        <app-skeleton variant="text" width="w-56" height="h-5"></app-skeleton>
+        <app-skeleton variant="text" width="w-72" height="h-3.5"></app-skeleton>
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         @for (i of [1,2,3]; track i) {
-        <div class="p-3.5 rounded-xl border border-[#E5E7EB] h-16 bg-neutral-5"></div>
+        <div class="p-3.5 rounded-xl border border-[#E5E7EB] flex items-center justify-between gap-2.5">
+          <div class="flex items-center gap-2.5">
+            <app-skeleton variant="rect" width="w-9" height="h-9" rounded="xl"></app-skeleton>
+            <div class="space-y-1">
+              <app-skeleton variant="text" width="w-24" height="h-4"></app-skeleton>
+              <app-skeleton variant="text" width="w-20" height="h-3"></app-skeleton>
+            </div>
+          </div>
+          <app-skeleton variant="text" width="w-12" height="h-6"></app-skeleton>
+        </div>
         }
       </div>
     </div>
 
     <!-- Charts Skeleton -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 h-72"></div>
-      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 h-72"></div>
+      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs h-72 flex flex-col justify-between">
+        <div class="space-y-2">
+          <app-skeleton variant="text" width="w-48" height="h-5"></app-skeleton>
+          <app-skeleton variant="text" width="w-64" height="h-3.5"></app-skeleton>
+        </div>
+        <app-skeleton variant="rect" width="w-full" height="h-44" rounded="xl"></app-skeleton>
+      </div>
+      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs h-72 flex flex-col justify-between">
+        <div class="space-y-2">
+          <app-skeleton variant="text" width="w-48" height="h-5"></app-skeleton>
+          <app-skeleton variant="text" width="w-64" height="h-3.5"></app-skeleton>
+        </div>
+        <app-skeleton variant="rect" width="w-full" height="h-44" rounded="xl"></app-skeleton>
+      </div>
     </div>
   </div>
   } @else {
@@ -81,17 +106,15 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <!-- 1. Menunggu Review (Highlight Priority Card) -->
         <div (click)="navigateToList('MENUNGGU_REVIEW')"
-          class="p-3.5 rounded-xl border border-primary/40 bg-primary-0/10 hover:border-primary hover:bg-primary-0/20 transition-all flex items-center justify-between gap-2.5 group cursor-pointer">
+          class="p-3.5 rounded-xl border border-primary-30 bg-primary-0/20 hover:border-primary hover:bg-primary-0/30 transition-all flex items-center justify-between gap-2.5 group cursor-pointer">
           <div class="flex items-center gap-2.5 min-w-0">
             <div
-              class="w-9 h-9 rounded-xl bg-primary-10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              class="w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
               <svg lucideClock [size]="18" class="w-4.5 h-4.5"></svg>
             </div>
             <div class="min-w-0 truncate">
               <p class="text-xs font-semibold text-neutral-90 truncate">Menunggu Review</p>
-              <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold bg-primary text-white">
-                Perlu Tindakan
-              </span>
+              <p class="text-[11px] text-primary font-medium truncate">Perlu Tindakan</p>
             </div>
           </div>
           <div class="text-right shrink-0">
@@ -104,10 +127,10 @@
 
         <!-- 2. Total Pengajuan Cabang -->
         <div (click)="navigateToList()"
-          class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-neutral-30 hover:bg-neutral-0/40 transition-all flex items-center justify-between gap-2.5 group cursor-pointer">
+          class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-primary-30 hover:bg-neutral-0/40 transition-all flex items-center justify-between gap-2.5 group cursor-pointer">
           <div class="flex items-center gap-2.5 min-w-0">
             <div
-              class="w-9 h-9 rounded-xl bg-neutral-10 text-neutral-70 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              class="w-9 h-9 rounded-xl bg-primary-0/60 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <svg lucideFileText [size]="18" class="w-4.5 h-4.5"></svg>
             </div>
             <div class="min-w-0 truncate">
@@ -125,7 +148,7 @@
 
         <!-- 3. Perlu Revisi Dokumen -->
         <div (click)="navigateToList('PERLU_REVISI')"
-          class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-warning-40 hover:bg-warning-0/20 transition-all flex items-center justify-between gap-2.5 group cursor-pointer">
+          class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-warning-20 hover:bg-warning-0/20 transition-all flex items-center justify-between gap-2.5 group cursor-pointer">
           <div class="flex items-center gap-2.5 min-w-0">
             <div
               class="w-9 h-9 rounded-xl bg-warning-0 text-warning-80 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
@@ -133,7 +156,7 @@
             </div>
             <div class="min-w-0 truncate">
               <p class="text-xs font-semibold text-neutral-90 truncate">Perlu Revisi</p>
-              <p class="text-[11px] text-warning-70 truncate font-medium">Perbaikan nasabah</p>
+              <p class="text-[11px] text-warning-80 truncate font-medium">Perbaikan nasabah</p>
             </div>
           </div>
           <div class="text-right shrink-0">
@@ -163,7 +186,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <!-- 1. Disetujui Marketing -->
         <div (click)="navigateToList('DISETUJUI')"
-          class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-success-40 hover:bg-success-0/20 transition-all flex items-center justify-between gap-2.5 group cursor-pointer">
+          class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-success-20 hover:bg-success-0/20 transition-all flex items-center justify-between gap-2.5 group cursor-pointer">
           <div class="flex items-center gap-2.5 min-w-0">
             <div
               class="w-9 h-9 rounded-xl bg-success-0 text-success-70 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
@@ -184,7 +207,7 @@
 
         <!-- 2. Ditolak Marketing -->
         <div (click)="navigateToList('DITOLAK')"
-          class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-error-40 hover:bg-error-0/20 transition-all flex items-center justify-between gap-2.5 group cursor-pointer">
+          class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-error-20 hover:bg-error-0/20 transition-all flex items-center justify-between gap-2.5 group cursor-pointer">
           <div class="flex items-center gap-2.5 min-w-0">
             <div
               class="w-9 h-9 rounded-xl bg-error-0 text-error-70 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
@@ -208,20 +231,20 @@
           class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-blue-200 hover:bg-blue-50/20 transition-all flex items-center justify-between gap-2.5 group">
           <div class="flex items-center gap-2.5 min-w-0">
             <div
-              class="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <svg lucideTrendingUp [size]="18" class="w-4.5 h-4.5"></svg>
             </div>
             <div class="min-w-0 truncate">
-              <p class="text-xs font-semibold text-neutral-90 truncate">Approval Rate Marketing</p>
-              <p class="text-[11px] text-neutral-40 truncate">Rasio kelayakan kredit</p>
+              <p class="text-xs font-semibold text-neutral-90 truncate">Approval Rate</p>
+              <p class="text-[11px] text-neutral-40 truncate">Kelayakan marketing</p>
             </div>
           </div>
           <div class="text-right shrink-0">
-            <div class="text-lg font-bold text-blue-700 tracking-tight">
+            <div class="text-lg font-bold text-blue-600 tracking-tight">
               {{ (stats()?.approvalRate ?? 0) | number:'1.0-1' }}%
             </div>
-            <div class="w-16 bg-neutral-10 rounded-full h-1 mt-1 overflow-hidden ml-auto">
-              <div class="bg-blue-600 h-1 rounded-full transition-all duration-500"
+            <div class="w-14 bg-neutral-10 rounded-full h-1 mt-1 overflow-hidden ml-auto">
+              <div class="bg-blue-500 h-1 rounded-full transition-all duration-500"
                 [style.width.%]="stats()?.approvalRate || 0"></div>
             </div>
           </div>
@@ -232,17 +255,24 @@
   </div>
   }
 
-  <!-- C. Row 2: Grafik & Analisis (Grid 2 Kolom) -->
+  <!-- C. ROW 2: GRAFIK & ANALISIS (GRID 2 KOLOM) -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
     
     <!-- Kolom Kiri: Tren Pengajuan 7 Hari Terakhir -->
-    <app-card title="Tren Pengajuan 7 Hari Terakhir" subtitle="Aktivitas volume berkas dan total nominal yang masuk per hari"
-      customClass="h-full flex flex-col justify-between" bodyClass="flex-1 flex flex-col justify-between">
-      <svg card-icon lucideActivity [size]="16" class="w-4 h-4"></svg>
-
-      <div card-actions class="hidden sm:flex items-center gap-2">
-        <span class="text-xs text-neutral-40">Total 7 Hari:</span>
-        <span class="text-xs font-bold text-neutral-90">{{ totalWeeklyCount() }} Berkas</span>
+    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs flex flex-col justify-between">
+      <div class="space-y-1">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-semibold text-neutral-90 tracking-tight flex items-center gap-2">
+            <svg lucideActivity [size]="18" class="w-4.5 h-4.5 text-primary"></svg>
+            <span>Tren Pengajuan 7 Hari Terakhir</span>
+          </h2>
+          <span class="text-xs text-neutral-50 font-medium">
+            Total: <span class="font-semibold text-neutral-90">{{ totalWeeklyCount() }}</span> Berkas
+          </span>
+        </div>
+        <p class="text-xs text-neutral-40">
+          Aktivitas volume berkas dan total nominal yang masuk per hari
+        </p>
       </div>
 
       <!-- Chart Content -->
@@ -251,12 +281,12 @@
         <div class="h-40 bg-neutral-10 rounded-xl w-full"></div>
       </div>
       } @else if ((stats()?.weeklyTrends || []).length === 0) {
-      <div class="h-60 flex flex-col items-center justify-center text-center p-6 text-neutral-40">
+      <div class="py-12 flex flex-col items-center justify-center text-center p-6 text-neutral-40">
         <svg lucideActivity [size]="32" class="w-8 h-8 mb-2 opacity-40"></svg>
         <p class="text-xs">Belum ada data tren pengajuan mingguan.</p>
       </div>
       } @else {
-      <div class="space-y-4">
+      <div class="space-y-4 my-2 flex-1 flex flex-col justify-center">
         <!-- Interactive Bar Chart -->
         <div class="h-36 pt-2 flex items-end justify-between gap-2 border-b border-[#F3F4F6] pb-2">
           @for (item of (stats()?.weeklyTrends || []); track item.date || $index) {
@@ -298,13 +328,13 @@
         <!-- Weekly Summary Footer (2-Column Grid Aligned) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
           <!-- Card 1: Total Berkas Masuk -->
-          <div class="p-3 rounded-xl border border-neutral-20/60 bg-neutral-0/60 flex items-center justify-between">
+          <div class="p-3 rounded-xl border border-[#E5E7EB] hover:border-primary-30 hover:bg-neutral-0/40 transition-colors flex items-center justify-between">
             <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-lg bg-white border border-[#E5E7EB] text-neutral-70 flex items-center justify-center shrink-0 shadow-2xs">
+              <div class="w-8 h-8 rounded-lg bg-neutral-0 text-neutral-70 flex items-center justify-center shrink-0">
                 <svg lucideFileText [size]="15" class="w-3.5 h-3.5"></svg>
               </div>
               <div>
-                <span class="text-xs font-semibold text-neutral-80 block">Total Berkas Masuk</span>
+                <span class="text-xs font-semibold text-neutral-80 block">Total Berkas</span>
                 <span class="text-[11px] text-neutral-40">Akumulasi 7 hari</span>
               </div>
             </div>
@@ -314,13 +344,13 @@
           </div>
 
           <!-- Card 2: Total Nilai Pinjaman -->
-          <div class="p-3 rounded-xl border border-primary-20/60 bg-primary-0/30 flex items-center justify-between">
+          <div class="p-3 rounded-xl border border-[#E5E7EB] hover:border-primary-30 hover:bg-neutral-0/40 transition-colors flex items-center justify-between">
             <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-lg bg-white border border-primary-20/60 text-primary flex items-center justify-center shrink-0 shadow-2xs">
+              <div class="w-8 h-8 rounded-lg bg-primary-0/60 text-primary flex items-center justify-center shrink-0">
                 <svg lucideTrendingUp [size]="15" class="w-3.5 h-3.5"></svg>
               </div>
               <div>
-                <span class="text-xs font-semibold text-neutral-80 block">Total Nilai Pinjaman</span>
+                <span class="text-xs font-semibold text-neutral-80 block">Total Permintaan</span>
                 <span class="text-[11px] text-neutral-40">Nilai diajukan</span>
               </div>
             </div>
@@ -331,17 +361,23 @@
         </div>
       </div>
       }
-    </app-card>
+    </div>
 
     <!-- Kolom Kanan: Distribusi Kualitas Scoring Kredit -->
-    <app-card title="Distribusi Kualitas Scoring Kredit" subtitle="Segmentasi kualitas kelayakan kredit customer berdasarkan skor algoritma"
-      customClass="h-full flex flex-col justify-between" bodyClass="flex-1 flex flex-col justify-between">
-      <svg card-icon lucideAward [size]="16" class="w-4 h-4"></svg>
-
-      <div card-actions>
-        <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-neutral-10 text-neutral-70">
-          {{ scoringBreakdown().total }} Customer Dinilai
-        </span>
+    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs flex flex-col justify-between">
+      <div class="space-y-1">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-semibold text-neutral-90 tracking-tight flex items-center gap-2">
+            <svg lucideAward [size]="18" class="w-4.5 h-4.5 text-primary"></svg>
+            <span>Distribusi Scoring Kredit</span>
+          </h2>
+          <span class="text-xs text-neutral-50 font-medium">
+            Total: <span class="font-semibold text-neutral-90">{{ scoringBreakdown().total }}</span> Nasabah
+          </span>
+        </div>
+        <p class="text-xs text-neutral-40">
+          Segmentasi kualitas kelayakan kredit customer berdasarkan skor algoritma
+        </p>
       </div>
 
       <!-- Breakdown Content -->
@@ -350,7 +386,7 @@
         <div class="h-40 bg-neutral-10 rounded-xl w-full"></div>
       </div>
       } @else {
-      <div class="space-y-5">
+      <div class="space-y-5 my-2 flex-1 flex flex-col justify-center">
         
         <!-- Multi-Segment Progress Bar & Legend -->
         <div class="space-y-3 pt-1">
@@ -359,7 +395,7 @@
             <span class="text-neutral-40">{{ scoringBreakdown().total }} Total Nasabah Dinilai</span>
           </div>
           
-          <div class="h-3 w-full bg-neutral-10 rounded-full overflow-hidden flex">
+          <div class="w-full bg-neutral-10 rounded-xl h-2.5 flex overflow-hidden">
             <!-- Green: High -->
             <div
               class="bg-success h-full transition-all duration-500"
@@ -383,15 +419,15 @@
           <!-- Mini Legend -->
           <div class="flex items-center justify-between text-[11px] text-neutral-50 px-1 pt-1 border-b border-[#F3F4F6] pb-3">
             <div class="flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-success"></span>
+              <span class="w-2.5 h-2.5 rounded bg-success"></span>
               <span>Tinggi ({{ scoringBreakdown().highPct }}%)</span>
             </div>
             <div class="flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-warning"></span>
+              <span class="w-2.5 h-2.5 rounded bg-warning"></span>
               <span>Sedang ({{ scoringBreakdown().medPct }}%)</span>
             </div>
             <div class="flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-error"></span>
+              <span class="w-2.5 h-2.5 rounded bg-error"></span>
               <span>Rendah ({{ scoringBreakdown().lowPct }}%)</span>
             </div>
           </div>
@@ -400,9 +436,9 @@
         <!-- Breakdown List Cards (3 Kolom Kesamping) -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
           <!-- 1. Skor Tinggi -->
-          <div class="p-3 rounded-xl border border-success-20/60 bg-success-0/40 flex flex-col justify-between space-y-2">
+          <div class="p-3 rounded-xl border border-[#E5E7EB] hover:border-success-20 hover:bg-success-0/20 transition-all flex flex-col justify-between space-y-2">
             <div class="flex items-center justify-between">
-              <span class="inline-flex items-center gap-1.5 text-xs font-bold text-success-80">
+              <span class="inline-flex items-center gap-1.5 text-xs font-bold text-success-70">
                 <span class="w-2 h-2 rounded-full bg-success"></span>
                 Skor &ge; 75
               </span>
@@ -412,14 +448,14 @@
               <div class="text-lg font-bold text-neutral-90 tracking-tight">
                 {{ scoringBreakdown().high }} <span class="text-xs font-normal text-neutral-50">Nasabah</span>
               </div>
-              <span class="text-[10px] text-neutral-40 block mt-0.5 truncate" title="Lolos cepat / resiko rendah">
+              <span class="text-[10px] text-neutral-40 block mt-0.5 truncate">
                 Resiko Rendah
               </span>
             </div>
           </div>
 
           <!-- 2. Skor Sedang -->
-          <div class="p-3 rounded-xl border border-warning-20/60 bg-warning-0/40 flex flex-col justify-between space-y-2">
+          <div class="p-3 rounded-xl border border-[#E5E7EB] hover:border-warning-20 hover:bg-warning-0/20 transition-all flex flex-col justify-between space-y-2">
             <div class="flex items-center justify-between">
               <span class="inline-flex items-center gap-1.5 text-xs font-bold text-warning-80">
                 <span class="w-2 h-2 rounded-full bg-warning"></span>
@@ -431,16 +467,16 @@
               <div class="text-lg font-bold text-neutral-90 tracking-tight">
                 {{ scoringBreakdown().medium }} <span class="text-xs font-normal text-neutral-50">Nasabah</span>
               </div>
-              <span class="text-[10px] text-neutral-40 block mt-0.5 truncate" title="Perlu analisis dokumen">
+              <span class="text-[10px] text-neutral-40 block mt-0.5 truncate">
                 Resiko Sedang
               </span>
             </div>
           </div>
 
           <!-- 3. Skor Rendah -->
-          <div class="p-3 rounded-xl border border-error-20/60 bg-error-0/40 flex flex-col justify-between space-y-2">
+          <div class="p-3 rounded-xl border border-[#E5E7EB] hover:border-error-20 hover:bg-error-0/20 transition-all flex flex-col justify-between space-y-2">
             <div class="flex items-center justify-between">
-              <span class="inline-flex items-center gap-1.5 text-xs font-bold text-error-80">
+              <span class="inline-flex items-center gap-1.5 text-xs font-bold text-error-70">
                 <span class="w-2 h-2 rounded-full bg-error"></span>
                 &lt; 60
               </span>
@@ -450,7 +486,7 @@
               <div class="text-lg font-bold text-neutral-90 tracking-tight">
                 {{ scoringBreakdown().low }} <span class="text-xs font-normal text-neutral-50">Nasabah</span>
               </div>
-              <span class="text-[10px] text-neutral-40 block mt-0.5 truncate" title="DBR tinggi / berisiko">
+              <span class="text-[10px] text-neutral-40 block mt-0.5 truncate">
                 Resiko Tinggi
               </span>
             </div>
@@ -459,10 +495,10 @@
 
       </div>
       }
-    </app-card>
+    </div>
   </div>
 
-  <!-- D. Row 3: Antrean Prioritas Review (5 Berkas Pengajuan Terbaru) -->
+  <!-- D. ROW 3: ANTREAN PRIORITAS REVIEW (5 BERKAS PENGAJUAN TERBARU) -->
   <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs flex flex-col justify-start space-y-4">
     <div class="flex items-center justify-between">
       <div class="space-y-0.5">
@@ -473,13 +509,13 @@
         <p class="text-xs text-neutral-40">5 berkas pengajuan terbaru yang membutuhkan tindakan verifikasi kelayakan kredit</p>
       </div>
 
-      <button
-        type="button"
-        (click)="navigateToList('MENUNGGU_REVIEW')"
-        class="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary-60 transition-colors shrink-0 cursor-pointer">
+      <a
+        routerLink="/pengajuan-pinjaman"
+        [queryParams]="{ status: 'MENUNGGU_REVIEW' }"
+        class="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary-60 transition-colors shrink-0">
         <span>Semua</span>
         <svg lucideArrowRight [size]="13" class="w-3.5 h-3.5"></svg>
-      </button>
+      </a>
     </div>
 
     <!-- Mini Table matching Superadmin Table -->
@@ -569,7 +605,7 @@
             }
             } @else {
             <tr>
-              <td colspan="6" class="py-8 px-4 text-center text-xs text-neutral-40">
+              <td colspan="7" class="py-8 px-4 text-center text-xs text-neutral-40">
                 Semua pengajuan pinjaman pada cabang Anda telah selesai direview.
               </td>
             </tr>

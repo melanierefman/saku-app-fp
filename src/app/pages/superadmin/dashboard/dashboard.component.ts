@@ -22,6 +22,7 @@ import {
   BadgeComponent,
   BadgeVariant,
   ToastService,
+  SkeletonComponent,
 } from '../../../shared/components';
 import { MarketingDashboardComponent } from '../../marketing/dashboard/marketing-dashboard.component';
 import { BranchManagerDashboardComponent } from '../../branchmanager/dashboard/branch-manager-dashboard.component';
@@ -50,6 +51,7 @@ import {
     CommonModule,
     RouterModule,
     BadgeComponent,
+    SkeletonComponent,
     MarketingDashboardComponent,
     BranchManagerDashboardComponent,
     BackofficeDashboardComponent,
@@ -243,7 +245,6 @@ export class DashboardComponent implements OnInit {
       case 'PENDING':
         return 'primary';
       case 'PERLU_REVISI':
-        return 'orange';
       case 'DOKUMEN_DIREVISI':
         return 'warning';
       case 'SELESAI_DIREVIEW':
@@ -252,11 +253,11 @@ export class DashboardComponent implements OnInit {
       // 2. Branch Manager (BM)
       case 'MENUNGGU_PERSETUJUAN_BM':
       case 'MENUNGGU_PERSETUJUAN':
-        return 'purple';
+        return 'warning';
       case 'DISETUJUI':
       case 'PENGAJUAN_DISETUJUI':
       case 'APPROVED':
-        return 'primary';
+        return 'success';
 
       // 3. Backoffice / Pencairan
       case 'MENUNGGU_PENCAIRAN':

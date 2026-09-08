@@ -23,6 +23,7 @@ import {
   DatePickerComponent,
   ModalComponent,
   ToastService,
+  SkeletonComponent,
 } from '../../../../shared/components';
 import {
   MarketingPengajuanItemResponse,
@@ -57,6 +58,7 @@ import { formatDate as formatDateHelper } from '../../../../shared/utils/date.ut
     DropdownComponent,
     DatePickerComponent,
     ModalComponent,
+    SkeletonComponent,
     LucideSearch,
     LucideX,
     LucideEye,

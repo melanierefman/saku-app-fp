@@ -1092,4 +1092,155 @@
       </div>
     </div>
   </section>
+
+  <!-- ========================================== -->
+  <!-- 18. STAT CARD / METRIC CARD SECTION -->
+  <!-- ========================================== -->
+  <section class="space-y-6">
+    <div class="border-b border-neutral-10 pb-2">
+      <h2 class="text-lg font-bold text-neutral-100">Stat Card (Metric Widget)</h2>
+      <p class="text-xs text-neutral-40">
+        Komponen seragam untuk kartu ringkasan metrik statistik di seluruh dashboard (Superadmin, Marketing, Branch Manager, Backoffice).
+      </p>
+    </div>
+
+    <!-- Size SM (Standard Dashboard 4/3 Columns) -->
+    <div class="space-y-2">
+      <p class="text-xs font-semibold text-neutral-70">Compact Size (Standard Dashboard)</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <app-stat-card title="Total Pengajuan" [value]="128" variant="primary" [trend]="{ value: '+14%', isPositive: true }">
+          <svg card-icon lucideFileText [size]="18" class="w-4.5 h-4.5"></svg>
+        </app-stat-card>
+
+        <app-stat-card title="Disetujui Marketing" [value]="94" variant="success" [trend]="{ value: '+8%', isPositive: true }">
+          <svg card-icon lucideCircleCheck [size]="18" class="w-4.5 h-4.5"></svg>
+        </app-stat-card>
+
+        <app-stat-card title="Ditolak Marketing" [value]="12" variant="error" [trend]="{ value: '-3%', isPositive: false }">
+          <svg card-icon lucideCircleX [size]="18" class="w-4.5 h-4.5"></svg>
+        </app-stat-card>
+
+        <app-stat-card title="Perlu Revisi" [value]="22" variant="warning" badge="Pending">
+          <svg card-icon lucideClock [size]="18" class="w-4.5 h-4.5"></svg>
+        </app-stat-card>
+      </div>
+    </div>
+
+    <!-- Size MD & Skeleton Loading -->
+    <div class="space-y-2">
+      <p class="text-xs font-semibold text-neutral-70">Medium Size & Skeleton Loading State</p>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <app-stat-card size="md" title="Total Nominal Diajukan" [value]="2450000000 | rupiah" subtitle="Akumulasi seluruh cabang" variant="info">
+          <svg card-icon lucideBanknote [size]="20" class="w-5 h-5"></svg>
+        </app-stat-card>
+
+        <app-stat-card size="md" title="Realisasi Pencairan" [value]="1890000000 | rupiah" subtitle="Telah ditransfer ke rekening" variant="success">
+          <svg card-icon lucideTrendingUp [size]="20" class="w-5 h-5"></svg>
+        </app-stat-card>
+
+        <app-stat-card size="md" title="Sedang Memuat Data..." [loading]="true">
+        </app-stat-card>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- 19. EMPTY STATE SECTION -->
+  <!-- ========================================== -->
+  <section class="space-y-6">
+    <div class="border-b border-neutral-10 pb-2">
+      <h2 class="text-lg font-bold text-neutral-100">Empty State Component</h2>
+      <p class="text-xs text-neutral-40">
+        Tampilan visual elegan ketika list, tabel, tab, atau filter tidak memiliki data untuk ditampilkan.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+      <!-- Full Empty State in Card -->
+      <div class="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs overflow-hidden">
+        <app-empty-state 
+          title="Belum Ada Pengajuan Pinjaman" 
+          message="Tidak ditemukan riwayat atau pengajuan pinjaman aktif pada filter tanggal yang Anda pilih."
+          actionText="Buat Pengajuan Baru">
+        </app-empty-state>
+      </div>
+
+      <!-- Compact Empty State -->
+      <div class="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs overflow-hidden">
+        <app-empty-state 
+          [compact]="true"
+          title="Antrean Kosong" 
+          message="Seluruh berkas verifikasi telah selesai diproses.">
+        </app-empty-state>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- 20. CUSTOM ANGULAR PIPES SECTION -->
+  <!-- ========================================== -->
+  <section class="space-y-6">
+    <div class="border-b border-neutral-10 pb-2">
+      <h2 class="text-lg font-bold text-neutral-100">Shared Custom Pipes</h2>
+      <p class="text-xs text-neutral-40">
+        Pipe Angular standalone untuk formatting data secara otomatis di seluruh template.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- 1. RupiahPipe -->
+      <div class="p-4 rounded-xl border border-[#E5E7EB] bg-white space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold text-neutral-90">RupiahPipe (<code>rupiah</code>)</span>
+          <app-badge variant="primary" size="sm">Currency</app-badge>
+        </div>
+        <div class="bg-neutral-0 p-3 rounded-lg font-mono text-xs text-neutral-70 space-y-1">
+          <div>Input: 15750000</div>
+          <div class="text-primary font-bold">Output: {{ 15750000 | rupiah }}</div>
+          <div class="text-neutral-50 text-2xs">Tanpa prefix: {{ 15750000 | rupiah:false }}</div>
+        </div>
+      </div>
+
+      <!-- 2. IndonesianDatePipe -->
+      <div class="p-4 rounded-xl border border-[#E5E7EB] bg-white space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold text-neutral-90">IndonesianDatePipe (<code>idDate</code>)</span>
+          <app-badge variant="success" size="sm">Date</app-badge>
+        </div>
+        <div class="bg-neutral-0 p-3 rounded-lg font-mono text-xs text-neutral-70 space-y-1">
+          <div>Input: '2026-08-15T14:30:00Z'</div>
+          <div class="text-success-70 font-bold">Output: {{ '2026-08-15T14:30:00Z' | idDate }}</div>
+          <div class="text-neutral-50 text-2xs">Tanggal saja: {{ '2026-08-15T14:30:00Z' | idDate:false }}</div>
+        </div>
+      </div>
+
+      <!-- 3. StatusLabelPipe & StatusVariantPipe -->
+      <div class="p-4 rounded-xl border border-[#E5E7EB] bg-white space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold text-neutral-90">Status Pipes</span>
+          <app-badge variant="warning" size="sm">Status</app-badge>
+        </div>
+        <div class="bg-neutral-0 p-3 rounded-lg font-mono text-xs text-neutral-70 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span>'MENUNGGU_REVIEW':</span>
+            <app-badge [variant]="'MENUNGGU_REVIEW' | statusVariant" size="sm">
+              {{ 'MENUNGGU_REVIEW' | statusLabel }}
+            </app-badge>
+          </div>
+          <div class="flex items-center justify-between">
+            <span>'DISETUJUI_BM':</span>
+            <app-badge [variant]="'DISETUJUI_BM' | statusVariant" size="sm">
+              {{ 'DISETUJUI_BM' | statusLabel }}
+            </app-badge>
+          </div>
+          <div class="flex items-center justify-between">
+            <span>'DITOLAK_MARKETING':</span>
+            <app-badge [variant]="'DITOLAK_MARKETING' | statusVariant" size="sm">
+              {{ 'DITOLAK_MARKETING' | statusLabel }}
+            </app-badge>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 </div>

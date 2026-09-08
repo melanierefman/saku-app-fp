@@ -1,0 +1,19 @@
+@if (countArray.length === 1) {
+  <div
+    [class]="getItemClasses()"
+    aria-hidden="true"
+    role="status"
+    aria-label="Memuat konten...">
+  </div>
+} @else {
+  <div class="space-y-2 w-full">
+    @for (item of countArray; track item) {
+      <div
+        [class]="getItemClasses()"
+        aria-hidden="true"
+        role="status"
+        aria-label="Memuat konten...">
+      </div>
+    }
+  </div>
+}

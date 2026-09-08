@@ -15,6 +15,7 @@ import {
   DropdownOption,
   ModalComponent,
   ToastService,
+  SkeletonComponent,
 } from '../../../../shared/components';
 import {
   BranchManagerApprovalService,
@@ -51,6 +52,7 @@ import { formatDate as formatDateHelper } from '../../../../shared/utils/date.ut
     RouterModule,
     DropdownComponent,
     ModalComponent,
+    SkeletonComponent,
     LucideFileText,
     LucideExternalLink,
     LucideUser,

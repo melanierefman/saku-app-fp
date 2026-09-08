@@ -1,4 +1,61 @@
 <div class="mx-auto space-y-6">
+  @if (isLoading()) {
+  <!-- Skeleton Loading State -->
+  <div class="space-y-6">
+    <!-- Skeleton Header Card -->
+    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 sm:p-8 shadow-xs flex flex-col sm:flex-row items-center gap-6">
+      <app-skeleton variant="circle" width="w-20" height="h-20"></app-skeleton>
+      <div class="space-y-2.5 flex-1 w-full flex flex-col items-center sm:items-start">
+        <app-skeleton variant="text" width="w-48" height="h-6"></app-skeleton>
+        <app-skeleton variant="text" width="w-36" height="h-4"></app-skeleton>
+        <app-skeleton variant="text" width="w-28" height="h-5" rounded="full"></app-skeleton>
+      </div>
+      <app-skeleton variant="button" width="w-20" height="h-9"></app-skeleton>
+    </div>
+
+    <!-- Skeleton Detail Info Card -->
+    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 sm:p-8 shadow-xs space-y-4">
+      <div class="flex items-center gap-3">
+        <app-skeleton variant="rect" width="w-8" height="h-8" rounded="xl"></app-skeleton>
+        <div class="space-y-1">
+          <app-skeleton variant="text" width="w-44" height="h-5"></app-skeleton>
+          <app-skeleton variant="text" width="w-72" height="h-3.5"></app-skeleton>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 pt-2">
+        @for (i of [1,2,3,4]; track i) {
+        <div class="space-y-1.5">
+          <app-skeleton variant="text" width="w-20" height="h-3"></app-skeleton>
+          <app-skeleton variant="text" width="w-36" height="h-4"></app-skeleton>
+        </div>
+        }
+      </div>
+    </div>
+
+    <!-- Skeleton Change Password Card -->
+    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 sm:p-8 shadow-xs space-y-4">
+      <div class="flex items-center gap-3">
+        <app-skeleton variant="rect" width="w-8" height="h-8" rounded="xl"></app-skeleton>
+        <div class="space-y-1">
+          <app-skeleton variant="text" width="w-44" height="h-5"></app-skeleton>
+          <app-skeleton variant="text" width="w-72" height="h-3.5"></app-skeleton>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2">
+        @for (i of [1,2,3]; track i) {
+        <div class="space-y-2">
+          <app-skeleton variant="text" width="w-28" height="h-3.5"></app-skeleton>
+          <app-skeleton variant="rect" width="w-full" height="h-10" rounded="xl"></app-skeleton>
+        </div>
+        }
+      </div>
+      <div class="flex justify-end gap-3 pt-2">
+        <app-skeleton variant="button" width="w-20" height="h-9"></app-skeleton>
+        <app-skeleton variant="button" width="w-40" height="h-9"></app-skeleton>
+      </div>
+    </div>
+  </div>
+  } @else {
   <!-- Profile Header Card (Using CardComponent) -->
   <app-card [showIcon]="false" padding="lg" rounded="xl" shadow="xs">
     <div class="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
@@ -71,22 +128,22 @@
     <div class="space-y-6 pt-2">
       <!-- Alert Messages (Inline) -->
       @if (errorMessage()) {
-      <div class="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 flex items-start gap-3 animate-fadeIn">
-        <svg lucideCircleAlert [size]="18" class="w-4.5 h-4.5 shrink-0 mt-0.5 text-red-600"></svg>
+      <div class="p-4 rounded-xl bg-error-0 border border-error-20 text-error-70 flex items-start gap-3 animate-fadeIn">
+        <svg lucideCircleAlert [size]="18" class="w-4.5 h-4.5 shrink-0 mt-0.5 text-error-70"></svg>
         <div class="space-y-0.5 text-sm">
-          <p class="font-semibold text-red-800">Gagal Mengubah Password</p>
-          <p class="text-xs text-red-600">{{ errorMessage() }}</p>
+          <p class="font-semibold text-error-80">Gagal Mengubah Password</p>
+          <p class="text-xs text-error-70">{{ errorMessage() }}</p>
         </div>
       </div>
       }
 
       @if (successMessage()) {
       <div
-        class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-start gap-3 animate-fadeIn">
-        <svg lucideCheckCircle2 [size]="18" class="w-4.5 h-4.5 shrink-0 mt-0.5 text-emerald-600"></svg>
+        class="p-4 rounded-xl bg-success-0 border border-success-20 text-success-70 flex items-start gap-3 animate-fadeIn">
+        <svg lucideCheckCircle2 [size]="18" class="w-4.5 h-4.5 shrink-0 mt-0.5 text-success-70"></svg>
         <div class="space-y-0.5 text-sm">
-          <p class="font-semibold text-emerald-900">Berhasil</p>
-          <p class="text-xs text-emerald-700">{{ successMessage() }}</p>
+          <p class="font-semibold text-success-80">Berhasil</p>
+          <p class="text-xs text-success-70">{{ successMessage() }}</p>
         </div>
       </div>
       }
@@ -161,6 +218,7 @@
       </form>
     </div>
   </app-card>
+  }
 </div>
 
 <!-- Logout Confirmation Dialog Modal -->

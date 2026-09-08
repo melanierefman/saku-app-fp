@@ -25,7 +25,15 @@ import {
   TableColumn,
   PaginationComponent,
   CardComponent,
+  StatCardComponent,
+  EmptyStateComponent,
 } from '../../shared/components';
+import {
+  RupiahPipe,
+  IndonesianDatePipe,
+  StatusLabelPipe,
+  StatusVariantPipe,
+} from '../../shared/pipes';
 
 import {
   LucidePlus,
@@ -50,6 +58,9 @@ import {
   LucideExternalLink,
   LucideHome,
   LucideArrowLeft,
+  LucideBanknote,
+  LucideTrendingUp,
+  LucideFileText,
 } from '@lucide/angular';
 import { RouterLink, RouterModule } from '@angular/router';
 
@@ -78,6 +89,12 @@ import { RouterLink, RouterModule } from '@angular/router';
     TableCellDirective,
     PaginationComponent,
     CardComponent,
+    StatCardComponent,
+    EmptyStateComponent,
+    RupiahPipe,
+    IndonesianDatePipe,
+    StatusLabelPipe,
+    StatusVariantPipe,
     LucidePlus,
     LucideArrowRight,
     LucideSearch,
@@ -100,6 +117,9 @@ import { RouterLink, RouterModule } from '@angular/router';
     LucideExternalLink,
     LucideHome,
     LucideArrowLeft,
+    LucideBanknote,
+    LucideTrendingUp,
+    LucideFileText,
   ],
   templateUrl: './sandbox.component.html',
   styleUrl: './sandbox.component.css',

@@ -49,10 +49,10 @@
 
       <!-- Table Body -->
       <tbody>
-        <!-- Loading Shimmer Skeleton State -->
+        <!-- Skeleton Loading State -->
         @if (loading) {
         @for (s of dummySkeletonRows; track s) {
-        <tr class="animate-pulse">
+        <tr>
           @for (col of columns; track col.key; let colIndex = $index) {
           <td [style.width]="col.width" [ngStyle]="getStickyStyle(colIndex, col)" [class.bg-white]="col.sticky"
             [class.z-10]="col.sticky" [class.border-r]="isLastStickyLeft(colIndex) && isScrolled()"
@@ -61,7 +61,7 @@
             [class.border-l-[#E5E7EB]]="isFirstStickyRight(colIndex) && isScrolled()"
             [class.shadow-[3px_0_6px_-2px_rgba(0,0,0,0.06)]]="isLastStickyLeft(colIndex) && isScrolled()"
             class="px-6 py-4 border-b border-[#E5E7EB] transition-all">
-            <div class="h-4 bg-neutral-10/70 rounded-md w-3/4"></div>
+            <app-skeleton variant="text" width="w-3/4" height="h-4"></app-skeleton>
           </td>
           }
         </tr>

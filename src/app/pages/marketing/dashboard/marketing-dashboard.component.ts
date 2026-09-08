@@ -21,7 +21,7 @@ import {
   BadgeComponent,
   BadgeVariant,
   ToastService,
-  CardComponent,
+  SkeletonComponent,
 } from '../../../shared/components';
 import {
   LucideFileText,
@@ -44,7 +44,7 @@ import {
     CommonModule,
     RouterModule,
     BadgeComponent,
-    CardComponent,
+    SkeletonComponent,
     LucideFileText,
     LucideClock,
     LucideAlertCircle,

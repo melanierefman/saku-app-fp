@@ -16,6 +16,7 @@ import {
   ModalComponent,
   ToastService,
   CardComponent,
+  SkeletonComponent,
 } from '../../../../shared/components';
 import {
   VerifikasiCustomerService,
@@ -46,6 +47,7 @@ import { formatDate as formatDateHelper } from '../../../../shared/utils/date.ut
     DropdownComponent,
     ModalComponent,
     CardComponent,
+    SkeletonComponent,
     LucideExternalLink,
     LucideUser,
     LucideSend,

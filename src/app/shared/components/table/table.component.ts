@@ -40,11 +40,14 @@ export class TableCellDirective {
   constructor(public templateRef: TemplateRef<any>) {}
 }
 
+import { SkeletonComponent } from '../skeleton/skeleton.component';
+
 @Component({
   selector: 'app-table',
   standalone: true,
   imports: [
     CommonModule,
+    SkeletonComponent,
     LucideCircleHelp,
     LucideInbox,
     LucideChevronUp,

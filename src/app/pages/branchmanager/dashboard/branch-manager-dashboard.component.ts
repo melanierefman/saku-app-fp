@@ -21,7 +21,7 @@ import {
   BadgeComponent,
   BadgeVariant,
   ToastService,
-  CardComponent,
+  SkeletonComponent,
 } from '../../../shared/components';
 import {
   LucideFileText,
@@ -54,7 +54,7 @@ export interface TenorItemDisplay {
     CommonModule,
     RouterModule,
     BadgeComponent,
-    CardComponent,
+    SkeletonComponent,
     LucideFileText,
     LucideClock,
     LucideCheckCircle2,
@@ -114,10 +114,10 @@ export class BranchManagerDashboardComponent implements OnInit {
     const palette = [
       { colorClass: 'bg-primary', bgClass: 'bg-primary-0/40', borderClass: 'border-primary-20/60' },
       { colorClass: 'bg-indigo-500', bgClass: 'bg-indigo-50/60', borderClass: 'border-indigo-200/60' },
-      { colorClass: 'bg-emerald-500', bgClass: 'bg-success-0/40', borderClass: 'border-success-20/60' },
-      { colorClass: 'bg-amber-500', bgClass: 'bg-warning-0/40', borderClass: 'border-warning-20/60' },
+      { colorClass: 'bg-success', bgClass: 'bg-success-0/40', borderClass: 'border-success-20/60' },
+      { colorClass: 'bg-warning', bgClass: 'bg-warning-0/40', borderClass: 'border-warning-20/60' },
       { colorClass: 'bg-sky-500', bgClass: 'bg-sky-50/60', borderClass: 'border-sky-200/60' },
-      { colorClass: 'bg-rose-500', bgClass: 'bg-error-0/40', borderClass: 'border-error-20/60' },
+      { colorClass: 'bg-error', bgClass: 'bg-error-0/40', borderClass: 'border-error-20/60' },
     ];
 
     const items: TenorItemDisplay[] = entries.map(([label, val], idx) => {

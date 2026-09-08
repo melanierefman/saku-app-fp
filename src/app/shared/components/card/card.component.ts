@@ -15,10 +15,12 @@ export type CardPadding = 'none' | 'sm' | 'md' | 'lg';
 export type CardShadow = 'none' | 'xs' | 'sm' | 'md';
 export type CardRounded = 'lg' | 'xl' | '2xl' | '3xl';
 
+import { SkeletonComponent } from '../skeleton/skeleton.component';
+
 @Component({
   selector: 'app-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, SkeletonComponent],
   templateUrl: './card.component.html',
   styleUrl: './card.component.css',
 })
