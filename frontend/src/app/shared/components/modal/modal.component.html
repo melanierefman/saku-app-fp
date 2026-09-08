@@ -1,0 +1,123 @@
+@if (isOpen) {
+<div class="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn"
+  (click)="onBackdropClick($event)">
+  <!-- Modal Card Container -->
+  <div [class]="sizeClasses"
+    class="relative w-full bg-white rounded-2xl shadow-2xl overflow-hidden animate-modalIn border border-[#E5E7EB]"
+    (click)="$event.stopPropagation()">
+    <!-- ========================================== -->
+    <!-- 1. VARIANT: FORM MODAL -->
+    <!-- ========================================== -->
+    @if (variant === 'form') {
+    <!-- Header -->
+    <div class="px-6 pt-6 pb-4 flex items-center justify-between">
+      <h3 class="text-lg font-semibold text-neutral-90 tracking-tight">
+        {{ title }}
+      </h3>
+
+      @if (showCloseButton) {
+      <button type="button" (click)="handleClose()"
+        class="p-2 text-neutral-50 hover:text-neutral-90 bg-neutral-0/80 hover:bg-neutral-10 rounded-xl transition-colors cursor-pointer"
+        aria-label="Tutup modal">
+        <svg lucideX [size]="16" class="w-4 h-4"></svg>
+      </button>
+      }
+    </div>
+
+    <!-- Inset Divider (Header) -->
+    <div class="h-px bg-[#E5E7EB] mx-6"></div>
+
+    <!-- Body Content -->
+    <div class="px-6 py-5 space-y-4 max-h-[75vh] overflow-y-auto">
+      @if (message) {
+      <p class="text-sm text-neutral-50">{{ message }}</p>
+      }
+      <ng-content select="[modalBody], form, .modal-body"></ng-content>
+      <ng-content></ng-content>
+    </div>
+
+    <!-- Inset Divider & Footer (Optional, default: true) -->
+    @if (showFooter && (showConfirmButton || showCancelButton)) {
+    <div class="h-px bg-[#E5E7EB] mx-6"></div>
+
+    <div class="px-6 py-5 flex items-center justify-start gap-3">
+      @if (showConfirmButton) {
+      <app-button [variant]="confirmVariant" [loading]="loading" (btnClick)="handleConfirm()">
+        {{ confirmText }}
+      </app-button>
+      }
+      @if (showCancelButton) {
+      <app-button [variant]="cancelVariant" (btnClick)="handleCancel()">
+        {{ computedCancelText }}
+      </app-button>
+      }
+    </div>
+    }
+    }
+
+    <!-- ========================================== -->
+    <!-- 2. VARIANT: CONFIRMATION MODAL -->
+    <!-- ========================================== -->
+    @else if (variant === 'confirm') {
+    <!-- Close Button (Top Right) -->
+    @if (showCloseButton) {
+    <button type="button" (click)="handleClose()"
+      class="absolute top-4 right-4 p-1.5 text-neutral-40 hover:text-neutral-90 hover:bg-neutral-0 rounded-lg transition-colors cursor-pointer"
+      aria-label="Tutup modal">
+      <svg lucideX [size]="16" class="w-5 h-5"></svg>
+    </button>
+    }
+
+    <!-- Centered Body Content -->
+    <div class="p-6 sm:p-8 text-center">
+      <!-- Centered Icon matching screenshot -->
+      @if (icon !== 'none') {
+      <div class="mx-auto flex items-center justify-center text-neutral-40 mb-3">
+        @if (icon === 'alert' || icon === 'warning') {
+        <svg lucideCircleAlert [size]="32" class="w-8 h-8 text-neutral-40"></svg>
+        } @else if (icon === 'error') {
+        <svg lucideCircleX [size]="32" class="w-8 h-8 text-error"></svg>
+        } @else if (icon === 'success') {
+        <svg lucideCircleCheck [size]="32" class="w-8 h-8 text-emerald-600"></svg>
+        }
+      </div>
+      }
+
+      <!-- Message Text -->
+      <div class="text-sm font-normal text-neutral leading-relaxed max-w-sm mx-auto mb-6">
+        @if (message) {
+        {{ message }}
+        }
+        <ng-content></ng-content>
+      </div>
+
+      <!-- Centered Action Buttons -->
+      <div class="flex items-center justify-center gap-3">
+        <app-button [variant]="confirmVariant" [loading]="loading" (btnClick)="handleConfirm()">
+          {{ confirmText }}
+        </app-button>
+        <app-button [variant]="cancelVariant" (btnClick)="handleCancel()">
+          {{ computedCancelText }}
+        </app-button>
+      </div>
+    </div>
+    }
+
+    <!-- ========================================== -->
+    <!-- 3. VARIANT: CUSTOM MODAL -->
+    <!-- ========================================== -->
+    @else {
+    <div class="relative p-6">
+      @if (showCloseButton) {
+      <button type="button" (click)="handleClose()"
+        class="absolute top-4 right-4 p-1.5 text-neutral-40 hover:text-neutral-90 hover:bg-neutral-0 rounded-lg transition-colors cursor-pointer"
+        aria-label="Tutup modal">
+        <svg lucideX [size]="16" class="w-5 h-5"></svg>
+      </button>
+      }
+      <ng-content select="[modalCustom], .modal-custom"></ng-content>
+    </div>
+    }
+  </div>
+</div>
+}

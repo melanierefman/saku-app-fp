@@ -1,0 +1,40 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.saku-input-control {
+  background-color: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out, background-color 0.15s ease-in-out;
+}
+
+.saku-input-control:hover:not(.is-disabled) {
+  border-color: #D1D5DB;
+  background-color: #FFFFFF;
+}
+
+.saku-input-control.has-value:not(.is-disabled) {
+  background-color: #FFFFFF;
+  border-color: #D1D5DB;
+}
+
+.saku-input-control:focus:not(.is-disabled),
+.saku-input-control:focus-within:not(.is-disabled) {
+  background-color: #FFFFFF !important;
+  border-color: #FF792E !important;
+  box-shadow: 0 0 0 3px rgba(255, 121, 46, 0.25) !important;
+}
+
+.saku-input-control.is-error {
+  background-color: #FFFFFF !important;
+  border-color: #E53E3E !important;
+  box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.25) !important;
+}
+
+.saku-input-control.is-disabled {
+  background-color: #F9FAFB;
+  border-color: #E5E7EB;
+  opacity: 0.75;
+  cursor: not-allowed;
+}

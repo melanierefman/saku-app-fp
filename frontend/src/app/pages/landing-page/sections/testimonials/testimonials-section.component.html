@@ -1,0 +1,201 @@
+<section id="testimoni" class="py-20 sm:py-28 bg-[#FDF8EF] border-y border-[#FEE8D8] relative overflow-hidden">
+  <!-- Subtle ambient background glow -->
+  <div
+    class="absolute -left-20 top-1/2 -translate-y-1/2 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none">
+  </div>
+  <div class="absolute -right-20 bottom-0 w-80 h-80 bg-amber-400/5 rounded-full blur-3xl pointer-events-none"></div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+      <!-- Left Column: Pill Badge, Title, Subtitle, and Trust Summary Box -->
+      <div class="lg:col-span-4 space-y-6 text-center lg:text-left">
+
+        <!-- Main Title -->
+        <h2
+          class="text-3xl sm:text-4xl font-bold text-neutral-100 tracking-tight leading-tight max-w-xs mx-auto lg:mx-0">
+          Bukan Cuma Kami yang Bilang, <br class="hidden sm:inline" />
+          Ini Kata Mereka
+        </h2>
+
+        <!-- Subtitle -->
+        <p class="text-sm sm:text-sm text-neutral-40 leading-relaxed max-w-xs mx-auto lg:mx-0">
+          Cerita nyata dari mereka yang terbantu dan merasakan kemudahan finansial bersama SAKU.
+        </p>
+
+        <!-- Social Proof Trust Box (1 Baris) -->
+        <div
+          class="inline-flex items-center gap-3.5 bg-white/90 backdrop-blur-sm rounded-2xl border border-[#FEE8D8] p-3 sm:px-4 sm:py-3 shadow-xs">
+          <!-- Overlapping Avatar Stack -->
+          <div class="flex -space-x-2 overflow-hidden shrink-0">
+            <div
+              class="inline-flex items-center justify-center w-7 h-7 rounded-full ring-2 ring-white bg-primary text-[10px] font-bold text-white shadow-2xs">
+              R
+            </div>
+            <div
+              class="inline-flex items-center justify-center w-7 h-7 rounded-full ring-2 ring-white bg-primary text-[10px] font-bold text-white shadow-2xs">
+              E
+            </div>
+            <div
+              class="inline-flex items-center justify-center w-7 h-7 rounded-full ring-2 ring-white bg-primary text-[10px] font-bold text-white shadow-2xs">
+              S
+            </div>
+            <div
+              class="inline-flex items-center justify-center w-7 h-7 rounded-full ring-2 ring-white bg-primary-70 text-[9px] font-bold text-white shadow-2xs">
+              +15k
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div class="h-7 w-px bg-[#FEE8D8]"></div>
+
+          <!-- Rating Stars & Trust Text -->
+          <div class="text-left space-y-0.5">
+            <div class="flex items-center gap-1.5">
+              <div class="flex items-center gap-0.5 text-amber-400">
+                @for (star of [1, 2, 3, 4, 5]; track star) {
+                <svg lucideStar [size]="14" class="w-3.5 h-3.5 fill-current"></svg>
+                }
+              </div>
+              <span class="text-xs font-bold text-neutral-100">4.9/5.0</span>
+            </div>
+            <p class="text-xs text-neutral-50 font-normal leading-none">
+              Dipercaya <strong class="text-neutral-90 font-semibold">15.000+</strong> customer
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Enhanced Testimonials Grid (Desktop) & Carousel (Mobile) -->
+      <div class="lg:col-span-8">
+        <!-- Desktop 3 Cards Grid (>= md) -->
+        <div class="hidden md:grid md:grid-cols-3 gap-5 lg:gap-6 items-stretch">
+          @for (item of testimonials; track item.id) {
+          <div
+            class="bg-white rounded-3xl border border-[#FEE8D8] p-6 shadow-xs hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between group relative overflow-hidden">
+            <!-- Subtle hover top border gradient -->
+            <div
+              class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-amber-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            </div>
+
+            <!-- Top: 5 Stars & Tag -->
+            <div class="space-y-4 mb-6">
+              <div class="flex items-center justify-between gap-2">
+                <!-- 5 Stars -->
+                <div class="flex items-center gap-0.5 text-amber-400">
+                  @for (star of [1, 2, 3, 4, 5]; track star) {
+                  <svg lucideStar [size]="14" class="w-3.5 h-3.5 fill-current"></svg>
+                  }
+                </div>
+
+                <!-- Pill Tag -->
+                <span
+                  class="px-2.5 py-0.5 rounded-full bg-primary-0 text-primary text-[11px] font-semibold tracking-wide border border-primary-20">
+                  {{ item.tag }}
+                </span>
+              </div>
+
+              <!-- Quote Text -->
+              <p class="text-sm sm:text-base text-neutral-70 font-normal leading-relaxed">
+                “{{ item.quote }}”
+              </p>
+            </div>
+
+            <!-- Author Info -->
+            <div class="flex items-center gap-3 pt-4 border-t border-[#FEE8D8]">
+              <!-- Avatar: Solid Primary, White Text -->
+              <div
+                class="w-10 h-10 rounded-full bg-primary text-white font-bold flex items-center justify-center text-sm shrink-0 shadow-2xs">
+                {{ item.initials }}
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-sm font-bold text-neutral-100 truncate">{{ item.name }}</span>
+                  <!-- Verified Check -->
+                  <svg lucideCircleCheck [size]="14" class="w-3.5 h-3.5 text-emerald-600 shrink-0"></svg>
+                </div>
+                <div class="text-xs text-neutral-40 truncate flex items-center">
+                  <span>{{ item.role }}</span>
+                  <span
+                    class="inline-block w-1 h-1 rounded-full bg-neutral-40 mx-1.5 shrink-0 -translate-y-[0.5px]"></span>
+                  <span>{{ item.city }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          }
+        </div>
+
+        <!-- Mobile Carousel View (< md) -->
+        <div class="md:hidden relative w-full overflow-hidden" (touchstart)="onTouchStart($event)"
+          (touchend)="onTouchEnd($event)">
+          <div class="flex transition-transform duration-500 ease-out"
+            [style.transform]="'translateX(-' + currentSlide * 100 + '%)'">
+            @for (item of testimonials; track item.id) {
+            <div class="w-full shrink-0 px-1">
+              <div
+                class="bg-white rounded-3xl border border-[#FEE8D8] p-6 shadow-xs flex flex-col justify-between relative overflow-hidden min-h-[260px]">
+                <!-- Top: 5 Stars & Tag -->
+                <div class="space-y-4 mb-6">
+                  <div class="flex items-center justify-between gap-2">
+                    <!-- 5 Stars -->
+                    <div class="flex items-center gap-0.5 text-amber-400">
+                      @for (star of [1, 2, 3, 4, 5]; track star) {
+                      <svg lucideStar [size]="14" class="w-3.5 h-3.5 fill-current"></svg>
+                      }
+                    </div>
+
+                    <!-- Pill Tag -->
+                    <span
+                      class="px-2.5 py-0.5 rounded-full bg-primary-0 text-primary text-[11px] font-semibold tracking-wide border border-primary-20">
+                      {{ item.tag }}
+                    </span>
+                  </div>
+
+                  <!-- Quote Text -->
+                  <p class="text-sm sm:text-base text-neutral-70 font-normal leading-relaxed">
+                    “{{ item.quote }}”
+                  </p>
+                </div>
+
+                <!-- Author Info -->
+                <div class="flex items-center gap-3 pt-4 border-t border-[#FEE8D8]">
+                  <!-- Avatar: Solid Primary, White Text -->
+                  <div
+                    class="w-10 h-10 rounded-full bg-primary text-white font-bold flex items-center justify-center text-sm shrink-0 shadow-2xs">
+                    {{ item.initials }}
+                  </div>
+
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-sm font-bold text-neutral-100 truncate">{{ item.name }}</span>
+                      <!-- Verified Check -->
+                      <svg lucideCircleCheck [size]="14" class="w-3.5 h-3.5 text-emerald-600 shrink-0"></svg>
+                    </div>
+                    <div class="text-xs text-neutral-40 truncate flex items-center">
+                      <span>{{ item.role }}</span>
+                      <span
+                        class="inline-block w-1 h-1 rounded-full bg-neutral-40 mx-1.5 shrink-0 -translate-y-[0.5px]"></span>
+                      <span>{{ item.city }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+
+          <!-- 3 Dots Indicator / Tracker (Mobile Only) -->
+          <div class="flex items-center justify-center gap-2 pt-6">
+            @for (item of testimonials; track item.id; let i = $index) {
+            <button type="button" (click)="goToSlide(i)"
+              class="transition-all duration-300 rounded-full focus:outline-none cursor-pointer" [class.w-2.5]="true"
+              [class.h-2.5]="true" [class.bg-primary]="currentSlide === i" [class.bg-primary/30]="currentSlide !== i"
+              [attr.aria-label]="'Lihat testimoni ' + (i + 1)"></button>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

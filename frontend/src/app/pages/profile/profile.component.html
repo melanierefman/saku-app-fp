@@ -1,0 +1,229 @@
+<div class="mx-auto space-y-6">
+  @if (isLoading()) {
+  <!-- Skeleton Loading State -->
+  <div class="space-y-6">
+    <!-- Skeleton Header Card -->
+    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 sm:p-8 shadow-xs flex flex-col sm:flex-row items-center gap-6">
+      <app-skeleton variant="circle" width="w-20" height="h-20"></app-skeleton>
+      <div class="space-y-2.5 flex-1 w-full flex flex-col items-center sm:items-start">
+        <app-skeleton variant="text" width="w-48" height="h-6"></app-skeleton>
+        <app-skeleton variant="text" width="w-36" height="h-4"></app-skeleton>
+        <app-skeleton variant="text" width="w-28" height="h-5" rounded="full"></app-skeleton>
+      </div>
+      <app-skeleton variant="button" width="w-20" height="h-9"></app-skeleton>
+    </div>
+
+    <!-- Skeleton Detail Info Card -->
+    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 sm:p-8 shadow-xs space-y-4">
+      <div class="flex items-center gap-3">
+        <app-skeleton variant="rect" width="w-8" height="h-8" rounded="xl"></app-skeleton>
+        <div class="space-y-1">
+          <app-skeleton variant="text" width="w-44" height="h-5"></app-skeleton>
+          <app-skeleton variant="text" width="w-72" height="h-3.5"></app-skeleton>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 pt-2">
+        @for (i of [1,2,3,4]; track i) {
+        <div class="space-y-1.5">
+          <app-skeleton variant="text" width="w-20" height="h-3"></app-skeleton>
+          <app-skeleton variant="text" width="w-36" height="h-4"></app-skeleton>
+        </div>
+        }
+      </div>
+    </div>
+
+    <!-- Skeleton Change Password Card -->
+    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 sm:p-8 shadow-xs space-y-4">
+      <div class="flex items-center gap-3">
+        <app-skeleton variant="rect" width="w-8" height="h-8" rounded="xl"></app-skeleton>
+        <div class="space-y-1">
+          <app-skeleton variant="text" width="w-44" height="h-5"></app-skeleton>
+          <app-skeleton variant="text" width="w-72" height="h-3.5"></app-skeleton>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2">
+        @for (i of [1,2,3]; track i) {
+        <div class="space-y-2">
+          <app-skeleton variant="text" width="w-28" height="h-3.5"></app-skeleton>
+          <app-skeleton variant="rect" width="w-full" height="h-10" rounded="xl"></app-skeleton>
+        </div>
+        }
+      </div>
+      <div class="flex justify-end gap-3 pt-2">
+        <app-skeleton variant="button" width="w-20" height="h-9"></app-skeleton>
+        <app-skeleton variant="button" width="w-40" height="h-9"></app-skeleton>
+      </div>
+    </div>
+  </div>
+  } @else {
+  <!-- Profile Header Card (Using CardComponent) -->
+  <app-card [showIcon]="false" padding="lg" rounded="xl" shadow="xs">
+    <div class="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
+      <div
+        class="w-20 h-20 rounded-full bg-primary/10 text-primary border-2 border-primary/20 flex items-center justify-center font-bold text-2xl shrink-0">
+        {{ userInitials }}
+      </div>
+
+      <div class="space-y-1.5 flex-1">
+        <h1 class="text-2xl font-bold text-neutral-90 tracking-tight">
+          {{ user()?.nama || user()?.username || 'Karyawan SAKU' }}
+        </h1>
+        <p class="text-sm text-neutral-40 font-medium">
+          {{ user()?.email || '-' }}
+        </p>
+        <div class="pt-1">
+          <app-badge variant="primary" size="sm" rounded="pill">
+            {{ roleDisplay }}
+          </app-badge>
+        </div>
+      </div>
+
+      <div class="shrink-0">
+        <app-button variant="secondary" size="md" (btnClick)="openLogoutModal()">
+          Keluar
+        </app-button>
+      </div>
+    </div>
+  </app-card>
+
+  <!-- Detail Information Card (Using CardComponent) -->
+  <app-card title="Informasi Akun Karyawan"
+    subtitle="Rincian identitas, peran kewenangan, dan unit penugasan akun Anda di Portal SAKU." iconVariant="primary"
+    padding="lg" rounded="xl" shadow="xs">
+    <svg card-icon lucideUser [size]="18" class="text-primary"></svg>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 text-xs pt-1">
+      <div>
+        <span class="text-neutral-40 block mb-0.5">Username</span>
+        <span class="font-medium text-neutral-90 text-sm block">{{ user()?.username || '-' }}</span>
+      </div>
+
+      <div>
+        <span class="text-neutral-40 block mb-0.5">Kantor Cabang</span>
+        <span class="font-medium text-neutral-90 text-sm block">{{ user()?.cabang || 'Kantor Pusat' }}</span>
+      </div>
+
+      <div>
+        <span class="text-neutral-40 block mb-0.5">Tipe Pengguna</span>
+        <span class="font-medium text-neutral-90 text-sm block">{{ user()?.tipe || 'KARYAWAN' }}</span>
+      </div>
+
+      <div>
+        <span class="text-neutral-40 block mb-0.5">Status Akun</span>
+        <div class="pt-0.5">
+          <app-badge variant="success" [dot]="true" size="sm" rounded="pill">
+            Aktif
+          </app-badge>
+        </div>
+      </div>
+    </div>
+  </app-card>
+
+  <!-- Change Password Card (Using CardComponent & InputComponent) -->
+  <app-card title="Ganti Password Akun"
+    subtitle="Perbarui kata sandi akun Anda secara berkala untuk menjaga keamanan data Portal SAKU."
+    iconVariant="primary" padding="lg" rounded="xl" shadow="xs">
+    <svg card-icon lucideLock [size]="18" class="text-primary"></svg>
+
+    <div class="space-y-6 pt-2">
+      <!-- Alert Messages (Inline) -->
+      @if (errorMessage()) {
+      <div class="p-4 rounded-xl bg-error-0 border border-error-20 text-error-70 flex items-start gap-3 animate-fadeIn">
+        <svg lucideCircleAlert [size]="18" class="w-4.5 h-4.5 shrink-0 mt-0.5 text-error-70"></svg>
+        <div class="space-y-0.5 text-sm">
+          <p class="font-semibold text-error-80">Gagal Mengubah Password</p>
+          <p class="text-xs text-error-70">{{ errorMessage() }}</p>
+        </div>
+      </div>
+      }
+
+      @if (successMessage()) {
+      <div
+        class="p-4 rounded-xl bg-success-0 border border-success-20 text-success-70 flex items-start gap-3 animate-fadeIn">
+        <svg lucideCheckCircle2 [size]="18" class="w-4.5 h-4.5 shrink-0 mt-0.5 text-success-70"></svg>
+        <div class="space-y-0.5 text-sm">
+          <p class="font-semibold text-success-80">Berhasil</p>
+          <p class="text-xs text-success-70">{{ successMessage() }}</p>
+        </div>
+      </div>
+      }
+
+      <!-- Form Inputs Grid -->
+      <form (ngSubmit)="onChangePassword()" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <!-- Password Saat Ini -->
+          <app-input label="Password Saat Ini" [type]="showOldPassword() ? 'text' : 'password'"
+            placeholder="Masukkan password saat ini" [value]="oldPassword()"
+            [errorMessage]="oldPasswordError() || undefined" [disabled]="isSubmitting()" [required]="true"
+            (inputChange)="onOldPasswordChange($event)">
+            <button iconRight type="button" (click)="showOldPassword.set(!showOldPassword())"
+              class="text-neutral-40 hover:text-neutral-70 focus:outline-none p-1 cursor-pointer flex items-center"
+              tabindex="-1" title="Tampilkan / Sembunyikan">
+              @if (showOldPassword()) {
+              <svg lucideEyeOff [size]="16" class="w-4 h-4"></svg>
+              } @else {
+              <svg lucideEye [size]="16" class="w-4 h-4"></svg>
+              }
+            </button>
+          </app-input>
+
+          <!-- Password Baru -->
+          <app-input label="Password Baru" [type]="showNewPassword() ? 'text' : 'password'"
+            placeholder="Minimal 8 karakter" [value]="newPassword()" [errorMessage]="newPasswordError() || undefined"
+            [disabled]="isSubmitting()" [required]="true" (inputChange)="onNewPasswordChange($event)">
+            <button iconRight type="button" (click)="showNewPassword.set(!showNewPassword())"
+              class="text-neutral-40 hover:text-neutral-70 focus:outline-none p-1 cursor-pointer flex items-center"
+              tabindex="-1" title="Tampilkan / Sembunyikan">
+              @if (showNewPassword()) {
+              <svg lucideEyeOff [size]="16" class="w-4 h-4"></svg>
+              } @else {
+              <svg lucideEye [size]="16" class="w-4 h-4"></svg>
+              }
+            </button>
+          </app-input>
+
+          <!-- Konfirmasi Password Baru -->
+          <app-input label="Konfirmasi Password Baru" [type]="showConfirmPassword() ? 'text' : 'password'"
+            placeholder="Ulangi password baru" [value]="confirmPassword()"
+            [errorMessage]="confirmPasswordError() || undefined" [disabled]="isSubmitting()" [required]="true"
+            (inputChange)="onConfirmPasswordChange($event)">
+            <button iconRight type="button" (click)="showConfirmPassword.set(!showConfirmPassword())"
+              class="text-neutral-40 hover:text-neutral-70 focus:outline-none p-1 cursor-pointer flex items-center"
+              tabindex="-1" title="Tampilkan / Sembunyikan">
+              @if (showConfirmPassword()) {
+              <svg lucideEyeOff [size]="16" class="w-4 h-4"></svg>
+              } @else {
+              <svg lucideEye [size]="16" class="w-4 h-4"></svg>
+              }
+            </button>
+          </app-input>
+        </div>
+
+        <!-- Action Buttons (Using ButtonComponent) -->
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <app-button variant="outline" size="md"
+            [disabled]="isSubmitting() || (!oldPassword() && !newPassword() && !confirmPassword())"
+            (btnClick)="resetPasswordForm()">
+            Reset
+          </app-button>
+
+          <app-button variant="primary" size="md" [loading]="isSubmitting()" [disabled]="isSubmitting()"
+            (btnClick)="onChangePassword()">
+            <span class="flex items-center gap-2">
+              <svg lucideKey [size]="14" class="w-3.5 h-3.5"></svg>
+              <span>Simpan Password Baru</span>
+            </span>
+          </app-button>
+        </div>
+      </form>
+    </div>
+  </app-card>
+  }
+</div>
+
+<!-- Logout Confirmation Dialog Modal -->
+<app-modal [isOpen]="showLogoutModal" variant="confirm" icon="alert"
+  message="Apakah Anda yakin ingin keluar dari akun Anda?" confirmText="Ya, Keluar" cancelText="Batal"
+  confirmVariant="primary" (confirm)="onConfirmLogout()" (close)="showLogoutModal = false"
+  (cancel)="showLogoutModal = false">
+</app-modal>

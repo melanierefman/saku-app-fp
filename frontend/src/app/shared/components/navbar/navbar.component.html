@@ -1,0 +1,29 @@
+<header class="fixed top-3 sm:top-4 md:top-6 left-0 right-0 z-50 flex justify-center px-3 sm:px-6 lg:px-8">
+  <div
+    class="w-full max-w-7xl bg-white/95 backdrop-blur-md rounded-full border border-neutral-10/60 shadow-sm hover:shadow-md px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 flex items-center justify-between transition-all duration-300"
+    [class.shadow-md]="isScrolled">
+    <!-- Left: SAKU Logo -->
+    <a href="#hero" class="flex items-center gap-2 group shrink-0">
+      <img src="/landing/saku-logo.png" alt="SAKU Logo"
+        class="h-6 sm:h-7 w-auto object-contain transition-transform group-hover:scale-105" />
+    </a>
+
+    <!-- Center: Desktop Navigation Links (Only on lg screens) -->
+    <nav class="hidden lg:flex items-center gap-6 lg:gap-8">
+      @for (link of navLinks; track link.label) {
+      <a [href]="link.href" (click)="scrollToSection(link.href, $event)" [class.text-primary]="link.active"
+        [class.font-bold]="link.active" [class.text-neutral-70]="!link.active" [class.font-medium]="!link.active"
+        class="text-md sm:text-sm hover:text-primary transition-colors cursor-pointer">
+        {{ link.label }}
+      </a>
+      }
+    </nav>
+
+    <!-- Right: CTA Button -->
+    <div class="flex items-center gap-2">
+      <app-button variant="primary" size="sm" rounded="full" (btnClick)="scrollToSection('#download', $event)">
+        Download Aplikasi
+      </app-button>
+    </div>
+  </div>
+</header>

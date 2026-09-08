@@ -1,0 +1,4 @@
+/* Styles specific to Branch Manager Dashboard */
+:host {
+  display: block;
+}

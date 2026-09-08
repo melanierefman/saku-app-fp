@@ -1,0 +1,52 @@
+<div [class]="containerClasses" [title]="tooltip || ''">
+  <!-- Skeleton Loading State -->
+  @if (loading) {
+  <div class="flex items-center justify-between gap-2.5 w-full">
+    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+      <app-skeleton variant="rect" width="w-9" height="h-9" rounded="xl"></app-skeleton>
+      <div class="space-y-1 min-w-0 flex-1">
+        <app-skeleton variant="text" width="w-20" height="h-3.5"></app-skeleton>
+        <app-skeleton variant="text" width="w-16" height="h-5"></app-skeleton>
+      </div>
+    </div>
+    @if (badge || trend) {
+    <app-skeleton variant="text" width="w-10" height="h-4" rounded="md"></app-skeleton>
+    }
+  </div>
+  } @else {
+  <!-- Main Content -->
+  <div class="flex items-center gap-2.5 min-w-0 flex-1">
+    <!-- Icon Slot -->
+    <div [class]="iconBoxClasses">
+      <ng-content select="[card-icon], [icon], svg"></ng-content>
+    </div>
+
+    <!-- Title & Value -->
+    <div class="min-w-0 flex-1">
+      <p class="text-xs font-medium text-neutral-40 truncate" [title]="title">{{ title }}</p>
+      <p [class]="valueTextClasses" [title]="formattedValue">{{ formattedValue }}</p>
+      @if (subtitle) {
+      <p class="text-2xs text-neutral-40 truncate mt-0.5" [title]="subtitle">{{ subtitle }}</p>
+      }
+    </div>
+  </div>
+
+  <!-- Right: Trend / Badge / Extra Slot -->
+  @if (trend) {
+  <div class="shrink-0 flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md"
+    [class.bg-success-0]="trend.isPositive !== false"
+    [class.text-success-70]="trend.isPositive !== false"
+    [class.bg-error-0]="trend.isPositive === false"
+    [class.text-error-70]="trend.isPositive === false">
+    <span>{{ trend.isPositive !== false ? '↑' : '↓' }}</span>
+    <span>{{ trend.value }}</span>
+  </div>
+  } @else if (badge) {
+  <span class="shrink-0 text-2xs font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider bg-neutral-10/70 text-neutral-60">
+    {{ badge }}
+  </span>
+  } @else {
+  <ng-content select="[card-extra], [extra]"></ng-content>
+  }
+  }
+</div>

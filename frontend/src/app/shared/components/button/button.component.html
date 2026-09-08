@@ -1,0 +1,16 @@
+<button [type]="type" [disabled]="disabled || loading" [attr.aria-label]="ariaLabel || null" [attr.aria-busy]="loading"
+  [class]="buttonClasses" (click)="onClick($event)">
+  <!-- Loading Spinner -->
+  @if (loading) {
+  <svg lucideLoader2 [size]="16" [strokeWidth]="2.5" class="animate-spin -ml-0.5 mr-1.5 w-4 h-4 shrink-0"></svg>
+  }
+
+  <!-- Left Icon Slot -->
+  <ng-content select="[iconLeft]"></ng-content>
+
+  <!-- Default Content -->
+  <span class="inline-flex items-center gap-1.5 whitespace-nowrap"><ng-content></ng-content></span>
+
+  <!-- Right Icon Slot -->
+  <ng-content select="[iconRight]"></ng-content>
+</button>

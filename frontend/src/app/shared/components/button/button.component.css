@@ -1,0 +1,9 @@
+:host {
+  display: inline-block;
+}
+
+:host([fullWidth="true"]),
+:host(.w-full) {
+  display: block;
+  width: 100%;
+}

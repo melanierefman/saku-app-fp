@@ -1,0 +1,200 @@
+<div class="space-y-4 pb-12">
+  <!-- Page Header -->
+  <div class="flex flex-col gap-2">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-semibold text-neutral-90 tracking-tight">Audit Log Aktivitas</h1>
+        <p class="text-sm text-neutral-40 mt-0.5">
+          Riwayat log aktivitas seluruh pengguna dan sistem keamanan SAKU
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Card -->
+  <div class="bg-white rounded-2xl border border-[#E5E7EB] shadow-xs overflow-hidden">
+    <!-- Toolbar: Search & Filters -->
+    <div class="p-4 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+      <!-- Left Filters -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
+        <!-- Search Input -->
+        <div class="w-full sm:w-80">
+          <app-input placeholder="Cari user / cabang / aktivitas..." [ngModel]="searchKeyword()"
+            (ngModelChange)="onSearchChange($event)">
+            <svg lucideSearch [size]="16" iconLeft class="w-4 h-4"></svg>
+          </app-input>
+        </div>
+
+        <!-- Tanggal Aktivitas Datepicker -->
+        <div class="w-full sm:w-44">
+          <app-date-picker placeholder="Tgl Aktivitas" mode="single" [showPresets]="false"
+            [ngModel]="selectedTanggalAktivitas()" (dateChange)="onTanggalAktivitasChange($event)">
+          </app-date-picker>
+        </div>
+
+        <!-- Action Filter Dropdown -->
+        <div class="w-full sm:w-44">
+          <app-dropdown placeholder="Semua Aksi" [options]="actionOptions" [ngModel]="selectedActionFilter()"
+            (optionChange)="onActionFilterChange($event)" [clearable]="true">
+          </app-dropdown>
+        </div>
+
+        <!-- Entity Filter Dropdown -->
+        <div class="w-full sm:w-52">
+          <app-dropdown placeholder="Semua Entitas" [options]="entityOptions" [ngModel]="selectedEntityFilter()"
+            (optionChange)="onEntityFilterChange($event)" [clearable]="true">
+          </app-dropdown>
+        </div>
+
+        <!-- Clear Filter Action Button -->
+        @if (hasActiveFilters()) {
+        <button type="button" (click)="clearFilters()"
+          class="p-2 text-neutral-40 hover:text-neutral-90 hover:bg-neutral-0 rounded-lg transition-colors cursor-pointer shrink-0"
+          title="Reset semua filter">
+          <svg lucideX [size]="16" class="w-4 h-4"></svg>
+        </button>
+        }
+      </div>
+    </div>
+
+    <!-- Audit Log Data Table -->
+    <app-table [columns]="columns" [data]="paginatedLogs()" [loading]="isLoading()" rowKey="id" [sortKey]="sortKey()"
+      [sortDirection]="sortDirection()" (sortChange)="onSortChange($event)" [pageIndex]="currentPage()"
+      [pageSize]="pageSize()" emptyMessage="Tidak ada data log audit yang ditemukan.">
+
+      <!-- Custom Timestamp Template -->
+      <ng-template appTableCell="timestamp" let-row="row">
+        <div class="flex items-center gap-1.5 text-neutral-70 text-sm">
+          <span>{{ formatTimestamp(row.createdDate || row.timestamp) }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Custom User Template -->
+      <ng-template appTableCell="user" let-row="row">
+        <div class="flex flex-col">
+          <div class="font-medium text-neutral-90 text-sm flex items-center gap-1.5">
+            <span>{{ row.karyawan?.nama || row.karyawanNama || row.username || '-' }}</span>
+          </div>
+          <div class="text-neutral-40 text-xs flex items-center gap-1.5 mt-0.5">
+            <svg lucideUser [size]="12" class="w-3 h-3 text-neutral-40 shrink-0"></svg>
+            <span>{{ row.karyawan?.cabang }}</span>
+            <!-- @if (row.karyawan?.cabang) {
+            <span>•</span>
+            <span class="text-neutral-60 truncate max-w-[130px]">{{ row.karyawan?.cabang }}</span>
+            } -->
+          </div>
+        </div>
+      </ng-template>
+
+      <!-- Custom Action Badge Template -->
+      <ng-template appTableCell="action" let-row="row">
+        <app-badge [variant]="getActionBadgeVariant(row.action)" size="sm">
+          {{ row.action }}
+        </app-badge>
+      </ng-template>
+
+      <!-- Custom Entity Template -->
+      <ng-template appTableCell="entity" let-row="row">
+        <div
+          class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs bg-neutral-0 text-neutral-80 border border-[#E5E7EB] font-medium">
+          <svg lucideLayers [size]="12" class="w-3 h-3 text-neutral-50 shrink-0"></svg>
+          <span>{{ row.entity || '-' }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Custom Description Template -->
+      <ng-template appTableCell="description" let-row="row">
+        <p class="text-neutral-80 text-sm leading-relaxed whitespace-normal break-words max-w-[340px]">
+          {{ row.description || '-' }}
+        </p>
+      </ng-template>
+
+      <!-- Custom Actions Template -->
+      <ng-template appTableCell="actions" let-row="row">
+        <div class="flex items-center justify-center">
+          <button type="button" (click)="openDetail(row)"
+            class="p-1.5 text-neutral-50 hover:text-primary hover:bg-primary-10 rounded-lg transition-colors cursor-pointer"
+            title="Lihat Detail Log">
+            <svg lucideEye [size]="16" class="w-4 h-4"></svg>
+          </button>
+        </div>
+      </ng-template>
+    </app-table>
+
+    <!-- Pagination Footer -->
+    <div class="px-5 py-3.5 bg-[#F9FAFB]">
+      <app-pagination [currentPage]="currentPage()" [pageSize]="pageSize()" [totalItems]="totalElements()"
+        (pageChange)="onPageChange($event)"></app-pagination>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Detail Riwayat Aktivitas Audit -->
+<app-modal [isOpen]="isDetailModalOpen()" variant="form" title="Detail Riwayat Aktivitas Audit" [showFooter]="false"
+  (close)="closeDetailModal()">
+  <div modalBody class="space-y-4 pt-1">
+    @if (selectedLog()) {
+    <!-- Summary Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-xl bg-neutral-0/50 border border-[#E5E7EB]">
+      <div>
+        <span class="text-xs text-neutral-40 block">Waktu:</span>
+        <span class="font-medium text-neutral-90 text-sm">
+          {{ formatTimestamp(selectedLog()?.createdDate || selectedLog()?.timestamp) }}
+        </span>
+      </div>
+      <div>
+        <span class="text-xs text-neutral-40 block">Aksi / Event:</span>
+        <app-badge [variant]="getActionBadgeVariant(selectedLog()?.action)" size="sm">
+          {{ selectedLog()?.action }}
+        </app-badge>
+      </div>
+      <div>
+        <span class="text-xs text-neutral-40 block">Pengguna:</span>
+        <span class="font-medium text-neutral-90 text-sm">
+          {{ selectedLog()?.karyawan?.nama || selectedLog()?.karyawanNama || selectedLog()?.username }}
+        </span>
+      </div>
+      <div>
+        <span class="text-xs text-neutral-40 block">Role:</span>
+        <span class="font-medium text-neutral-90 text-sm">
+          {{ formatRole(selectedLog()?.karyawan?.role || selectedLog()?.role) }}
+        </span>
+      </div>
+      <div>
+        <span class="text-xs text-neutral-40 block">Cabang:</span>
+        <span class="font-medium text-neutral-90 text-sm">
+          {{ selectedLog()?.karyawan?.cabang || selectedLog()?.karyawanNama }}
+        </span>
+      </div>
+      <div>
+        <span class="text-xs text-neutral-40 block">Entitas / Modul:</span>
+        <span class="font-medium text-neutral-90 text-sm">{{ selectedLog()?.entity || '-' }}</span>
+      </div>
+      <div>
+        <span class="text-xs text-neutral-40 block">Email Pengguna:</span>
+        <span class="font-medium text-neutral-90 text-sm">{{ selectedLog()?.karyawan?.email || '-' }}</span>
+      </div>
+    </div>
+
+    <!-- Description -->
+    @if (selectedLog()?.description) {
+    <div class="p-3.5 rounded-xl bg-white border border-[#E5E7EB] space-y-1">
+      <span class="text-xs font-semibold text-neutral-60 block">Deskripsi Aktivitas:</span>
+      <p class="text-neutral-90 text-sm leading-relaxed">{{ selectedLog()?.description }}</p>
+    </div>
+    }
+
+    <!-- Payload / Details JSON -->
+    @if (selectedLog()?.details) {
+    <div class="space-y-1.5">
+      <span class="text-xs font-semibold text-neutral-60 flex items-center gap-1.5">
+        <svg lucideTerminal [size]="14" class="w-3.5 h-3.5"></svg>
+        Data Perubahan (Payload Details):
+      </span>
+      <pre
+        class="p-3 rounded-xl bg-neutral-90 text-neutral-0 font-mono text-[11px] overflow-x-auto max-h-48 whitespace-pre-wrap">{{ getDetailsJson(selectedLog()?.details) }}</pre>
+    </div>
+    }
+    }
+  </div>
+</app-modal>

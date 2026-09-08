@@ -1,0 +1,95 @@
+<div class="relative w-full space-y-1.5 select-none">
+  <!-- Label -->
+  @if (label) {
+  <label [for]="id" class="block text-sm text-neutral-60">
+    {{ label }}
+    @if (required) {
+    <span class="text-error ml-0.5">*</span>
+    }
+  </label>
+  }
+
+  <!-- Trigger Button -->
+  <div [id]="id" role="combobox" [attr.aria-expanded]="isOpen" [attr.aria-disabled]="disabled" tabindex="0"
+    (click)="toggle()" (keydown.enter)="$event.preventDefault(); toggle()"
+    (keydown.space)="$event.preventDefault(); toggle()" [class]="triggerClasses">
+    <!-- Left Icon Slot -->
+    <div class="mr-2 flex items-center text-neutral-40 empty:hidden">
+      <ng-content select="[iconLeft]"></ng-content>
+    </div>
+
+    <!-- Selected Value Text or Placeholder -->
+    <span class="truncate flex-1 font-normal text-sm" [class.text-neutral-90]="selectedOption"
+      [class.text-neutral-40]="!selectedOption">
+      {{ selectedOption ? selectedOption.label : placeholder }}
+    </span>
+
+    <!-- Actions (Clear & Chevron) -->
+    <div class="flex items-center gap-1.5 ml-2 text-neutral-40">
+      @if (clearable && selectedOption && !disabled) {
+      <button type="button" (click)="clearSelection($event)"
+        class="hover:text-neutral-80 p-0.5 rounded-md hover:bg-neutral-0/80 transition-colors focus:outline-none cursor-pointer"
+        aria-label="Hapus pilihan">
+        <svg lucideX [size]="14" class="w-3.5 h-3.5"></svg>
+      </button>
+      }
+
+      <!-- Chevron Down Icon -->
+      <svg lucideChevronDown [size]="16" [class]="isOpen ? 'rotate-180 text-primary' : 'text-neutral-40'"
+        class="w-4 h-4 transition-transform duration-150"></svg>
+    </div>
+  </div>
+
+  <!-- Popover Menu List -->
+  @if (isOpen) {
+  <div
+    class="absolute z-50 left-0 top-full mt-1.5 w-full bg-white rounded-xl border border-[#E5E7EB] shadow-xl py-1 overflow-hidden animate-dropdownIn max-h-60 flex flex-col text-sm"
+    (click)="$event.stopPropagation()">
+    <!-- Optional Search Bar within dropdown -->
+    @if (searchable) {
+    <div class="p-2 border-b border-[#E5E7EB]">
+      <div class="relative flex items-center">
+        <svg lucideSearch [size]="14" class="w-3.5 h-3.5 absolute left-2.5 text-neutral-40"></svg>
+        <input type="text" [(ngModel)]="searchQuery" (click)="$event.stopPropagation()" placeholder="Cari opsi..."
+          class="w-full bg-[#F9FAFB] rounded-lg pl-8 pr-3 py-1.5 text-sm text-neutral-90 placeholder:text-neutral-40 focus:outline-none focus:bg-white focus:ring-1 focus:ring-primary border border-transparent focus:border-primary" />
+      </div>
+    </div>
+    }
+
+    <!-- Options List -->
+    <div class="overflow-y-auto flex-1 py-1">
+      @for (option of filteredOptions; track option.value) {
+      <div role="option" [attr.aria-selected]="selectedValue === option.value" (click)="selectOption(option)"
+        [class]="option.disabled ? 'opacity-50 cursor-not-allowed bg-neutral-0/50' : 'cursor-pointer hover:bg-[#FFF5EE] text-neutral-80 hover:text-primary'"
+        [class.bg-[#FFF5EE]]="selectedValue === option.value" [class.text-primary]="selectedValue === option.value"
+        class="px-3.5 py-2.5 flex items-center justify-between transition-colors duration-100 text-sm font-normal">
+        <span class="truncate">{{ option.label }}</span>
+
+        <!-- Active Checkmark -->
+        @if (selectedValue === option.value) {
+        <svg lucideCheck [size]="16" class="w-4 h-4 text-primary shrink-0"></svg>
+        }
+      </div>
+      }
+
+      @if (filteredOptions.length === 0) {
+      <div class="px-4 py-3 text-center text-neutral-40 text-xs italic">
+        Tidak ada opsi yang cocok.
+      </div>
+      }
+    </div>
+  </div>
+  }
+
+  <!-- Helper Text or Error Message -->
+  @if (errorMessage) {
+  <p class="text-xs text-error flex items-start gap-1 mt-1">
+    <svg lucideCircleAlert [size]="14" class="w-3.5 h-3.5 shrink-0 mt-0.5"></svg>
+    <span class="leading-tight">{{ errorMessage }}</span>
+  </p>
+  } @else if (helperText) {
+  <p class="text-xs text-neutral-40 mt-1">
+    {{ helperText }}
+  </p>
+  }
+</div>

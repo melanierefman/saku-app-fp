@@ -1,0 +1,66 @@
+<div class="w-full space-y-1.5">
+  <!-- Label -->
+  @if (label) {
+  <label [for]="id" class="block text-sm text-neutral-60">
+    {{ label }}
+    @if (required) {
+    <span class="text-error ml-0.5">*</span>
+    }
+  </label>
+  }
+
+  <!-- Amount Input Wrapper -->
+  <div [class]="wrapperClasses">
+    <!-- Left Icon -->
+    <div class="pl-3.5 flex items-center pointer-events-none text-neutral-40">
+      <ng-content select="[iconLeft]">
+        <svg lucideBanknote [size]="16" class="w-4 h-4"></svg>
+      </ng-content>
+    </div>
+
+    <!-- Optional Currency Prefix text (e.g. Rp) -->
+    @if (currencyPrefix) {
+    <span class="pl-2 text-sm text-neutral-40 font-medium select-none">
+      {{ currencyPrefix }}
+    </span>
+    }
+
+    <!-- Core Amount Text Input -->
+    <input [id]="id" type="text" inputmode="numeric" [value]="displayValue" [placeholder]="placeholder"
+      [disabled]="disabled" [readOnly]="readonly" [required]="required"
+      class="w-full bg-transparent px-3 py-2 text-sm font-normal text-neutral-100 placeholder:text-neutral-30 focus:outline-none disabled:cursor-not-allowed"
+      (input)="onInputChange($event)" (blur)="onBlur()" />
+
+    <!-- Clear Button (if value exists) -->
+    @if (displayValue && !disabled && !readonly) {
+    <button type="button" (click)="clearAmount()"
+      class="pr-3 text-neutral-30 hover:text-neutral-60 focus:outline-none cursor-pointer" aria-label="Hapus nominal">
+      <svg lucideX [size]="16" class="w-4 h-4"></svg>
+    </button>
+    }
+  </div>
+
+  <!-- Quick Amounts Chips (Optional Presets) -->
+  @if (quickAmounts.length > 0 && !disabled && !readonly) {
+  <div class="flex flex-wrap items-center gap-1.5 pt-1">
+    @for (amount of quickAmounts; track amount) {
+    <button type="button" (click)="addQuickAmount(amount)"
+      class="px-2.5 py-1 text-xs font-medium rounded-md bg-neutral-0 border border-neutral-10 text-neutral-70 hover:border-primary/50 hover:text-primary hover:bg-primary-0 transition-colors cursor-pointer">
+      {{ formatQuickLabel(amount) }}
+    </button>
+    }
+  </div>
+  }
+
+  <!-- Helper Text or Error Message -->
+  @if (errorMessage) {
+  <p class="text-xs text-error flex items-start gap-1 mt-1">
+    <svg lucideCircleAlert [size]="14" class="w-3.5 h-3.5 shrink-0 mt-0.5"></svg>
+    <span class="leading-tight">{{ errorMessage }}</span>
+  </p>
+  } @else if (helperText) {
+  <p class="text-xs text-neutral-40 mt-1">
+    {{ helperText }}
+  </p>
+  }
+</div>

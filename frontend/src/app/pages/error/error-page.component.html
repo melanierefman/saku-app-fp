@@ -1,0 +1,127 @@
+<div class="min-h-screen bg-slate-50 flex flex-col justify-between p-4 sm:p-6 lg:p-8 relative overflow-hidden select-none">
+  <!-- Decorative Background Glows -->
+  <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl pointer-events-none -z-10"></div>
+  <div class="absolute bottom-10 right-10 w-[300px] h-[300px] bg-primary/5 rounded-full blur-2xl pointer-events-none -z-10"></div>
+
+  <!-- Header Brand Bar -->
+  <header class="w-full max-w-5xl mx-auto flex items-center justify-between py-2">
+    <a routerLink="/" class="flex items-center gap-2.5 group cursor-pointer focus:outline-none">
+      <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white font-black text-lg shadow-md group-hover:scale-105 transition-transform duration-200">
+        S
+      </div>
+      <div class="flex flex-col text-left">
+        <span class="text-base font-extrabold text-neutral-90 tracking-tight leading-none group-hover:text-primary transition-colors">
+          SAKU Portal
+        </span>
+        <span class="text-[10px] text-neutral-40 font-semibold tracking-wider uppercase mt-0.5">
+          BCA Finance
+        </span>
+      </div>
+    </a>
+
+    <div>
+      <app-badge variant="neutral" size="sm" rounded="pill">
+        <span class="flex items-center gap-1.5 text-xs text-neutral-50 font-medium">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          Sistem Online
+        </span>
+      </app-badge>
+    </div>
+  </header>
+
+  <!-- Main Error Content Container -->
+  <main class="w-full max-w-xl mx-auto my-auto py-8 text-center">
+    <div class="bg-white rounded-3xl p-8 sm:p-12 border border-[#E5E7EB] shadow-xl space-y-6 relative">
+      
+      <!-- Big Error Number Banner with Icon Overlay -->
+      <div class="relative flex items-center justify-center">
+        <!-- Giant Background Digits -->
+        <span class="text-7xl sm:text-9xl font-black tracking-tighter text-slate-100 select-none">
+          {{ currentConfig().code }}
+        </span>
+
+        <!-- Floating Icon Box in Center -->
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div
+            class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex items-center justify-center shadow-lg border border-white"
+            [class.bg-amber-50]="errorType() === '404'"
+            [class.text-amber-600]="errorType() === '404'"
+            [class.bg-red-50]="errorType() === '403' || errorType() === '500'"
+            [class.text-red-600]="errorType() === '403' || errorType() === '500'"
+          >
+            @if (errorType() === '404') {
+              <svg lucideFileQuestion [size]="40" class="w-10 h-10 sm:w-12 sm:h-12"></svg>
+            } @else if (errorType() === '403') {
+              <svg lucideShieldAlert [size]="40" class="w-10 h-10 sm:w-12 sm:h-12"></svg>
+            } @else {
+              <svg lucideServerCrash [size]="40" class="w-10 h-10 sm:w-12 sm:h-12"></svg>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Badge Status -->
+      <div class="flex justify-center pt-2">
+        <app-badge [variant]="currentConfig().badgeVariant" size="md" rounded="pill">
+          {{ currentConfig().badge }}
+        </app-badge>
+      </div>
+
+      <!-- Title and Description -->
+      <div class="space-y-2.5 max-w-md mx-auto">
+        <h1 class="text-xl sm:text-2xl font-bold text-neutral-90 tracking-tight">
+          {{ currentConfig().title }}
+        </h1>
+        <p class="text-xs sm:text-sm text-neutral-50 leading-relaxed">
+          {{ currentConfig().description }}
+        </p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
+        @if (currentConfig().secondaryActionLabel) {
+        <app-button
+          variant="outline"
+          size="md"
+          rounded="lg"
+          [fullWidth]="true"
+          (btnClick)="onSecondaryAction()"
+          class="w-full sm:w-auto"
+        >
+          <span class="flex items-center justify-center gap-2">
+            <svg lucideArrowLeft [size]="16" class="w-4 h-4"></svg>
+            <span>{{ currentConfig().secondaryActionLabel }}</span>
+          </span>
+        </app-button>
+        }
+
+        <app-button
+          variant="primary"
+          size="md"
+          rounded="lg"
+          [fullWidth]="true"
+          (btnClick)="onPrimaryAction()"
+          class="w-full sm:w-auto"
+        >
+          <span class="flex items-center justify-center gap-2">
+            @if (errorType() === '500') {
+              <svg lucideRotateCw [size]="16" class="w-4 h-4"></svg>
+            } @else {
+              <svg lucideHome [size]="16" class="w-4 h-4"></svg>
+            }
+            <span>{{ currentConfig().primaryActionLabel }}</span>
+          </span>
+        </app-button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer Helpdesk Link -->
+  <footer class="w-full max-w-5xl mx-auto py-3 text-center">
+    <p class="text-xs text-neutral-40 flex items-center justify-center gap-1.5">
+      <svg lucideCircleHelp [size]="14" class="w-3.5 h-3.5"></svg>
+      <span>Butuh bantuan atau kendala sistem? Hubungi IT Helpdesk SAKU di</span>
+      <a href="mailto:support@saku.bcafinance.co.id" class="text-primary hover:underline font-medium">support&#64;saku.bcafinance.co.id</a>
+    </p>
+  </footer>
+</div>

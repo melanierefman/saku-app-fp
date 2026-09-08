@@ -1,0 +1,197 @@
+<aside [class.w-20]="collapsed" [class.w-64]="!collapsed"
+  class="bg-white border-r border-[#E5E7EB] h-full max-h-screen flex flex-col p-3 transition-all duration-200 select-none shrink-0 overflow-hidden">
+  <!-- Brand / Logo Header -->
+  <div class="flex items-center gap-3 px-2 py-2 mb-2 shrink-0">
+    <!-- SAKU Official Logo Image -->
+    <img [src]="logoSrc" alt="SAKU Logo" class="w-10 h-10 rounded-xl object-contain shrink-0" />
+
+    <!-- Title & Subtitle -->
+    @if (!collapsed) {
+    <div class="flex flex-col truncate">
+      <span class="text-base font-bold text-neutral-100 tracking-tight leading-tight">
+        {{ brandTitle }}
+      </span>
+      <span class="text-[11px] font-bold text-neutral-40 tracking-wider uppercase mt-0.5 leading-tight truncate">
+        {{ computedSubtitle }}
+      </span>
+    </div>
+    }
+  </div>
+
+  <!-- Navigation Groups (Scrollable with hidden scrollbar) -->
+  <div class="flex-1 space-y-3 overflow-y-auto pb-4 sidebar-scroll">
+    @for (group of (resolvedMenuGroups || []); track group.title || $index) {
+    <div class="space-y-1">
+      <!-- Group Section Heading -->
+      @if (group.title && !collapsed) {
+      <p class="text-[11px] font-bold tracking-wider text-neutral-40 uppercase px-3.5 pt-3 pb-1">
+        {{ group.title }}
+      </p>
+      }
+
+      <!-- Group Items -->
+      <div class="space-y-0.5">
+        @for (item of group.items; track item.id) {
+        @if (hasChildren(item)) {
+        <!-- Parent Collapsible Item (Submenu) -->
+        <div class="space-y-0.5">
+          <div
+            [class.bg-primary-10/50]="isParentOnlyActive(item)"
+            [class.text-primary]="isParentOnlyActive(item)"
+            [class.font-semibold]="isParentOnlyActive(item)"
+            class="w-full flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-colors cursor-pointer group text-[#434656] hover:text-neutral-90 hover:bg-neutral-0/70">
+            <!-- Parent Clickable Area (Navigates to base page) -->
+            <div (click)="onParentClick(item, $event)" class="flex items-center gap-3 min-w-0 flex-1">
+              <!-- Icon Slot -->
+              <span class="shrink-0 transition-colors flex items-center justify-center">
+                @switch (item.icon) {
+                @case ('grid') { <svg lucideLayoutGrid [size]="18" class="w-4.5 h-4.5"></svg> }
+                @case ('user-round-key') { <svg lucideUserRoundKey [size]="18" class="w-4.5 h-4.5"></svg> }
+                @case ('user-key') { <svg lucideUserRoundKey [size]="18" class="w-4.5 h-4.5"></svg> }
+                @case ('user-round-cog') { <svg lucideUserRoundCog [size]="18" class="w-4.5 h-4.5"></svg> }
+                @case ('user-shield') { <svg lucideShieldUser [size]="18" class="w-4.5 h-4.5"></svg> }
+                @case ('square-menu') { <svg lucideSquareMenu [size]="18" class="w-4.5 h-4.5"></svg> }
+                @case ('menu') { <svg lucideSquareMenu [size]="18" class="w-4.5 h-4.5"></svg> }
+                @case ('users-round') { <svg lucideUsersRound [size]="18" class="w-4.5 h-4.5"></svg> }
+                @case ('users') { <svg lucideUsersRound [size]="18" class="w-4.5 h-4.5"></svg> }
+                @case ('building') { <svg lucideBuilding2 [size]="18" class="w-4.5 h-4.5"></svg> }
+                @case ('banknote') { <svg lucideBanknote [size]="18" class="w-4.5 h-4.5"></svg> }
+                @case ('clipboard-clock') { <svg lucideClipboardClock [size]="18" class="w-4.5 h-4.5"></svg> }
+                @case ('clipboard-check') { <svg lucideClipboardCheck [size]="18" class="w-4.5 h-4.5"></svg> }
+                @case ('file-user') { <svg lucideFileUser [size]="18" class="w-4.5 h-4.5"></svg> }
+                @case ('user-round') { <svg lucideUserRound [size]="18" class="w-4.5 h-4.5"></svg> }
+                @case ('user') { <svg lucideUserRound [size]="18" class="w-4.5 h-4.5"></svg> }
+                @default { <svg lucideUserRound [size]="18" class="w-4.5 h-4.5"></svg> }
+                }
+              </span>
+              @if (!collapsed) {
+              <span class="truncate">{{ item.label }}</span>
+              }
+            </div>
+
+            <!-- Chevron Toggle Button -->
+            @if (!collapsed) {
+            <div class="flex items-center gap-1.5 shrink-0">
+              @if (item.badge) {
+              <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-primary/10 text-primary">
+                {{ item.badge }}
+              </span>
+              }
+              <button type="button" (click)="toggleExpand(item.id, $event)"
+                class="p-1 -mr-1 rounded-lg text-neutral-40 hover:text-neutral-70 transition-colors cursor-pointer shrink-0"
+                title="Buka/Tutup Submenu">
+                <svg lucideChevronDown [size]="15"
+                  class="w-4 h-4 transition-transform duration-200"
+                  [class.rotate-180]="isExpanded(item.id)">
+                </svg>
+              </button>
+            </div>
+            }
+          </div>
+
+          <!-- Children / Sub-items (Matching Parent Font Size & Style) -->
+          @if (!collapsed && isExpanded(item.id)) {
+          <div class="pl-8 pr-1 py-0.5 space-y-0.5 transition-all">
+            @for (child of item.children; track child.id) {
+            <a [routerLink]="child.url || null" [queryParams]="child.queryParams || null"
+              (click)="onSelect(child, $event)"
+              [class.bg-primary-10/50]="isChildActive(child)"
+              [class.text-primary]="isChildActive(child)"
+              [class.font-semibold]="isChildActive(child)"
+              class="w-full flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-colors cursor-pointer group text-[#434656] hover:text-neutral-90 hover:bg-neutral-0/70 font-medium">
+              <span class="truncate">{{ child.label }}</span>
+              @if (child.badge) {
+              <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-primary/10 text-primary">
+                {{ child.badge }}
+              </span>
+              }
+            </a>
+            }
+          </div>
+          }
+        </div>
+        } @else {
+        <!-- Standard Single Link Item -->
+        <a [routerLink]="item.url || null" (click)="onSelect(item, $event)" [title]="collapsed ? item.label : ''"
+          routerLinkActive="!bg-primary-10/50 !text-primary font-semibold"
+          [routerLinkActiveOptions]="{ exact: isExactMatch(item) }"
+          [class.bg-primary-10/50]="!item.url && isActive(item)"
+          [class.text-primary]="!item.url && isActive(item)"
+          [class.font-semibold]="!item.url && isActive(item)"
+          class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-colors cursor-pointer group text-[#434656] hover:text-neutral-90 hover:bg-neutral-0/70">
+          <!-- Icon Slot -->
+          <span class="shrink-0 transition-colors flex items-center justify-center">
+            @switch (item.icon) {
+            @case ('grid') {
+            <svg lucideLayoutGrid [size]="18" class="w-4.5 h-4.5"></svg>
+            }
+            @case ('user-round-key') {
+            <svg lucideUserRoundKey [size]="18" class="w-4.5 h-4.5"></svg>
+            }
+            @case ('user-key') {
+            <svg lucideUserRoundKey [size]="18" class="w-4.5 h-4.5"></svg>
+            }
+            @case ('user-round-cog') {
+            <svg lucideUserRoundCog [size]="18" class="w-4.5 h-4.5"></svg>
+            }
+            @case ('user-shield') {
+            <svg lucideShieldUser [size]="18" class="w-4.5 h-4.5"></svg>
+            }
+            @case ('square-menu') {
+            <svg lucideSquareMenu [size]="18" class="w-4.5 h-4.5"></svg>
+            }
+            @case ('menu') {
+            <svg lucideSquareMenu [size]="18" class="w-4.5 h-4.5"></svg>
+            }
+            @case ('users-round') {
+            <svg lucideUsersRound [size]="18" class="w-4.5 h-4.5"></svg>
+            }
+            @case ('users') {
+            <svg lucideUsersRound [size]="18" class="w-4.5 h-4.5"></svg>
+            }
+            @case ('building') {
+            <svg lucideBuilding2 [size]="18" class="w-4.5 h-4.5"></svg>
+            }
+            @case ('banknote') {
+            <svg lucideBanknote [size]="18" class="w-4.5 h-4.5"></svg>
+            }
+            @case ('clipboard-clock') {
+            <svg lucideClipboardClock [size]="18" class="w-4.5 h-4.5"></svg>
+            }
+            @case ('clipboard-check') {
+            <svg lucideClipboardCheck [size]="18" class="w-4.5 h-4.5"></svg>
+            }
+            @case ('file-user') {
+            <svg lucideFileUser [size]="18" class="w-4.5 h-4.5"></svg>
+            }
+            @case ('user-round') {
+            <svg lucideUserRound [size]="18" class="w-4.5 h-4.5"></svg>
+            }
+            @case ('user') {
+            <svg lucideUserRound [size]="18" class="w-4.5 h-4.5"></svg>
+            }
+            @default {
+            <svg lucideUserRound [size]="18" class="w-4.5 h-4.5"></svg>
+            }
+            }
+          </span>
+
+          <!-- Label -->
+          @if (!collapsed) {
+          <span class="flex-1 truncate">{{ item.label }}</span>
+          }
+
+          <!-- Optional Badge -->
+          @if (item.badge && !collapsed) {
+          <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-primary/10 text-primary">
+            {{ item.badge }}
+          </span>
+          }
+        </a>
+        }
+        }
+      </div>
+    </div>
+    }
+  </div>
+</aside>

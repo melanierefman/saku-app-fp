@@ -1,0 +1,112 @@
+<div class="space-y-4 pb-12 max-w-4xl">
+  <div class="space-y-3">
+    <!-- Back Button -->
+    <button type="button" (click)="cancel()"
+      class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-70 hover:text-neutral-90 hover:bg-neutral-0/80 rounded-lg transition-colors cursor-pointer border border-[#E5E7EB] bg-white self-start shadow-2xs">
+      <svg lucideArrowLeft [size]="14" class="w-3.5 h-3.5"></svg>
+      <span>Kembali</span>
+    </button>
+
+    <!-- Page Title -->
+    <div class="flex items-center justify-between">
+      <h1 class="text-2xl font-semibold text-neutral-100 tracking-tight">
+        {{ pageTitle() }}
+      </h1>
+    </div>
+  </div>
+
+  <!-- Form Card Container -->
+  <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 sm:p-8 shadow-xs space-y-5">
+    <!-- Field 1: Nama Plafond -->
+    <app-input label="Nama" placeholder="Masukkan nama plafond" [(ngModel)]="nama" [errorMessage]="namaError"
+      [required]="true" helperText="Nama tiering atau kategori plafond"></app-input>
+
+    <!-- Field 2 & 3: Minimal & Maksimal Skor -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <app-input-number label="Minimal Skor" placeholder="999" helperText="Max 999" [required]="true" [min]="0"
+        [max]="999" [(ngModel)]="minSkor" [errorMessage]="minSkorError"></app-input-number>
+
+      <app-input-number label="Maksimal Skor" placeholder="999" helperText="Max 999" [required]="true" [min]="0"
+        [max]="999" [(ngModel)]="maxSkor" [errorMessage]="maxSkorError"></app-input-number>
+    </div>
+
+    <!-- Field 4: Minimal Pendapatan -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <app-input-amount label="Minimal Pendapatan" placeholder="Enter the amount" [required]="true"
+        [(ngModel)]="minPendapatan" [errorMessage]="minPendapatanError"
+        helperText="Syarat pendapatan minimum customer per bulan"></app-input-amount>
+      <div></div>
+    </div>
+
+    <!-- Field 5 & 6: Minimal & Maksimal Plafond -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <app-input-amount label="Minimal Plafond" placeholder="Enter the amount" [required]="true"
+        [(ngModel)]="minPlafond" [errorMessage]="minPlafondError"
+        helperText="Batas minimum pinjaman yang dapat diajukan"></app-input-amount>
+
+      <app-input-amount label="Maksimal Plafond" placeholder="Enter the amount" [required]="true"
+        [(ngModel)]="maxPlafond" [errorMessage]="maxPlafondError"
+        helperText="Batas maksimum pinjaman yang dapat disetujui"></app-input-amount>
+    </div>
+
+    <!-- Field 7 & 8: Bunga (%) & Biaya Admin -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <app-input-number label="Bunga (%)" placeholder="999" helperText="Max 999 (contoh: 3 untuk 3%)" [required]="true"
+        [step]="0.1" [min]="0" [max]="999" [(ngModel)]="bunga" [errorMessage]="bungaError"></app-input-number>
+
+      <app-input-amount label="Biaya Admin" placeholder="Enter the amount" [required]="true" [(ngModel)]="biayaAdmin"
+        [errorMessage]="biayaAdminError" helperText="Biaya administrasi yang dikenakan"></app-input-amount>
+    </div>
+
+    <!-- Status Radio Group -->
+    <div class="space-y-1.5 pt-1">
+      <label class="block text-sm text-neutral-70">
+        Status <span class="text-error">*</span>
+      </label>
+      <div class="flex items-center gap-6 pt-1">
+        <app-radio name="plafondStatus" [value]="true" label="Aktif" [(ngModel)]="status"
+          (ngModelChange)="onStatusChange()"></app-radio>
+        <app-radio name="plafondStatus" [value]="false" label="Tidak Aktif" [(ngModel)]="status"
+          (ngModelChange)="onStatusChange()"></app-radio>
+      </div>
+      @if (statusError) {
+      <p class="text-xs text-error flex items-start gap-1 mt-1">
+        <svg lucideCircleAlert [size]="14" class="w-3.5 h-3.5 shrink-0 mt-0.5"></svg>
+        <span class="leading-tight">{{ statusError }}</span>
+      </p>
+      }
+    </div>
+
+    <!-- Divider & Action Buttons -->
+    <div class="pt-4 border-t border-[#E5E7EB]/70 flex items-center gap-3">
+      <app-button variant="primary" [loading]="isSubmitting()" (btnClick)="onSubmit()">
+        Simpan Perubahan
+      </app-button>
+
+      <app-button variant="cancel" [disabled]="isSubmitting()" (btnClick)="cancel()">
+        Batal
+      </app-button>
+    </div>
+  </div>
+
+  <!-- Create / Update Confirmation Dialog Modal -->
+  <app-modal [isOpen]="isConfirmModalOpen()" variant="confirm" icon="alert"
+    [confirmText]="isEditMode() ? 'Ya, Simpan' : 'Ya, Tambah'" cancelText="Batal" confirmVariant="primary"
+    [loading]="isSubmitting()" (confirm)="confirmSubmit()" (close)="closeConfirmModal()" (cancel)="closeConfirmModal()">
+    <p class="text-sm text-neutral leading-relaxed">
+      Apakah Anda yakin ingin {{ isEditMode() ? 'memperbarui data' : 'menambahkan' }} plafond
+      <span class="font-semibold text-neutral-90">"{{ nama }}"</span>?
+    </p>
+  </app-modal>
+
+  <!-- Delete Confirmation Modal -->
+  <app-modal [isOpen]="isDeleteModalOpen()" variant="confirm" icon="error" title="Hapus Plafond"
+    confirmText="Hapus Plafond" cancelText="Batal" confirmVariant="error" [loading]="isSubmitting()"
+    (close)="closeDeleteModal()" (cancel)="closeDeleteModal()" (confirm)="confirmDelete()">
+    <p class="text-sm text-neutral leading-relaxed">
+      Apakah Anda yakin ingin menghapus data plafond
+      <span class="font-semibold text-neutral-90">"{{ nama || 'ini' }}"</span>?
+      Data yang dihapus tidak dapat dipulihkan.
+    </p>
+  </app-modal>
+</div>

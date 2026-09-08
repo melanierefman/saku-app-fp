@@ -1,0 +1,4 @@
+/* Styles specific to Backoffice Dashboard */
+:host {
+  display: block;
+}

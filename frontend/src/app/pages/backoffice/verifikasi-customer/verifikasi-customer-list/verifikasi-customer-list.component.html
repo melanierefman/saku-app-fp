@@ -1,0 +1,140 @@
+<div class="space-y-4 pb-12">
+  <!-- Page Header -->
+  <div class="flex flex-col gap-2">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-semibold text-neutral-90 tracking-tight">Verifikasi Customer</h1>
+        <p class="text-sm text-neutral-40 mt-0.5">
+          Verifikasi berkas KYC dan data identitas customer untuk memastikan kelayakan akun
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Card Container -->
+  <div class="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs overflow-hidden">
+    <!-- Toolbar Filters & Action -->
+    <div class="p-4 flex flex-wrap items-center justify-between gap-3.5">
+      <!-- Left Filters -->
+      <div class="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
+        <!-- Search Input -->
+        <div class="w-64 max-w-full">
+          <app-input placeholder="Cari Nama, NIK, Email..." [ngModel]="searchQuery()"
+            (ngModelChange)="onSearchChange($event)">
+            <svg lucideSearch [size]="16" iconLeft class="w-4 h-4 text-neutral-40"></svg>
+          </app-input>
+        </div>
+
+        <!-- Tanggal Register Datepicker -->
+        <div class="w-44 max-w-full">
+          <app-date-picker placeholder="Tgl Register" mode="single" [showPresets]="false"
+            [ngModel]="selectedTanggalRegister()" (dateChange)="onTanggalRegisterChange($event)">
+          </app-date-picker>
+        </div>
+
+        <!-- Tanggal Verifikasi Datepicker -->
+        <div class="w-44 max-w-full">
+          <app-date-picker placeholder="Tgl Verifikasi" mode="single" [showPresets]="false"
+            [ngModel]="selectedTanggalVerifikasi()" (dateChange)="onTanggalVerifikasiChange($event)">
+          </app-date-picker>
+        </div>
+
+        <!-- Status Filter Dropdown -->
+        <div class="w-48 max-w-full">
+          <app-dropdown [options]="statusOptions" placeholder="Pilih Status" [ngModel]="selectedStatus()"
+            [clearable]="true" (optionChange)="onStatusChange($event)">
+          </app-dropdown>
+        </div>
+
+        <!-- Clear Filter Action Button -->
+        @if (hasActiveFilters()) {
+        <button type="button" (click)="clearFilters()"
+          class="p-2 text-neutral-40 hover:text-neutral-90 hover:bg-neutral-0 rounded-lg transition-colors cursor-pointer"
+          title="Reset semua filter">
+          <svg lucideX [size]="16" class="w-4 h-4"></svg>
+        </button>
+        }
+      </div>
+    </div>
+
+    <!-- Main Table -->
+    <app-table [columns]="columns" [data]="items()" [loading]="isLoading()" rowKey="customerId" [sortKey]="sortKey()"
+      minWidth="1180px" [sortDirection]="sortDirection()" (sortChange)="onSortChange($event)"
+      [pageIndex]="currentPage()" [pageSize]="pageSize()"
+      emptyMessage="Tidak ada data verifikasi customer yang ditemukan.">
+
+      <!-- Custom Cell: Nama Customer (Sticky Left) -->
+      <ng-template appTableCell="namaCustomer" let-row="row">
+        <div class="flex items-center gap-3">
+          <div
+            class="w-8 h-8 rounded-full bg-primary-0 text-primary flex items-center justify-center font-semibold text-xs shrink-0">
+            {{ ((row.namaCustomer || row.namaLengkap || 'C').trim().substring(0, 1) || 'C').toUpperCase() }}
+          </div>
+          <span class="font-medium text-neutral-90 text-sm">
+            {{ row.namaCustomer || row.namaLengkap || '-' }}
+          </span>
+        </div>
+      </ng-template>
+
+      <!-- Custom Cell: NIK -->
+      <ng-template appTableCell="nik" let-row="row">
+        <span class="text-sm text-neutral-80">
+          {{ row.nik || '-' }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Cell: Email -->
+      <ng-template appTableCell="email" let-row="row">
+        <span class="text-sm text-neutral-80">
+          {{ row.email || '-' }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Cell: No. Handphone -->
+      <ng-template appTableCell="noHp" let-row="row">
+        <span class="text-sm text-neutral-80">
+          {{ row.noHp || '-' }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Cell: Tanggal Register -->
+      <ng-template appTableCell="tanggalRegister" let-row="row">
+        <span class="text-sm text-neutral-80">
+          {{ getTanggalRegister(row) }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Cell: Tanggal Verifikasi -->
+      <ng-template appTableCell="tanggalVerifikasi" let-row="row">
+        <span class="text-sm text-neutral-80">
+          {{ formatDate(row.tanggalVerifikasi) }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Cell: Status Verifikasi -->
+      <ng-template appTableCell="statusVerifikasi" let-row="row">
+        <app-badge [variant]="getStatusBadgeVariant(row.statusVerifikasi || row.status)" size="sm">
+          {{ getStatusLabel(row.statusVerifikasi || row.status) }}
+        </app-badge>
+      </ng-template>
+
+      <!-- Custom Cell: Actions -->
+      <ng-template appTableCell="actions" let-row="row">
+        <div class="flex items-center justify-center">
+          <button type="button" (click)="navigateToDetail(row)"
+            class="p-1.5 text-neutral-50 hover:text-primary hover:bg-primary-10 rounded-lg transition-colors cursor-pointer"
+            title="Lihat Detail & Verifikasi">
+            <svg lucideEye [size]="16" class="w-4 h-4"></svg>
+          </button>
+        </div>
+      </ng-template>
+    </app-table>
+
+    <!-- Pagination Footer -->
+    <div class="px-5 py-3.5 bg-[#F9FAFB]">
+      <app-pagination [currentPage]="currentPage()" [pageSize]="pageSize()" [totalItems]="totalElements()"
+        (pageChange)="onPageChange($event)">
+      </app-pagination>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,72 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.saku-input-control {
+  background-color: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out, background-color 0.15s ease-in-out;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+  box-sizing: border-box;
+}
+
+.saku-input-control:hover:not(.is-disabled) {
+  border-color: #D1D5DB;
+  background-color: #FFFFFF;
+}
+
+.saku-input-control.has-value:not(.is-disabled) {
+  background-color: #FFFFFF;
+  border-color: #D1D5DB;
+}
+
+.saku-input-control:focus-within:not(.is-disabled) {
+  background-color: #FFFFFF !important;
+  border-color: #FF792E !important;
+  box-shadow: 0 0 0 3px rgba(255, 121, 46, 0.25) !important;
+}
+
+.saku-input-control.is-error {
+  background-color: #FFFFFF !important;
+  border-color: #E53E3E !important;
+  box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.25) !important;
+}
+
+.saku-input-control.is-disabled {
+  background-color: #F9FAFB;
+  border-color: #E5E7EB;
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+/* 100% Exact vertical centering via line-height == height */
+.saku-input-control input {
+  height: 38px !important;
+  line-height: 38px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  box-sizing: border-box !important;
+  font-family: inherit !important;
+  font-size: 0.875rem !important;
+  vertical-align: middle !important;
+}
+
+.saku-input-control input::placeholder {
+  color: #9CA3AF !important;
+  line-height: 38px !important;
+  opacity: 1 !important;
+  vertical-align: middle !important;
+}
+
+/* Password bullet styling when typing password */
+.saku-input-control input[type="password"] {
+  letter-spacing: 0.15em;
+  font-size: 1rem !important;
+}

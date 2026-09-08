@@ -1,0 +1,39 @@
+<section id="faq" class="py-20 sm:py-28 bg-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Section Title -->
+    <div class="text-center mb-12 sm:mb-14">
+      <h2 class="text-3xl sm:text-4xl font-bold text-neutral-100 tracking-tight">
+        Masih Ada yang Ingin Ditanyakan?
+      </h2>
+    </div>
+
+    <!-- Accordion List (Minimalist Clean Divider List) -->
+    <div class="space-y-0">
+      @for (faq of faqs; track faq.id) {
+      <div class="border-b border-[#E5E7EB] py-5 sm:py-6">
+        <!-- Accordion Header Button -->
+        <button type="button" (click)="toggleFaq(faq.id)"
+          class="w-full flex items-center justify-between text-left cursor-pointer select-none group focus:outline-none"
+          [attr.aria-expanded]="faq.isOpen">
+          <span class="text-md sm:text-lg font-bold pr-6 transition-colors" [class.text-primary]="faq.isOpen"
+            [class.text-neutral-100]="!faq.isOpen" [class.group-hover:text-primary]="!faq.isOpen">
+            {{ faq.question }}
+          </span>
+
+          <span class="shrink-0 transition-all duration-200" [class.text-primary]="faq.isOpen"
+            [class.text-neutral-90]="!faq.isOpen" [class.rotate-180]="faq.isOpen">
+            <svg lucideChevronDown [size]="20" [strokeWidth]="2.5" class="w-5 h-5"></svg>
+          </span>
+        </button>
+
+        <!-- Accordion Content -->
+        @if (faq.isOpen) {
+        <div class="pt-3 sm:pt-4 text-md sm:text-md text-neutral-40 font-normal leading-relaxed animate-accordionIn">
+          {{ faq.answer }}
+        </div>
+        }
+      </div>
+      }
+    </div>
+  </div>
+</section>

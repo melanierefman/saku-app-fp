@@ -1,0 +1,166 @@
+<div class="space-y-4 pb-12">
+  <!-- Page Header -->
+  <div class="flex flex-col gap-2">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-semibold text-neutral-90 tracking-tight">Pengajuan Pinjaman</h1>
+        <p class="text-sm text-neutral-40 mt-0.5">
+          Kelola dan tinjau berkas pengajuan pinjaman customer
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Card Container (Single Integrated Container) -->
+  <div class="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs">
+    <!-- Toolbar Filters & Action -->
+    <div class="p-4 flex flex-wrap items-center justify-between gap-3.5">
+      <!-- Left Filters -->
+      <div class="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
+        <!-- Search Input -->
+        <div class="w-64 max-w-full">
+          <app-input placeholder="Cari Pengajuan" [ngModel]="searchQuery()" (ngModelChange)="onSearchChange($event)">
+            <svg lucideSearch [size]="16" iconLeft class="w-4 h-4 text-neutral-40"></svg>
+          </app-input>
+        </div>
+
+        <!-- Tanggal Pengajuan Datepicker -->
+        <div class="w-44 max-w-full">
+          <app-date-picker placeholder="Tgl Pengajuan" mode="single" [showPresets]="false"
+            [ngModel]="selectedTanggalPengajuan()" (dateChange)="onTanggalPengajuanChange($event)">
+          </app-date-picker>
+        </div>
+
+        <!-- Skor Kelayakan Filter Dropdown -->
+        <div class="w-44 max-w-full">
+          <app-dropdown [options]="skorOptions" placeholder="Pilih Skor" [ngModel]="selectedSkor()" [clearable]="true"
+            (optionChange)="onSkorChange($event)"></app-dropdown>
+        </div>
+
+        <!-- Tanggal Review Datepicker -->
+        <div class="w-44 max-w-full">
+          <app-date-picker placeholder="Tgl Review" mode="single" [showPresets]="false"
+            [ngModel]="selectedTanggalReview()" (dateChange)="onTanggalReviewChange($event)">
+          </app-date-picker>
+        </div>
+
+        <!-- Status Filter Dropdown -->
+        <div class="w-44 max-w-full">
+          <app-dropdown [options]="statusOptions" placeholder="Pilih Status" [ngModel]="selectedStatus()"
+            [clearable]="true" (optionChange)="onStatusChange($event)"></app-dropdown>
+        </div>
+
+        <!-- Clear Filter Action Button -->
+        @if (hasActiveFilters()) {
+        <button type="button" (click)="clearFilters()"
+          class="p-2 text-neutral-40 hover:text-neutral-90 hover:bg-neutral-0 rounded-lg transition-colors cursor-pointer"
+          title="Reset semua filter">
+          <svg lucideX [size]="16" class="w-4 h-4"></svg>
+        </button>
+        }
+      </div>
+    </div>
+
+    <!-- Main Table -->
+    <app-table [columns]="columns" [data]="items()" [loading]="isLoading()" rowKey="id" [sortKey]="sortKey()"
+      minWidth="1250px" [sortDirection]="sortDirection()" (sortChange)="onSortChange($event)"
+      [pageIndex]="currentPage()" [pageSize]="pageSize()"
+      emptyMessage="Tidak ada data pengajuan pinjaman yang ditemukan.">
+
+      <!-- Custom Cell: No. Pengajuan -->
+      <ng-template appTableCell="noPengajuan" let-row="row">
+        <span class="text-sm text-neutral-90 font-medium">
+          {{ row.noPengajuan || row.nomorPengajuan || '-' }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Cell: Customer -->
+      <ng-template appTableCell="customer" let-row="row">
+        <div class="flex items-center gap-3">
+          <div
+            class="w-8 h-8 rounded-full bg-primary-0 text-primary flex items-center justify-center font-semibold text-xs shrink-0">
+            {{ ((row.customer || row.namaCustomer || row.nama || 'C').trim().substring(0, 1) || 'C').toUpperCase() }}
+          </div>
+          <span class="font-medium text-neutral-90 text-sm">
+            {{ row.customer || row.namaCustomer || row.nama || '-' }}
+          </span>
+        </div>
+      </ng-template>
+
+      <!-- Custom Cell: Jumlah Pinjaman -->
+      <ng-template appTableCell="jumlah" let-row="row">
+        <span class="font-semibold text-primary text-sm">
+          {{ formatCurrency(row.jumlah || row.nominalPinjaman || row.nominal) }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Cell: Tenor -->
+      <ng-template appTableCell="tenor" let-row="row">
+        <span class="text-neutral-90 text-sm">
+          {{ row.tenor || 12 }} Bulan
+        </span>
+      </ng-template>
+
+      <!-- Custom Cell: Cabang -->
+      <ng-template appTableCell="cabang" let-row="row">
+        <span class="text-neutral-90 text-sm">
+          {{ getCabangName(row) }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Cell: Skor Kelayakan -->
+      <ng-template appTableCell="skorKelayakan" let-row="row">
+        <div class="flex items-center gap-1.5">
+          @if (getScore(row) > 0) {
+          <app-badge [variant]="getScoreBadgeVariant(getScore(row))" size="sm">
+            Skor {{ getScore(row) }} &bull; {{ getScoreLabel(getScore(row)) }}
+          </app-badge>
+          } @else {
+          <app-badge variant="neutral" size="sm">
+            Belum Dinilai
+          </app-badge>
+          }
+        </div>
+      </ng-template>
+
+      <!-- Custom Cell: Tanggal Pengajuan -->
+      <ng-template appTableCell="tanggalPengajuan" let-row="row">
+        <span class="text-neutral-90 text-sm">
+          {{ formatDate(row.tanggalPengajuan || row.createdDate) }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Cell: Tanggal Review Terakhir -->
+      <ng-template appTableCell="tanggalReviewTerakhir" let-row="row">
+        <span class="text-neutral-90 text-sm">
+          {{ row.tanggalReviewTerakhir ? formatDate(row.tanggalReviewTerakhir) : '-' }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Cell: Status -->
+      <ng-template appTableCell="status" let-row="row">
+        <app-badge [variant]="getStatusBadgeVariant(row.status, row.hasilReviewTerakhir)" size="sm">
+          {{ getStatusLabel(row.status, row.hasilReviewTerakhir) }}
+        </app-badge>
+      </ng-template>
+
+      <!-- Custom Cell: Actions -->
+      <ng-template appTableCell="actions" let-row="row">
+        <div class="flex items-center justify-center">
+          <button type="button" (click)="navigateToDetail(row)"
+            class="p-1.5 text-neutral-50 hover:text-primary hover:bg-primary-10 rounded-lg transition-colors cursor-pointer"
+            title="Lihat Detail Pengajuan">
+            <svg lucideEye [size]="16" class="w-4 h-4"></svg>
+          </button>
+        </div>
+      </ng-template>
+    </app-table>
+
+    <!-- Pagination Footer -->
+    <div class="px-5 py-3.5 bg-[#F9FAFB]">
+      <app-pagination [currentPage]="currentPage()" [pageSize]="pageSize()" [totalItems]="totalElements()"
+        (pageChange)="onPageChange($event)">
+      </app-pagination>
+    </div>
+  </div>
+</div>

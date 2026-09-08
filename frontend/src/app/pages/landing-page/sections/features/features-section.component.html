@@ -1,0 +1,117 @@
+<section id="fitur" class="py-16 sm:py-20 bg-white overflow-hidden">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Section Title & Subtitle -->
+    <div class="text-center max-w-2xl mx-auto mb-8 sm:mb-12 space-y-3">
+      <h2 class="text-3xl sm:text-4xl font-bold text-neutral-100 tracking-tight max-w-xs sm:max-w-none mx-auto">
+        Kenapa Prosesnya Terasa Beda
+      </h2>
+      <p class="text-sm sm:text-sm text-neutral-40 leading-relaxed max-w-sm sm:max-w-none mx-auto">
+        Tiga hal yang bikin pengalaman pinjam di SAKU lebih simpel dari yang kamu kira.
+      </p>
+    </div>
+
+    <!-- Desktop 3 Cards Grid (>= md) -->
+    <div class="hidden md:grid md:grid-cols-3 gap-8 items-stretch">
+      @for (card of features; track card.id) {
+      <div
+        class="rounded-3xl p-6 sm:p-7 flex flex-col justify-between overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl relative"
+        [class]="card.cardBgClass || ''" [class.text-white]="card.highlight" [class.shadow-lg]="card.highlight">
+        <!-- Top Icon & Texts -->
+        <div class="space-y-4">
+          <!-- Icon -->
+          <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xs"
+            [class.bg-white]="!card.highlight" [class.text-primary]="!card.highlight"
+            [class.bg-white/20]="card.highlight" [class.text-white]="card.highlight">
+            @if (card.icon === 'hand-coins') {
+            <svg lucideHandCoins [size]="24" class="w-6 h-6"></svg>
+            } @else if (card.icon === 'rotate-ccw-clock') {
+            <svg lucideRotateCcw [size]="24" class="w-6 h-6"></svg>
+            } @else if (card.icon === 'wallet') {
+            <svg lucideWallet [size]="24" class="w-6 h-6"></svg>
+            }
+          </div>
+
+          <!-- Title -->
+          <h3 class="text-lg sm:text-xl font-bold leading-snug tracking-tight"
+            [class.text-neutral-100]="!card.highlight" [class.text-white]="card.highlight">
+            {{ card.title }}
+          </h3>
+
+          <!-- Description -->
+          <p class="text-xs sm:text-sm leading-relaxed" [class.text-neutral-60]="!card.highlight"
+            [class.text-white/85]="card.highlight">
+            {{ card.description }}
+          </p>
+        </div>
+
+        <!-- Bottom Mockup Image Preview -->
+        <div class="mt-8 -mb-12 flex justify-center">
+          <div class="w-[270px] sm:w-[290px] lg:w-[310px] transition-transform duration-300 hover:scale-105">
+            <img [src]="card.image" [alt]="card.title" class="w-full h-auto drop-shadow-xl rounded-t-3xl" />
+          </div>
+        </div>
+      </div>
+      }
+    </div>
+
+    <!-- Mobile Carousel View (< md) -->
+    <div class="md:hidden relative w-full overflow-hidden" (touchstart)="onTouchStart($event)"
+      (touchend)="onTouchEnd($event)">
+      <div class="flex transition-transform duration-500 ease-out"
+        [style.transform]="'translateX(-' + currentSlide * 100 + '%)'">
+        @for (card of features; track card.id) {
+        <div class="w-full shrink-0 px-1">
+          <div
+            class="rounded-3xl p-6 sm:p-7 flex flex-col justify-between overflow-hidden relative min-h-[480px] shadow-xs"
+            [class]="card.cardBgClass || ''" [class.text-white]="card.highlight" [class.shadow-lg]="card.highlight">
+            <!-- Top Icon & Texts -->
+            <div class="space-y-4">
+              <!-- Icon -->
+              <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xs"
+                [class.bg-white]="!card.highlight" [class.text-primary]="!card.highlight"
+                [class.bg-white/20]="card.highlight" [class.text-white]="card.highlight">
+                @if (card.icon === 'hand-coins') {
+                <svg lucideHandCoins [size]="24" class="w-6 h-6"></svg>
+                } @else if (card.icon === 'rotate-ccw-clock') {
+                <svg lucideRotateCcw [size]="24" class="w-6 h-6"></svg>
+                } @else if (card.icon === 'wallet') {
+                <svg lucideWallet [size]="24" class="w-6 h-6"></svg>
+                }
+              </div>
+
+              <!-- Title -->
+              <h3 class="text-xl font-bold leading-snug tracking-tight" [class.text-neutral-100]="!card.highlight"
+                [class.text-white]="card.highlight">
+                {{ card.title }}
+              </h3>
+
+              <!-- Description -->
+              <p class="text-sm leading-relaxed" [class.text-neutral-60]="!card.highlight"
+                [class.text-white/85]="card.highlight">
+                {{ card.description }}
+              </p>
+            </div>
+
+            <!-- Bottom Mockup Image Preview -->
+            <div class="mt-8 -mb-10 flex justify-center">
+              <div class="w-[260px] sm:w-[280px]">
+                <img [src]="card.image" [alt]="card.title" class="w-full h-auto drop-shadow-xl rounded-t-3xl" />
+              </div>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+
+      <!-- 3 Dots Indicator / Tracker (Mobile Only) -->
+      <div class="flex items-center justify-center gap-2 pt-6">
+        @for (item of features; track item.id; let i = $index) {
+        <button type="button" (click)="goToSlide(i)"
+          class="transition-all duration-300 rounded-full focus:outline-none cursor-pointer" [class.w-2.5]="true"
+          [class.h-2.5]="true" [class.bg-primary]="currentSlide === i" [class.bg-primary/30]="currentSlide !== i"
+          [attr.aria-label]="'Lihat fitur ' + (i + 1)"></button>
+        }
+      </div>
+    </div>
+  </div>
+</section>

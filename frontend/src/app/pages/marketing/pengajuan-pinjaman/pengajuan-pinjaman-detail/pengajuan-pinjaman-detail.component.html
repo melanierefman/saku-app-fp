@@ -1,0 +1,556 @@
+<div class="space-y-4 max-w-7xl mx-auto">
+  <!-- Top Navigation & Header -->
+  <div class="space-y-3 shrink-0">
+    <button type="button" (click)="goBack()"
+      class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-70 hover:text-neutral-90 hover:bg-neutral-0/80 rounded-lg transition-colors cursor-pointer border border-[#E5E7EB] bg-white self-start shadow-2xs">
+      <svg lucideArrowLeft [size]="14" class="w-3.5 h-3.5"></svg>
+      <span>Kembali</span>
+    </button>
+
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-bold text-neutral-90 tracking-tight">
+          No. {{ getFormattedNomorPengajuan() }}
+        </h1>
+        <span [class]="getStatusPillClass()"
+          class="px-2.5 py-0.5 rounded-full text-xs font-medium uppercase tracking-wider">
+          {{ getStatusDisplayLabel() }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+  <!-- Skeleton Loading State -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 space-y-6">
+      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs space-y-4">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-[#F3F4F6]">
+          <app-skeleton variant="rect" width="w-7" height="h-7" rounded="lg"></app-skeleton>
+          <app-skeleton variant="text" width="w-48" height="h-5"></app-skeleton>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          @for (i of [1,2,3,4]; track i) {
+          <div class="space-y-1.5">
+            <app-skeleton variant="text" width="w-24" height="h-3"></app-skeleton>
+            <app-skeleton variant="text" width="w-40" height="h-4"></app-skeleton>
+          </div>
+          }
+        </div>
+      </div>
+      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs space-y-4">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-[#F3F4F6]">
+          <app-skeleton variant="rect" width="w-7" height="h-7" rounded="lg"></app-skeleton>
+          <app-skeleton variant="text" width="w-44" height="h-5"></app-skeleton>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          @for (i of [1,2,3,4]; track i) {
+          <div class="space-y-1.5">
+            <app-skeleton variant="text" width="w-28" height="h-3"></app-skeleton>
+            <app-skeleton variant="text" width="w-36" height="h-4"></app-skeleton>
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+    <div class="space-y-6">
+      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs space-y-4">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-[#F3F4F6]">
+          <app-skeleton variant="rect" width="w-7" height="h-7" rounded="lg"></app-skeleton>
+          <app-skeleton variant="text" width="w-36" height="h-5"></app-skeleton>
+        </div>
+        <app-skeleton variant="rect" width="w-full" height="h-24" rounded="xl"></app-skeleton>
+      </div>
+      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs space-y-4">
+        <app-skeleton variant="text" width="w-40" height="h-5"></app-skeleton>
+        <app-skeleton variant="rect" width="w-full" height="h-28" rounded="xl"></app-skeleton>
+        <app-skeleton variant="button" width="w-full" height="h-10"></app-skeleton>
+      </div>
+    </div>
+  </div>
+  } @else if (detail()) {
+  <!-- Main Grid Layout -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+    <!-- LEFT COLUMN (Scrollable with invisible scrollbar) -->
+    <div class="lg:col-span-2 space-y-6 lg:overflow-y-auto lg:h-[calc(100vh-170px)] lg:pr-2 lg:pb-8 no-scrollbar">
+
+      <!-- CARD 1: INFORMASI CUSTOMER (DATA PRIBADI & KONTAK) -->
+      <div class="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-xs space-y-5">
+        <!-- Header with Icon -->
+        <div class="flex items-center gap-2.5 pb-3 border-b border-[#F3F4F6]">
+          <div class="w-7 h-7 rounded-lg bg-primary-10 text-primary flex items-center justify-center shrink-0">
+            <svg lucideUser [size]="16" class="w-4 h-4"></svg>
+          </div>
+          <h2 class="text-base font-semibold text-neutral-90">Informasi Customer</h2>
+        </div>
+
+        <!-- Body -->
+        <div class="space-y-5">
+          <div class="flex flex-col sm:flex-row gap-5 items-start">
+            <!-- Customer Avatar / Photo Selfie -->
+            <div class="shrink-0">
+              @if (getFotoSelfieUrl() && !photoError()) {
+              <img [src]="getFotoSelfieUrl()" (error)="onPhotoError()" alt="Foto Customer"
+                class="w-24 h-24 rounded-2xl object-cover border border-[#E5E7EB] shadow-xs bg-neutral-10" />
+              } @else {
+              <div
+                class="w-24 h-24 rounded-2xl bg-neutral-0 border border-[#E5E7EB] flex flex-col items-center justify-center text-neutral-40 shadow-xs">
+                <div
+                  class="w-12 h-12 rounded-full bg-white border border-[#E5E7EB] flex items-center justify-center shadow-xs text-neutral-40">
+                  <svg lucideUser [size]="22" class="w-5.5 h-5.5"></svg>
+                </div>
+              </div>
+              }
+            </div>
+
+            <!-- Customer Key Info Grid -->
+            <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3.5 text-xs">
+              <div>
+                <span class="text-neutral-40 block mb-0.5">Nama Lengkap</span>
+                <span class="font-medium text-neutral-90 text-sm block">{{ getCustomerName() }}</span>
+              </div>
+              <div>
+                <span class="text-neutral-40 block mb-0.5">NIK</span>
+                <span class="font-medium text-neutral-90 text-sm block">{{ getNik() }}</span>
+              </div>
+              <div>
+                <span class="text-neutral-40 block mb-0.5">Email</span>
+                <span class="font-medium text-neutral-90 text-sm block">{{ getEmail() }}</span>
+              </div>
+              <div>
+                <span class="text-neutral-40 block mb-0.5">No. Handphone</span>
+                <span class="font-medium text-neutral-90 text-sm block">{{ getNoHp() }}</span>
+              </div>
+
+              <!-- Alamat KTP & Domisili -->
+              <div class="sm:col-span-2">
+                <span class="text-neutral-40 block mb-0.5">Alamat KTP</span>
+                <span class="font-medium text-neutral-90 text-sm leading-relaxed block">{{ getAlamatKtp() }}</span>
+              </div>
+              <div class="sm:col-span-2">
+                <span class="text-neutral-40 block mb-0.5">Alamat Domisili</span>
+                <span class="font-medium text-neutral-90 text-sm leading-relaxed block">{{ getAlamatDomisili() }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 2: INFORMASI PEKERJAAN & KEUANGAN -->
+      <div class="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-xs space-y-5">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-[#F3F4F6]">
+          <div class="w-7 h-7 rounded-lg bg-primary-10 text-primary flex items-center justify-center shrink-0">
+            <svg lucideBriefcase [size]="16" class="w-4 h-4"></svg>
+          </div>
+          <h2 class="text-base font-semibold text-neutral-90">Informasi Pekerjaan & Keuangan</h2>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 text-xs">
+          <div>
+            <span class="text-neutral-40 block mb-0.5">Bidang / Profesi Pekerjaan</span>
+            <span class="font-medium text-neutral-90 text-sm block">{{ getPekerjaan() }}</span>
+          </div>
+          <div>
+            <span class="text-neutral-40 block mb-0.5">Nama Perusahaan / Tempat Kerja</span>
+            <span class="font-medium text-neutral-90 text-sm block">{{ getTempatKerja() }}</span>
+          </div>
+          <div>
+            <span class="text-neutral-40 block mb-0.5">Status Kepegawaian</span>
+            <span class="font-medium text-neutral-90 text-sm block">{{ getStatusPekerjaanLabel() }}</span>
+          </div>
+          <div>
+            <span class="text-neutral-40 block mb-0.5">Penghasilan Bulanan</span>
+            <span class="font-bold text-primary text-sm block">
+              {{ formatCurrency(getPendapatanBulanan()) }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 2: HASIL CREDIT SCORING & EVALUASI SISTEM -->
+      <div class="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-xs space-y-5">
+        <!-- Header with Shield Icon & Keputusan Sistem Badge -->
+        <div class="flex items-center justify-between pb-3 border-b border-[#F3F4F6]">
+          <div class="flex items-center gap-2.5">
+            <div class="w-7 h-7 rounded-lg bg-success-0 text-success-60 flex items-center justify-center shrink-0">
+              <svg lucideShieldCheck [size]="16" class="w-4 h-4"></svg>
+            </div>
+            <h2 class="text-base font-semibold text-neutral-90">Evaluasi Credit Scoring</h2>
+          </div>
+          <span [class]="getScoreBadgeClass()"
+            class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider border">
+            {{ getKeputusanSistemLabel() }}
+          </span>
+        </div>
+
+        <!-- 3 Hero Metric Highlight Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- Card 1: Skor Kredit Sistem -->
+          <div class="bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl p-4 text-center">
+            <span class="text-xs text-neutral-40 block mb-1">Skor Kredit Sistem</span>
+            <span [class]="getScoreColorClass()" class="text-2xl font-bold tracking-tight">
+              {{ getSkor() }}
+            </span>
+            <span class="text-[11px] text-neutral-40 block mt-1">Skala 0 - 100</span>
+          </div>
+
+          <!-- Card 2: Rekomendasi Plafond -->
+          <div class="bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl p-4 text-center">
+            <span class="text-xs text-neutral-40 block mb-1">Rekomendasi Plafond</span>
+            <span class="text-2xl font-bold text-neutral-90 block">
+              {{ formatCurrency(getPlafonMaksimal()) }}
+            </span>
+            <span class="text-[11px] text-neutral-40 block mt-1 truncate">
+              {{ getPlafonNama() }}
+            </span>
+          </div>
+
+          <!-- Card 3: Rasio Beban Utang (DBR) -->
+          <div class="bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl p-4 text-center">
+            <span class="text-xs text-neutral-40 block mb-1">Rasio Beban Utang (DBR)</span>
+            <span [class]="getDbrColorClass()" class="text-2xl font-bold block">
+              {{ getDbrPercentage() }}%
+            </span>
+            <span class="text-[11px] text-neutral-40 block mt-1">
+              Bobot Penilaian 35%
+            </span>
+          </div>
+        </div>
+
+        <!-- Section: Breakdown Parameter Penilaian Scoring -->
+        <div class="pt-3 border-t border-[#F3F4F6] space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-neutral-60 uppercase tracking-wider">
+              Breakdown Parameter Penilaian Scoring
+            </span>
+          </div>
+
+          <!-- Parameter Penilaian Scoring (Grid Teks 2 Kolom Bersih Sesuai Standar) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 text-xs">
+            <div>
+              <div class="flex items-center gap-1.5 mb-0.5">
+                <span class="text-neutral-40">Rasio Beban Cicilan (DBR)</span>
+                <span
+                  class="px-1.5 py-0.5 text-[10px] font-semibold bg-warning-0 text-warning-80 rounded border border-warning-20">35%</span>
+              </div>
+              <span class="font-medium text-neutral-90 text-sm block">
+                {{ getDbrPercentage() }}%
+              </span>
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5 mb-0.5">
+                <span class="text-neutral-40">Cicilan Berjalan Lainnya</span>
+              </div>
+              <span class="font-medium text-neutral-90 text-sm block">
+                {{ formatCurrency(getCicilanBerjalan()) }}
+              </span>
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5 mb-0.5">
+                <span class="text-neutral-40">Pendapatan Bulanan</span>
+                <span
+                  class="px-1.5 py-0.5 text-[10px] font-semibold bg-warning-0 text-warning-80 rounded border border-warning-20">20%</span>
+              </div>
+              <span class="font-medium text-neutral-90 text-sm block">
+                {{ formatCurrency(getPendapatanBulanan()) }}
+              </span>
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5 mb-0.5">
+                <span class="text-neutral-40">Lama Bekerja</span>
+                <span
+                  class="px-1.5 py-0.5 text-[10px] font-semibold bg-warning-0 text-warning-80 rounded border border-warning-20">20%</span>
+              </div>
+              <span class="font-medium text-neutral-90 text-sm block">
+                {{ getLamaBekerja() ? getLamaBekerja() + ' Bulan' : '-' }}
+              </span>
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5 mb-0.5">
+                <span class="text-neutral-40">Status Pekerjaan</span>
+                <span
+                  class="px-1.5 py-0.5 text-[10px] font-semibold bg-warning-0 text-warning-80 rounded border border-warning-20">15%</span>
+              </div>
+              <span class="font-medium text-neutral-90 text-sm block">
+                {{ getStatusPekerjaanLabel() }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ringkasan Scoring Analisis -->
+        @if (getRingkasanAnalisis()) {
+        <div class="bg-primary-0/40 border border-primary/20 rounded-xl p-3.5 text-sm text-neutral-80">
+          <div class="flex items-start gap-2">
+            <svg lucideInfo [size]="16" class="w-4 h-4 text-primary shrink-0 mt-0.5"></svg>
+            <p class="leading-relaxed text-xs">
+              {{ getRingkasanAnalisis() }}
+            </p>
+          </div>
+        </div>
+        }
+
+        <!-- Peringatan Faktor Ambigu (Jika ada) -->
+        @if (isAmbigu() || (getNotesAmbigu() && getNotesAmbigu().length > 0)) {
+        <div class="bg-warning-0 border border-warning-20 rounded-xl p-4 text-sm text-warning-90">
+          <div class="flex items-center gap-2 font-semibold mb-2 text-xs">
+            <svg lucideAlertCircle [size]="15" class="w-4 h-4 text-warning-60 shrink-0"></svg>
+            <span>Catatan Evaluasi / Faktor Ambigu Terdeteksi:</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-xs text-warning-80">
+            @for (note of getNotesAmbigu(); track note) {
+            <li>{{ note }}</li>
+            }
+          </ul>
+        </div>
+        }
+      </div>
+
+      <!-- CARD 3: FASILITAS PINJAMAN (SISI KIRI) -->
+      <div class="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-xs space-y-5">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-[#F3F4F6]">
+          <div class="w-7 h-7 rounded-lg bg-primary-10 text-primary flex items-center justify-center shrink-0">
+            <svg lucideBanknote [size]="16" class="w-4 h-4"></svg>
+          </div>
+          <h2 class="text-base font-semibold text-neutral-90">Fasilitas Pinjaman</h2>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 text-xs">
+          <div>
+            <span class="text-neutral-40 block mb-0.5">Jumlah Pinjaman</span>
+            <span class="font-bold text-primary text-base block">
+              {{ formatCurrency(getJumlahPinjaman()) }}
+            </span>
+          </div>
+          <div>
+            <span class="text-neutral-40 block mb-0.5">Tenor Pinjaman</span>
+            <span class="font-medium text-neutral-90 text-sm block">
+              {{ getTenor() ? getTenor() + ' Bulan' : '-' }}
+            </span>
+          </div>
+          <div>
+            <span class="text-neutral-40 block mb-0.5">Estimasi Cicilan Bulanan</span>
+            <span class="font-semibold text-neutral-90 text-sm block">
+              {{ formatCurrency(getEstimasiCicilan()) }} / bulan
+            </span>
+          </div>
+          <div>
+            <span class="text-neutral-40 block mb-0.5">Suku Bunga</span>
+            <span class="font-medium text-neutral-90 text-sm block">{{ getBungaLabel() }}</span>
+          </div>
+          <div>
+            <span class="text-neutral-40 block mb-0.5">Biaya Administrasi</span>
+            <span class="font-medium text-neutral-90 text-sm block">
+              {{ formatCurrency(getBiayaAdmin()) }}
+            </span>
+          </div>
+          <div>
+            <span class="text-neutral-40 block mb-0.5">Tujuan Pinjaman</span>
+            <span class="font-medium text-neutral-90 text-sm block">{{ getTujuanPinjaman() }}</span>
+          </div>
+          <div>
+            <span class="text-neutral-40 block mb-0.5">Cabang Pengajuan</span>
+            <span class="font-medium text-neutral-90 text-sm block">{{ getCabangName() }}</span>
+          </div>
+          <div>
+            <span class="text-neutral-40 block mb-0.5">Tanggal Pengajuan Customer</span>
+            <span class="font-medium text-neutral-90 text-sm block">{{ getTanggalPengajuan() }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 4: LAMPIRAN DOKUMEN PENGAJUAN (SISI KIRI) -->
+      <div class="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-xs space-y-4">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-[#F3F4F6]">
+          <div class="w-7 h-7 rounded-lg bg-primary-10 text-primary flex items-center justify-center shrink-0">
+            <svg lucideFileText [size]="16" class="w-4 h-4"></svg>
+          </div>
+          <h2 class="text-base font-semibold text-neutral-90">Lampiran Dokumen Pengajuan</h2>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          @for (doc of getDocuments(); track doc.name + $index) {
+          <div (click)="openDocument(doc.url, doc.type)"
+            class="flex items-center justify-between p-3.5 rounded-xl border border-[#E5E7EB] hover:border-primary/50 hover:bg-primary-0/10 transition-all cursor-pointer group">
+            <div class="flex items-center gap-3 truncate">
+              <div
+                class="w-9 h-9 rounded-lg bg-neutral-0 group-hover:bg-primary-0 text-neutral-60 group-hover:text-primary flex items-center justify-center shrink-0 transition-colors">
+                <svg lucideFileText [size]="18" class="w-4.5 h-4.5"></svg>
+              </div>
+              <div class="truncate">
+                <span
+                  class="text-sm font-medium text-neutral-90 group-hover:text-primary block truncate transition-colors">
+                  {{ doc.name }}
+                </span>
+                <span class="text-xs text-neutral-40 block">Klik untuk melihat berkas</span>
+              </div>
+            </div>
+            <svg lucideExternalLink [size]="16"
+              class="w-4 h-4 text-neutral-40 group-hover:text-primary shrink-0 transition-colors"></svg>
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN (Compact & Fixed) -->
+    <div class="space-y-4">
+
+      <!-- 1. FORM REVIEW / KEPUTUSAN MARKETING -->
+      <div class="bg-white rounded-2xl p-6 border border-[#E5E7EB] shadow-xs space-y-4">
+        <div class="flex items-center gap-2 pb-3 border-b border-[#F3F4F6]">
+          <div class="w-6 h-6 rounded-md bg-primary-10 text-primary flex items-center justify-center shrink-0">
+            <svg lucideClipboardCheck [size]="14" class="w-3.5 h-3.5"></svg>
+          </div>
+          <h2 class="text-xs font-semibold text-neutral-80 uppercase tracking-wider">
+            Panel Review Marketing
+          </h2>
+        </div>
+
+        @if (isPending()) {
+        <!-- State: Menunggu Review Marketing (Form Input Aktif) -->
+        <div class="space-y-4">
+          <!-- Input: Keputusan Dropdown -->
+          <div class="space-y-1.5">
+            <label class="block text-xs font-medium text-neutral-70">
+              Keputusan Review <span class="text-error-50">*</span>
+            </label>
+            <app-dropdown [options]="reviewStatusOptions" placeholder="Pilih Keputusan"
+              [ngModel]="selectedReviewStatus()" (optionChange)="onReviewStatusChange($event)">
+            </app-dropdown>
+          </div>
+
+          <!-- Input: Catatan Review -->
+          <div class="space-y-1.5">
+            <label class="block text-xs font-medium text-neutral-70">
+              Catatan Pertimbangan Review <span class="text-error-50">*</span>
+            </label>
+            <textarea rows="3" [ngModel]="catatanReview()" (ngModelChange)="catatanReview.set($event)"
+              placeholder="Tuliskan alasan keputusan atau dokumen yang perlu direvisi customer..."
+              class="w-full text-xs p-3 rounded-xl border border-[#E5E7EB] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none bg-[#F9FAFB] focus:bg-white text-neutral-90"></textarea>
+          </div>
+
+          <!-- Submit Action Button -->
+          <button type="button" (click)="openConfirmModal()"
+            [disabled]="isSubmitting() || !selectedReviewStatus() || !catatanReview().trim()"
+            class="w-full py-3 bg-primary hover:bg-primary-60 disabled:bg-neutral-20 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2">
+            @if (isSubmitting()) {
+            <div class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <span>Menyimpan Keputusan...</span>
+            } @else {
+            <svg lucideSend [size]="14" class="w-3.5 h-3.5"></svg>
+            <span>Kirim Review Marketing</span>
+            }
+          </button>
+        </div>
+        } @else {
+        <!-- State: Sudah Direview (Ringkasan Keputusan Elegan) -->
+        <div class="p-4 rounded-xl text-xs space-y-3 bg-[#F9FAFB] border border-[#E5E7EB]">
+          <div class="flex items-center justify-between">
+            <span class="text-neutral-50 text-xs font-medium">Hasil Review</span>
+            <span [class]="getStatusPillClass()"
+              class="px-2.5 py-0.5 rounded-full text-[11px] font-medium uppercase tracking-wider">
+              {{ getStatusDisplayLabel() }}
+            </span>
+          </div>
+
+          @if (getCatatanReview()) {
+          <div class="space-y-1 pt-1">
+            <span class="text-neutral-40 text-[11px] block">Catatan Pertimbangan:</span>
+            <p class="text-neutral-80 font-medium text-xs italic bg-white p-3 rounded-lg border border-[#E5E7EB]">
+              "{{ getCatatanReview() }}"
+            </p>
+          </div>
+          }
+
+          <div class="pt-2 border-t border-[#E5E7EB]/60 text-[11px] text-neutral-40 flex items-center justify-between">
+            <span>Reviewer: <strong class="text-neutral-70 font-semibold">{{ getNamaReviewer() }}</strong></span>
+            <span>{{ formatDate(getTanggalReview()) }}</span>
+          </div>
+        </div>
+        }
+      </div>
+
+      <!-- 3. TIMELINE RIWAYAT AKTIVITAS LENGKAP -->
+      <div class="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-xs space-y-4">
+        <div class="flex items-center gap-2 pb-2.5 border-b border-[#F3F4F6]">
+          <div class="w-6 h-6 rounded-md bg-neutral-0 text-neutral-60 flex items-center justify-center shrink-0">
+            <svg lucideClock [size]="14" class="w-3.5 h-3.5"></svg>
+          </div>
+          <span class="text-[11px] font-semibold text-neutral-50 uppercase tracking-wider block">
+            Riwayat Aktivitas
+          </span>
+        </div>
+
+        <div
+          class="relative pl-5 space-y-4 text-xs before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-[#E5E7EB]">
+          <!-- Item 1: Pengajuan Masuk oleh Customer -->
+          <div class="relative">
+            <div class="absolute -left-[19px] top-1 w-2.5 h-2.5 rounded-full bg-success-50 ring-4 ring-white"></div>
+            <span class="font-medium text-neutral-90 block">Pengajuan Dibuat</span>
+            <span class="text-neutral-40 text-[11px] block mt-0.5">
+              {{ getTanggalPengajuan() }} &bull; Customer
+            </span>
+          </div>
+
+          <!-- Dynamic Review History Items -->
+          @for (item of getReviewHistory(); track item.id || $index) {
+          <div class="relative">
+            <div class="absolute -left-[19px] top-1 w-2.5 h-2.5 rounded-full bg-primary ring-4 ring-white"></div>
+            <span class="font-medium text-neutral-90 block">
+              {{ item.tahap || 'Review Marketing' }}: {{ getDecisionLabel(item.hasilReview || item.status || '') }}
+            </span>
+            <span class="text-neutral-40 text-[11px] block mt-0.5">
+              {{ formatDate(item.tanggalReview || item.tanggal || item.createdDate) }} &bull; {{ item.reviewerNama ||
+              item.reviewer || item.role || 'Tim Marketing' }}
+            </span>
+          </div>
+          }
+
+          <!-- If no review history array, but latestReview exists -->
+          @if (getReviewHistory().length === 0 && detail()?.latestReview) {
+          <div class="relative">
+            <div class="absolute -left-[19px] top-1 w-2.5 h-2.5 rounded-full bg-primary ring-4 ring-white"></div>
+            <span class="font-medium text-neutral-90 block">
+              Review Marketing: {{ getDecisionLabel(detail()?.latestReview?.status ||
+              detail()?.latestReview?.hasilReview || '') }}
+            </span>
+            <span class="text-neutral-40 text-[11px] block mt-0.5">
+              {{ formatDate(detail()?.latestReview?.tanggalReview || detail()?.latestReview?.tanggal) }} &bull; {{
+              detail()?.latestReview?.reviewerNama || 'Tim Marketing' }}
+            </span>
+          </div>
+          }
+
+          <!-- Current pending status hint if never reviewed -->
+          @if (!detail()?.latestReview && getReviewHistory().length === 0) {
+          <div class="relative">
+            <div class="absolute -left-[19px] top-1 w-2.5 h-2.5 rounded-full bg-warning-40 ring-4 ring-white"></div>
+            <span class="font-medium text-neutral-90 block">Menunggu Review</span>
+            <span class="text-neutral-40 text-[11px] block mt-0.5">
+              Sedang dalam antrian review divisi Marketing
+            </span>
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Modal Konfirmasi Review Marketing -->
+  <app-modal [isOpen]="isConfirmModalOpen()" variant="confirm"
+    [icon]="selectedReviewStatus() === 'DITOLAK' ? 'error' : 'alert'" title="Konfirmasi Review Pengajuan"
+    confirmText="Ya, Kirim Review" cancelText="Batal"
+    [confirmVariant]="selectedReviewStatus() === 'DITOLAK' ? 'error' : 'primary'" [loading]="isSubmitting()"
+    (confirm)="confirmSubmitReview()" (close)="closeConfirmModal()" (cancel)="closeConfirmModal()">
+    <p class="text-sm text-neutral-80 leading-relaxed">
+      Apakah Anda yakin ingin mengirim keputusan review
+      <span class="font-semibold" [ngClass]="selectedReviewStatus() === 'DITOLAK' ? 'text-error-70' : 'text-primary'">
+        "{{ getDecisionLabel(selectedReviewStatus()) }}"
+      </span>
+      untuk pengajuan pinjaman customer
+      <span class="font-semibold text-neutral-90">"{{ getCustomerName() }}"</span>?
+    </p>
+  </app-modal>
+</div>

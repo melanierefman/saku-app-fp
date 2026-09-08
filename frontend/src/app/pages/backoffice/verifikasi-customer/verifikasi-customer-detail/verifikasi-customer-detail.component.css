@@ -1,0 +1,4 @@
+/* Verifikasi Customer Detail Styles */
+:host {
+  display: block;
+}
