@@ -1,18 +1,24 @@
-name: SAKU Frontend CI/CD Pipeline
+name: SAKU Frontend CI Pipeline
 
 on:
   push:
     branches:
       - main
       - dev
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
   pull_request:
     branches:
       - main
       - dev
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
   workflow_dispatch:
 
 jobs:
-  build-and-test:
+  build-and-validate:
     name: Build & Validate Angular Application
     runs-on: ubuntu-latest
 
@@ -25,16 +31,19 @@ jobs:
         with:
           node-version: 22
           cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install Dependencies
+        working-directory: ./frontend
         run: npm ci
 
       - name: Build Application (Production)
+        working-directory: ./frontend
         run: npm run build -- --configuration production
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: dist-production
-          path: dist/
+          path: frontend/dist/
           retention-days: 7

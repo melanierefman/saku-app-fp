@@ -1,0 +1,71 @@
+# ==========================================
+# Operating System Files
+# ==========================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==========================================
+# IDE & Editor Configurations
+# ==========================================
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.iml
+*.iws
+*.ipr
+*.swp
+*.swo
+.history/
+
+# ==========================================
+# Frontend (Angular / Node.js)
+# ==========================================
+**/node_modules/
+**/dist/
+**/tmp/
+**/out-tsc/
+**/bazel-out/
+**/.angular/cache/
+**/.sass-cache/
+**/connect.lock
+**/coverage/
+**/libpeerconnection.log
+**/testem.log
+**/typings/
+**/__screenshots__/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==========================================
+# Backend (Java / Spring Boot / Maven)
+# ==========================================
+**/target/
+**/.mvn/wrapper/maven-wrapper.jar
+**/.apt_generated
+**/.classpath
+**/.factorypath
+**/.project
+**/.settings/
+**/.springBeans
+**/.sts4-cache
+**/build/
+**/bin/
+**/nbproject/private/
+**/nbbuild/
+**/nbdist/
+**/.nb-gradle/
+**/uploads/
+HELP.md
+
+# ==========================================
+# Environment & Secrets
+# ==========================================
+.env
+.env.*
+!.env.example
