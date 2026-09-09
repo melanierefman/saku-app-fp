@@ -280,9 +280,7 @@ export class SandboxComponent {
     this.tags = ['Angular', 'Tailwind', 'Saku Pay', 'Verified'];
   }
 
-  // ==========================================
   // Permission Table Demo States (Phase 4)
-  // ==========================================
   tableSearchQuery: string = '';
   selectedResourceFilter: string = '';
   selectedActionFilter: string = '';

@@ -61,7 +61,17 @@ pnpm-debug.log*
 **/nbdist/
 **/.nb-gradle/
 **/uploads/
-HELP.md
+
+# ==========================================
+# Android (Kotlin / Gradle)
+# ==========================================
+.gradle/
+**/local.properties
+**/captures/
+**/.externalNativeBuild/
+**/.cxx/
+**/android/**/build/
+**/app/build/
 
 # ==========================================
 # Environment & Secrets
