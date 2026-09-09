@@ -37,6 +37,10 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
+      - name: Run Unit & Integration Tests
+        working-directory: ./frontend
+        run: npm test -- --watch=false
+
       - name: Build Application (Production)
         working-directory: ./frontend
         run: npm run build -- --configuration production

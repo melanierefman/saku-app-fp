@@ -35,5 +35,4 @@ build/
 .env
 
 ### Custom Ignored ###
-src/test/
 uploads/
