@@ -62,6 +62,15 @@ dependencies {
     // Image Loading
     implementation(libs.coil.compose)
 
+    // ML Kit OCR (Text Recognition)
+    implementation(libs.mlkit.text.recognition)
+
+    // CameraX (In-App Camera with Framing Guide)
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

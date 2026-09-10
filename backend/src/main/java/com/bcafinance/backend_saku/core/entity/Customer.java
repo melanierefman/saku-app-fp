@@ -64,6 +64,10 @@ public class Customer {
     @Column(name = "no_rekening", length = 20)
     private String noRekening;
 
+    @Size(max = 150)
+    @Column(name = "nama_ibu_kandung", length = 150)
+    private String namaIbuKandung;
+
 
     @NotNull
     @Column(name = "status", nullable = false)

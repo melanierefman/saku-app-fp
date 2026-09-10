@@ -25,6 +25,7 @@ object ApiClient {
 
         return OkHttpClient.Builder()
             .addInterceptor(AuthInterceptor(tokenManager))
+            .authenticator(TokenAuthenticator(tokenManager))
             .addInterceptor(loggingInterceptor)
             .connectTimeout(ApiConstants.CONNECT_TIMEOUT, TimeUnit.SECONDS)
             .readTimeout(ApiConstants.READ_TIMEOUT, TimeUnit.SECONDS)
@@ -43,6 +44,10 @@ object ApiClient {
 
     fun getAuthApiService(context: Context): AuthApiService {
         return getRetrofit(context).create(AuthApiService::class.java)
+    }
+
+    fun getCustomerApiService(context: Context): com.example.saku.app.core.network.api.CustomerApiService {
+        return getRetrofit(context).create(com.example.saku.app.core.network.api.CustomerApiService::class.java)
     }
 
     /**

@@ -27,6 +27,7 @@ public class CustomerProfileResponse {
     private String username;
     private String email;
     private String noHp;
+    private String namaIbuKandung;
 
     // Rekening Pencairan
     private String namaBank;

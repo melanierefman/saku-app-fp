@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 
 enum class ForgotPasswordStep {
     REQUEST_OTP,
+    VERIFY_OTP,
     RESET_PASSWORD,
     SUCCESS
 }
@@ -80,14 +81,30 @@ class ForgotPasswordViewModel(application: Application) : AndroidViewModel(appli
                 if (response.isSuccessful && response.body() != null) {
                     val msg = response.body()!!.message ?: "Kode OTP telah dikirim ke email Anda"
                     _actionState.value = ApiResult.Success(msg, msg)
-                    currentStep.value = ForgotPasswordStep.RESET_PASSWORD
+                    currentStep.value = ForgotPasswordStep.VERIFY_OTP
                 } else {
+                    // In case of mock / dev or normal error
                     _actionState.value = ApiResult.Error(ApiClient.parseError(response), response.code())
                 }
             } catch (e: Exception) {
                 _actionState.value = ApiResult.Error(e.localizedMessage ?: "Gagal mengirim OTP ke email")
             }
         }
+    }
+
+    fun verifyOtp() {
+        val otpVal = otpCode.value.trim()
+        if (otpVal.length < 6) {
+            otpError.value = "Masukkan 6 digit kode OTP"
+            return
+        }
+        currentStep.value = ForgotPasswordStep.RESET_PASSWORD
+    }
+
+    fun changeEmail() {
+        otpCode.value = ""
+        otpError.value = null
+        currentStep.value = ForgotPasswordStep.REQUEST_OTP
     }
 
     fun resetPassword() {

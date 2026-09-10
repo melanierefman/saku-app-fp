@@ -56,7 +56,46 @@ interface AuthApiService {
         @Body request: com.example.saku.app.core.network.dto.VerifyOtpRequest
     ): Response<ApiResponse<com.example.saku.app.core.network.dto.VerifyOtpResponse>>
 
-    // 4-Step Registration
+    // 5-Step KYC Registration Endpoints
+    @Multipart
+    @POST("auth/customer/register/step1-ktp/{customerId}")
+    suspend fun registerStep1Ktp(
+        @Path("customerId") customerId: String,
+        @Part ktp: MultipartBody.Part?,
+        @Part("data") data: okhttp3.RequestBody
+    ): Response<ApiResponse<RegisterStepResponse>>
+
+    @POST("auth/customer/register/step1-ktp/{customerId}")
+    suspend fun registerStep1KtpJson(
+        @Path("customerId") customerId: String,
+        @Body request: com.example.saku.app.core.network.dto.RegisterStep1KtpRequestDto
+    ): Response<ApiResponse<RegisterStepResponse>>
+
+    @PUT("auth/customer/register/step2-personal/{customerId}")
+    suspend fun registerStep2Personal(
+        @Path("customerId") customerId: String,
+        @Body request: com.example.saku.app.core.network.dto.RegisterStep2PersonalRequestDto
+    ): Response<ApiResponse<RegisterStepResponse>>
+
+    @Multipart
+    @POST("auth/customer/register/step3-liveness/{customerId}")
+    suspend fun registerStep3Liveness(
+        @Path("customerId") customerId: String,
+        @Part selfie: MultipartBody.Part
+    ): Response<ApiResponse<RegisterStepResponse>>
+
+    @PUT("auth/customer/register/step4-tnc/{customerId}")
+    suspend fun registerStep4Tnc(
+        @Path("customerId") customerId: String
+    ): Response<ApiResponse<RegisterStepResponse>>
+
+    @POST("auth/customer/register/step5-complete/{customerId}")
+    suspend fun registerStep5Complete(
+        @Path("customerId") customerId: String,
+        @Body request: com.example.saku.app.core.network.dto.RegisterStep5CompleteRequest
+    ): Response<ApiResponse<RegisterStepResponse>>
+
+    // Legacy (4-Step) Registration
     @POST("auth/customer/register/step1")
     suspend fun registerStep1(
         @Body request: RegisterStep1Request

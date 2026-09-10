@@ -5,9 +5,7 @@
   <div [class]="sizeClasses"
     class="relative w-full bg-white rounded-2xl shadow-2xl overflow-hidden animate-modalIn border border-[#E5E7EB]"
     (click)="$event.stopPropagation()">
-    <!-- ========================================== -->
     <!-- 1. VARIANT: FORM MODAL -->
-    <!-- ========================================== -->
     @if (variant === 'form') {
     <!-- Header -->
     <div class="px-6 pt-6 pb-4 flex items-center justify-between">
@@ -55,9 +53,7 @@
     }
     }
 
-    <!-- ========================================== -->
     <!-- 2. VARIANT: CONFIRMATION MODAL -->
-    <!-- ========================================== -->
     @else if (variant === 'confirm') {
     <!-- Close Button (Top Right) -->
     @if (showCloseButton) {
@@ -103,9 +99,7 @@
     </div>
     }
 
-    <!-- ========================================== -->
     <!-- 3. VARIANT: CUSTOM MODAL -->
-    <!-- ========================================== -->
     @else {
     <div class="relative p-6">
       @if (showCloseButton) {

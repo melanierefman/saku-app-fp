@@ -28,6 +28,7 @@ class TokenManager(private val context: Context) {
         private val KEY_NO_HP = stringPreferencesKey("no_hp")
         private val KEY_ROLE = stringPreferencesKey("role")
         private val KEY_IS_KYC_VERIFIED = booleanPreferencesKey("is_kyc_verified")
+        private val KEY_CACHED_PROFILE_JSON = stringPreferencesKey("cached_profile_json")
 
         @Volatile
         private var INSTANCE: TokenManager? = null
@@ -82,6 +83,14 @@ class TokenManager(private val context: Context) {
             !preferences[KEY_ACCESS_TOKEN].isNullOrBlank()
         }
 
+    val cachedProfileJsonFlow: Flow<String?> = context.dataStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }
+        .map { preferences ->
+            preferences[KEY_CACHED_PROFILE_JSON]
+        }
+
     suspend fun saveAuthTokens(
         accessToken: String,
         refreshToken: String,
@@ -96,18 +105,55 @@ class TokenManager(private val context: Context) {
         context.dataStore.edit { preferences ->
             preferences[KEY_ACCESS_TOKEN] = accessToken
             preferences[KEY_REFRESH_TOKEN] = refreshToken
-            preferences[KEY_USER_ID] = id
-            preferences[KEY_USERNAME] = username
-            preferences[KEY_NAMA] = nama
-            preferences[KEY_EMAIL] = email
-            preferences[KEY_NO_HP] = noHp
-            preferences[KEY_ROLE] = role
+            if (id.isNotBlank()) preferences[KEY_USER_ID] = id
+            if (username.isNotBlank()) preferences[KEY_USERNAME] = username
+            if (nama.isNotBlank()) preferences[KEY_NAMA] = nama
+            if (email.isNotBlank()) preferences[KEY_EMAIL] = email
+            if (noHp.isNotBlank()) preferences[KEY_NO_HP] = noHp
+            if (role.isNotBlank()) preferences[KEY_ROLE] = role
             preferences[KEY_IS_KYC_VERIFIED] = isKycVerified
+        }
+    }
+
+    suspend fun updateTokensOnly(accessToken: String, refreshToken: String = "") {
+        context.dataStore.edit { preferences ->
+            preferences[KEY_ACCESS_TOKEN] = accessToken
+            if (refreshToken.isNotBlank()) {
+                preferences[KEY_REFRESH_TOKEN] = refreshToken
+            }
+        }
+    }
+
+    suspend fun updateProfileData(
+        nama: String? = null,
+        email: String? = null,
+        noHp: String? = null,
+        isKycVerified: Boolean? = null
+    ) {
+        context.dataStore.edit { preferences ->
+            nama?.let { if (it.isNotBlank()) preferences[KEY_NAMA] = it }
+            email?.let { if (it.isNotBlank()) preferences[KEY_EMAIL] = it }
+            noHp?.let { if (it.isNotBlank()) preferences[KEY_NO_HP] = it }
+            isKycVerified?.let { preferences[KEY_IS_KYC_VERIFIED] = it }
+        }
+    }
+
+    suspend fun saveCachedProfileJson(profileJson: String) {
+        context.dataStore.edit { preferences ->
+            preferences[KEY_CACHED_PROFILE_JSON] = profileJson
         }
     }
 
     suspend fun getAccessTokenSync(): String? {
         return accessTokenFlow.first()
+    }
+
+    suspend fun getRefreshTokenSync(): String? {
+        return refreshTokenFlow.first()
+    }
+
+    suspend fun getCachedProfileJsonSync(): String? {
+        return cachedProfileJsonFlow.first()
     }
 
     suspend fun clearSession() {

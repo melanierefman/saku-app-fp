@@ -254,6 +254,7 @@ public class CustomerProfileService {
                 .username(customer.getUsername())
                 .email(customer.getEmail())
                 .noHp(customer.getNoHp())
+                .namaIbuKandung(customer.getNamaIbuKandung())
                 .namaBank(customer.getNamaBank())
                 .noRekening(customer.getNoRekening())
                 .namaRekening(customer.getNamaRekening())

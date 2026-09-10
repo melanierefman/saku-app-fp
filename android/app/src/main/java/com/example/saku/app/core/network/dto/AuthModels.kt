@@ -48,7 +48,9 @@ data class VerifyOtpRequest(
 
 data class VerifyOtpResponse(
     @SerializedName("valid") val valid: Boolean = true,
-    @SerializedName("message") val message: String? = null
+    @SerializedName("message") val message: String? = null,
+    @SerializedName("customerId") val customerId: String? = null,
+    @SerializedName("email") val email: String? = null
 )
 
 data class ForgotPasswordRequest(
@@ -67,7 +69,57 @@ data class ResetPasswordRequest(
     @SerializedName("confirmNewPassword") val confirmNewPassword: String
 )
 
-// Registration (4-step) DTOs
+// Address DTO
+data class AlamatCustomerDto(
+    @SerializedName("alamatLengkap") val alamatLengkap: String = "",
+    @SerializedName("rt") val rt: String = "",
+    @SerializedName("rw") val rw: String = "",
+    @SerializedName("kelurahan") val kelurahan: String = "",
+    @SerializedName("kecamatan") val kecamatan: String = "",
+    @SerializedName("kotaKabupaten") val kotaKabupaten: String = "",
+    @SerializedName("provinsi") val provinsi: String = "",
+    @SerializedName("kodePos") val kodePos: String = ""
+)
+
+// 5-Step KYC Registration DTOs
+data class RegisterStep1KtpRequestDto(
+    @SerializedName("nik") val nik: String,
+    @SerializedName("namaLengkap") val namaLengkap: String,
+    @SerializedName("alamatKtp") val alamatKtp: AlamatCustomerDto
+)
+
+data class RegisterStep2PersonalRequestDto(
+    @SerializedName("noHp") val noHp: String,
+    @SerializedName("namaIbuKandung") val namaIbuKandung: String? = null,
+    @SerializedName("namaBank") val namaBank: String,
+    @SerializedName("noRekening") val noRekening: String,
+    @SerializedName("namaRekening") val namaRekening: String,
+    @SerializedName("pekerjaan") val pekerjaan: String,
+    @SerializedName("tempatKerja") val tempatKerja: String,
+    @SerializedName("statusPekerjaan") val statusPekerjaan: String,
+    @SerializedName("pendapatan") val pendapatan: Double,
+    @SerializedName("lamaBekerjaBulan") val lamaBekerjaBulan: Int,
+    @SerializedName("totalCicilanLainnya") val totalCicilanLainnya: Double = 0.0,
+    @SerializedName("sameAsKtp") val sameAsKtp: Boolean = true,
+    @SerializedName("alamatDomisili") val alamatDomisili: AlamatCustomerDto? = null
+)
+
+data class RegisterStep4TncRequest(
+    @SerializedName("isAgreed") val isAgreed: Boolean = true
+)
+
+data class RegisterStep5CompleteRequest(
+    @SerializedName("password") val password: String,
+    @SerializedName("confirmPassword") val confirmPassword: String
+)
+
+data class RegisterStepResponse(
+    @SerializedName("customerId") val customerId: String? = null,
+    @SerializedName("step") val step: Int? = null,
+    @SerializedName("message") val message: String? = null
+)
+
+// Legacy (4-step) DTOs
 data class RegisterStep1Request(
     @SerializedName("email") val email: String,
     @SerializedName("username") val username: String,
@@ -91,24 +143,7 @@ data class RegisterStep2Request(
     @SerializedName("totalCicilanLainnya") val totalCicilanLainnya: Double = 0.0
 )
 
-data class AlamatCustomerDto(
-    @SerializedName("alamatLengkap") val alamatLengkap: String,
-    @SerializedName("rt") val rt: String,
-    @SerializedName("rw") val rw: String,
-    @SerializedName("kelurahan") val kelurahan: String,
-    @SerializedName("kecamatan") val kecamatan: String,
-    @SerializedName("kotaKabupaten") val kotaKabupaten: String,
-    @SerializedName("provinsi") val provinsi: String,
-    @SerializedName("kodePos") val kodePos: String
-)
-
 data class RegisterStep3Request(
     @SerializedName("alamatKtp") val alamatKtp: AlamatCustomerDto,
     @SerializedName("alamatDomisili") val alamatDomisili: AlamatCustomerDto
-)
-
-data class RegisterStepResponse(
-    @SerializedName("customerId") val customerId: String? = null,
-    @SerializedName("step") val step: Int? = null,
-    @SerializedName("message") val message: String? = null
 )

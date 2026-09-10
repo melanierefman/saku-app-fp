@@ -17,6 +17,12 @@ public interface CustomerRepository extends JpaRepository<Customer, UUID> {
 
     boolean existsByNoHp(String noHp);
 
+    boolean existsByNoHpAndIdNot(String noHp, UUID id);
+
+    boolean existsByEmailAndIdNot(String email, UUID id);
+
+    boolean existsByUsernameAndIdNot(String username, UUID id);
+
     boolean existsByNikAndIdNot(String nik, UUID id);
 
     List<Customer> findAllByStatusFalseOrderByCreatedDateAsc();
