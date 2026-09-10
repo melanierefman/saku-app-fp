@@ -209,7 +209,9 @@ fun Badge(
             fontSize = size.fontSize,
             fontWeight = FontWeight.SemiBold,
             color = props.textColor,
-            lineHeight = size.fontSize
+            lineHeight = size.fontSize,
+            maxLines = 1,
+            softWrap = false
         )
 
         // Removable X Icon
