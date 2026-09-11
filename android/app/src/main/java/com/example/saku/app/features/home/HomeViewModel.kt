@@ -68,6 +68,14 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val _currentNavRoute = MutableStateFlow("home")
     val currentNavRoute: StateFlow<String> = _currentNavRoute.asStateFlow()
 
+    // History filter state
+    private val _selectedHistoryFilter = MutableStateFlow("SEMUA")
+    val selectedHistoryFilter: StateFlow<String> = _selectedHistoryFilter.asStateFlow()
+
+    fun setHistoryFilter(filter: String) {
+        _selectedHistoryFilter.value = filter
+    }
+
     init {
         // 1. Muat profil tersimpan (cache) segera agar data instan muncul tanpa flicker
         viewModelScope.launch {

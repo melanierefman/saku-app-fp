@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -34,14 +35,16 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,15 +53,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.core.content.FileProvider
-import java.io.File
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -71,17 +71,14 @@ import com.composables.icons.lucide.CircleAlert
 import com.composables.icons.lucide.CircleCheck
 import com.composables.icons.lucide.CreditCard
 import com.composables.icons.lucide.IdCard
+import com.composables.icons.lucide.Image
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Mail
 import com.composables.icons.lucide.Phone
-import com.composables.icons.lucide.ScanText
-import com.composables.icons.lucide.ShieldCheck
 import com.composables.icons.lucide.User
-import com.example.saku.app.R
 import com.example.saku.app.core.ui.components.Button
+import com.example.saku.app.core.ui.components.ButtonSize
 import com.example.saku.app.core.ui.components.ButtonVariant
-import com.example.saku.app.core.ui.components.CameraCaptureMode
-import com.example.saku.app.core.ui.components.CameraFramingCaptureDialog
 import com.example.saku.app.core.ui.components.CheckboxWithLabel
 import com.example.saku.app.core.ui.components.CurrencyField
 import com.example.saku.app.core.ui.components.DocumentUploadCard
@@ -93,7 +90,10 @@ import com.example.saku.app.core.ui.components.TextField
 import com.example.saku.app.core.ui.components.UploadStatus
 import com.example.saku.app.ui.theme.Border
 import com.example.saku.app.ui.theme.Error
+import com.example.saku.app.ui.theme.Error0
 import com.example.saku.app.ui.theme.Neutral0
+import com.example.saku.app.ui.theme.Neutral40
+import com.example.saku.app.ui.theme.Neutral60
 import com.example.saku.app.ui.theme.Primary
 import com.example.saku.app.ui.theme.Primary0
 import com.example.saku.app.ui.theme.Primary60
@@ -103,6 +103,7 @@ import com.example.saku.app.ui.theme.Surface
 import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary
 import com.example.saku.app.ui.theme.TextSecondary
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,6 +113,13 @@ fun RegisterScreen(
     viewModel: RegisterViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val scrollState = rememberScrollState()
+    val focusManager = LocalFocusManager.current
+
+    // Auto-scroll ke paling atas setiap kali langkah pendaftaran berpindah
+    LaunchedEffect(uiState.currentStep) {
+        scrollState.animateScrollTo(0)
+    }
 
     // Dialog Sukses Registrasi SAKU
     if (uiState.isRegistrationComplete) {
@@ -150,243 +158,335 @@ fun RegisterScreen(
             },
             text = {
                 Text(
-                    text = "Selamat! Akun nasabah SAKU Anda telah berhasil dibuat dan berkas KYC Anda telah diteruskan ke tim verifikasi. Silakan masuk menggunakan akun baru Anda.",
+                    text = "Selamat! Akun nasabah SAKU Anda telah berhasil dibuat. Dokumen Anda sedang dalam antrean verifikasi manual tim Backoffice SAKU. Silakan masuk ke aplikasi.",
                     color = TextSecondary,
                     fontSize = 14.sp,
                     lineHeight = 20.sp
                 )
             },
-            containerColor = Surface,
+            containerColor = Color.White,
             shape = RoundedCornerShape(20.dp)
         )
     }
 
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        // Background SAKU Mesh Gradient
-        Image(
-            painter = painterResource(id = R.drawable.bg_card_saku),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
-
-        Scaffold(
-            topBar = {
-                CenterAlignedTopAppBar(
-                    title = {
-                        Text(
-                            text = "Daftar Akun SAKU",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp,
-                            color = Color.White
-                        )
-                    },
-                    navigationIcon = {
-                        Box(
-                            modifier = Modifier
-                                .padding(start = 12.dp)
-                                .size(38.dp)
-                                .shadow(4.dp, CircleShape)
-                                .clip(CircleShape)
-                                .background(Color.White.copy(alpha = 0.95f))
-                                .clickable {
-                                    if (uiState.currentStep > 1) {
-                                        viewModel.goToPreviousStep()
-                                    } else {
-                                        onNavigateBack()
-                                    }
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Lucide.ArrowLeft,
-                                contentDescription = "Kembali",
-                                tint = Primary,
-                                modifier = Modifier.size(18.dp)
-                            )
+    Scaffold(
+        containerColor = Color.White,
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = "Daftar Akun SAKU",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 17.sp,
+                        color = TextPrimary
+                    )
+                },
+                navigationIcon = {
+                    IconButton(
+                        onClick = {
+                            if (uiState.currentStep > 0) {
+                                viewModel.goToPreviousStep()
+                            } else {
+                                onNavigateBack()
+                            }
                         }
-                    },
-                    actions = {
-                        // Empty balance spacer so the title is optically perfectly centered
-                        Spacer(modifier = Modifier.size(50.dp))
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-                )
-            },
-            containerColor = Color.Transparent
-        ) { innerPadding ->
+                    ) {
+                        Icon(
+                            imageVector = Lucide.ArrowLeft,
+                            contentDescription = "Kembali",
+                            tint = TextPrimary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+            )
+        },
+        bottomBar = {
+            // Sticky Bottom Action Bar
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
+                    .fillMaxWidth()
+                    .background(Color.White)
                     .imePadding()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .navigationBarsPadding()
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Card Container enclosing Header Progress & Form
+                when (uiState.currentStep) {
+                    // Pra-Step (Email & OTP)
+                    0 -> {
+                        if (!uiState.isOtpSent) {
+                            Button(
+                                text = "Kirim Kode OTP",
+                                onClick = {
+                                    focusManager.clearFocus()
+                                    viewModel.sendOtp()
+                                },
+                                isLoading = uiState.isLoading,
+                                enabled = uiState.email.isNotBlank() && !uiState.isLoading,
+                                variant = ButtonVariant.Primary,
+                                size = ButtonSize.LG,
+                                fullWidth = true
+                            )
+                        } else {
+                            Button(
+                                text = "Verifikasi OTP →",
+                                onClick = {
+                                    focusManager.clearFocus()
+                                    viewModel.verifyOtp()
+                                },
+                                isLoading = uiState.isLoading,
+                                enabled = uiState.otpCode.length == 6 && !uiState.isLoading,
+                                variant = ButtonVariant.Primary,
+                                size = ButtonSize.LG,
+                                fullWidth = true
+                            )
+                        }
+                    }
+                    // Step 1: Data Pribadi
+                    1 -> {
+                        Button(
+                            text = "Lanjut →",
+                            onClick = {
+                                focusManager.clearFocus()
+                                viewModel.submitStep1Personal()
+                            },
+                            isLoading = uiState.isLoading,
+                            enabled = uiState.nik.length == 16 && uiState.namaLengkap.isNotBlank() && uiState.noHp.isNotBlank() && !uiState.isLoading,
+                            variant = ButtonVariant.Primary,
+                            size = ButtonSize.LG,
+                            fullWidth = true
+                        )
+                    }
+                    // Step 2: Data Pekerjaan & Rekening
+                    2 -> {
+                        Button(
+                            text = "Lanjut →",
+                            onClick = {
+                                focusManager.clearFocus()
+                                viewModel.submitStep2WorkAndBank()
+                            },
+                            isLoading = uiState.isLoading,
+                            enabled = uiState.pekerjaan.isNotBlank() && uiState.tempatKerja.isNotBlank() && uiState.noRekening.isNotBlank() && uiState.namaRekening.isNotBlank() && uiState.namaIbuKandung.isNotBlank() && !uiState.isLoading,
+                            variant = ButtonVariant.Primary,
+                            size = ButtonSize.LG,
+                            fullWidth = true
+                        )
+                    }
+                    // Step 3: Alamat KTP & Domisili
+                    3 -> {
+                        Button(
+                            text = "Lanjut →",
+                            onClick = {
+                                focusManager.clearFocus()
+                                viewModel.submitStep3Address()
+                            },
+                            isLoading = uiState.isLoading,
+                            enabled = uiState.alamatKtp.alamatLengkap.isNotBlank() && uiState.alamatKtp.kotaKabupaten.isNotBlank() && !uiState.isLoading,
+                            variant = ButtonVariant.Primary,
+                            size = ButtonSize.LG,
+                            fullWidth = true
+                        )
+                    }
+                    // Step 4: Upload KYC
+                    4 -> {
+                        Button(
+                            text = "Lanjut →",
+                            onClick = {
+                                focusManager.clearFocus()
+                                viewModel.submitStep4Documents()
+                            },
+                            isLoading = uiState.isLoading,
+                            enabled = (uiState.ktpBitmap != null || uiState.ktpUri != null) && (uiState.selfieBitmap != null || uiState.selfieUri != null) && !uiState.isLoading,
+                            variant = ButtonVariant.Primary,
+                            size = ButtonSize.LG,
+                            fullWidth = true
+                        )
+                    }
+                    // Step 5: Syarat & Ketentuan
+                    5 -> {
+                        Button(
+                            text = "Lanjut →",
+                            onClick = {
+                                focusManager.clearFocus()
+                                viewModel.submitStep5Tnc()
+                            },
+                            isLoading = uiState.isLoading,
+                            enabled = uiState.isTncAgreed && !uiState.isLoading,
+                            variant = ButtonVariant.Primary,
+                            size = ButtonSize.LG,
+                            fullWidth = true
+                        )
+                    }
+                    // Step 6: Buat Password
+                    6 -> {
+                        Button(
+                            text = "Daftar Akun SAKU",
+                            onClick = {
+                                focusManager.clearFocus()
+                                viewModel.submitStep6Complete()
+                            },
+                            isLoading = uiState.isLoading,
+                            enabled = uiState.password.length >= 8 && uiState.confirmPassword.isNotBlank() && !uiState.isLoading,
+                            variant = ButtonVariant.Primary,
+                            size = ButtonSize.LG,
+                            fullWidth = true
+                        )
+                    }
+                }
+            }
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(scrollState)
+                .padding(horizontal = 24.dp, vertical = 12.dp)
+        ) {
+            // Step Progress Header
+            RegisterStepProgressBar(currentStep = uiState.currentStep)
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Error Banner
+            uiState.errorMessage?.let { error ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .shadow(
-                            elevation = 16.dp,
-                            shape = RoundedCornerShape(24.dp),
-                            ambientColor = Color(0x33000000),
-                            spotColor = Color(0x33000000)
-                        ),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.98f)),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.8f))
+                        .padding(bottom = 16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Error0),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, Color(0xFFFCA5A5))
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 24.dp)
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // 1. Header Card with Step Progress (Sesuai Referensi Gambar)
-                        RegisterCardHeader(currentStep = uiState.currentStep)
-
-                        Spacer(modifier = Modifier.height(20.dp))
-
-                        // Error Banner
-                        uiState.errorMessage?.let { error ->
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 16.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFFFEE2E2)),
-                                shape = RoundedCornerShape(12.dp),
-                                border = BorderStroke(1.dp, Color(0xFFFCA5A5))
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(
-                                        imageVector = Lucide.CircleAlert,
-                                        contentDescription = null,
-                                        tint = Error,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = error,
-                                        color = Error,
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                }
-                            }
-                        }
-
-                        // Success Banner
-                        uiState.successMessage?.let { success ->
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 16.dp),
-                                colors = CardDefaults.cardColors(containerColor = Success0),
-                                shape = RoundedCornerShape(12.dp),
-                                border = BorderStroke(1.dp, Color(0xFF86EFAC))
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(
-                                        imageVector = Lucide.CircleCheck,
-                                        contentDescription = null,
-                                        tint = Success,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = success,
-                                        color = Success,
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                }
-                            }
-                        }
-
-                        // Form Berdasarkan Step
-                        when (uiState.currentStep) {
-                            1 -> Step1EmailOtpForm(viewModel = viewModel, uiState = uiState)
-                            2 -> Step2KtpOcrForm(viewModel = viewModel, uiState = uiState)
-                            3 -> Step3PersonalFinancialForm(viewModel = viewModel, uiState = uiState)
-                            4 -> Step4LivenessSelfieForm(viewModel = viewModel, uiState = uiState)
-                            5 -> Step5TncPasswordForm(viewModel = viewModel, uiState = uiState)
-                        }
+                        Icon(
+                            imageVector = Lucide.CircleAlert,
+                            contentDescription = null,
+                            tint = Error,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = error,
+                            color = Error,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium
+                        )
                     }
                 }
-
-                Spacer(modifier = Modifier.height(24.dp))
             }
+
+            // Success Banner
+            uiState.successMessage?.let { success ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Success0),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, Color(0xFF86EFAC))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Lucide.CircleCheck,
+                            contentDescription = null,
+                            tint = Success,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = success,
+                            color = Success,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+            }
+
+            // Form berdasarkan langkah aktif (Step 0..6)
+            when (uiState.currentStep) {
+                0 -> Step0EmailOtpForm(viewModel = viewModel, uiState = uiState)
+                1 -> Step1PersonalForm(viewModel = viewModel, uiState = uiState)
+                2 -> Step2JobAndBankForm(viewModel = viewModel, uiState = uiState)
+                3 -> Step3AddressForm(viewModel = viewModel, uiState = uiState)
+                4 -> Step4KycDocumentsForm(viewModel = viewModel, uiState = uiState)
+                5 -> Step5TncForm(viewModel = viewModel, uiState = uiState)
+                6 -> Step6CredentialsForm(viewModel = viewModel, uiState = uiState)
+            }
+
+            Spacer(modifier = Modifier.height(28.dp))
         }
     }
 }
 
 /**
- * Header Card dengan Judul, Subtitle, Info Langkah & Linear Progress Bar Oranye
- * (Sesuai dengan gambar referensi desain)
+ * Clean Header & Segmented Progress Bar
  */
 @Composable
-private fun RegisterCardHeader(currentStep: Int) {
-    val totalSteps = 5
-    val percent = ((currentStep.toFloat() / totalSteps.toFloat()) * 100).toInt()
+private fun RegisterStepProgressBar(currentStep: Int) {
+    val totalSteps = 6
+    val progressFloat = if (currentStep == 0) 0.05f else (currentStep.toFloat() / totalSteps.toFloat()).coerceIn(0f, 1f)
+    val percent = if (currentStep == 0) 0 else ((currentStep.toFloat() / totalSteps.toFloat()) * 100).toInt()
     val animatedProgress by animateFloatAsState(
-        targetValue = currentStep.toFloat() / totalSteps.toFloat(),
+        targetValue = progressFloat,
         animationSpec = tween(durationMillis = 400),
         label = "register_header_progress"
     )
 
     val (title, subtitle) = when (currentStep) {
-        1 -> "Buat Akun Baru" to "Lengkapi data diri Anda untuk memulai."
-        2 -> "Scan & Verifikasi e-KTP" to "Foto atau unggah e-KTP Anda untuk pengisian data otomatis."
-        3 -> "Data Diri & Keuangan" to "Data ini diperlukan untuk proses penilaian kredit. Pastikan data yang dimasukkan sesuai dengan dokumen resmi."
-        4 -> "Verifikasi Identitas" to "Pastikan foto wajah Anda terlihat jelas untuk mempercepat proses verifikasi oleh tim SAKU."
-        5 -> "Syarat & Ketentuan & Kata Sandi" to "Pastikan Anda membaca ketentuan layanan SAKU dan buat kata sandi akun Anda."
-        else -> "Pendaftaran SAKU" to "Lengkapi langkah pendaftaran akun Anda."
+        0 -> "Verifikasi Email" to "Masukkan email aktif Anda untuk menerima kode OTP verifikasi akun."
+        1 -> "Data Pribadi & Identitas" to "Masukkan NIK, nama lengkap sesuai e-KTP, dan nomor handphone Anda."
+        2 -> "Data Pekerjaan & Rekening" to "Lengkapi informasi pekerjaan dan rekening bank untuk pencairan dana."
+        3 -> "Alamat KTP & Domisili" to "Isi manual alamat lengkap sesuai e-KTP dan tempat tinggal saat ini."
+        4 -> "Upload Dokumen KYC" to "Unggah foto fisik e-KTP dan foto selfie untuk verifikasi tim Backoffice."
+        5 -> "Syarat & Ketentuan" to "Pelajari dan setujui syarat & ketentuan layanan pembiayaan SAKU."
+        6 -> "Buat Kata Sandi" to "Buat kata sandi yang aman untuk mengakses akun SAKU Anda."
+        else -> "Pendaftaran SAKU" to "Lengkapi formulir pendaftaran akun nasabah SAKU."
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        // Judul Besar
         Text(
             text = title,
-            fontSize = 22.sp,
+            fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            color = TextPrimary
+            color = TextPrimary,
+            letterSpacing = (-0.5).sp
         )
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        // Subtitle Deskripsi
         Text(
             text = subtitle,
-            fontSize = 13.sp,
+            fontSize = 14.sp,
             color = TextSecondary,
-            lineHeight = 18.sp
+            lineHeight = 20.sp
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(18.dp))
 
-        // Info Langkah & Persentase
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Langkah $currentStep dari $totalSteps",
-                fontSize = 12.sp,
+                text = if (currentStep == 0) "Pra-Registrasi • Verifikasi Email" else "Langkah $currentStep dari $totalSteps",
+                fontSize = 12.5.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = TextSecondary
             )
             Text(
                 text = "$percent%",
-                fontSize = 12.sp,
+                fontSize = 12.5.sp,
                 fontWeight = FontWeight.Bold,
                 color = Primary
             )
@@ -394,13 +494,12 @@ private fun RegisterCardHeader(currentStep: Int) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Linear Progress Bar Oranye SAKU
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(6.dp)
                 .clip(RoundedCornerShape(3.dp))
-                .background(Color(0xFFFFEAD8))
+                .background(Color(0xFFF3F4F6))
         ) {
             Box(
                 modifier = Modifier
@@ -418,48 +517,52 @@ private fun RegisterCardHeader(currentStep: Int) {
 }
 
 /**
- * Section Title Header dengan aksen warna Oranye SAKU
+ * Section Title Header
  */
 @Composable
 private fun SectionHeader(title: String, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.fillMaxWidth().padding(top = 16.dp, bottom = 12.dp)) {
+    Column(modifier = modifier.fillMaxWidth().padding(top = 18.dp, bottom = 12.dp)) {
         Text(
             text = title,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             color = Primary
         )
-        Spacer(modifier = Modifier.height(4.dp))
-        HorizontalDivider(color = Color(0xFFFFEAD8), thickness = 1.dp)
+        Spacer(modifier = Modifier.height(6.dp))
+        HorizontalDivider(color = Color(0xFFF0F2F5), thickness = 1.dp)
     }
 }
 
-// Step 1: Buat Akun Baru (Verifikasi Email OTP)
+// Pra-Step: Verifikasi Email (OTP)
 @Composable
-private fun Step1EmailOtpForm(viewModel: RegisterViewModel, uiState: RegisterUiState) {
+private fun Step0EmailOtpForm(viewModel: RegisterViewModel, uiState: RegisterUiState) {
+    val otpFocusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(uiState.isOtpSent) {
+        if (uiState.isOtpSent) {
+            delay(200)
+            try {
+                otpFocusRequester.requestFocus()
+            } catch (e: Exception) {
+                // Ignore if not yet laid out
+            }
+        }
+    }
+
     Column(modifier = Modifier.fillMaxWidth()) {
         TextField(
             value = uiState.email,
             onValueChange = viewModel::onEmailChange,
-            label = "Email",
-            placeholder = "Masukkan email aktif Anda",
+            label = "Alamat Email",
+            placeholder = "nama@email.com",
             leadingIcon = Lucide.Mail,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             required = true,
             enabled = !uiState.isOtpVerified
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (!uiState.isOtpSent) {
-            Button(
-                text = "Kirim Kode OTP",
-                onClick = viewModel::sendOtp,
-                isLoading = uiState.isLoading,
-                enabled = uiState.email.isNotBlank() && !uiState.isLoading,
-                modifier = Modifier.fillMaxWidth()
-            )
-        } else {
+        if (uiState.isOtpSent) {
+            Spacer(modifier = Modifier.height(20.dp))
             SectionHeader(title = "Kode Verifikasi Email")
 
             Text(
@@ -468,15 +571,17 @@ private fun Step1EmailOtpForm(viewModel: RegisterViewModel, uiState: RegisterUiS
                 color = TextSecondary
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             OtpInputField(
                 otpValue = uiState.otpCode,
                 onOtpChange = viewModel::onOtpCodeChange,
+                focusRequester = otpFocusRequester,
+                autoFocus = true,
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -486,179 +591,46 @@ private fun Step1EmailOtpForm(viewModel: RegisterViewModel, uiState: RegisterUiS
                 if (uiState.otpCountdown > 0) {
                     Text(
                         text = "Kirim ulang kode dalam ${uiState.otpCountdown}s",
-                        fontSize = 12.sp,
+                        fontSize = 13.sp,
                         color = TextSecondary
                     )
                 } else {
                     Text(
                         text = "Belum menerima kode? ",
-                        fontSize = 12.sp,
+                        fontSize = 13.sp,
                         color = TextSecondary
                     )
                     Text(
                         text = "Kirim Ulang",
-                        fontSize = 12.sp,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = Primary,
                         modifier = Modifier.clickable { viewModel.sendOtp() }
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Button(
-                text = "Verifikasi & Lanjut",
-                onClick = viewModel::verifyOtp,
-                isLoading = uiState.isLoading,
-                enabled = uiState.otpCode.length == 6 && !uiState.isLoading,
-                modifier = Modifier.fillMaxWidth()
-            )
         }
     }
 }
 
-// Step 2: Scan & Verifikasi e-KTP (OCR)
+// Step 1: Data Pribadi & Identitas (Manual Input)
 @Composable
-private fun Step2KtpOcrForm(viewModel: RegisterViewModel, uiState: RegisterUiState) {
-    val context = LocalContext.current
-    var isKtpCameraOpen by remember { mutableStateOf(false) }
-
-    val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        if (uri != null) {
-            viewModel.onKtpImageSelected(uri)
-        }
-    }
-
-    if (isKtpCameraOpen) {
-        CameraFramingCaptureDialog(
-            mode = CameraCaptureMode.KTP,
-            onDismissRequest = { isKtpCameraOpen = false },
-            onImageCaptured = { bitmap ->
-                isKtpCameraOpen = false
-                viewModel.onKtpBitmapCaptured(bitmap)
-            },
-            onPickGalleryRequested = {
-                galleryLauncher.launch("image/*")
-            }
-        )
-    }
-
+private fun Step1PersonalForm(viewModel: RegisterViewModel, uiState: RegisterUiState) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        // Document Upload Card
-        DocumentUploadCard(
-            title = "Foto e-KTP Asli",
-            description = "Posisikan e-KTP di dalam bingkai pemandu oranye agar data terisi secara otomatis & akurat.",
-            status = when {
-                uiState.isOcrProcessing -> UploadStatus.UPLOADING
-                uiState.ktpBitmap != null || uiState.ktpUri != null -> UploadStatus.UPLOADED
-                else -> UploadStatus.EMPTY
-            },
-            icon = Lucide.IdCard,
-            fileName = if (uiState.ktpBitmap != null) "ktp_camera_scan.jpg" else uiState.ktpUri?.lastPathSegment,
-            statusBadgeText = if (uiState.isOcrProcessing) "Memproses OCR..." else if (uiState.ktpBitmap != null || uiState.ktpUri != null) "Tersimpan" else null,
-            onUploadClick = { isKtpCameraOpen = true },
-            onDeleteClick = { viewModel.onKtpImageSelected(null) }
-        )
-
-        // OCR Scanning Indicator / Banner
-        if (uiState.isOcrProcessing) {
-            Spacer(modifier = Modifier.height(12.dp))
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Primary0),
-                shape = RoundedCornerShape(10.dp)
-            ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        color = Primary,
-                        strokeWidth = 2.dp
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Text(
-                        text = "Sedang memindai e-KTP dengan OCR otomatis...",
-                        fontSize = 13.sp,
-                        color = Primary,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
-        }
-
-        uiState.ocrSuccessMessage?.let { msg ->
-            Spacer(modifier = Modifier.height(12.dp))
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Success0),
-                shape = RoundedCornerShape(10.dp)
-            ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Lucide.ScanText,
-                        contentDescription = null,
-                        tint = Success,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = msg,
-                        fontSize = 13.sp,
-                        color = Success,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
-        }
-
-        // Preview Image if available
-        if (uiState.ktpBitmap != null) {
-            Spacer(modifier = Modifier.height(12.dp))
-            Image(
-                bitmap = uiState.ktpBitmap!!.asImageBitmap(),
-                contentDescription = "Preview e-KTP",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(160.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .border(1.dp, Border, RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Crop
-            )
-        } else if (uiState.ktpUri != null) {
-            Spacer(modifier = Modifier.height(12.dp))
-            AsyncImage(
-                model = uiState.ktpUri,
-                contentDescription = "Preview e-KTP",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(160.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .border(1.dp, Border, RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Crop
-            )
-        }
-
-        SectionHeader(title = "Data Sesuai e-KTP")
+        SectionHeader(title = "Identitas Kependudukan")
 
         TextField(
             value = uiState.nik,
             onValueChange = viewModel::onNikChange,
             label = "NIK (Nomor Induk Kependudukan)",
-            placeholder = "16 digit NIK e-KTP",
+            placeholder = "16 digit NIK sesuai e-KTP",
             leadingIcon = Lucide.IdCard,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            required = true
+            required = true,
+            helperText = "Pastikan 16 digit angka sesuai fisik e-KTP"
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
         TextField(
             value = uiState.namaLengkap,
@@ -669,6 +641,163 @@ private fun Step2KtpOcrForm(viewModel: RegisterViewModel, uiState: RegisterUiSta
             required = true
         )
 
+        Spacer(modifier = Modifier.height(14.dp))
+
+        TextField(
+            value = uiState.noHp,
+            onValueChange = viewModel::onNoHpChange,
+            label = "Nomor Handphone (WhatsApp)",
+            placeholder = "Contoh: 081234567890",
+            leadingIcon = Lucide.Phone,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+            required = true,
+            helperText = "Nomor aktif yang dapat dihubungi"
+        )
+    }
+}
+
+// Step 2: Data Pekerjaan & Rekening
+@Composable
+private fun Step2JobAndBankForm(viewModel: RegisterViewModel, uiState: RegisterUiState) {
+    val bankOptions = listOf(
+        DropdownOption(value = "BCA", label = "BCA (Bank Central Asia)"),
+        DropdownOption(value = "MANDIRI", label = "Bank Mandiri"),
+        DropdownOption(value = "BRI", label = "BRI (Bank Rakyat Indonesia)"),
+        DropdownOption(value = "BNI", label = "BNI (Bank Negara Indonesia)"),
+        DropdownOption(value = "CIMB", label = "CIMB Niaga"),
+        DropdownOption(value = "PERMATA", label = "Bank Permata"),
+        DropdownOption(value = "DANAMON", label = "Bank Danamon"),
+        DropdownOption(value = "BSI", label = "BSI (Bank Syariah Indonesia)")
+    )
+
+    val jobStatusOptions = listOf(
+        DropdownOption(value = "KARYAWAN_TETAP", label = "Karyawan Tetap"),
+        DropdownOption(value = "KARYAWAN_KONTRAK", label = "Karyawan Kontrak"),
+        DropdownOption(value = "WIRAUSAHA", label = "Wirausaha / Pemilik Usaha"),
+        DropdownOption(value = "PROFESIONAL", label = "Profesional / Freelancer"),
+        DropdownOption(value = "PNS_BUMN", label = "PNS / Pegawai BUMN"),
+        DropdownOption(value = "IBU_RUMAH_TANGGA", label = "Ibu Rumah Tangga"),
+        DropdownOption(value = "LAINNYA", label = "Lainnya")
+    )
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        SectionHeader(title = "Pekerjaan & Finansial")
+
+        TextField(
+            value = uiState.pekerjaan,
+            onValueChange = viewModel::onPekerjaanChange,
+            label = "Profesi / Pekerjaan",
+            placeholder = "Contoh: Staff Operasional / Wiraswasta",
+            required = true
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        TextField(
+            value = uiState.tempatKerja,
+            onValueChange = viewModel::onTempatKerjaChange,
+            label = "Nama Perusahaan / Tempat Bekerja",
+            placeholder = "Contoh: PT BCA Finance",
+            required = true
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        DropdownField(
+            options = jobStatusOptions,
+            selectedOption = jobStatusOptions.find { it.value.equals(uiState.statusPekerjaan, ignoreCase = true) },
+            onOptionSelect = { opt -> opt?.let { viewModel.onStatusPekerjaanChange(it.value) } },
+            label = "Status Pekerjaan",
+            placeholder = "Pilih status pekerjaan",
+            required = true
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        CurrencyField(
+            amount = uiState.pendapatan.toLongOrNull(),
+            onAmountChange = { viewModel.onPendapatanChange(it?.toString() ?: "") },
+            label = "Pendapatan Bersih Bulanan",
+            placeholder = "0",
+            required = true,
+            quickAmounts = emptyList()
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        Row(modifier = Modifier.fillMaxWidth()) {
+            TextField(
+                value = uiState.lamaBekerjaBulan,
+                onValueChange = viewModel::onLamaBekerjaChange,
+                label = "Lama Kerja (Bulan)",
+                placeholder = "24",
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.weight(1f),
+                required = true
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            CurrencyField(
+                amount = uiState.totalCicilanLainnya.toLongOrNull(),
+                onAmountChange = { viewModel.onCicilanLainnyaChange(it?.toString() ?: "0") },
+                label = "Cicilan Lain (Bulan)",
+                placeholder = "0",
+                quickAmounts = emptyList(),
+                modifier = Modifier.weight(1.3f)
+            )
+        }
+
+        SectionHeader(title = "Rekening Pencairan")
+
+        DropdownField(
+            options = bankOptions,
+            selectedOption = bankOptions.find { it.value.equals(uiState.namaBank, ignoreCase = true) || it.label.startsWith(uiState.namaBank, ignoreCase = true) },
+            onOptionSelect = { opt -> opt?.let { viewModel.onNamaBankChange(it.value) } },
+            label = "Nama Bank",
+            placeholder = "Pilih Bank Pencairan",
+            leadingIcon = Lucide.CreditCard,
+            required = true
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        TextField(
+            value = uiState.noRekening,
+            onValueChange = viewModel::onNoRekeningChange,
+            label = "Nomor Rekening",
+            placeholder = "Contoh: 1234567890",
+            leadingIcon = Lucide.CreditCard,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            required = true
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        TextField(
+            value = uiState.namaRekening,
+            onValueChange = viewModel::onNamaRekeningChange,
+            label = "Nama Pemilik Rekening",
+            placeholder = "Sesuai pada buku tabungan / rekening bank",
+            leadingIcon = Lucide.User,
+            required = true
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        TextField(
+            value = uiState.namaIbuKandung,
+            onValueChange = viewModel::onNamaIbuKandungChange,
+            label = "Nama Gadis Ibu Kandung",
+            placeholder = "Nama ibu kandung untuk verifikasi keamanan",
+            leadingIcon = Lucide.User,
+            required = true
+        )
+    }
+}
+
+// Step 3: Alamat KTP & Domisili (Manual Input)
+@Composable
+private fun Step3AddressForm(viewModel: RegisterViewModel, uiState: RegisterUiState) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         SectionHeader(title = "Alamat Sesuai KTP")
 
         TextField(
@@ -679,7 +808,7 @@ private fun Step2KtpOcrForm(viewModel: RegisterViewModel, uiState: RegisterUiSta
             required = true
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
         Row(modifier = Modifier.fillMaxWidth()) {
             TextField(
@@ -703,7 +832,7 @@ private fun Step2KtpOcrForm(viewModel: RegisterViewModel, uiState: RegisterUiSta
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
         Row(modifier = Modifier.fillMaxWidth()) {
             TextField(
@@ -725,7 +854,7 @@ private fun Step2KtpOcrForm(viewModel: RegisterViewModel, uiState: RegisterUiSta
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
         Row(modifier = Modifier.fillMaxWidth()) {
             TextField(
@@ -747,7 +876,7 @@ private fun Step2KtpOcrForm(viewModel: RegisterViewModel, uiState: RegisterUiSta
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
         TextField(
             value = uiState.alamatKtp.kodePos,
@@ -757,167 +886,7 @@ private fun Step2KtpOcrForm(viewModel: RegisterViewModel, uiState: RegisterUiSta
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            text = "Lanjut ke Data Diri",
-            onClick = viewModel::submitStep1Ktp,
-            isLoading = uiState.isLoading,
-            enabled = uiState.nik.isNotBlank() && uiState.namaLengkap.isNotBlank() && !uiState.isLoading,
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
-}
-
-// Step 3: Data Diri, Keuangan, Rekening & Domisili
-@Composable
-private fun Step3PersonalFinancialForm(viewModel: RegisterViewModel, uiState: RegisterUiState) {
-    val bankOptions = listOf(
-        DropdownOption(value = "BCA", label = "BCA (Bank Central Asia)"),
-        DropdownOption(value = "MANDIRI", label = "Bank Mandiri"),
-        DropdownOption(value = "BRI", label = "BRI (Bank Rakyat Indonesia)"),
-        DropdownOption(value = "BNI", label = "BNI (Bank Negara Indonesia)"),
-        DropdownOption(value = "CIMB", label = "CIMB Niaga"),
-        DropdownOption(value = "PERMATA", label = "Bank Permata"),
-        DropdownOption(value = "DANAMON", label = "Bank Danamon"),
-        DropdownOption(value = "BSI", label = "BSI (Bank Syariah Indonesia)")
-    )
-
-    val jobStatusOptions = listOf(
-        DropdownOption(value = "KARYAWAN_TETAP", label = "Karyawan Tetap"),
-        DropdownOption(value = "KARYAWAN_KONTRAK", label = "Karyawan Kontrak"),
-        DropdownOption(value = "WIRAUSAHA", label = "Wirausaha / Pemilik Usaha"),
-        DropdownOption(value = "PROFESIONAL", label = "Profesional / Freelancer"),
-        DropdownOption(value = "PNS_BUMN", label = "PNS / Pegawai BUMN"),
-        DropdownOption(value = "IBU_RUMAH_TANGGA", label = "Ibu Rumah Tangga"),
-        DropdownOption(value = "LAINNYA", label = "Lainnya")
-    )
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        SectionHeader(title = "Informasi Pribadi")
-
-        TextField(
-            value = uiState.noHp,
-            onValueChange = viewModel::onNoHpChange,
-            label = "Nomor Handphone (WhatsApp)",
-            placeholder = "081234567890",
-            leadingIcon = Lucide.Phone,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-            required = true
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        TextField(
-            value = uiState.namaIbuKandung,
-            onValueChange = viewModel::onNamaIbuKandungChange,
-            label = "Nama Gadis Ibu Kandung",
-            placeholder = "Nama ibu kandung untuk verifikasi keamanan",
-            leadingIcon = Lucide.User,
-            required = true
-        )
-
-        SectionHeader(title = "Rekening Pencairan")
-
-        DropdownField(
-            options = bankOptions,
-            selectedOption = bankOptions.find { it.value.equals(uiState.namaBank, ignoreCase = true) || it.label.startsWith(uiState.namaBank, ignoreCase = true) },
-            onOptionSelect = { opt -> opt?.let { viewModel.onNamaBankChange(it.value) } },
-            label = "Nama Bank",
-            placeholder = "Pilih Bank Pencairan",
-            leadingIcon = Lucide.CreditCard,
-            required = true
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        TextField(
-            value = uiState.noRekening,
-            onValueChange = viewModel::onNoRekeningChange,
-            label = "Nomor Rekening",
-            placeholder = "Contoh: 1234567890",
-            leadingIcon = Lucide.CreditCard,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            required = true
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        TextField(
-            value = uiState.namaRekening,
-            onValueChange = viewModel::onNamaRekeningChange,
-            label = "Nama Pemilik Rekening",
-            placeholder = "Sesuai pada buku tabungan / rekening bank",
-            leadingIcon = Lucide.User,
-            required = true
-        )
-
-        SectionHeader(title = "Pekerjaan & Finansial")
-
-        TextField(
-            value = uiState.pekerjaan,
-            onValueChange = viewModel::onPekerjaanChange,
-            label = "Profesi / Pekerjaan",
-            placeholder = "Contoh: Software Engineer / Staff Keuangan",
-            required = true
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        TextField(
-            value = uiState.tempatKerja,
-            onValueChange = viewModel::onTempatKerjaChange,
-            label = "Nama Perusahaan / Tempat Bekerja",
-            placeholder = "Contoh: PT BCA Finance",
-            required = true
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        DropdownField(
-            options = jobStatusOptions,
-            selectedOption = jobStatusOptions.find { it.value.equals(uiState.statusPekerjaan, ignoreCase = true) },
-            onOptionSelect = { opt -> opt?.let { viewModel.onStatusPekerjaanChange(it.value) } },
-            label = "Status Pekerjaan",
-            placeholder = "Pilih status pekerjaan",
-            required = true
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        CurrencyField(
-            amount = uiState.pendapatan.toLongOrNull(),
-            onAmountChange = { viewModel.onPendapatanChange(it?.toString() ?: "") },
-            label = "Pendapatan Bersih Bulanan",
-            placeholder = "0",
-            required = true,
-            quickAmounts = emptyList()
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Row(modifier = Modifier.fillMaxWidth()) {
-            TextField(
-                value = uiState.lamaBekerjaBulan,
-                onValueChange = viewModel::onLamaBekerjaChange,
-                label = "Lama Bekerja (Bulan)",
-                placeholder = "Contoh: 24",
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.weight(1f),
-                required = true
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            CurrencyField(
-                amount = uiState.totalCicilanLainnya.toLongOrNull(),
-                onAmountChange = { viewModel.onCicilanLainnyaChange(it?.toString() ?: "0") },
-                label = "Total Cicilan Lain (Jika Ada)",
-                placeholder = "0",
-                quickAmounts = emptyList(),
-                modifier = Modifier.weight(1.3f)
-            )
-        }
-
-        SectionHeader(title = "Alamat Domisili")
+        SectionHeader(title = "Alamat Domisili Saat Ini")
 
         CheckboxWithLabel(
             checked = uiState.sameAsKtp,
@@ -936,7 +905,7 @@ private fun Step3PersonalFinancialForm(viewModel: RegisterViewModel, uiState: Re
                     required = true
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
                 Row(modifier = Modifier.fillMaxWidth()) {
                     TextField(
@@ -960,7 +929,7 @@ private fun Step3PersonalFinancialForm(viewModel: RegisterViewModel, uiState: Re
                     )
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
                 Row(modifier = Modifier.fillMaxWidth()) {
                     TextField(
@@ -982,7 +951,7 @@ private fun Step3PersonalFinancialForm(viewModel: RegisterViewModel, uiState: Re
                     )
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
                 Row(modifier = Modifier.fillMaxWidth()) {
                     TextField(
@@ -1005,155 +974,193 @@ private fun Step3PersonalFinancialForm(viewModel: RegisterViewModel, uiState: Re
                 }
             }
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            text = "Lanjut ke Verifikasi Wajah",
-            onClick = viewModel::submitStep2Personal,
-            isLoading = uiState.isLoading,
-            enabled = uiState.noHp.isNotBlank() && uiState.noRekening.isNotBlank() && uiState.pekerjaan.isNotBlank() && !uiState.isLoading,
-            modifier = Modifier.fillMaxWidth()
-        )
     }
 }
 
-// Step 4: Verifikasi Identitas (Liveness Selfie)
+// Step 4: Upload Dokumen KYC (Foto e-KTP & Foto Selfie)
 @Composable
-private fun Step4LivenessSelfieForm(viewModel: RegisterViewModel, uiState: RegisterUiState) {
-    val context = LocalContext.current
-    var isSelfieCameraOpen by remember { mutableStateOf(false) }
+private fun Step4KycDocumentsForm(viewModel: RegisterViewModel, uiState: RegisterUiState) {
+    var activeDocumentTarget by remember { mutableStateOf<String?>(null) }
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicturePreview()
+    ) { bitmap: Bitmap? ->
+        if (bitmap != null) {
+            when (activeDocumentTarget) {
+                "ktp" -> viewModel.onKtpBitmapCaptured(bitmap)
+                "selfie" -> viewModel.onSelfieBitmapCaptured(bitmap)
+            }
+        }
+        activeDocumentTarget = null
+    }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
-            viewModel.onSelfieUriSelected(uri)
+            when (activeDocumentTarget) {
+                "ktp" -> viewModel.onKtpImageSelected(uri)
+                "selfie" -> viewModel.onSelfieUriSelected(uri)
+            }
         }
+        activeDocumentTarget = null
     }
 
-    if (isSelfieCameraOpen) {
-        CameraFramingCaptureDialog(
-            mode = CameraCaptureMode.SELFIE,
-            onDismissRequest = { isSelfieCameraOpen = false },
-            onImageCaptured = { bitmap ->
-                isSelfieCameraOpen = false
-                viewModel.onSelfieBitmapCaptured(bitmap)
+    if (activeDocumentTarget != null) {
+        AlertDialog(
+            onDismissRequest = { activeDocumentTarget = null },
+            title = {
+                Text(
+                    text = if (activeDocumentTarget == "ktp") "Pilih Foto e-KTP" else "Pilih Foto Selfie Wajah",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = TextPrimary
+                )
             },
-            onPickGalleryRequested = {
-                galleryLauncher.launch("image/*")
-            }
+            text = {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "Silakan pilih metode pengambilan foto:",
+                        fontSize = 13.sp,
+                        color = TextSecondary
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Neutral0)
+                            .clickable { cameraLauncher.launch(null) }
+                            .padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(imageVector = Lucide.Camera, contentDescription = null, tint = Primary, modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(text = "Ambil Foto dengan Kamera", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Neutral0)
+                            .clickable { galleryLauncher.launch("image/*") }
+                            .padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(imageVector = Lucide.Image, contentDescription = null, tint = Primary, modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(text = "Pilih dari Galeri Foto", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { activeDocumentTarget = null }) {
+                    Text(text = "Batal", color = TextSecondary)
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(16.dp)
         )
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        // Panduan Foto Wajah
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = Primary0),
-            shape = RoundedCornerShape(14.dp)
-        ) {
-            Column(modifier = Modifier.padding(14.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Lucide.ShieldCheck,
-                        contentDescription = null,
-                        tint = Primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Panduan Verifikasi Wajah",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp,
-                        color = Primary
-                    )
-                }
+        SectionHeader(title = "1. Foto Fisik e-KTP")
 
-                Spacer(modifier = Modifier.height(8.dp))
+        DocumentUploadCard(
+            title = "Foto e-KTP Asli",
+            description = "Foto e-KTP asli secara jelas dan utuh tanpa pantulan cahaya",
+            status = if (uiState.ktpBitmap != null || uiState.ktpUri != null) UploadStatus.UPLOADED else UploadStatus.EMPTY,
+            icon = Lucide.IdCard,
+            fileName = if (uiState.ktpBitmap != null) "ktp_foto.jpg" else uiState.ktpUri?.lastPathSegment,
+            statusBadgeText = if (uiState.ktpBitmap != null || uiState.ktpUri != null) "Foto Tersimpan" else null,
+            onUploadClick = { activeDocumentTarget = "ktp" },
+            onDeleteClick = { viewModel.onKtpImageSelected(null) }
+        )
 
-                Text(
-                    text = "• Posisikan wajah Anda tepat di dalam lingkaran oval kamera.\n• Hindari memakai kacamata hitam, topi, atau masker.\n• Pastikan cahaya ruangan terang dan tidak membelakangi lampu.",
-                    fontSize = 12.sp,
-                    color = TextPrimary,
-                    lineHeight = 18.sp
-                )
-            }
+        if (uiState.ktpBitmap != null) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Image(
+                bitmap = uiState.ktpBitmap!!.asImageBitmap(),
+                contentDescription = "Preview e-KTP",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .border(1.dp, Border, RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Crop
+            )
+        } else if (uiState.ktpUri != null) {
+            Spacer(modifier = Modifier.height(10.dp))
+            AsyncImage(
+                model = uiState.ktpUri,
+                contentDescription = "Preview e-KTP",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .border(1.dp, Border, RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Crop
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Document Upload Card
+        SectionHeader(title = "2. Foto Selfie Wajah")
+
         DocumentUploadCard(
             title = "Foto Selfie Wajah",
-            description = "Gunakan kamera panduan untuk verifikasi wajah langsung.",
+            description = "Foto wajah tampak depan dengan pencahayaan terang",
             status = if (uiState.selfieBitmap != null || uiState.selfieUri != null) UploadStatus.UPLOADED else UploadStatus.EMPTY,
             icon = Lucide.Camera,
-            fileName = if (uiState.selfieBitmap != null) "selfie_camera_scan.jpg" else uiState.selfieUri?.lastPathSegment,
+            fileName = if (uiState.selfieBitmap != null) "selfie_foto.jpg" else uiState.selfieUri?.lastPathSegment,
             statusBadgeText = if (uiState.selfieBitmap != null || uiState.selfieUri != null) "Foto Tersimpan" else null,
-            onUploadClick = { isSelfieCameraOpen = true },
+            onUploadClick = { activeDocumentTarget = "selfie" },
             onDeleteClick = { viewModel.onSelfieUriSelected(null) }
         )
 
-        // Preview Image with Oval Frame
         if (uiState.selfieBitmap != null) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Box(
+            Spacer(modifier = Modifier.height(10.dp))
+            Image(
+                bitmap = uiState.selfieBitmap!!.asImageBitmap(),
+                contentDescription = "Preview Selfie",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .border(2.dp, Primary, RoundedCornerShape(16.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    bitmap = uiState.selfieBitmap!!.asImageBitmap(),
-                    contentDescription = "Preview Selfie",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            }
+                    .height(150.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .border(1.dp, Border, RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Crop
+            )
         } else if (uiState.selfieUri != null) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Box(
+            Spacer(modifier = Modifier.height(10.dp))
+            AsyncImage(
+                model = uiState.selfieUri,
+                contentDescription = "Preview Selfie",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .border(2.dp, Primary, RoundedCornerShape(16.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                AsyncImage(
-                    model = uiState.selfieUri,
-                    contentDescription = "Preview Selfie",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            }
+                    .height(150.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .border(1.dp, Border, RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Crop
+            )
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            text = "Kirim & Lanjut",
-            onClick = viewModel::submitStep3Liveness,
-            isLoading = uiState.isLoading,
-            enabled = (uiState.selfieBitmap != null || uiState.selfieUri != null) && !uiState.isLoading,
-            modifier = Modifier.fillMaxWidth()
-        )
     }
 }
 
-// Step 5: Syarat & Ketentuan & Buat Kata Sandi (Email Only)
+// Step 5: Syarat & Ketentuan Layanan
 @Composable
-private fun Step5TncPasswordForm(viewModel: RegisterViewModel, uiState: RegisterUiState) {
+private fun Step5TncForm(viewModel: RegisterViewModel, uiState: RegisterUiState) {
     Column(modifier = Modifier.fillMaxWidth()) {
         SectionHeader(title = "Syarat & Ketentuan Layanan")
 
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(140.dp),
+                .height(180.dp),
             colors = CardDefaults.cardColors(containerColor = Neutral0),
             shape = RoundedCornerShape(12.dp),
             border = BorderStroke(1.dp, Border)
@@ -1162,36 +1169,43 @@ private fun Step5TncPasswordForm(viewModel: RegisterViewModel, uiState: Register
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(12.dp)
+                    .padding(16.dp)
             ) {
                 Text(
                     text = "SYARAT & KETENTUAN SAKU (BCA FINANCE)",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
+                    fontSize = 12.5.sp,
                     color = TextPrimary
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "1. Pendaftaran akun SAKU diperuntukkan bagi nasabah yang memenuhi kriteria kelayakan pembiayaan BCA Finance.\n\n" +
-                            "2. Nasabah menjamin keaslian dan kebenaran seluruh dokumen e-KTP, data rekening, dan foto identitas yang diunggah.\n\n" +
-                            "3. SAKU berhak melakukan penilaian credit scoring otomatis dan verifikasi lanjutan demi keamanan transaksi.\n\n" +
-                            "4. Data pribadi nasabah dilindungi sesuai Kebijakan Privasi dan regulasi Otoritas Jasa Keuangan (OJK).",
-                    fontSize = 11.sp,
+                    text = "1. Pendaftaran akun SAKU diperuntukkan bagi nasabah perorangan yang memenuhi kriteria kelayakan pembiayaan BCA Finance.\n\n" +
+                            "2. Nasabah menjamin keaslian, keakuratan, dan kebenaran seluruh data identitas, pekerjaan, rekening, serta dokumen foto e-KTP dan foto selfie yang diunggah.\n\n" +
+                            "3. Data dan dokumen KYC akan diverifikasi secara manual oleh tim Backoffice SAKU sesuai kebijakan kepatuhan OJK.\n\n" +
+                            "4. SAKU berhak melakukan penilaian credit scoring otomatis di background demi keamanan transaksi pembiayaan.\n\n" +
+                            "5. Kerahasiaan data pribadi nasabah dilindungi sesuai Kebijakan Privasi SAKU dan peraturan perundang-undangan Republik Indonesia.",
+                    fontSize = 12.sp,
                     color = TextSecondary,
-                    lineHeight = 16.sp
+                    lineHeight = 18.sp
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
         CheckboxWithLabel(
             checked = uiState.isTncAgreed,
             onCheckedChange = viewModel::onTncAgreedToggle,
-            label = "Saya telah membaca, memahami, dan menyetujui Syarat & Ketentuan serta Kebijakan Privasi SAKU.",
+            label = "Saya telah membaca, memahami, dan menyetujui seluruh Syarat & Ketentuan serta Kebijakan Privasi SAKU.",
             modifier = Modifier.padding(vertical = 4.dp)
         )
+    }
+}
 
+// Step 6: Buat Kredensial Kata Sandi
+@Composable
+private fun Step6CredentialsForm(viewModel: RegisterViewModel, uiState: RegisterUiState) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         SectionHeader(title = "Keamanan Akun")
 
         PasswordField(
@@ -1200,10 +1214,10 @@ private fun Step5TncPasswordForm(viewModel: RegisterViewModel, uiState: Register
             label = "Kata Sandi",
             placeholder = "Minimal 8 karakter",
             required = true,
-            helperText = "Gunakan kombinasi huruf dan angka"
+            helperText = "Gunakan minimal 8 karakter dengan kombinasi huruf dan angka"
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
         PasswordField(
             value = uiState.confirmPassword,
@@ -1211,16 +1225,6 @@ private fun Step5TncPasswordForm(viewModel: RegisterViewModel, uiState: Register
             label = "Konfirmasi Kata Sandi",
             placeholder = "Ulangi kata sandi Anda",
             required = true
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            text = "Selesaikan Pendaftaran",
-            onClick = viewModel::submitStep4And5,
-            isLoading = uiState.isLoading,
-            enabled = uiState.isTncAgreed && uiState.password.length >= 8 && uiState.confirmPassword.isNotBlank() && !uiState.isLoading,
-            modifier = Modifier.fillMaxWidth()
         )
     }
 }

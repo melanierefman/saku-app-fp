@@ -63,11 +63,22 @@ fun OtpInputField(
     isError: Boolean = false,
     errorMessage: String? = null,
     enabled: Boolean = true,
+    autoFocus: Boolean = true,
+    focusRequester: FocusRequester = remember { FocusRequester() },
     boxWidth: Dp = 46.dp,
     boxHeight: Dp = 54.dp,
     onOtpComplete: ((String) -> Unit)? = null
 ) {
-    val focusRequester = remember { FocusRequester() }
+    LaunchedEffect(autoFocus, enabled) {
+        if (autoFocus && enabled) {
+            kotlinx.coroutines.delay(150)
+            try {
+                focusRequester.requestFocus()
+            } catch (e: Exception) {
+                // Ignore focus request error if not attached yet
+            }
+        }
+    }
 
     LaunchedEffect(otpValue) {
         if (otpValue.length == otpLength) {

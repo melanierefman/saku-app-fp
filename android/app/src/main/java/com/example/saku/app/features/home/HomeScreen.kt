@@ -30,6 +30,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.material3.Text
@@ -125,6 +126,8 @@ fun HomeScreen(
     val simAmount by viewModel.simAmount.collectAsState()
     val simTenorMonths by viewModel.simTenorMonths.collectAsState()
 
+    val selectedHistoryFilter by viewModel.selectedHistoryFilter.collectAsState()
+
     val currencyFormatter = remember {
         NumberFormat.getNumberInstance(Locale.forLanguageTag("id-ID"))
     }
@@ -158,65 +161,68 @@ fun HomeScreen(
         },
         containerColor = Background,
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(innerPadding),
-            contentPadding = PaddingValues(bottom = 28.dp),
-        ) {
-            // 1. Header Pengguna ("Halo, Nama Lengkap")
-            item {
-                HomeHeaderSection(
-                    displayName = displayName,
-                    onNotificationClick = { viewModel.setNotificationDialogVisible(true) },
-                    onSandboxClick = onNavigateToSandbox,
-                    onLogoutClick = { viewModel.setLogoutDialogVisible(true) },
-                )
-            }
-
-            // 2. HERO CARD PLAFOND SAKU (STANDALONE CARD SESUAI GAMBAR 1)
-            item {
-                Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)) {
-                    PlafondMeshHeroCard(
+        Crossfade(
+            targetState = currentNavRoute,
+            animationSpec = tween(220),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) { route ->
+            when (route) {
+                "home" -> {
+                    HomeTabContent(
+                        displayName = displayName,
                         availablePlafond = availablePlafond,
                         totalPlafond = totalPlafond,
                         usedPlafond = usedPlafond,
                         isBalanceVisible = isBalanceVisible,
-                        onToggleVisibility = viewModel::toggleBalanceVisibility,
-                        currencyFormatter = currencyFormatter,
-                    )
-                }
-            }
-
-            // 3. SECTION "MENU UTAMA" + QUICK ACTIONS (TITLE INSIDE CARD & CLEAN BORDER)
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                MenuUtamaSection(
-                    onAjukanClick = { viewModel.setSimulationDialogVisible(true) },
-                    onBayarClick = { viewModel.setNavRoute("loans") },
-                    onSimulasiClick = { viewModel.setSimulationDialogVisible(true) },
-                    onRiwayatClick = { viewModel.setNavRoute("history") },
-                )
-            }
-
-            // 4. INFO TAGIHAN / PINJAMAN AKTIF CARD (CLEAN BORDER & BUTTON DI BAWAH KANAN)
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                Box(modifier = Modifier.padding(horizontal = 20.dp)) {
-                    TagihanPinjamanAktifCard(
                         activeLoan = myLoans.firstOrNull(),
                         activeLoansCount = myLoans.size,
                         currencyFormatter = currencyFormatter,
-                        onPayClick = { viewModel.setNavRoute("loans") },
-                        onDetailClick = { viewModel.setNavRoute("loans") },
+                        onToggleVisibility = viewModel::toggleBalanceVisibility,
+                        onAjukanClick = { viewModel.setSimulationDialogVisible(true) },
+                        onBayarClick = { viewModel.setNavRoute("loans") },
+                        onSimulasiClick = { viewModel.setSimulationDialogVisible(true) },
+                        onRiwayatClick = { viewModel.setNavRoute("history") },
+                        onNotificationClick = { viewModel.setNotificationDialogVisible(true) },
+                        onSandboxClick = onNavigateToSandbox,
+                        onLogoutClick = { viewModel.setLogoutDialogVisible(true) },
                     )
                 }
-            }
-
-            // 5. BANNER PROMO FULL WIDTH DENGAN PAGE INDICATOR
-            item {
-                Spacer(modifier = Modifier.height(20.dp))
-                FullWidthPromoBannerSection(
-                    onPromoItemClick = { viewModel.setSimulationDialogVisible(true) },
-                )
+                "loans" -> {
+                    LoansTabContent(
+                        customerProfile = customerProfile,
+                        myLoans = myLoans,
+                        availablePlafond = availablePlafond,
+                        totalPlafond = totalPlafond,
+                        usedPlafond = usedPlafond,
+                        currencyFormatter = currencyFormatter,
+                        onAjukanClick = { viewModel.setSimulationDialogVisible(true) },
+                        onSimulasiClick = { viewModel.setSimulationDialogVisible(true) },
+                        onPayClick = { /* Pay handler */ },
+                        onDetailClick = { /* Detail handler */ },
+                    )
+                }
+                "history" -> {
+                    HistoryTabContent(
+                        myLoans = myLoans,
+                        selectedFilter = selectedHistoryFilter,
+                        onFilterSelect = viewModel::setHistoryFilter,
+                        currencyFormatter = currencyFormatter,
+                        onAjukanClick = { viewModel.setSimulationDialogVisible(true) },
+                        onRefresh = viewModel::fetchDashboardData,
+                    )
+                }
+                "profile" -> {
+                    ProfileTabContent(
+                        customerProfile = customerProfile,
+                        userSession = userSession,
+                        onLogoutClick = { viewModel.setLogoutDialogVisible(true) },
+                        onNotificationClick = { viewModel.setNotificationDialogVisible(true) },
+                        onSimulasiClick = { viewModel.setSimulationDialogVisible(true) },
+                        onSandboxClick = onNavigateToSandbox,
+                    )
+                }
             }
         }
     }
@@ -254,6 +260,91 @@ fun HomeScreen(
     // Notification Center Dialog
     if (showNotificationDialog) {
         NotificationCenterDialog(onDismiss = { viewModel.setNotificationDialogVisible(false) })
+    }
+}
+
+// -------------------------------------------------------------
+// BERANDA TAB CONTENT
+// -------------------------------------------------------------
+@Composable
+private fun HomeTabContent(
+    displayName: String,
+    availablePlafond: Double,
+    totalPlafond: Double,
+    usedPlafond: Double,
+    isBalanceVisible: Boolean,
+    activeLoan: LoanApplicationItemDto?,
+    activeLoansCount: Int,
+    currencyFormatter: NumberFormat,
+    onToggleVisibility: () -> Unit,
+    onAjukanClick: () -> Unit,
+    onBayarClick: () -> Unit,
+    onSimulasiClick: () -> Unit,
+    onRiwayatClick: () -> Unit,
+    onNotificationClick: () -> Unit,
+    onSandboxClick: (() -> Unit)?,
+    onLogoutClick: () -> Unit,
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 28.dp),
+    ) {
+        // 1. Header Pengguna ("Halo, Nama Lengkap")
+        item {
+            HomeHeaderSection(
+                displayName = displayName,
+                onNotificationClick = onNotificationClick,
+                onSandboxClick = onSandboxClick,
+                onLogoutClick = onLogoutClick,
+            )
+        }
+
+        // 2. HERO CARD PLAFOND SAKU (STANDALONE CARD SESUAI GAMBAR 1)
+        item {
+            Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)) {
+                PlafondMeshHeroCard(
+                    availablePlafond = availablePlafond,
+                    totalPlafond = totalPlafond,
+                    usedPlafond = usedPlafond,
+                    isBalanceVisible = isBalanceVisible,
+                    onToggleVisibility = onToggleVisibility,
+                    currencyFormatter = currencyFormatter,
+                )
+            }
+        }
+
+        // 3. SECTION "MENU UTAMA" + QUICK ACTIONS (TITLE INSIDE CARD & CLEAN BORDER)
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+            MenuUtamaSection(
+                onAjukanClick = onAjukanClick,
+                onBayarClick = onBayarClick,
+                onSimulasiClick = onSimulasiClick,
+                onRiwayatClick = onRiwayatClick,
+            )
+        }
+
+        // 4. INFO TAGIHAN / PINJAMAN AKTIF CARD (CLEAN BORDER & BUTTON DI BAWAH KANAN)
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+            Box(modifier = Modifier.padding(horizontal = 20.dp)) {
+                TagihanPinjamanAktifCard(
+                    activeLoan = activeLoan,
+                    activeLoansCount = activeLoansCount,
+                    currencyFormatter = currencyFormatter,
+                    onPayClick = onBayarClick,
+                    onDetailClick = onBayarClick,
+                )
+            }
+        }
+
+        // 5. BANNER PROMO FULL WIDTH DENGAN PAGE INDICATOR
+        item {
+            Spacer(modifier = Modifier.height(20.dp))
+            FullWidthPromoBannerSection(
+                onPromoItemClick = onAjukanClick,
+            )
+        }
     }
 }
 

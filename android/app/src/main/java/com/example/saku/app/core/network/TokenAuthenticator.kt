@@ -23,8 +23,9 @@ class TokenAuthenticator(
 
     override fun authenticate(route: Route?, response: Response): Request? {
         val path = response.request.url.encodedPath
-        // Jangan intercept jika request yang 401 adalah auth/login atau auth/refresh-token
-        if (path.contains("auth/customer/login") || path.contains("auth/customer/refresh-token")) {
+        // Jangan intercept jika request adalah endpoint publik atau auth
+        val isPublicAuth = path.contains("/auth/") || path.contains("/public/")
+        if (isPublicAuth) {
             return null
         }
 
