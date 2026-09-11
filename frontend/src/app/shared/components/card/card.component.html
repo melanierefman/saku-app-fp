@@ -1,15 +1,14 @@
 <div [class]="containerClasses">
   @if (loading) {
-  <!-- Skeleton Loading State -->
-  <div class="space-y-4">
+  <div class="flex flex-col gap-4">
     <div class="flex items-center gap-3 pb-3.5 border-b border-[#F3F4F6]">
       <app-skeleton variant="rect" width="w-8" height="h-8" rounded="xl"></app-skeleton>
-      <div class="space-y-1.5 flex-1">
+      <div class="flex flex-col gap-2 flex-1">
         <app-skeleton variant="text" width="w-1/3" height="h-4"></app-skeleton>
         <app-skeleton variant="text" width="w-1/2" height="h-3"></app-skeleton>
       </div>
     </div>
-    <div class="space-y-3 pt-2">
+    <div class="flex flex-col gap-3 pt-1">
       <app-skeleton variant="text" width="w-full" height="h-3.5"></app-skeleton>
       <app-skeleton variant="text" width="w-5/6" height="h-3.5"></app-skeleton>
       <app-skeleton variant="text" width="w-4/6" height="h-3.5"></app-skeleton>

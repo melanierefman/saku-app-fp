@@ -1,11 +1,11 @@
 <div class="mx-auto space-y-6">
   @if (isLoading()) {
   <!-- Skeleton Loading State -->
-  <div class="space-y-6">
+  <div class="flex flex-col gap-6">
     <!-- Skeleton Header Card -->
     <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 sm:p-8 shadow-xs flex flex-col sm:flex-row items-center gap-6">
       <app-skeleton variant="circle" width="w-20" height="h-20"></app-skeleton>
-      <div class="space-y-2.5 flex-1 w-full flex flex-col items-center sm:items-start">
+      <div class="flex flex-col gap-3 flex-1 w-full items-center sm:items-start">
         <app-skeleton variant="text" width="w-48" height="h-6"></app-skeleton>
         <app-skeleton variant="text" width="w-36" height="h-4"></app-skeleton>
         <app-skeleton variant="text" width="w-28" height="h-5" rounded="full"></app-skeleton>
@@ -14,17 +14,17 @@
     </div>
 
     <!-- Skeleton Detail Info Card -->
-    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 sm:p-8 shadow-xs space-y-4">
+    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 sm:p-8 shadow-xs flex flex-col gap-5">
       <div class="flex items-center gap-3">
         <app-skeleton variant="rect" width="w-8" height="h-8" rounded="xl"></app-skeleton>
-        <div class="space-y-1">
+        <div class="flex flex-col gap-2">
           <app-skeleton variant="text" width="w-44" height="h-5"></app-skeleton>
           <app-skeleton variant="text" width="w-72" height="h-3.5"></app-skeleton>
         </div>
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 pt-2">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-6 pt-2">
         @for (i of [1,2,3,4]; track i) {
-        <div class="space-y-1.5">
+        <div class="flex flex-col gap-2">
           <app-skeleton variant="text" width="w-20" height="h-3"></app-skeleton>
           <app-skeleton variant="text" width="w-36" height="h-4"></app-skeleton>
         </div>
@@ -33,17 +33,17 @@
     </div>
 
     <!-- Skeleton Change Password Card -->
-    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 sm:p-8 shadow-xs space-y-4">
+    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 sm:p-8 shadow-xs flex flex-col gap-5">
       <div class="flex items-center gap-3">
         <app-skeleton variant="rect" width="w-8" height="h-8" rounded="xl"></app-skeleton>
-        <div class="space-y-1">
+        <div class="flex flex-col gap-2">
           <app-skeleton variant="text" width="w-44" height="h-5"></app-skeleton>
           <app-skeleton variant="text" width="w-72" height="h-3.5"></app-skeleton>
         </div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2">
         @for (i of [1,2,3]; track i) {
-        <div class="space-y-2">
+        <div class="flex flex-col gap-2.5">
           <app-skeleton variant="text" width="w-28" height="h-3.5"></app-skeleton>
           <app-skeleton variant="rect" width="w-full" height="h-10" rounded="xl"></app-skeleton>
         </div>
