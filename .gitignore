@@ -66,6 +66,7 @@ pnpm-debug.log*
 # Android (Kotlin / Gradle)
 # ==========================================
 .gradle/
+**/.kotlin/
 **/local.properties
 **/captures/
 **/.externalNativeBuild/

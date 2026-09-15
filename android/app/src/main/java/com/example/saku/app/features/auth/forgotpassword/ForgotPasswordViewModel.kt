@@ -3,9 +3,11 @@ package com.example.saku.app.features.auth.forgotpassword
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.saku.app.core.data.TokenManager
+import com.example.saku.app.core.data.repository.AuthRepository
+import com.example.saku.app.core.data.repository.AuthRepositoryImpl
 import com.example.saku.app.core.network.ApiClient
 import com.example.saku.app.core.network.ApiResult
-import com.example.saku.app.core.network.dto.ForgotPasswordRequest
 import com.example.saku.app.core.network.dto.ResetPasswordRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,9 +21,13 @@ enum class ForgotPasswordStep {
     SUCCESS
 }
 
-class ForgotPasswordViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val authApiService = ApiClient.getAuthApiService(application)
+class ForgotPasswordViewModel @JvmOverloads constructor(
+    application: Application,
+    private val authRepository: AuthRepository = AuthRepositoryImpl(
+        ApiClient.getAuthApiService(application),
+        TokenManager.getInstance(application)
+    )
+) : AndroidViewModel(application) {
 
     var currentStep = MutableStateFlow(ForgotPasswordStep.REQUEST_OTP)
         private set
@@ -76,18 +82,16 @@ class ForgotPasswordViewModel(application: Application) : AndroidViewModel(appli
 
         viewModelScope.launch {
             _actionState.value = ApiResult.Loading
-            try {
-                val response = authApiService.forgotPassword(ForgotPasswordRequest(emailVal))
-                if (response.isSuccessful && response.body() != null) {
-                    val msg = response.body()!!.message ?: "Kode OTP telah dikirim ke email Anda"
+            when (val result = authRepository.forgotPassword(emailVal)) {
+                is ApiResult.Success -> {
+                    val msg = result.message ?: "Kode OTP telah dikirim ke email Anda"
                     _actionState.value = ApiResult.Success(msg, msg)
                     currentStep.value = ForgotPasswordStep.VERIFY_OTP
-                } else {
-                    // In case of mock / dev or normal error
-                    _actionState.value = ApiResult.Error(ApiClient.parseError(response), response.code())
                 }
-            } catch (e: Exception) {
-                _actionState.value = ApiResult.Error(e.localizedMessage ?: "Gagal mengirim OTP ke email")
+                is ApiResult.Error -> {
+                    _actionState.value = ApiResult.Error(result.message, result.statusCode)
+                }
+                else -> {}
             }
         }
     }
@@ -130,23 +134,22 @@ class ForgotPasswordViewModel(application: Application) : AndroidViewModel(appli
 
         viewModelScope.launch {
             _actionState.value = ApiResult.Loading
-            try {
-                val request = ResetPasswordRequest(
-                    email = email.value.trim(),
-                    otpCode = otpVal,
-                    newPassword = passVal,
-                    confirmNewPassword = confirmVal
-                )
-                val response = authApiService.resetPassword(request)
-                if (response.isSuccessful && response.body() != null) {
-                    val msg = response.body()!!.message ?: "Password berhasil diubah"
+            val request = ResetPasswordRequest(
+                email = email.value.trim(),
+                otpCode = otpVal,
+                newPassword = passVal,
+                confirmNewPassword = confirmVal
+            )
+            when (val result = authRepository.resetPassword(request)) {
+                is ApiResult.Success -> {
+                    val msg = result.message ?: "Password berhasil diubah"
                     _actionState.value = ApiResult.Success(msg, msg)
                     currentStep.value = ForgotPasswordStep.SUCCESS
-                } else {
-                    _actionState.value = ApiResult.Error(ApiClient.parseError(response), response.code())
                 }
-            } catch (e: Exception) {
-                _actionState.value = ApiResult.Error(e.localizedMessage ?: "Gagal mereset password")
+                is ApiResult.Error -> {
+                    _actionState.value = ApiResult.Error(result.message, result.statusCode)
+                }
+                else -> {}
             }
         }
     }

@@ -116,7 +116,7 @@ fun InfoSummaryCard(
                     .fillMaxWidth()
                     .background(
                         Brush.linearGradient(
-                            listOf(Primary, Primary60, Color(0xFFC44F12))
+                            listOf(Primary, Primary60, Primary70)
                         )
                     )
                     .padding(20.dp)

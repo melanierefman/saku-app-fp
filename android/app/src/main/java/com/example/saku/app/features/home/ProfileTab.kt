@@ -1,6 +1,7 @@
 package com.example.saku.app.features.home
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,21 +15,34 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.composables.icons.lucide.Bell
@@ -36,12 +50,16 @@ import com.composables.icons.lucide.Briefcase
 import com.composables.icons.lucide.Calculator
 import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.CreditCard
+import com.composables.icons.lucide.Headphones
 import com.composables.icons.lucide.IdCard
+import com.composables.icons.lucide.Info
+import com.composables.icons.lucide.KeyRound
 import com.composables.icons.lucide.LogOut
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Palette
+import com.composables.icons.lucide.MapPin
+import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.ShieldCheck
-import com.composables.icons.lucide.User
+import com.example.saku.app.R
 import com.example.saku.app.core.data.UserSession
 import com.example.saku.app.core.network.dto.CustomerProfileDto
 import com.example.saku.app.core.ui.components.Badge
@@ -54,10 +72,14 @@ import com.example.saku.app.ui.theme.Background
 import com.example.saku.app.ui.theme.Border
 import com.example.saku.app.ui.theme.Primary
 import com.example.saku.app.ui.theme.Primary0
+import com.example.saku.app.ui.theme.Primary60
+import com.example.saku.app.ui.theme.Primary70
 import com.example.saku.app.ui.theme.Surface
 import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary
 import com.example.saku.app.ui.theme.TextSecondary
+import java.text.NumberFormat
+import java.util.Locale
 
 @Composable
 fun ProfileTabContent(
@@ -66,245 +88,422 @@ fun ProfileTabContent(
     onLogoutClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onSimulasiClick: () -> Unit,
+    onEditProfileClick: (String) -> Unit,
+    onChangePasswordClick: () -> Unit,
     onSandboxClick: (() -> Unit)?,
 ) {
+    val listState = rememberLazyListState()
+    val currencyFormatter = remember { NumberFormat.getNumberInstance(Locale.forLanguageTag("id-ID")) }
+
     val displayName = customerProfile?.nama ?: (userSession?.nama ?: (userSession?.username ?: "Nasabah SAKU"))
     val displayEmail = customerProfile?.email ?: (userSession?.email ?: "-")
     val displayPhone = customerProfile?.noHp ?: (userSession?.noHp ?: "-")
-    val isKycVerified = customerProfile?.isKycVerified ?: false
     val initials = displayName.trim().take(2).uppercase()
 
-    LazyColumn(
+    val penghasilanFormatted = customerProfile?.penghasilanBulanan?.let {
+        "Rp ${currencyFormatter.format(it)}"
+    } ?: "-"
+
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Background),
-        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .background(
+                Brush.linearGradient(
+                    listOf(
+                        Primary,
+                        Primary60,
+                        Primary70
+                    )
+                )
+            )
     ) {
-        // 1. Header Tab Profil
-        item {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = "Profil Nasabah",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary,
-                    letterSpacing = (-0.5).sp
-                )
-                Spacer(modifier = Modifier.height(3.dp))
-                Text(
-                    text = "Kelola informasi akun & data diri Anda",
-                    fontSize = 13.sp,
-                    color = TextSecondary
-                )
-            }
-        }
+        // 1. TALL ORANGE HEADER (Avatar, Nama, Email, dan Level Plafond)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            // Background Card Wave Pattern
+            Image(
+                painter = painterResource(id = R.drawable.bg_card_saku),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                alignment = Alignment.CenterEnd,
+                modifier = Modifier
+                    .matchParentSize()
+                    .graphicsLayer(
+                        scaleX = 1.45f,
+                        scaleY = 1.45f,
+                        transformOrigin = TransformOrigin(0.85f, 0.5f)
+                    )
+            )
 
-        // 2. User Hero Card
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Surface),
-                border = BorderStroke(1.dp, Border)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 18.dp, end = 18.dp, top = 8.dp, bottom = 18.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(18.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                // Top Action Bar
+                Box(
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Box(
+                    Text(
+                        text = "Profil Saya",
+                        fontSize = 17.5.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        letterSpacing = 0.3.sp,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+
+                    // Quick Edit Button in Top Right
+                    Row(
                         modifier = Modifier
-                            .size(56.dp)
-                            .clip(CircleShape)
-                            .background(Primary0),
-                        contentAlignment = Alignment.Center
+                            .align(Alignment.CenterEnd)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.White)
+                            .clickable { onEditProfileClick("REKENING") }
+                            .padding(horizontal = 10.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Text(
-                            text = initials,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = Primary
+                        Icon(
+                            imageVector = Lucide.Pencil,
+                            contentDescription = "Edit Profil",
+                            tint = Primary,
+                            modifier = Modifier.size(12.dp)
                         )
-                    }
-
-                    Spacer(modifier = Modifier.width(14.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = displayName,
-                            fontSize = 15.5.sp,
+                            text = "Edit",
+                            fontSize = 11.5.sp,
                             fontWeight = FontWeight.Bold,
                             color = TextPrimary
                         )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = displayEmail,
-                            fontSize = 12.sp,
-                            color = TextSecondary
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-
-                        Badge(
-                            text = if (isKycVerified) "KYC Terverifikasi" else "Menunggu Verifikasi KYC",
-                            variant = if (isKycVerified) BadgeVariant.Success else BadgeVariant.Warning,
-                            size = BadgeSize.SM
-                        )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Circular Avatar Inside Orange Header
+                Box(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .shadow(6.dp, CircleShape)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        .padding(2.5.dp)
+                        .clip(CircleShape)
+                        .background(Primary0),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = initials,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Primary
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Nama Nasabah in White
+                Text(
+                    text = displayName,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+
+                Spacer(modifier = Modifier.height(2.dp))
+
+                // Email in Translucent White
+                Text(
+                    text = displayEmail,
+                    fontSize = 12.sp,
+                    color = Color.White.copy(alpha = 0.88f)
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Level / Tier Plafond Badge langsung dari Backend (tierPlafond)
+                val rawTierName = customerProfile?.tierPlafond?.takeIf { it.isNotBlank() } ?: "Tier Reguler"
+                val tierVariant = when {
+                    rawTierName.contains("Platinum", ignoreCase = true) -> BadgeVariant.Primary
+                    rawTierName.contains("Prioritas", ignoreCase = true) -> BadgeVariant.Success
+                    rawTierName.contains("Reguler", ignoreCase = true) -> BadgeVariant.Warning
+                    rawTierName.contains("Starter", ignoreCase = true) -> BadgeVariant.Neutral
+                    else -> BadgeVariant.Neutral
+                }
+
+                Badge(
+                    text = rawTierName,
+                    variant = tierVariant,
+                    size = BadgeSize.SM
+                )
             }
         }
 
-        // 3. Section: Informasi Identitas
-        item {
-            ProfileInfoSectionCard(
-                title = "Informasi Identitas & KTP",
-                icon = Lucide.IdCard,
-                items = listOf(
-                    "NIK" to (customerProfile?.nik ?: "-"),
-                    "Nama Lengkap" to displayName,
-                    "Email" to displayEmail,
-                    "No. Handphone" to displayPhone
-                )
-            )
-        }
-
-        // 4. Section: Informasi Rekening Bank
-        item {
-            ProfileInfoSectionCard(
-                title = "Rekening Bank Pencairan",
-                icon = Lucide.CreditCard,
-                items = listOf(
-                    "Nama Bank" to (customerProfile?.namaBank ?: "BCA (Bank Central Asia)"),
-                    "Nomor Rekening" to (customerProfile?.noRekening ?: "-"),
-                    "Atas Nama" to (customerProfile?.namaRekening ?: displayName)
-                )
-            )
-        }
-
-        // 5. Section: Informasi Pekerjaan
-        item {
-            ProfileInfoSectionCard(
-                title = "Informasi Pekerjaan",
-                icon = Lucide.Briefcase,
-                items = listOf(
-                    "Profesi / Pekerjaan" to (customerProfile?.pekerjaan ?: "-"),
-                    "Tempat Kerja" to (customerProfile?.tempatKerja ?: "-"),
-                    "Status Karyawan" to (customerProfile?.statusPekerjaan ?: "-")
-                )
-            )
-        }
-
-        // 6. Section: Pengaturan & Menu Cepat
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = Surface),
-                border = BorderStroke(1.dp, Border)
+        // 2. WHITE SHEET BODY WITH ROUNDED TOP CORNERS
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .background(Background)
+        ) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(top = 16.dp, bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Column(modifier = Modifier.padding(vertical = 6.dp)) {
-                    ProfileMenuRow(
-                        icon = Lucide.Bell,
-                        title = "Pemberitahuan & Notifikasi",
-                        subtitle = "Lihat pembaruan status dan pesan sistem",
-                        onClick = onNotificationClick
-                    )
+                // 1. SECTION: INFORMASI DATA DIRI (CLEAN & SIMPLE UNIFIED CARD)
+                item {
+                    Box(modifier = Modifier.padding(horizontal = 18.dp)) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = Surface),
+                            border = BorderStroke(1.dp, Border)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    text = "Informasi Akun & Data Diri",
+                                    fontSize = 13.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
+                                )
 
-                    ProfileMenuRow(
-                        icon = Lucide.Calculator,
-                        title = "Simulasi Pinjaman SAKU",
-                        subtitle = "Hitung estimasi angsuran & bunga pinjaman",
-                        onClick = onSimulasiClick
-                    )
+                                Spacer(modifier = Modifier.height(14.dp))
 
-                    if (onSandboxClick != null) {
-                        ProfileMenuRow(
-                            icon = Lucide.Palette,
-                            title = "Developer UI Sandbox",
-                            subtitle = "Katalog komponen desain sistem Compose",
-                            onClick = onSandboxClick
+                                // Item 1: Identitas KTP
+                                ProfileInfoSimpleItem(
+                                    icon = Lucide.IdCard,
+                                    title = "Identitas KTP",
+                                    primaryValue = "NIK: ${customerProfile?.nik ?: "-"}",
+                                    secondaryValue = "No. Handphone: $displayPhone"
+                                )
+
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(vertical = 12.dp),
+                                    color = Border.copy(alpha = 0.5f),
+                                    thickness = 0.8.dp
+                                )
+
+                                // Item 2: Rekening Pencairan
+                                val bankName = customerProfile?.namaBank ?: "BCA"
+                                val rekeningNo = customerProfile?.noRekening ?: "-"
+                                val atasNama = customerProfile?.namaRekening ?: displayName
+                                ProfileInfoSimpleItem(
+                                    icon = Lucide.CreditCard,
+                                    title = "Rekening Pencairan",
+                                    primaryValue = "$bankName • $rekeningNo",
+                                    secondaryValue = "a/n $atasNama",
+                                    onEditClick = { onEditProfileClick("REKENING") }
+                                )
+
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(vertical = 12.dp),
+                                    color = Border.copy(alpha = 0.5f),
+                                    thickness = 0.8.dp
+                                )
+
+                                // Item 3: Alamat Domisili
+                                val domisili = customerProfile?.alamatDomisili
+                                val alamatPrimary = domisili?.alamatLengkap ?: "-"
+                                val alamatSecondary = if (domisili != null && (domisili.kotaKabupaten != null || domisili.provinsi != null)) {
+                                    val rtRw = if (!domisili.rt.isNullOrBlank() || !domisili.rw.isNullOrBlank()) "RT ${domisili.rt ?: "-"}/RW ${domisili.rw ?: "-"}, " else ""
+                                    val kota = domisili.kotaKabupaten ?: ""
+                                    val prov = if (!domisili.provinsi.isNullOrBlank()) ", ${domisili.provinsi}" else ""
+                                    val pos = if (!domisili.kodePos.isNullOrBlank()) " ${domisili.kodePos}" else ""
+                                    "$rtRw$kota$prov$pos".trim().removePrefix(",").trim()
+                                } else null
+
+                                ProfileInfoSimpleItem(
+                                    icon = Lucide.MapPin,
+                                    title = "Alamat Domisili",
+                                    primaryValue = alamatPrimary,
+                                    secondaryValue = alamatSecondary,
+                                    onEditClick = { onEditProfileClick("DOMISILI") }
+                                )
+
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(vertical = 12.dp),
+                                    color = Border.copy(alpha = 0.5f),
+                                    thickness = 0.8.dp
+                                )
+
+                                // Item 4: Pekerjaan & Penghasilan
+                                val pekerjaan = customerProfile?.pekerjaan ?: "-"
+                                val tempatKerja = customerProfile?.tempatKerja
+                                val pekerjaanPrimary = if (!tempatKerja.isNullOrBlank()) "$pekerjaan • $tempatKerja" else pekerjaan
+
+                                ProfileInfoSimpleItem(
+                                    icon = Lucide.Briefcase,
+                                    title = "Informasi Pekerjaan",
+                                    primaryValue = pekerjaanPrimary,
+                                    secondaryValue = "Penghasilan: $penghasilanFormatted",
+                                    onEditClick = { onEditProfileClick("PEKERJAAN") }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // 2. SECTION: KEAMANAN & MENU PENGATURAN
+                item {
+                    val context = LocalContext.current
+                    Box(modifier = Modifier.padding(horizontal = 18.dp)) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = Surface),
+                            border = BorderStroke(1.dp, Border)
+                        ) {
+                            Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                                ProfileMenuRow(
+                                    icon = Lucide.KeyRound,
+                                    title = "Ganti Kata Sandi",
+                                    subtitle = "Perbarui kata sandi akun SAKU Anda",
+                                    onClick = onChangePasswordClick
+                                )
+
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                    color = Border.copy(alpha = 0.5f),
+                                    thickness = 0.8.dp
+                                )
+
+                                ProfileMenuRow(
+                                    icon = Lucide.Headphones,
+                                    title = "Pusat Bantuan & Layanan CS",
+                                    subtitle = "Hubungi Halo BCA (1500888) & CS SAKU",
+                                    onClick = {
+                                        Toast.makeText(context, "Layanan Halo BCA: 1500888 atau email halobca@bca.co.id", Toast.LENGTH_LONG).show()
+                                    }
+                                )
+
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                    color = Border.copy(alpha = 0.5f),
+                                    thickness = 0.8.dp
+                                )
+
+                                ProfileMenuRow(
+                                    icon = Lucide.ShieldCheck,
+                                    title = "Syarat & Ketentuan",
+                                    subtitle = "Kebijakan privasi & regulasi berizin OJK",
+                                    onClick = {
+                                        Toast.makeText(context, "SAKU berizin dan diawasi oleh Otoritas Jasa Keuangan (OJK).", Toast.LENGTH_SHORT).show()
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // 3. TOMBOL LOGOUT & APP VERSION FOOTER
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 18.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Button(
+                            text = "Keluar dari Akun",
+                            onClick = onLogoutClick,
+                            variant = ButtonVariant.Error,
+                            size = ButtonSize.LG,
+                            fullWidth = true,
+                            leadingIcon = Lucide.LogOut
                         )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(
+                            text = "SAKU Mobile App v1.0.0\nPT BCA Finance • Berizin & Diawasi oleh OJK",
+                            fontSize = 11.5.sp,
+                            color = TextMuted,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 16.sp
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
             }
-        }
-
-        // 7. Tombol Logout
-        item {
-            Spacer(modifier = Modifier.height(4.dp))
-            Button(
-                text = "Keluar dari Akun",
-                onClick = onLogoutClick,
-                variant = ButtonVariant.Error,
-                size = ButtonSize.LG,
-                fullWidth = true,
-                leadingIcon = Lucide.LogOut
-            )
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
 @Composable
-private fun ProfileInfoSectionCard(
-    title: String,
+private fun ProfileInfoSimpleItem(
     icon: ImageVector,
-    items: List<Pair<String, String>>,
+    title: String,
+    primaryValue: String,
+    secondaryValue: String? = null,
+    onEditClick: (() -> Unit)? = null,
 ) {
-    Card(
+    Row(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Surface),
-        border = BorderStroke(1.dp, Border)
+        verticalAlignment = Alignment.Top
     ) {
-        Column(modifier = Modifier.padding(18.dp)) {
+        // Bare black icon with no outer fill/container
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = TextPrimary,
+            modifier = Modifier
+                .padding(top = 2.dp)
+                .size(18.dp)
+        )
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Primary0),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = Primary,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
                 Text(
                     text = title,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
+                    fontSize = 11.5.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextSecondary
                 )
-            }
 
-            Spacer(modifier = Modifier.height(14.dp))
-
-            items.forEachIndexed { index, (label, value) ->
-                if (index > 0) {
-                    Spacer(modifier = Modifier.height(10.dp))
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = label, fontSize = 12.sp, color = TextMuted)
+                if (onEditClick != null) {
                     Text(
-                        text = value,
-                        fontSize = 12.5.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = TextPrimary
+                        text = "Ubah",
+                        fontSize = 11.5.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Primary,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(4.dp))
+                            .clickable(onClick = onEditClick)
+                            .padding(horizontal = 4.dp, vertical = 2.dp)
                     )
                 }
+            }
+
+            Spacer(modifier = Modifier.height(2.dp))
+
+            Text(
+                text = primaryValue,
+                fontSize = 12.5.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = TextPrimary
+            )
+
+            if (!secondaryValue.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(1.5.dp))
+                Text(
+                    text = secondaryValue,
+                    fontSize = 11.5.sp,
+                    color = TextMuted
+                )
             }
         }
     }
@@ -321,42 +520,39 @@ private fun ProfileMenuRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 18.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .size(34.dp)
-                .clip(CircleShape)
-                .background(Primary0),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = Primary,
-                modifier = Modifier.size(17.dp)
-            )
-        }
-        Spacer(modifier = Modifier.width(12.dp))
+        // Bare black icon with no outer container/fill
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = TextPrimary,
+            modifier = Modifier.size(20.dp)
+        )
+        Spacer(modifier = Modifier.width(14.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
                 fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
                 color = TextPrimary
             )
-            Text(
-                text = subtitle,
-                fontSize = 11.5.sp,
-                color = TextSecondary
-            )
+            if (subtitle.isNotBlank()) {
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = subtitle,
+                    fontSize = 11.sp,
+                    color = TextSecondary
+                )
+            }
         }
         Icon(
             imageVector = Lucide.ChevronRight,
             contentDescription = null,
             tint = TextMuted,
-            modifier = Modifier.size(18.dp)
+            modifier = Modifier.size(16.dp)
         )
     }
 }
+

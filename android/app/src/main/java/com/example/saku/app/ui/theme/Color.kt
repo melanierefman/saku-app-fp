@@ -75,9 +75,9 @@ val Background = Color(0xFFFAFAFA)
 val Surface = Color(0xFFFFFFFF)
 val SurfaceVariant = Color(0xFFF4F4F5)
 val Border = Color(0xFFE4E4E7)
-val TextPrimary = Color(0xFF18181B)
-val TextSecondary = Color(0xFF71717A)
-val TextMuted = Color(0xFFA1A1AA)
+val TextPrimary = Color(0xFF252525)   // Neutral50 (from FE --color-neutral: #252525)
+val TextSecondary = Color(0xFF6F6F6F) // Neutral40 (from FE --color-neutral-40: #6F6F6F)
+val TextMuted = Color(0xFF969696)     // Neutral30 (from FE --color-neutral-30: #969696)
 
 // Extended Accent & Badge Colors
 val Info = Color(0xFF3B82F6)
@@ -100,7 +100,8 @@ val Cyan0 = Color(0xFFECFEFF)
 val Cyan20 = Color(0xFFA5F3FC)
 val Cyan70 = Color(0xFF0E7490)
 
-val Orange = Color(0xFFEA580C)
-val Orange0 = Color(0xFFFFF7ED)
-val Orange20 = Color(0xFFFED7AA)
-val Orange70 = Color(0xFFC2410C)
+// Orange Palette (Fully aligned with SAKU Primary palette #FF792E)
+val Orange = Primary
+val Orange0 = Primary0
+val Orange20 = Primary20
+val Orange70 = Primary70

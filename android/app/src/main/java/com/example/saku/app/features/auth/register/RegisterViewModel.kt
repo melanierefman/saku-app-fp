@@ -5,14 +5,15 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.saku.app.core.data.TokenManager
+import com.example.saku.app.core.data.repository.AuthRepository
+import com.example.saku.app.core.data.repository.AuthRepositoryImpl
 import com.example.saku.app.core.network.ApiClient
+import com.example.saku.app.core.network.ApiResult
 import com.example.saku.app.core.network.dto.AlamatCustomerDto
 import com.example.saku.app.core.network.dto.RegisterStep1KtpRequestDto
 import com.example.saku.app.core.network.dto.RegisterStep2PersonalRequestDto
-import com.example.saku.app.core.network.dto.RegisterStep4TncRequest
 import com.example.saku.app.core.network.dto.RegisterStep5CompleteRequest
-import com.example.saku.app.core.network.dto.SendOtpRequest
-import com.example.saku.app.core.network.dto.VerifyOtpRequest
 import com.google.gson.Gson
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -86,9 +87,14 @@ data class AlamatFormState(
     val kodePos: String = ""
 )
 
-class RegisterViewModel(application: Application) : AndroidViewModel(application) {
+class RegisterViewModel @JvmOverloads constructor(
+    application: Application,
+    private val authRepository: AuthRepository = AuthRepositoryImpl(
+        ApiClient.getAuthApiService(application),
+        TokenManager.getInstance(application)
+    )
+) : AndroidViewModel(application) {
 
-    private val apiService = ApiClient.getAuthApiService(application)
     private val gson = Gson()
     private val _uiState = MutableStateFlow(RegisterUiState())
     val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
@@ -111,21 +117,21 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null, successMessage = null)
-            try {
-                val response = apiService.sendOtp(SendOtpRequest(email = email, purpose = "REGISTRATION"))
-                if (response.isSuccessful && response.body()?.isSuccess == true) {
+            when (val result = authRepository.sendOtp(email, "REGISTRATION")) {
+                is ApiResult.Success -> {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         isOtpSent = true,
                         successMessage = "Kode OTP 6-digit telah dikirim ke $email"
                     )
                     startCountdown()
-                } else {
-                    val errorMsg = ApiClient.parseError(response)
-                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = errorMsg)
                 }
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = "Koneksi jaringan bermasalah. Periksa koneksi backend Anda.")
+                is ApiResult.Error -> {
+                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = result.message)
+                }
+                else -> {
+                    _uiState.value = _uiState.value.copy(isLoading = false)
+                }
             }
         }
     }
@@ -151,11 +157,9 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null, successMessage = null)
-            try {
-                val response = apiService.verifyOtp(VerifyOtpRequest(email = email, otpCode = otp, purpose = "REGISTRATION"))
-                if (response.isSuccessful && response.body()?.isSuccess == true) {
-                    val verifyData = response.body()?.data
-                    val custId = verifyData?.customerId
+            when (val result = authRepository.verifyOtp(email, otp, "REGISTRATION")) {
+                is ApiResult.Success -> {
+                    val custId = result.data.customerId
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         isOtpVerified = true,
@@ -163,12 +167,13 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
                         currentStep = 1,
                         successMessage = "Email berhasil diverifikasi! Silakan lengkapi data identitas."
                     )
-                } else {
-                    val errorMsg = ApiClient.parseError(response)
-                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = errorMsg)
                 }
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = "Koneksi jaringan bermasalah")
+                is ApiResult.Error -> {
+                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = result.message)
+                }
+                else -> {
+                    _uiState.value = _uiState.value.copy(isLoading = false)
+                }
             }
         }
     }
@@ -308,10 +313,9 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
                     )
                 )
 
-                val resKtp = apiService.registerStep1KtpJson(custId, ktpDto)
-                if (!resKtp.isSuccessful || resKtp.body()?.isSuccess != true) {
-                    val errorMsg = ApiClient.parseError(resKtp)
-                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = errorMsg)
+                val resKtp = authRepository.registerStep1KtpJson(custId, ktpDto)
+                if (resKtp is ApiResult.Error) {
+                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = resKtp.message)
                     return@launch
                 }
 
@@ -341,10 +345,9 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
                     )
                 )
 
-                val resPersonal = apiService.registerStep2Personal(custId, personalDto)
-                if (!resPersonal.isSuccessful || resPersonal.body()?.isSuccess != true) {
-                    val errorMsg = ApiClient.parseError(resPersonal)
-                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = errorMsg)
+                val resPersonal = authRepository.registerStep2Personal(custId, personalDto)
+                if (resPersonal is ApiResult.Error) {
+                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = resPersonal.message)
                     return@launch
                 }
 
@@ -427,10 +430,9 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
                 val jsonStr = gson.toJson(ktpDataDto)
                 val dataPart = jsonStr.toRequestBody("application/json".toMediaTypeOrNull())
 
-                val ktpUploadRes = apiService.registerStep1Ktp(custId, ktpPart, dataPart)
-                if (!ktpUploadRes.isSuccessful || ktpUploadRes.body()?.isSuccess != true) {
-                    val errorMsg = ApiClient.parseError(ktpUploadRes)
-                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = errorMsg)
+                val ktpUploadRes = authRepository.registerStep1Ktp(custId, ktpPart, dataPart)
+                if (ktpUploadRes is ApiResult.Error) {
+                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = ktpUploadRes.message)
                     return@launch
                 }
 
@@ -449,10 +451,9 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
                 val selfieReqFile = selfieBytes.toRequestBody("image/jpeg".toMediaTypeOrNull())
                 val selfiePart = MultipartBody.Part.createFormData("selfie", "selfie_${custId}.jpg", selfieReqFile)
 
-                val selfieUploadRes = apiService.registerStep3Liveness(custId, selfiePart)
-                if (!selfieUploadRes.isSuccessful || selfieUploadRes.body()?.isSuccess != true) {
-                    val errorMsg = ApiClient.parseError(selfieUploadRes)
-                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = errorMsg)
+                val selfieUploadRes = authRepository.registerStep3Liveness(custId, selfiePart)
+                if (selfieUploadRes is ApiResult.Error) {
+                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = selfieUploadRes.message)
                     return@launch
                 }
 
@@ -485,20 +486,20 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null, successMessage = null)
-            try {
-                val tncRes = apiService.registerStep4Tnc(custId)
-                if (tncRes.isSuccessful && tncRes.body()?.isSuccess == true) {
+            when (val tncRes = authRepository.registerStep4Tnc(custId)) {
+                is ApiResult.Success -> {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         currentStep = 6,
                         successMessage = "Ketentuan disetujui. Langkah terakhir: buat kata sandi akun Anda."
                     )
-                } else {
-                    val errorMsg = ApiClient.parseError(tncRes)
-                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = errorMsg)
                 }
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = "Koneksi gagal saat menyetujui S&K")
+                is ApiResult.Error -> {
+                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = tncRes.message)
+                }
+                else -> {
+                    _uiState.value = _uiState.value.copy(isLoading = false)
+                }
             }
         }
     }
@@ -525,24 +526,24 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null, successMessage = null)
-            try {
-                val completeReq = RegisterStep5CompleteRequest(
-                    password = s.password,
-                    confirmPassword = s.confirmPassword
-                )
-                val completeRes = apiService.registerStep5Complete(custId, completeReq)
-                if (completeRes.isSuccessful && completeRes.body()?.isSuccess == true) {
+            val completeReq = RegisterStep5CompleteRequest(
+                password = s.password,
+                confirmPassword = s.confirmPassword
+            )
+            when (val completeRes = authRepository.registerStep5Complete(custId, completeReq)) {
+                is ApiResult.Success -> {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         isRegistrationComplete = true,
                         successMessage = "Pendaftaran Berhasil! Akun Anda sedang dalam proses verifikasi tim Backoffice SAKU."
                     )
-                } else {
-                    val errorMsg = ApiClient.parseError(completeRes)
-                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = errorMsg)
                 }
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = "Koneksi gagal saat menyelesaikan pendaftaran")
+                is ApiResult.Error -> {
+                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = completeRes.message)
+                }
+                else -> {
+                    _uiState.value = _uiState.value.copy(isLoading = false)
+                }
             }
         }
     }

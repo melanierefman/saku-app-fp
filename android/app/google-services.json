@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "953533073420",
+    "project_id": "bcaf-bootcamp-project",
+    "storage_bucket": "bcaf-bootcamp-project.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:953533073420:android:e48fcb78e9da6dfb340629",
+        "android_client_info": {
+          "package_name": "com.example.mykotlinapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBV38yr-p4KDMZX6M4qJhwgJW2XlgEpE0g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:953533073420:android:28e1dc9b1b2b57c1340629",
+        "android_client_info": {
+          "package_name": "com.example.saku.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBV38yr-p4KDMZX6M4qJhwgJW2XlgEpE0g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

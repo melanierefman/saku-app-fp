@@ -4,6 +4,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -37,19 +39,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.composables.icons.lucide.Bell
-import com.composables.icons.lucide.House
-import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Receipt
-import com.composables.icons.lucide.User
-import com.composables.icons.lucide.Wallet
 import com.example.saku.app.ui.theme.Border
 import com.example.saku.app.ui.theme.Error
 import com.example.saku.app.ui.theme.Neutral40
 import com.example.saku.app.ui.theme.Primary
-import com.example.saku.app.ui.theme.Primary0
-import com.example.saku.app.ui.theme.TextMuted
-import com.example.saku.app.ui.theme.TextPrimary
 
 data class BottomNavItem(
     val route: String,
@@ -67,117 +60,153 @@ fun BottomNavBar(
     modifier: Modifier = Modifier,
     backgroundColor: Color = Color.White
 ) {
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .shadow(elevation = 8.dp, shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
-        color = backgroundColor,
-        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Border)
+    Box(
+        modifier = modifier.fillMaxWidth(),
+        contentAlignment = Alignment.BottomCenter
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(68.dp)
-                .padding(horizontal = 8.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
+        // 1. Navbar Surface Bar
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = backgroundColor,
+            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+            shadowElevation = 6.dp,
+            border = BorderStroke(1.dp, Border)
         ) {
-            items.forEach { item ->
-                val isSelected = currentRoute == item.route
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(64.dp)
+                    .padding(horizontal = 6.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                items.forEach { item ->
+                    val isSelected = currentRoute == item.route
 
-                if (item.isCenterAction) {
-                    // Clean Solid Orange Circle Center Action Button
-                    Box(
-                        modifier = Modifier
-                            .offset(y = (-10).dp)
-                            .size(52.dp)
-                            .shadow(elevation = 4.dp, shape = CircleShape, ambientColor = Primary, spotColor = Primary)
-                            .clip(CircleShape)
-                            .background(Primary)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = ripple(bounded = true, color = Color.White.copy(alpha = 0.2f)),
-                                onClick = { onItemClick(item) }
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = item.icon,
-                            contentDescription = item.title,
-                            tint = Color.White,
-                            modifier = Modifier.size(26.dp)
+                    if (item.isCenterAction) {
+                        // Center Action Placeholder Column (Exact same height structure as other nav items for perfect text alignment)
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null,
+                                    onClick = { onItemClick(item) }
+                                )
+                                .padding(vertical = 4.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Spacer(modifier = Modifier.size(22.dp))
+
+                            Spacer(modifier = Modifier.height(3.dp))
+
+                            Text(
+                                text = item.title,
+                                fontSize = 10.5.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Neutral40,
+                                maxLines = 1
+                            )
+                        }
+                    } else {
+                        val animatedScale by animateFloatAsState(
+                            targetValue = if (isSelected) 1.08f else 1f,
+                            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                            label = "bottom_nav_scale"
                         )
-                    }
-                } else {
-                    val animatedScale by animateFloatAsState(
-                        targetValue = if (isSelected) 1.08f else 1f,
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-                        label = "bottom_nav_scale"
-                    )
 
-                    val tintColor by animateColorAsState(
-                        targetValue = if (isSelected) Primary else Neutral40,
-                        label = "bottom_nav_tint"
-                    )
+                        val tintColor by animateColorAsState(
+                            targetValue = if (isSelected) Primary else Neutral40,
+                            label = "bottom_nav_tint"
+                        )
 
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = ripple(bounded = true, color = Primary.copy(alpha = 0.1f)),
-                                onClick = { onItemClick(item) }
-                            )
-                            .padding(vertical = 4.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Box(contentAlignment = Alignment.TopEnd) {
-                            Icon(
-                                imageVector = item.icon,
-                                contentDescription = item.title,
-                                tint = tintColor,
-                                modifier = Modifier
-                                    .size(22.dp)
-                                    .scale(animatedScale)
-                            )
-
-                            // Notification Badge
-                            if (item.badgeCount != null && item.badgeCount > 0) {
-                                Box(
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = ripple(bounded = true, color = Primary.copy(alpha = 0.1f)),
+                                    onClick = { onItemClick(item) }
+                                )
+                                .padding(vertical = 4.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Box(contentAlignment = Alignment.TopEnd) {
+                                Icon(
+                                    imageVector = item.icon,
+                                    contentDescription = item.title,
+                                    tint = tintColor,
                                     modifier = Modifier
-                                        .offset(x = 6.dp, y = (-4).dp)
-                                        .size(if (item.badgeCount > 9) 16.dp else 14.dp)
-                                        .clip(CircleShape)
-                                        .background(Error)
-                                        .border(1.5.dp, Color.White, CircleShape),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = if (item.badgeCount > 99) "99+" else item.badgeCount.toString(),
-                                        color = Color.White,
-                                        fontSize = 8.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        lineHeight = 9.sp
-                                    )
+                                        .size(22.dp)
+                                        .scale(animatedScale)
+                                )
+
+                                // Notification Badge
+                                if (item.badgeCount != null && item.badgeCount > 0) {
+                                    Box(
+                                        modifier = Modifier
+                                            .offset(x = 6.dp, y = (-4).dp)
+                                            .size(if (item.badgeCount > 9) 16.dp else 14.dp)
+                                            .clip(CircleShape)
+                                            .background(Error)
+                                            .border(1.5.dp, Color.White, CircleShape),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = if (item.badgeCount > 99) "99+" else item.badgeCount.toString(),
+                                            color = Color.White,
+                                            fontSize = 8.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            lineHeight = 9.sp
+                                        )
+                                    }
                                 }
                             }
+
+                            Spacer(modifier = Modifier.height(3.dp))
+
+                            Text(
+                                text = item.title,
+                                fontSize = 10.5.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                color = tintColor,
+                                maxLines = 1
+                            )
                         }
-
-                        Spacer(modifier = Modifier.height(3.dp))
-
-                        Text(
-                            text = item.title,
-                            fontSize = 10.5.sp,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                            color = tintColor,
-                            maxLines = 1
-                        )
                     }
                 }
             }
         }
+
+        // 2. Floating Center Action Button (Raised protruded solid primary circle without white stroke)
+        val centerActionItem = items.firstOrNull { it.isCenterAction }
+        if (centerActionItem != null) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .offset(y = (-20).dp)
+                    .size(50.dp)
+                    .shadow(elevation = 4.dp, shape = CircleShape)
+                    .clip(CircleShape)
+                    .background(Primary)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = ripple(bounded = true, color = Color.White.copy(alpha = 0.25f)),
+                        onClick = { onItemClick(centerActionItem) }
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = centerActionItem.icon,
+                    contentDescription = centerActionItem.title,
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
     }
 }
+

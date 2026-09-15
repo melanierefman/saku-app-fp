@@ -1,5 +1,11 @@
 package com.example.saku.app.features.home
 
+import coil.compose.AsyncImage
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.CircularProgressIndicator
+import com.example.saku.app.core.network.dto.CustomerProfileDto
+import com.example.saku.app.core.network.dto.NotifikasiItemDto
+import com.example.saku.app.core.network.dto.SimulasiPinjamanResponseDto
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -8,9 +14,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,6 +27,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -25,20 +36,42 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.TrendingUp
+import androidx.compose.material.icons.rounded.AccountBalanceWallet
+import androidx.compose.material.icons.rounded.Calculate
+import androidx.compose.material.icons.rounded.CreditCard
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.Speed
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,6 +88,7 @@ import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -62,6 +96,9 @@ import androidx.compose.ui.unit.sp
 import com.example.saku.app.ui.theme.OverusedGrotesk
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+import com.composables.icons.lucide.Award
 import com.composables.icons.lucide.Bell
 import com.composables.icons.lucide.Calculator
 import com.composables.icons.lucide.ChevronRight
@@ -73,16 +110,21 @@ import com.composables.icons.lucide.Eye
 import com.composables.icons.lucide.EyeOff
 import com.composables.icons.lucide.FileText
 import com.composables.icons.lucide.House
+import com.composables.icons.lucide.Info
 import com.composables.icons.lucide.Landmark
 import com.composables.icons.lucide.LogOut
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Palette
+import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Receipt
+import com.composables.icons.lucide.ShieldCheck
 import com.composables.icons.lucide.Sparkles
 import com.composables.icons.lucide.TrendingUp
 import com.composables.icons.lucide.User
 import com.composables.icons.lucide.Wallet
+import com.composables.icons.lucide.Zap
 import com.example.saku.app.R
+import com.example.saku.app.core.network.dto.AngsuranItemDto
 import com.example.saku.app.core.network.dto.LoanApplicationItemDto
 import com.example.saku.app.core.ui.components.Badge
 import com.example.saku.app.core.ui.components.BadgeSize
@@ -96,11 +138,20 @@ import com.example.saku.app.core.ui.components.ConfirmationDialog
 import com.example.saku.app.core.ui.components.DialogType
 import com.example.saku.app.ui.theme.Background
 import com.example.saku.app.ui.theme.Border
+import com.example.saku.app.ui.theme.Error
 import com.example.saku.app.ui.theme.Neutral20
 import com.example.saku.app.ui.theme.Primary
 import com.example.saku.app.ui.theme.Primary0
+import com.example.saku.app.ui.theme.Primary20
+import com.example.saku.app.ui.theme.Primary40
+import com.example.saku.app.ui.theme.Primary60
+import com.example.saku.app.ui.theme.Primary70
+import com.example.saku.app.ui.theme.Primary80
 import com.example.saku.app.ui.theme.SAKUAppTheme
 import com.example.saku.app.ui.theme.Success
+import com.example.saku.app.ui.theme.Success0
+import com.example.saku.app.ui.theme.Success20
+import com.example.saku.app.ui.theme.Success70
 import com.example.saku.app.ui.theme.Surface
 import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary
@@ -108,32 +159,47 @@ import com.example.saku.app.ui.theme.TextSecondary
 import java.text.NumberFormat
 import java.util.Locale
 
+import com.example.saku.app.features.loans.payment.PaymentInfoBottomSheet
+
+import androidx.compose.foundation.layout.statusBarsPadding
+import com.example.saku.app.ui.theme.Neutral
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onNavigateToLogin: () -> Unit,
     onNavigateToSandbox: (() -> Unit)? = null,
+    onNavigateToApplyLoan: () -> Unit = {},
+    onNavigateToLoanDetail: (String) -> Unit = {},
+    onNavigateToNotifications: () -> Unit = {},
+    onNavigateToEditProfile: (String) -> Unit = {},
+    onNavigateToChangePassword: () -> Unit = {},
+    onNavigateToLoanSimulation: () -> Unit = {},
     viewModel: HomeViewModel = viewModel(),
 ) {
+    val context = LocalContext.current
     val userSession by viewModel.userSession.collectAsState()
     val customerProfile by viewModel.customerProfile.collectAsState()
     val myLoans by viewModel.myLoans.collectAsState()
     val isBalanceVisible by viewModel.isBalanceVisible.collectAsState()
     val showLogoutDialog by viewModel.showLogoutDialog.collectAsState()
-    val showSimulationDialog by viewModel.showSimulationDialog.collectAsState()
-    val showNotificationDialog by viewModel.showNotificationDialog.collectAsState()
+    val unreadNotifikasiCount by viewModel.unreadNotifikasiCount.collectAsState()
     val currentNavRoute by viewModel.currentNavRoute.collectAsState()
-    val simAmount by viewModel.simAmount.collectAsState()
-    val simTenorMonths by viewModel.simTenorMonths.collectAsState()
 
     val selectedHistoryFilter by viewModel.selectedHistoryFilter.collectAsState()
+
+    var showPaymentSheet by remember { mutableStateOf(false) }
+    var selectedLoanForPayment by remember { mutableStateOf<LoanApplicationItemDto?>(null) }
+    var selectedAngsuranForPayment by remember { mutableStateOf<AngsuranItemDto?>(null) }
+    var showCreditScoreDialog by remember { mutableStateOf(false) }
+    var showUpgradeLimitDialog by remember { mutableStateOf(false) }
 
     val currencyFormatter = remember {
         NumberFormat.getNumberInstance(Locale.forLanguageTag("id-ID"))
     }
 
-    // Refresh data saat HomeScreen aktif / dibuka ulang
-    LaunchedEffect(Unit) {
+    // Refresh data saat HomeScreen aktif / tab berpindah
+    LaunchedEffect(currentNavRoute) {
         viewModel.fetchDashboardData()
     }
 
@@ -143,11 +209,35 @@ fun HomeScreen(
     val displayName =
         customerProfile?.nama ?: (userSession?.nama ?: (userSession?.username ?: "Nasabah SAKU"))
 
+    val activeLoans = remember(myLoans) {
+        myLoans.filter { loan ->
+            val s = (loan.statusPengajuan ?: "").uppercase()
+            s !in listOf("DITOLAK", "PENGAJUAN_DITOLAK", "REJECTED", "DITOLAK_MARKETING", "DITOLAK_BM", "REJECT", "BATAL", "CANCELLED", "PAID", "LUNAS")
+        }
+    }
+
+    val inProgressLoans = remember(myLoans) {
+        myLoans.filter { loan ->
+            val s = (loan.statusPengajuan ?: "").uppercase()
+            s !in listOf("DITOLAK", "PENGAJUAN_DITOLAK", "REJECTED", "DITOLAK_MARKETING", "DITOLAK_BM", "REJECT", "BATAL", "CANCELLED", "PAID", "LUNAS", "DICAIRKAN", "DISBURSED")
+        }
+    }
+    val inProcessAmount = remember(inProgressLoans) {
+        inProgressLoans.sumOf { it.jumlahPinjaman ?: 0.0 }
+    }
+    val hasDisbursedLoan = remember(myLoans) {
+        myLoans.any {
+            val s = (it.statusPengajuan ?: "").uppercase()
+            s in listOf("DICAIRKAN", "DISBURSED")
+        }
+    }
+
     val navItems =
         listOf(
             BottomNavItem(route = "home", title = "Beranda", icon = Lucide.House),
             BottomNavItem(route = "loans", title = "Pinjaman", icon = Lucide.Wallet),
-            BottomNavItem(route = "history", title = "Riwayat", icon = Lucide.Receipt),
+            BottomNavItem(route = "apply", title = "Ajukan", icon = Lucide.Plus, isCenterAction = true),
+            BottomNavItem(route = "bills", title = "Tagihan", icon = Lucide.Receipt),
             BottomNavItem(route = "profile", title = "Profil", icon = Lucide.User),
         )
 
@@ -156,7 +246,21 @@ fun HomeScreen(
             BottomNavBar(
                 items = navItems,
                 currentRoute = currentNavRoute,
-                onItemClick = { item -> viewModel.setNavRoute(item.route) },
+                onItemClick = { item ->
+                    if (item.route == "apply") {
+                        if (availablePlafond >= 500_000.0) {
+                            onNavigateToApplyLoan()
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Plafond Anda belum mencukupi untuk mengajukan pinjaman baru (Rp 0)",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    } else {
+                        viewModel.setNavRoute(item.route)
+                    }
+                },
             )
         },
         containerColor = Background,
@@ -172,19 +276,36 @@ fun HomeScreen(
                 "home" -> {
                     HomeTabContent(
                         displayName = displayName,
+                        sukuBunga = customerProfile?.sukuBunga,
                         availablePlafond = availablePlafond,
                         totalPlafond = totalPlafond,
                         usedPlafond = usedPlafond,
                         isBalanceVisible = isBalanceVisible,
-                        activeLoan = myLoans.firstOrNull(),
-                        activeLoansCount = myLoans.size,
+                        unreadCount = unreadNotifikasiCount,
+                        activeLoan = activeLoans.firstOrNull(),
+                        activeLoansCount = activeLoans.size,
+                        inProcessAmount = inProcessAmount,
+                        hasInProcessLoan = inProgressLoans.isNotEmpty(),
+                        hasDisbursedLoan = hasDisbursedLoan,
                         currencyFormatter = currencyFormatter,
                         onToggleVisibility = viewModel::toggleBalanceVisibility,
-                        onAjukanClick = { viewModel.setSimulationDialogVisible(true) },
-                        onBayarClick = { viewModel.setNavRoute("loans") },
-                        onSimulasiClick = { viewModel.setSimulationDialogVisible(true) },
+                        onAjukanClick = onNavigateToApplyLoan,
+                        onBayarClick = {
+                            val active = activeLoans.firstOrNull()
+                            if (active != null) {
+                                selectedLoanForPayment = active
+                                selectedAngsuranForPayment = active.listAngsuran?.firstOrNull { it.statusBayar != "LUNAS" && it.statusBayar != "PAID" }
+                                showPaymentSheet = true
+                            } else {
+                                viewModel.setNavRoute("bills")
+                            }
+                        },
+                        onDetailLoanClick = { loanId -> onNavigateToLoanDetail(loanId) },
+                        onSimulasiClick = onNavigateToLoanSimulation,
+                        onCreditScoreClick = { showCreditScoreDialog = true },
+                        onUpgradeLimitClick = { showUpgradeLimitDialog = true },
                         onRiwayatClick = { viewModel.setNavRoute("history") },
-                        onNotificationClick = { viewModel.setNotificationDialogVisible(true) },
+                        onNotificationClick = onNavigateToNotifications,
                         onSandboxClick = onNavigateToSandbox,
                         onLogoutClick = { viewModel.setLogoutDialogVisible(true) },
                     )
@@ -197,10 +318,34 @@ fun HomeScreen(
                         totalPlafond = totalPlafond,
                         usedPlafond = usedPlafond,
                         currencyFormatter = currencyFormatter,
-                        onAjukanClick = { viewModel.setSimulationDialogVisible(true) },
-                        onSimulasiClick = { viewModel.setSimulationDialogVisible(true) },
-                        onPayClick = { /* Pay handler */ },
-                        onDetailClick = { /* Detail handler */ },
+                        onAjukanClick = onNavigateToApplyLoan,
+                        onSimulasiClick = onNavigateToLoanSimulation,
+                        onPayClick = { loan ->
+                            selectedLoanForPayment = loan
+                            selectedAngsuranForPayment = loan.listAngsuran?.firstOrNull { it.statusBayar != "LUNAS" && it.statusBayar != "PAID" }
+                            showPaymentSheet = true
+                        },
+                        onDetailClick = { loan ->
+                            loan.id?.let { onNavigateToLoanDetail(it) }
+                        },
+                    )
+                }
+                "bills" -> {
+                    BillsTabContent(
+                        myLoans = myLoans,
+                        customerProfile = customerProfile,
+                        currencyFormatter = currencyFormatter,
+                        isAjukanEnabled = availablePlafond >= 500_000.0,
+                        onPayClick = { loan, angsuran ->
+                            selectedLoanForPayment = loan
+                            selectedAngsuranForPayment = angsuran
+                            showPaymentSheet = true
+                        },
+                        onDetailClick = { loan ->
+                            loan.id?.let { onNavigateToLoanDetail(it) }
+                        },
+                        onAjukanClick = onNavigateToApplyLoan,
+                        onRefresh = viewModel::fetchDashboardData,
                     )
                 }
                 "history" -> {
@@ -209,8 +354,13 @@ fun HomeScreen(
                         selectedFilter = selectedHistoryFilter,
                         onFilterSelect = viewModel::setHistoryFilter,
                         currencyFormatter = currencyFormatter,
-                        onAjukanClick = { viewModel.setSimulationDialogVisible(true) },
+                        isAjukanEnabled = availablePlafond >= 500_000.0,
+                        onAjukanClick = onNavigateToApplyLoan,
+                        onDetailClick = { loan ->
+                            loan.id?.let { onNavigateToLoanDetail(it) }
+                        },
                         onRefresh = viewModel::fetchDashboardData,
+                        onBackClick = { viewModel.setNavRoute("home") },
                     )
                 }
                 "profile" -> {
@@ -218,8 +368,10 @@ fun HomeScreen(
                         customerProfile = customerProfile,
                         userSession = userSession,
                         onLogoutClick = { viewModel.setLogoutDialogVisible(true) },
-                        onNotificationClick = { viewModel.setNotificationDialogVisible(true) },
-                        onSimulasiClick = { viewModel.setSimulationDialogVisible(true) },
+                        onNotificationClick = onNavigateToNotifications,
+                        onSimulasiClick = onNavigateToLoanSimulation,
+                        onEditProfileClick = onNavigateToEditProfile,
+                        onChangePasswordClick = onNavigateToChangePassword,
                         onSandboxClick = onNavigateToSandbox,
                     )
                 }
@@ -240,120 +392,184 @@ fun HomeScreen(
         onDismiss = { viewModel.setLogoutDialogVisible(false) },
     )
 
-    // Interactive Loan Simulation Dialog
-    if (showSimulationDialog) {
-        LoanSimulationDialog(
-            amount = simAmount,
-            tenorMonths = simTenorMonths,
-            onAmountChange = viewModel::updateSimAmount,
-            onTenorChange = viewModel::updateSimTenor,
-            monthlyInstallment = viewModel.calculateMonthlyInstallment(simAmount, simTenorMonths),
-            currencyFormatter = currencyFormatter,
-            onDismiss = { viewModel.setSimulationDialogVisible(false) },
-            onApply = {
-                viewModel.setSimulationDialogVisible(false)
-                viewModel.setNavRoute("loans")
-            },
+    // Payment Info Bottom Sheet
+    if (showPaymentSheet) {
+        PaymentInfoBottomSheet(
+            loan = selectedLoanForPayment ?: myLoans.firstOrNull(),
+            angsuran = selectedAngsuranForPayment,
+            onDismiss = {
+                showPaymentSheet = false
+                selectedLoanForPayment = null
+                selectedAngsuranForPayment = null
+            }
         )
     }
 
-    // Notification Center Dialog
-    if (showNotificationDialog) {
-        NotificationCenterDialog(onDismiss = { viewModel.setNotificationDialogVisible(false) })
+    // Credit Score Detail Dialog
+    if (showCreditScoreDialog) {
+        CreditScoreDetailDialog(
+            skorKredit = customerProfile?.skorKredit ?: 750,
+            tierName = customerProfile?.tierPlafond ?: "Tier Reguler",
+            onDismiss = { showCreditScoreDialog = false },
+            onPanduanUpgradeClick = {
+                showCreditScoreDialog = false
+                showUpgradeLimitDialog = true
+            }
+        )
+    }
+
+    // Upgrade Limit Guide Dialog
+    if (showUpgradeLimitDialog) {
+        UpgradeLimitGuideDialog(
+            currentPlafond = totalPlafond,
+            tierName = customerProfile?.tierPlafond ?: "Tier Reguler",
+            currencyFormatter = currencyFormatter,
+            onDismiss = { showUpgradeLimitDialog = false },
+            onEditProfileClick = {
+                showUpgradeLimitDialog = false
+                onNavigateToEditProfile("pekerjaan")
+            }
+        )
     }
 }
 
-// -------------------------------------------------------------
-// BERANDA TAB CONTENT
-// -------------------------------------------------------------
+
+// Beranda Tab Content
 @Composable
 private fun HomeTabContent(
     displayName: String,
+    sukuBunga: Double? = null,
     availablePlafond: Double,
     totalPlafond: Double,
     usedPlafond: Double,
     isBalanceVisible: Boolean,
+    unreadCount: Long = 0L,
     activeLoan: LoanApplicationItemDto?,
     activeLoansCount: Int,
+    inProcessAmount: Double = 0.0,
+    hasInProcessLoan: Boolean = false,
+    hasDisbursedLoan: Boolean = false,
     currencyFormatter: NumberFormat,
     onToggleVisibility: () -> Unit,
     onAjukanClick: () -> Unit,
     onBayarClick: () -> Unit,
+    onDetailLoanClick: (String) -> Unit,
     onSimulasiClick: () -> Unit,
+    onCreditScoreClick: () -> Unit,
+    onUpgradeLimitClick: () -> Unit,
     onRiwayatClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onSandboxClick: (() -> Unit)?,
     onLogoutClick: () -> Unit,
 ) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 28.dp),
+    val listState = rememberLazyListState()
+    var isScrolled by remember { mutableStateOf(false) }
+    val isAjukanEnabled = availablePlafond >= 500_000.0
+
+    // Hysteresis scroll detection to avoid viewport resize oscillation / bouncing
+    LaunchedEffect(listState) {
+        snapshotFlow {
+            Pair(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset)
+        }.collect { (index, offset) ->
+            if (index > 0 || offset > 45) {
+                if (!isScrolled) isScrolled = true
+            } else if (index == 0 && offset <= 5) {
+                if (isScrolled) isScrolled = false
+            }
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Background)
     ) {
-        // 1. Header Pengguna ("Halo, Nama Lengkap")
-        item {
-            HomeHeaderSection(
-                displayName = displayName,
-                onNotificationClick = onNotificationClick,
-                onSandboxClick = onSandboxClick,
-                onLogoutClick = onLogoutClick,
+        // 1. HEADER ATAS (SAKU Logo + Action Icons + Collapsible "HALO, NAMA LENGKAP")
+        HomeHeaderSection(
+            displayName = displayName,
+            unreadCount = unreadCount,
+            isScrolled = isScrolled,
+            onNotificationClick = onNotificationClick,
+            onSandboxClick = onSandboxClick,
+            onLogoutClick = onLogoutClick,
+        )
+
+        // 2. HERO CARD PLAFOND SAKU (Sticky di atas, Box Hitam mengecil saat di-scroll)
+        Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 2.dp)) {
+            PlafondMeshHeroCard(
+                availablePlafond = availablePlafond,
+                totalPlafond = totalPlafond,
+                usedPlafond = usedPlafond,
+                isBalanceVisible = isBalanceVisible,
+                sukuBunga = sukuBunga,
+                inProcessAmount = inProcessAmount,
+                hasInProcessLoan = hasInProcessLoan,
+                hasDisbursedLoan = hasDisbursedLoan,
+                isScrolled = isScrolled,
+                onToggleVisibility = onToggleVisibility,
+                currencyFormatter = currencyFormatter,
             )
         }
 
-        // 2. HERO CARD PLAFOND SAKU (STANDALONE CARD SESUAI GAMBAR 1)
-        item {
-            Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)) {
-                PlafondMeshHeroCard(
-                    availablePlafond = availablePlafond,
-                    totalPlafond = totalPlafond,
-                    usedPlafond = usedPlafond,
-                    isBalanceVisible = isBalanceVisible,
-                    onToggleVisibility = onToggleVisibility,
-                    currencyFormatter = currencyFormatter,
+        // 3. KONTEN YANG DI-SCROLL KE BAWAH (Menu Utama, Tagihan, Promo, Tips, Footer OJK)
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            contentPadding = PaddingValues(bottom = 32.dp),
+        ) {
+            // SECTION "MENU UTAMA" (Theme 1: Simulasi, Cek Skor, Naikkan Limit, Riwayat)
+            item {
+                Spacer(modifier = Modifier.height(14.dp))
+                MenuUtamaSection(
+                    onSimulasiClick = onSimulasiClick,
+                    onCreditScoreClick = onCreditScoreClick,
+                    onUpgradeLimitClick = onUpgradeLimitClick,
+                    onRiwayatClick = onRiwayatClick,
                 )
             }
-        }
 
-        // 3. SECTION "MENU UTAMA" + QUICK ACTIONS (TITLE INSIDE CARD & CLEAN BORDER)
-        item {
-            Spacer(modifier = Modifier.height(16.dp))
-            MenuUtamaSection(
-                onAjukanClick = onAjukanClick,
-                onBayarClick = onBayarClick,
-                onSimulasiClick = onSimulasiClick,
-                onRiwayatClick = onRiwayatClick,
-            )
-        }
+            // INFO TAGIHAN / PINJAMAN AKTIF CARD
+            item {
+                Spacer(modifier = Modifier.height(18.dp))
+                Box(modifier = Modifier.padding(horizontal = 20.dp)) {
+                    TagihanPinjamanAktifCard(
+                        activeLoan = activeLoan,
+                        activeLoansCount = activeLoansCount,
+                        currencyFormatter = currencyFormatter,
+                        onPayClick = onBayarClick,
+                        onDetailClick = { activeLoan?.id?.let { onDetailLoanClick(it) } ?: onBayarClick() },
+                    )
+                }
+            }
 
-        // 4. INFO TAGIHAN / PINJAMAN AKTIF CARD (CLEAN BORDER & BUTTON DI BAWAH KANAN)
-        item {
-            Spacer(modifier = Modifier.height(16.dp))
-            Box(modifier = Modifier.padding(horizontal = 20.dp)) {
-                TagihanPinjamanAktifCard(
-                    activeLoan = activeLoan,
-                    activeLoansCount = activeLoansCount,
-                    currencyFormatter = currencyFormatter,
-                    onPayClick = onBayarClick,
-                    onDetailClick = onBayarClick,
+            // BANNER PROMO FULL WIDTH
+            item {
+                Spacer(modifier = Modifier.height(20.dp))
+                FullWidthPromoBannerSection(
+                    onSimulasiClick = onSimulasiClick,
+                    onAjukanClick = onAjukanClick,
                 )
             }
-        }
 
-        // 5. BANNER PROMO FULL WIDTH DENGAN PAGE INDICATOR
-        item {
-            Spacer(modifier = Modifier.height(20.dp))
-            FullWidthPromoBannerSection(
-                onPromoItemClick = onAjukanClick,
-            )
+            // TIPS & LITERASI KEUANGAN
+            item {
+                Spacer(modifier = Modifier.height(22.dp))
+                TipsLiterasiKeuanganSection(
+                    onArticleClick = onSimulasiClick,
+                )
+            }
         }
     }
 }
 
-// -------------------------------------------------------------
-// 1. TOP BAR ("HALO, NAMA LENGKAP")
-// -------------------------------------------------------------
+// 1. Top Bar ("Halo, Nama Lengkap")
 @Composable
 private fun HomeHeaderSection(
     displayName: String,
+    unreadCount: Long = 0L,
+    isScrolled: Boolean = false,
     onNotificationClick: () -> Unit,
     onSandboxClick: (() -> Unit)?,
     onLogoutClick: () -> Unit,
@@ -361,7 +577,8 @@ private fun HomeHeaderSection(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 10.dp)
+            .padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = if (isScrolled) 2.dp else 4.dp)
+            .animateContentSize()
     ) {
         // Top Row: Logo & Action Buttons
         Row(
@@ -370,120 +587,112 @@ private fun HomeHeaderSection(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             // SAKU Branding
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painter = painterResource(id = R.drawable.saku_logo),
-                    contentDescription = "Logo SAKU",
-                    modifier = Modifier
-                        .size(34.dp)
-                        .clip(RoundedCornerShape(10.dp)),
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "SAKU",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Primary,
-                    letterSpacing = 0.5.sp,
-                )
-            }
+            Text(
+                text = "SAKU",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Primary,
+                letterSpacing = 0.5.sp,
+            )
 
-            // Action Icons (Sandbox, Notifikasi, Logout) - Bare Outline Icons (No Circle Fill)
+            // Action Icons (Notifikasi, Logout) - Bare Outline Icons
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(2.dp),
             ) {
-                // Dev Sandbox Shortcut
-                if (onSandboxClick != null) {
-                    IconButton(
-                        onClick = onSandboxClick,
-                        modifier = Modifier.size(38.dp)
-                    ) {
-                        Icon(
-                            imageVector = Lucide.Palette,
-                            contentDescription = "UI Sandbox",
-                            tint = TextPrimary,
-                            modifier = Modifier.size(23.dp),
-                        )
-                    }
-                }
-
-                // Notification Bell with Red Dot
+                // Notification Bell with Red Badge
                 IconButton(
                     onClick = onNotificationClick,
-                    modifier = Modifier.size(38.dp)
+                    modifier = Modifier.size(36.dp)
                 ) {
                     Box(contentAlignment = Alignment.TopEnd) {
                         Icon(
                             imageVector = Lucide.Bell,
                             contentDescription = "Notifikasi",
                             tint = TextPrimary,
-                            modifier = Modifier.size(23.dp),
+                            modifier = Modifier.size(22.dp),
                         )
-                        Box(
-                            modifier = Modifier
-                                .size(7.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFFF3B30))
-                        )
+                        if (unreadCount > 0) {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .clip(CircleShape)
+                                    .background(Error)
+                            )
+                        }
                     }
                 }
 
                 // Logout Button
                 IconButton(
                     onClick = onLogoutClick,
-                    modifier = Modifier.size(38.dp)
+                    modifier = Modifier.size(36.dp)
                 ) {
                     Icon(
                         imageVector = Lucide.LogOut,
                         contentDescription = "Logout",
                         tint = TextPrimary,
-                        modifier = Modifier.size(23.dp),
+                        modifier = Modifier.size(22.dp),
                     )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // myBCA style "HALO, NAMA LENGKAP"
-        Text(
-            text = "HALO, ${displayName.uppercase()}",
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Bold,
-            color = TextSecondary,
-            letterSpacing = 0.5.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+        // myBCA style "HALO, NAMA LENGKAP" (Dihide saat user scroll ke bawah)
+        AnimatedVisibility(
+            visible = !isScrolled,
+            enter = expandVertically(tween(200)) + fadeIn(tween(200)),
+            exit = shrinkVertically(tween(200)) + fadeOut(tween(200)),
+        ) {
+            Column {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "HALO, ${displayName.uppercase()}",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextSecondary,
+                    letterSpacing = 0.5.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
     }
 }
 
-// -------------------------------------------------------------
-// 2. HERO CARD PLAFON PINJAMAN (ZOOMED & CONDONG KANAN SESUAI GAMBAR 1)
-// -------------------------------------------------------------
+// 2. Hero Card Plafond SAKU
 @Composable
 private fun PlafondMeshHeroCard(
     availablePlafond: Double,
     totalPlafond: Double,
     usedPlafond: Double,
     isBalanceVisible: Boolean,
+    sukuBunga: Double? = null,
+    inProcessAmount: Double = 0.0,
+    hasInProcessLoan: Boolean = false,
+    hasDisbursedLoan: Boolean = false,
+    isScrolled: Boolean = false,
     onToggleVisibility: () -> Unit,
     currencyFormatter: NumberFormat,
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(elevation = 5.dp, shape = RoundedCornerShape(22.dp), ambientColor = Primary, spotColor = Primary),
-        shape = RoundedCornerShape(22.dp),
+            .shadow(
+                elevation = if (isScrolled) 3.dp else 5.dp,
+                shape = RoundedCornerShape(20.dp),
+                ambientColor = Primary,
+                spotColor = Primary
+            ),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(22.dp))
+                .clip(RoundedCornerShape(20.dp))
         ) {
-            // Background Image (Zoomed In & Shifted to Right like Gambar 1)
+            // Background Image
             Image(
                 painter = painterResource(id = R.drawable.bg_card_saku),
                 contentDescription = null,
@@ -502,7 +711,7 @@ private fun PlafondMeshHeroCard(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 18.dp, vertical = 14.dp)
+                    .padding(horizontal = 18.dp, vertical = if (isScrolled) 11.dp else 14.dp)
             ) {
                 // Top Row: Plafon Pinjaman Anda + Eye Toggle
                 Row(
@@ -515,7 +724,7 @@ private fun PlafondMeshHeroCard(
                     ) {
                         Text(
                             text = "Plafon Pinjaman Anda",
-                            fontSize = 13.5.sp,
+                            fontSize = 13.sp,
                             lineHeight = 15.sp,
                             fontWeight = FontWeight.Medium,
                             color = Color.White.copy(alpha = 0.95f),
@@ -533,18 +742,18 @@ private fun PlafondMeshHeroCard(
                             imageVector = if (isBalanceVisible) Lucide.Eye else Lucide.EyeOff,
                             contentDescription = "Toggle saldo",
                             tint = Color.White.copy(alpha = 0.95f),
-                            modifier = Modifier.size(16.dp),
+                            modifier = Modifier.size(15.dp),
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(if (isScrolled) 3.dp else 6.dp))
 
                 // Main Large Amount
                 Text(
                     text = if (isBalanceVisible) "Rp${currencyFormatter.format(availablePlafond)}" else "Rp ••••••••••",
-                    fontSize = 26.sp,
-                    lineHeight = 28.sp,
+                    fontSize = if (isScrolled) 22.sp else 26.sp,
+                    lineHeight = if (isScrolled) 24.sp else 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
                     style = TextStyle(
@@ -557,11 +766,11 @@ private fun PlafondMeshHeroCard(
                     )
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(3.dp))
 
                 Text(
                     text = "Tersedia untuk pengajuan",
-                    fontSize = 11.5.sp,
+                    fontSize = 11.sp,
                     lineHeight = 13.sp,
                     color = Color.White.copy(alpha = 0.9f),
                     style = TextStyle(
@@ -574,46 +783,97 @@ private fun PlafondMeshHeroCard(
                     )
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                // Indikator Informative jika ada pengajuan yang sedang diproses
+                if (hasInProcessLoan && inProcessAmount > 0) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.Black.copy(alpha = 0.28f))
+                            .border(0.5.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(8.dp))
+                            .padding(horizontal = 8.dp, vertical = 3.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFFFD166))
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = if (isBalanceVisible) "Rp ${currencyFormatter.format(inProcessAmount)} sedang dalam proses pengajuan" else "Sedang dalam proses pengajuan",
+                            fontSize = 10.5.sp,
+                            lineHeight = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.White.copy(alpha = 0.95f),
+                            style = TextStyle(
+                                fontFamily = OverusedGrotesk,
+                                platformStyle = PlatformTextStyle(includeFontPadding = false),
+                            )
+                        )
+                    }
+                }
 
-                // Sub-limit dark container (Total Plafond, Plafond Terpakai, Bunga Mulai)
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color.Black.copy(alpha = 0.35f))
-                        .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
-                        .padding(horizontal = 14.dp, vertical = 9.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
+                // Sub-limit dark container (Total Plafond, Plafond Terpakai / Sedang Proses, Bunga Mulai)
+                // DIHIDE KETIKA DI-SCROLL KE BAWAH (Persis OVO di Gambar 2)
+                AnimatedVisibility(
+                    visible = !isScrolled,
+                    enter = expandVertically(tween(200)) + fadeIn(tween(200)),
+                    exit = shrinkVertically(tween(200)) + fadeOut(tween(200)),
                 ) {
-                    SubLimitMetricItem(
-                        label = "Total Plafond",
-                        value = if (isBalanceVisible) "Rp ${currencyFormatter.format(totalPlafond)}" else "Rp ••••••"
-                    )
-                    Box(
-                        modifier = Modifier
-                            .height(22.dp)
-                            .width(1.dp)
-                            .background(Color.White.copy(alpha = 0.22f))
-                    )
+                    Column {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color.Black.copy(alpha = 0.35f))
+                                .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
+                            .padding(horizontal = 14.dp, vertical = 9.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            SubLimitMetricItem(
+                                label = "Total Plafond",
+                                value = if (isBalanceVisible) "Rp ${currencyFormatter.format(totalPlafond)}" else "Rp ••••••"
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .height(22.dp)
+                                    .width(1.dp)
+                                    .background(Color.White.copy(alpha = 0.22f))
+                            )
 
-                    SubLimitMetricItem(
-                        label = "Plafond Terpakai",
-                        value = if (isBalanceVisible) "Rp ${currencyFormatter.format(usedPlafond)}" else "Rp ••••••"
-                    )
+                            val usedLabel = when {
+                                hasInProcessLoan && !hasDisbursedLoan -> "Sedang Proses"
+                                hasInProcessLoan && hasDisbursedLoan -> "Terpakai & Proses"
+                                else -> "Plafond Terpakai"
+                            }
 
-                    Box(
-                        modifier = Modifier
-                            .height(22.dp)
-                            .width(1.dp)
-                            .background(Color.White.copy(alpha = 0.22f))
-                    )
+                            SubLimitMetricItem(
+                                label = usedLabel,
+                                value = if (isBalanceVisible) "Rp ${currencyFormatter.format(usedPlafond)}" else "Rp ••••••"
+                            )
 
-                    SubLimitMetricItem(
-                        label = "Bunga Mulai",
-                        value = "0.99% / bln"
-                    )
+                            Box(
+                                modifier = Modifier
+                                    .height(22.dp)
+                                    .width(1.dp)
+                                    .background(Color.White.copy(alpha = 0.22f))
+                            )
+
+                            SubLimitMetricItem(
+                                label = "Bunga",
+                                value = if (sukuBunga != null && sukuBunga > 0) {
+                                    val pct = if (sukuBunga <= 1.0) sukuBunga * 100 else sukuBunga
+                                    if (pct % 1.0 == 0.0) "${pct.toLong()}% / bln" else "$pct% / bln"
+                                } else {
+                                    "4% / bln"
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -664,14 +924,12 @@ private fun SubLimitMetricItem(
     }
 }
 
-// -------------------------------------------------------------
-// 3. SECTION MENU UTAMA (TITLE INSIDE CARD & CLEAN BORDER)
-// -------------------------------------------------------------
+// 3. Akses Cepat
 @Composable
 private fun MenuUtamaSection(
-    onAjukanClick: () -> Unit,
-    onBayarClick: () -> Unit,
     onSimulasiClick: () -> Unit,
+    onCreditScoreClick: () -> Unit,
+    onUpgradeLimitClick: () -> Unit,
     onRiwayatClick: () -> Unit,
 ) {
     Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
@@ -685,7 +943,7 @@ private fun MenuUtamaSection(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 14.dp)
             ) {
                 Text(
-                    text = "Menu Utama",
+                    text = "Akses Cepat",
                     fontSize = 14.5.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary,
@@ -698,23 +956,27 @@ private fun MenuUtamaSection(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     ActionItemColumn(
-                        title = "Ajukan",
-                        icon = Lucide.Landmark,
-                        onClick = onAjukanClick,
-                    )
-                    ActionItemColumn(
-                        title = "Bayar",
-                        icon = Lucide.CreditCard,
-                        onClick = onBayarClick,
-                    )
-                    ActionItemColumn(
                         title = "Simulasi",
-                        icon = Lucide.Calculator,
+                        icon = Icons.Rounded.Calculate,
+                        containerColor = Primary,
                         onClick = onSimulasiClick,
                     )
                     ActionItemColumn(
+                        title = "Cek Skor",
+                        icon = Icons.Rounded.Speed,
+                        containerColor = Primary,
+                        onClick = onCreditScoreClick,
+                    )
+                    ActionItemColumn(
+                        title = "Naikkan Limit",
+                        icon = Icons.AutoMirrored.Rounded.TrendingUp,
+                        containerColor = Primary,
+                        onClick = onUpgradeLimitClick,
+                    )
+                    ActionItemColumn(
                         title = "Riwayat",
-                        icon = Lucide.Clock,
+                        icon = Icons.Rounded.History,
+                        containerColor = Primary,
                         onClick = onRiwayatClick,
                     )
                 }
@@ -727,45 +989,42 @@ private fun MenuUtamaSection(
 private fun ActionItemColumn(
     title: String,
     icon: ImageVector,
+    containerColor: Color = Primary,
+    iconColor: Color = Color.White,
+    enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
+    val effectiveContainerColor = if (enabled) containerColor else Color(0xFFF1F5F9)
+    val effectiveIconColor = if (enabled) iconColor else Color(0xFF94A3B8)
+    val effectiveTextColor = if (enabled) TextPrimary else TextMuted
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier =
             Modifier.clip(RoundedCornerShape(14.dp))
-                .clickable(onClick = onClick)
+                .then(if (enabled) Modifier.clickable(onClick = onClick) else Modifier)
                 .padding(horizontal = 6.dp, vertical = 4.dp),
     ) {
         Box(
             modifier = Modifier
                 .size(52.dp)
-                .shadow(elevation = 3.dp, shape = RoundedCornerShape(16.dp), spotColor = Primary, ambientColor = Primary)
                 .clip(RoundedCornerShape(16.dp))
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFFFF883A),
-                            Primary,
-                        )
-                    )
-                ),
+                .background(effectiveContainerColor),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = title,
-                tint = Color.White,
-                modifier = Modifier.size(24.dp),
+                tint = effectiveIconColor,
+                modifier = Modifier.size(26.dp),
             )
         }
         Spacer(modifier = Modifier.height(6.dp))
-        Text(text = title, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+        Text(text = title, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = effectiveTextColor)
     }
 }
 
-// -------------------------------------------------------------
-// 4. INFO TAGIHAN / PINJAMAN AKTIF (SEAMLESS CLEAN FINTECH CARD)
-// -------------------------------------------------------------
+// 4. Info Tagihan / Pinjaman Aktif
 @Composable
 private fun TagihanPinjamanAktifCard(
     activeLoan: LoanApplicationItemDto?,
@@ -774,7 +1033,9 @@ private fun TagihanPinjamanAktifCard(
     onPayClick: () -> Unit,
     onDetailClick: () -> Unit,
 ) {
-    val isPending = activeLoan?.statusPengajuan?.contains("PENDING", ignoreCase = true) == true
+    val rawStatus = (activeLoan?.statusPengajuan ?: "PENDING").uppercase()
+    val isDisbursed = rawStatus in listOf("DICAIRKAN", "DISBURSED")
+    val isPending = !isDisbursed
 
     Box(modifier = Modifier.fillMaxWidth()) {
         Card(
@@ -788,13 +1049,31 @@ private fun TagihanPinjamanAktifCard(
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-                // 1. Header: Title alone at top (Identical to Menu Utama)
-                Text(
-                    text = "Tagihan & Pinjaman Aktif",
-                    fontSize = 14.5.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary,
-                )
+                // 1. Header: Title & Status Badge
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Tagihan & Pinjaman Aktif",
+                        fontSize = 14.5.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary,
+                    )
+                    if (activeLoan != null) {
+                        val (bVariant, bText) = when (rawStatus) {
+                            "DICAIRKAN", "DISBURSED" -> BadgeVariant.Success to "Dicairkan"
+                            "APPROVED", "DISETUJUI", "PENGAJUAN_DISETUJUI" -> BadgeVariant.Success to "Disetujui BM"
+                            "MENUNGGU_PENCAIRAN" -> BadgeVariant.Success to "Menunggu Pencairan"
+                            "SELESAI_DIREVIEW", "MENUNGGU_PERSETUJUAN", "DISETUJUI_MARKETING" -> BadgeVariant.Primary to "Disetujui Marketing"
+                            "VERIFIKASI_MARKETING", "MENUNGGU_REVIEW" -> BadgeVariant.Primary to "Review Marketing"
+                            "PERLU_REVISI", "REVISI" -> BadgeVariant.Warning to "Perlu Revisi"
+                            else -> BadgeVariant.Primary to "Dalam Proses"
+                        }
+                        Badge(text = bText, variant = bVariant, size = BadgeSize.SM)
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(14.dp))
 
@@ -856,7 +1135,7 @@ private fun TagihanPinjamanAktifCard(
                                     fontSize = 22.sp,
                                     lineHeight = 24.sp,
                                     fontWeight = FontWeight.ExtraBold,
-                                    color = Primary,
+                                    color = Neutral,
                                     style = TextStyle(
                                         fontFamily = OverusedGrotesk,
                                         platformStyle = PlatformTextStyle(includeFontPadding = false),
@@ -966,66 +1245,42 @@ private fun formatDisplayDate(dateStr: String?): String {
     }
 }
 
-// -------------------------------------------------------------
-// 5. BANNER PROMO MENARIK (CAROUSEL PROMO)
-// -------------------------------------------------------------
+// 5. Banner Promo Carousel
 private data class PromoBannerData(
-    val tag: String,
-    val title: String,
-    val desc: String,
-    val cta: String,
-    val gradientColors: List<Color>,
-    val accentIcon: ImageVector,
+    val imageRes: Int,
+    val contentDescription: String,
+    val action: () -> Unit,
 )
 
 @Composable
-private fun FullWidthPromoBannerSection(onPromoItemClick: () -> Unit) {
-    val promoList =
-        listOf(
-            PromoBannerData(
-                tag = "PROMO SPESIAL",
-                title = "Bunga Rendah Mulai 0.99% / bln",
-                desc =
-                    "Bebas biaya admin untuk pengajuan pinjaman pertama Anda di SAKU. Proses kilat cair 5 menit!",
-                cta = "Ajukan Sekarang →",
-                gradientColors = listOf(Color(0xFFFF792E), Color(0xFFFF5200), Color(0xFFD63B00)),
-                accentIcon = Lucide.Sparkles,
-            ),
-            PromoBannerData(
-                tag = "LIMIT EKSTRA",
-                title = "Plafond s/d Rp 50.000.000",
-                desc =
-                    "Lengkapi data pekerjaan & rekening Anda untuk mendapatkan kenaikan limit instan.",
-                cta = "Cek Plafond →",
-                gradientColors = listOf(Color(0xFF4F46E5), Color(0xFF4338CA), Color(0xFF312E81)),
-                accentIcon = Lucide.TrendingUp,
-            ),
-            PromoBannerData(
-                tag = "CASHBACK",
-                title = "Bonus Bayar Tepat Waktu",
-                desc =
-                    "Dapatkan cashback biaya admin & poin reward untuk setiap pembayaran angsuran tepat waktu.",
-                cta = "Pelajari Promo →",
-                gradientColors = listOf(Color(0xFF059669), Color(0xFF047857), Color(0xFF064E3B)),
-                accentIcon = Lucide.CreditCard,
-            ),
-            PromoBannerData(
-                tag = "SAKU USHA",
-                title = "Modal Kerja UMKM s/d Rp 50 Juta",
-                desc =
-                    "Kembangkan usaha Anda dengan cicilan ringan hingga 12 bulan dan bunga bersahabat.",
-                cta = "Ajukan Modal →",
-                gradientColors = listOf(Color(0xFFEA580C), Color(0xFFC2410C), Color(0xFF9A3412)),
-                accentIcon = Lucide.Wallet,
-            ),
-        )
+private fun FullWidthPromoBannerSection(
+    onSimulasiClick: () -> Unit,
+    onAjukanClick: () -> Unit,
+) {
+    val promoList = listOf(
+        PromoBannerData(
+            imageRes = R.drawable.banner_promo_1,
+            contentDescription = "Bunga Mulai Dari 3% Per Bulan - Cek Simulasi Sekarang!",
+            action = onSimulasiClick,
+        ),
+        PromoBannerData(
+            imageRes = R.drawable.banner_promo_2,
+            contentDescription = "Butuh Dana? Cair Cepat Tanpa Ribet - Ajukan Sekarang!",
+            action = onAjukanClick,
+        ),
+        PromoBannerData(
+            imageRes = R.drawable.banner_promo_3,
+            contentDescription = "Mobil Impian DP Ringan Cicilan Nyaman - Cek Simulasi Sekarang!",
+            action = onSimulasiClick,
+        ),
+    )
 
     val pagerState = rememberPagerState(pageCount = { promoList.size })
 
-    // Auto-slide banner otomatis setiap 3.5 detik
+    // Auto-slide banner otomatis setiap 4 detik
     LaunchedEffect(pagerState) {
         while (true) {
-            delay(3500L)
+            delay(4000L)
             if (!pagerState.isScrollInProgress) {
                 val nextPage = (pagerState.currentPage + 1) % promoList.size
                 pagerState.animateScrollToPage(
@@ -1053,13 +1308,13 @@ private fun FullWidthPromoBannerSection(onPromoItemClick: () -> Unit) {
                 fontSize = 12.5.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Primary,
-                modifier = Modifier.clickable(onClick = onPromoItemClick),
+                modifier = Modifier.clickable(onClick = onSimulasiClick),
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
-        // Full Size Carousel Banner
+        // Full Size Carousel Banner - Aspect Ratio 1024:324
         HorizontalPager(
             state = pagerState,
             contentPadding = PaddingValues(horizontal = 20.dp),
@@ -1068,104 +1323,30 @@ private fun FullWidthPromoBannerSection(onPromoItemClick: () -> Unit) {
         ) { page ->
             val item = promoList[page]
             Card(
-                modifier =
-                    Modifier.fillMaxWidth()
-                        .height(172.dp)
-                        .shadow(
-                            elevation = 4.dp,
-                            shape = RoundedCornerShape(18.dp),
-                            ambientColor = item.gradientColors.first(),
-                            spotColor = item.gradientColors.first(),
-                        )
-                        .clickable(onClick = onPromoItemClick),
-                shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-            ) {
-                Box(
-                    modifier =
-                        Modifier.fillMaxSize()
-                            .background(Brush.linearGradient(item.gradientColors))
-                            .padding(horizontal = 18.dp, vertical = 16.dp)
-                ) {
-                    // Decorative Watermark Icon in background
-                    Icon(
-                        imageVector = item.accentIcon,
-                        contentDescription = null,
-                        tint = Color.White.copy(alpha = 0.12f),
-                        modifier = Modifier.size(110.dp).align(Alignment.BottomEnd),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1024f / 324f)
+                    .shadow(
+                        elevation = 4.dp,
+                        shape = RoundedCornerShape(16.dp),
+                        ambientColor = Primary.copy(alpha = 0.25f),
+                        spotColor = Primary.copy(alpha = 0.25f),
                     )
-
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Column {
-                            // Tag Pill
-                            Box(
-                                modifier =
-                                    Modifier.clip(RoundedCornerShape(20.dp))
-                                        .background(Color.White.copy(alpha = 0.22f))
-                                        .padding(horizontal = 10.dp, vertical = 3.5.dp)
-                            ) {
-                                Text(
-                                    text = item.tag,
-                                    fontSize = 10.5.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White,
-                                    letterSpacing = 0.5.sp,
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            // Main Headline
-                            Text(
-                                text = item.title,
-                                fontSize = 17.5.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                                lineHeight = 22.sp,
-                            )
-
-                            Spacer(modifier = Modifier.height(4.dp))
-
-                            // Subtitle description
-                            Text(
-                                text = item.desc,
-                                fontSize = 12.sp,
-                                color = Color.White.copy(alpha = 0.92f),
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                                lineHeight = 16.sp,
-                            )
-                        }
-
-                        // Bottom CTA Pill Button
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End,
-                        ) {
-                            Box(
-                                modifier =
-                                    Modifier.clip(RoundedCornerShape(20.dp))
-                                        .background(Color.White)
-                                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(
-                                    text = item.cta,
-                                    fontSize = 11.5.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = item.gradientColors.first(),
-                                )
-                            }
-                        }
-                    }
-                }
+                    .clickable(onClick = item.action),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Surface),
+                border = BorderStroke(0.5.dp, Border.copy(alpha = 0.6f))
+            ) {
+                Image(
+                    painter = painterResource(id = item.imageRes),
+                    contentDescription = item.contentDescription,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         // Dot Page Indicators
         Row(
@@ -1176,28 +1357,145 @@ private fun FullWidthPromoBannerSection(onPromoItemClick: () -> Unit) {
             repeat(promoList.size) { index ->
                 val isSelected = pagerState.currentPage == index
                 Box(
-                    modifier =
-                        Modifier.padding(horizontal = 3.5.dp)
-                            .size(if (isSelected) 8.dp else 6.dp)
-                            .clip(CircleShape)
-                            .background(if (isSelected) Primary else Color(0xFFD1D5DB))
+                    modifier = Modifier
+                        .padding(horizontal = 3.dp)
+                        .size(if (isSelected) 7.dp else 5.dp)
+                        .clip(CircleShape)
+                        .background(if (isSelected) Primary else Neutral20)
                 )
             }
         }
     }
 }
 
-// -------------------------------------------------------------
-// INTERACTIVE LOAN SIMULATION DIALOG
-// -------------------------------------------------------------
+// 6. Edukasi & Tips Keuangan
+@Composable
+private fun TipsLiterasiKeuanganSection(onArticleClick: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+    ) {
+        Text(
+            text = "Edukasi & Tips Keuangan",
+            fontSize = 15.5.sp,
+            fontWeight = FontWeight.Bold,
+            color = TextPrimary,
+        )
+//        Spacer(modifier = Modifier.height(2.dp))
+//        Text(
+//            text = "Kelola finansial cerdas & wujudkan impian Anda",
+//            fontSize = 12.sp,
+//            color = TextSecondary,
+//        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Article Card 1 - 5 Strategi (Banner 4)
+        FinancialArticleItem(
+            imageRes = R.drawable.banner_promo_4,
+            title = "5 Strategi Kelola Arus Kas Pinjaman Usaha",
+            desc = "Pisahkan rekening bisnis & pribadi untuk menjaga likuiditas operasional usaha.",
+            tag = "3 Menit Baca • Tips UMKM",
+            onClick = onArticleClick,
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Article Card 2 - Menjaga Riwayat (Banner 5)
+        FinancialArticleItem(
+            imageRes = R.drawable.banner_promo_5,
+            title = "Menjaga Riwayat Kredit Prima Bebas Denda",
+            desc = "Bayar cicilan sebelum jatuh tempo untuk meningkatkan limit pinjaman berkala.",
+            tag = "2 Menit Baca • Finansial Sehat",
+            onClick = onArticleClick,
+        )
+    }
+}
+
+@Composable
+private fun FinancialArticleItem(
+    imageRes: Int,
+    title: String,
+    desc: String,
+    tag: String,
+    onClick: () -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Surface),
+        border = BorderStroke(1.dp, Border),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Image(
+                painter = painterResource(id = imageRes),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(65.dp)
+                    .clip(RoundedCornerShape(13.dp))
+            )
+
+            Spacer(modifier = Modifier.width(14.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    fontSize = 13.5.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = desc,
+                    fontSize = 11.5.sp,
+                    lineHeight = 15.sp,
+                    color = TextSecondary,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = tag,
+                    fontSize = 10.5.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = TextMuted,
+                )
+            }
+
+            Spacer(modifier = Modifier.width(6.dp))
+
+            Icon(
+                imageVector = Lucide.ChevronRight,
+                contentDescription = null,
+                tint = TextMuted,
+                modifier = Modifier.size(16.dp),
+            )
+        }
+    }
+}
+
+// Dialog: Interactive Loan Simulation
 @Composable
 private fun LoanSimulationDialog(
     amount: Double,
     tenorMonths: Int,
     onAmountChange: (Double) -> Unit,
     onTenorChange: (Int) -> Unit,
+    simulasiResult: SimulasiPinjamanResponseDto?,
     monthlyInstallment: Long,
     currencyFormatter: NumberFormat,
+    isAjukanEnabled: Boolean = true,
     onDismiss: () -> Unit,
     onApply: () -> Unit,
 ) {
@@ -1250,9 +1548,11 @@ private fun LoanSimulationDialog(
                     color = Primary,
                 )
 
+                Spacer(modifier = Modifier.height(8.dp))
+
                 Slider(
                     value = amount.toFloat(),
-                    onValueChange = { onAmountChange((it / 500_000).toInt() * 500_000.0) },
+                    onValueChange = { onAmountChange(it.toDouble()) },
                     valueRange = 1_000_000f..50_000_000f,
                     steps = 97,
                     colors =
@@ -1308,12 +1608,13 @@ private fun LoanSimulationDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(18.dp))
 
+                // Breakdown Card
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Primary0),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Background),
                 ) {
                     Column(
                         modifier = Modifier.fillMaxWidth().padding(14.dp),
@@ -1331,20 +1632,25 @@ private fun LoanSimulationDialog(
                             fontWeight = FontWeight.Bold,
                             color = Primary,
                         )
-                        Spacer(modifier = Modifier.height(2.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
+                        val tierName = simulasiResult?.estimasiTierPlafond ?: "Standar"
+                        val rawBunga = simulasiResult?.sukuBungaPersen ?: 1.5
+                        val sukuBunga = if (rawBunga <= 1.0 && rawBunga > 0.0) rawBunga * 100 else rawBunga
                         Text(
-                            text = "Termasuk bunga flat 0.99% & biaya admin",
-                            fontSize = 10.5.sp,
-                            color = TextMuted,
+                            text = "Bunga $sukuBunga% flat/bln • Tier Plafond: $tierName",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Primary,
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(18.dp))
 
                 Button(
-                    text = "Ajukan Pinjaman Ini",
+                    text = if (isAjukanEnabled) "Ajukan Pinjaman Ini" else "Limit Tidak Mencukupi (Rp 0)",
                     onClick = onApply,
+                    enabled = isAjukanEnabled,
                     variant = ButtonVariant.Primary,
                     size = ButtonSize.LG,
                     fullWidth = true,
@@ -1354,36 +1660,59 @@ private fun LoanSimulationDialog(
     }
 }
 
-// -------------------------------------------------------------
-// NOTIFICATION CENTER DIALOG
-// -------------------------------------------------------------
+// Dialog: Notification Center
 @Composable
-private fun NotificationCenterDialog(onDismiss: () -> Unit) {
+private fun NotificationCenterDialog(
+    notifications: List<NotifikasiItemDto>,
+    isLoading: Boolean,
+    unreadCount: Long,
+    onMarkAsRead: (String) -> Unit,
+    onMarkAllAsRead: () -> Unit,
+    onDismiss: () -> Unit
+) {
     Dialog(onDismissRequest = onDismiss) {
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(22.dp),
             colors = CardDefaults.cardColors(containerColor = Surface),
             border = BorderStroke(1.dp, Border),
         ) {
-            Column(modifier = Modifier.padding(20.dp)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+            ) {
+                // Header
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(
-                        text = "Pemberitahuan",
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary,
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Pemberitahuan",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary,
+                        )
+                        if (unreadCount > 0) {
+                            Badge(
+                                text = "$unreadCount baru",
+                                variant = BadgeVariant.Error,
+                                size = BadgeSize.SM
+                            )
+                        }
+                    }
+
                     Box(
-                        modifier =
-                            Modifier.size(30.dp)
-                                .clip(CircleShape)
-                                .background(Background)
-                                .clickable(onClick = onDismiss),
+                        modifier = Modifier
+                            .size(30.dp)
+                            .clip(CircleShape)
+                            .background(Background)
+                            .clickable(onClick = onDismiss),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
@@ -1395,53 +1724,130 @@ private fun NotificationCenterDialog(onDismiss: () -> Unit) {
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                if (unreadCount > 0) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Text(
+                            text = "Tandai semua sudah dibaca",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Primary,
+                            modifier = Modifier
+                                .clickable(onClick = onMarkAllAsRead)
+                                .padding(vertical = 4.dp, horizontal = 2.dp)
+                        )
+                    }
+                }
 
-                NotificationItemRow(
-                    title = "Selamat Datang di SAKU! 🎉",
-                    desc = "Akun nasabah Anda telah aktif. Nikmati kemudahan transaksi & pinjaman.",
-                    time = "Baru saja",
-                )
+                Spacer(modifier = Modifier.height(12.dp))
 
-                Spacer(modifier = Modifier.height(10.dp))
-
-                NotificationItemRow(
-                    title = "Plafond Tersedia Rp 50.000.000",
-                    desc =
-                        "Limit plafond Anda telah disiapkan. Ajukan pinjaman pertama kapan saja.",
-                    time = "10 Menit lalu",
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                NotificationItemRow(
-                    title = "Promo Bunga Spesial 0.99%",
-                    desc =
-                        "Dapatkan suku bunga rendah untuk pengajuan pinjaman tenor s/d 12 bulan.",
-                    time = "1 Jam lalu",
-                )
+                if (isLoading) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            color = Primary,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                } else if (notifications.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(46.dp)
+                                    .clip(CircleShape)
+                                    .background(Primary0),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Lucide.Bell,
+                                    contentDescription = null,
+                                    tint = Primary,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                            Text(
+                                text = "Belum Ada Notifikasi",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = TextPrimary
+                            )
+                            Text(
+                                text = "Semua pembaruan status pinjaman akan muncul di sini.",
+                                fontSize = 11.5.sp,
+                                color = TextSecondary,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 380.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        items(notifications) { notif ->
+                            NotificationItemRow(
+                                item = notif,
+                                onClick = {
+                                    notif.id?.let { onMarkAsRead(it) }
+                                }
+                            )
+                        }
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun NotificationItemRow(title: String, desc: String, time: String) {
+private fun NotificationItemRow(
+    item: NotifikasiItemDto,
+    onClick: () -> Unit
+) {
+    val isRead = item.isNotificationRead
     Row(
-        modifier =
-            Modifier.fillMaxWidth()
-                .clip(RoundedCornerShape(10.dp))
-                .background(Background)
-                .padding(12.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(if (isRead) Background else Primary0.copy(alpha = 0.6f))
+            .border(
+                width = 1.dp,
+                color = if (isRead) Border else Primary.copy(alpha = 0.25f),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .clickable(onClick = onClick)
+            .padding(12.dp),
+        verticalAlignment = Alignment.Top
     ) {
         Box(
-            modifier = Modifier.size(32.dp).clip(CircleShape).background(Primary0),
+            modifier = Modifier
+                .size(34.dp)
+                .clip(CircleShape)
+                .background(if (isRead) Surface else Primary),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = Lucide.Bell,
                 contentDescription = null,
-                tint = Primary,
+                tint = if (isRead) Primary else Color.White,
                 modifier = Modifier.size(16.dp),
             )
         }
@@ -1449,10 +1855,450 @@ private fun NotificationItemRow(title: String, desc: String, time: String) {
         Spacer(modifier = Modifier.width(10.dp))
 
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-            Text(text = desc, fontSize = 11.5.sp, color = TextSecondary, lineHeight = 15.sp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = item.judul ?: "Pemberitahuan SAKU",
+                    fontSize = 13.sp,
+                    fontWeight = if (isRead) FontWeight.SemiBold else FontWeight.Bold,
+                    color = TextPrimary
+                )
+                if (!isRead) {
+                    Box(
+                        modifier = Modifier
+                            .size(6.dp)
+                            .clip(CircleShape)
+                            .background(Primary)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(3.dp))
+            Text(
+                text = item.pesan ?: "-",
+                fontSize = 11.5.sp,
+                color = TextSecondary,
+                lineHeight = 15.sp
+            )
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = time, fontSize = 10.sp, color = TextMuted)
+            Text(
+                text = formatNotificationTime(item.createdDate),
+                fontSize = 10.sp,
+                color = TextMuted
+            )
+        }
+    }
+}
+
+private fun formatNotificationTime(rawDate: String?): String {
+    if (rawDate.isNullOrBlank()) return "Baru saja"
+    return try {
+        rawDate.replace("T", " ").take(16)
+    } catch (e: Exception) {
+        rawDate
+    }
+}
+
+// Dialog: Credit Score Detail
+@Composable
+private fun CreditScoreDetailDialog(
+    skorKredit: Int = 750,
+    tierName: String = "Tier Reguler",
+    onDismiss: () -> Unit,
+    onPanduanUpgradeClick: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(22.dp),
+            colors = CardDefaults.cardColors(containerColor = Surface),
+            border = BorderStroke(1.dp, Border),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+            ) {
+                // Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Analisis Skor Kredit",
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .size(30.dp)
+                            .clip(CircleShape)
+                            .background(Background)
+                            .clickable(onClick = onDismiss),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "✕",
+                            color = TextSecondary,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Score Hero Section (Clean No-BG / Direct on Dialog Surface)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Skor Kelayakan Finansial",
+                        fontSize = 12.sp,
+                        color = TextSecondary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "$skorKredit",
+                        fontSize = 38.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = TextPrimary,
+                        letterSpacing = (-0.5).sp,
+                        style = TextStyle(
+                            fontFamily = OverusedGrotesk,
+                            platformStyle = PlatformTextStyle(includeFontPadding = false),
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Badge(
+                            text = if (skorKredit >= 700) "Sangat Baik" else "Cukup Baik",
+                            variant = BadgeVariant.Success,
+                            size = BadgeSize.SM
+                        )
+                        Badge(
+                            text = tierName,
+                            variant = BadgeVariant.Warning,
+                            size = BadgeSize.SM
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Kolektibilitas lancar. Anda memenuhi kualifikasi untuk proses pencairan instan.",
+                        fontSize = 11.5.sp,
+                        color = TextSecondary,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 15.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                Text(
+                    text = "Faktor Penilaian Kredit",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Background)
+                        .border(1.dp, Border, RoundedCornerShape(14.dp))
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    CreditFactorRow(
+                        title = "Riwayat Pembayaran",
+                        desc = "100% Tepat Waktu",
+                        badge = "Optimal",
+                        badgeVariant = BadgeVariant.Success
+                    )
+                    HorizontalDivider(color = Border, thickness = 0.6.dp)
+                    CreditFactorRow(
+                        title = "Penggunaan Limit",
+                        desc = "Rasio Terkontrol & Sehat",
+                        badge = "Baik",
+                        badgeVariant = BadgeVariant.Success
+                    )
+                    HorizontalDivider(color = Border, thickness = 0.6.dp)
+                    CreditFactorRow(
+                        title = "Kelengkapan KYC",
+                        desc = "KTP & Rekening Terverifikasi",
+                        badge = "Lengkap",
+                        badgeVariant = BadgeVariant.Primary
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    text = "Panduan Kenaikan Limit",
+                    onClick = onPanduanUpgradeClick,
+                    variant = ButtonVariant.Primary,
+                    size = ButtonSize.MD,
+                    fullWidth = true
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CreditFactorRow(
+    title: String,
+    desc: String,
+    badge: String,
+    badgeVariant: BadgeVariant
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = TextPrimary
+            )
+            Text(
+                text = desc,
+                fontSize = 11.sp,
+                color = TextSecondary
+            )
+        }
+        Badge(text = badge, variant = badgeVariant, size = BadgeSize.SM)
+    }
+}
+
+// Dialog: Upgrade Limit Guide
+@Composable
+private fun UpgradeLimitGuideDialog(
+    currentPlafond: Double,
+    tierName: String = "Tier Reguler",
+    currencyFormatter: NumberFormat,
+    onDismiss: () -> Unit,
+    onEditProfileClick: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(22.dp),
+            colors = CardDefaults.cardColors(containerColor = Surface),
+            border = BorderStroke(1.dp, Border),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+            ) {
+                // Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Kenaikan Limit Plafond",
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .size(30.dp)
+                            .clip(CircleShape)
+                            .background(Background)
+                            .clickable(onClick = onDismiss),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "✕",
+                            color = TextSecondary,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // Current vs Max Limit Card (Light Clean Container with balanced 2 columns)
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
+                    border = BorderStroke(1.dp, Border)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Left Column: Limit Saat Ini
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Limit Saat Ini",
+                                fontSize = 11.sp,
+                                color = TextSecondary
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Rp ${currencyFormatter.format(currentPlafond)}",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextPrimary
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = tierName,
+                                fontSize = 10.5.sp,
+                                color = TextSecondary,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+
+                        // Vertical Divider
+                        Box(
+                            modifier = Modifier
+                                .height(40.dp)
+                                .width(1.dp)
+                                .background(Border)
+                        )
+
+                        // Right Column: Potensi Limit Maksimal
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(start = 12.dp),
+                            horizontalAlignment = Alignment.End
+                        ) {
+                            Text(
+                                text = "Potensi Maksimal",
+                                fontSize = 11.sp,
+                                color = Primary,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "s/d Rp 50.000.000",
+                                fontSize = 14.5.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Primary
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Tier Platinum",
+                                fontSize = 10.5.sp,
+                                color = TextSecondary,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                Text(
+                    text = "3 Langkah Menaikkan Limit Anda",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    UpgradeStepRow(
+                        step = "1",
+                        title = "Bayar Cicilan Tepat Waktu",
+                        desc = "Lakukan pembayaran angsuran sebelum jatuh tempo selama 3 siklus berturut-turut."
+                    )
+                    UpgradeStepRow(
+                        step = "2",
+                        title = "Lengkapi Data Finansial",
+                        desc = "Isi data pekerjaan, penghasilan bulanan, dan NPWP di menu Edit Profil."
+                    )
+                    UpgradeStepRow(
+                        step = "3",
+                        title = "Evaluasi Sistem Otomatis",
+                        desc = "Sistem SAKU akan mengevaluasi kenaikan limit Anda secara berkala setiap 30 hari."
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                Button(
+                    text = "Lengkapi Data Profil",
+                    onClick = onEditProfileClick,
+                    variant = ButtonVariant.Primary,
+                    size = ButtonSize.MD,
+                    fullWidth = true
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun UpgradeStepRow(
+    step: String,
+    title: String,
+    desc: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Top
+    ) {
+        Box(
+            modifier = Modifier
+                .size(24.dp)
+                .clip(CircleShape)
+                .background(Primary0),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = step,
+                fontSize = 11.5.sp,
+                fontWeight = FontWeight.Bold,
+                color = Primary
+            )
+        }
+        Spacer(modifier = Modifier.width(10.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                fontSize = 12.5.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = TextPrimary
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = desc,
+                fontSize = 11.sp,
+                color = TextSecondary,
+                lineHeight = 15.sp
+            )
         }
     }
 }
@@ -1484,6 +2330,27 @@ fun PlafondMeshHeroCardHiddenPreview() {
                 totalPlafond = 50_000_000.0,
                 usedPlafond = 5_000_000.0,
                 isBalanceVisible = false,
+                onToggleVisibility = {},
+                currencyFormatter = NumberFormat.getNumberInstance(Locale.forLanguageTag("id-ID")),
+            )
+        }
+    }
+}
+
+@Preview(name = "Card Plafon Pinjaman - Sedang Proses Pengajuan", showBackground = true)
+@Composable
+fun PlafondMeshHeroCardInProcessPreview() {
+    SAKUAppTheme {
+        Box(modifier = Modifier.padding(16.dp)) {
+            PlafondMeshHeroCard(
+                availablePlafond = 6_000_000.0,
+                totalPlafond = 10_500_000.0,
+                usedPlafond = 4_500_000.0,
+                isBalanceVisible = true,
+                sukuBunga = 0.06,
+                inProcessAmount = 4_500_000.0,
+                hasInProcessLoan = true,
+                hasDisbursedLoan = false,
                 onToggleVisibility = {},
                 currencyFormatter = NumberFormat.getNumberInstance(Locale.forLanguageTag("id-ID")),
             )
@@ -1527,7 +2394,7 @@ fun TagihanPinjamanAktifCardActivePreview() {
                     nomorPengajuan = "PJ-20260901-7F2A1C",
                     jumlahPinjaman = 5_000_000.0,
                     tenorBulan = 6,
-                    bunga = 0.99,
+                    bunga = 1.5,
                     estimasiAngsuranBulanan = 882_833.0,
                     statusPengajuan = "APPROVED",
                     createdDate = "2026-09-01T08:15:00"
