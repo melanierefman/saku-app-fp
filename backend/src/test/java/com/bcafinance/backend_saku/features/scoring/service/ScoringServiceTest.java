@@ -82,9 +82,8 @@ class ScoringServiceTest {
         plafond.setMaxSkor(100);
         plafond.setStatus(true);
 
+        when(customerPlafondService.resolveCustomerPlafond(scoring)).thenReturn(plafond);
         when(plafondRepository.findAllByStatusTrue()).thenReturn(List.of(plafond));
-        when(plafondRepository.findTopByMinPendapatanLessThanEqualAndStatusTrueOrderByMinPendapatanDesc(any()))
-                .thenReturn(Optional.of(plafond));
 
         ScoringAnalysisResponse analysis = scoringService.analyzeScoring(scoring);
 

@@ -278,6 +278,9 @@ public class CustomerProfileService {
                 .totalPlafond(plafondSummary.totalPlafond())
                 .usedPlafond(plafondSummary.usedPlafond())
                 .availablePlafond(plafondSummary.availablePlafond())
+                .tierPlafond(plafondSummary.tierName())
+                .sukuBunga(plafondSummary.sukuBunga())
+                .biayaAdmin(plafondSummary.biayaAdmin())
                 .createdDate(customer.getCreatedDate())
                 .build();
     }
@@ -332,6 +335,11 @@ public class CustomerProfileService {
                     scoringService.calculateScore(cicilan, pendapatan, lamaBekerja, statusPekerjaan);
             scoring.setSkor((int) Math.round(res.score()));
             scoring.setStatusScoring(res.decision());
+
+            com.bcafinance.backend_saku.core.entity.Plafond p = customerPlafondService.resolveCustomerPlafond(scoring);
+            if (p != null) {
+                scoring.setMstPlafondId(p.getId());
+            }
         }
 
         scoring.setUpdatedDate(LocalDateTime.now());

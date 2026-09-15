@@ -165,8 +165,7 @@ class PlafondServiceTest {
     @Test
     @DisplayName("calculateApprovedAmount - should return APPROVED and 100% for score >= 75")
     void calculateApprovedAmount_Score75_ShouldReturnApproved100Percent() {
-        when(plafondRepository.findTopByMinPendapatanLessThanEqualAndStatusTrueOrderByMinPendapatanDesc(new BigDecimal("7000000.00")))
-                .thenReturn(Optional.of(testPlafond));
+        when(plafondRepository.findAllByStatusTrue()).thenReturn(List.of(testPlafond));
 
         PlafondCalculationResponse result = plafondService.calculateApprovedAmount(new BigDecimal("7000000.00"), 85.0);
 
@@ -179,8 +178,7 @@ class PlafondServiceTest {
     @Test
     @DisplayName("calculateApprovedAmount - should return REVIEW and 70% for score >= 60 and < 75")
     void calculateApprovedAmount_Score65_ShouldReturnReview70Percent() {
-        when(plafondRepository.findTopByMinPendapatanLessThanEqualAndStatusTrueOrderByMinPendapatanDesc(new BigDecimal("7000000.00")))
-                .thenReturn(Optional.of(testPlafond));
+        when(plafondRepository.findAllByStatusTrue()).thenReturn(List.of(testPlafond));
 
         PlafondCalculationResponse result = plafondService.calculateApprovedAmount(new BigDecimal("7000000.00"), 65.0);
 
@@ -193,6 +191,7 @@ class PlafondServiceTest {
     @Test
     @DisplayName("calculateApprovedAmount - should return REJECTED and fallback percentage 50% for score < 60")
     void calculateApprovedAmount_Score50_ShouldReturnRejected50Percent() {
+        when(plafondRepository.findAllByStatusTrue()).thenReturn(List.of());
         when(plafondRepository.findTopByMinPendapatanLessThanEqualAndStatusTrueOrderByMinPendapatanDesc(new BigDecimal("7000000.00")))
                 .thenReturn(Optional.of(testPlafond));
 
@@ -207,6 +206,7 @@ class PlafondServiceTest {
     @Test
     @DisplayName("calculateApprovedAmount - should throw when no active plafond found")
     void calculateApprovedAmount_ShouldThrowWhenNoPlafondAvailable() {
+        when(plafondRepository.findAllByStatusTrue()).thenReturn(List.of());
         when(plafondRepository.findTopByMinPendapatanLessThanEqualAndStatusTrueOrderByMinPendapatanDesc(any()))
                 .thenReturn(Optional.empty());
         when(plafondRepository.findFirstByStatusTrueOrderByMinSkorAsc())

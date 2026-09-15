@@ -73,9 +73,13 @@ public class PublicService {
             tierName = first.getNama();
         }
 
+        BigDecimal ratePct = (sukuBungaPersen.compareTo(BigDecimal.ONE) <= 0 && sukuBungaPersen.compareTo(BigDecimal.ZERO) > 0)
+                ? sukuBungaPersen.multiply(BigDecimal.valueOf(100))
+                : sukuBungaPersen;
+
         BigDecimal tenorBD = BigDecimal.valueOf(tenorBulan);
         BigDecimal cicilanPokokBulanan = jumlahPinjaman.divide(tenorBD, 2, RoundingMode.HALF_UP);
-        BigDecimal bungaBulanan = jumlahPinjaman.multiply(sukuBungaPersen)
+        BigDecimal bungaBulanan = jumlahPinjaman.multiply(ratePct)
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
         BigDecimal totalCicilanBulanan = cicilanPokokBulanan.add(bungaBulanan);
         BigDecimal totalPembayaran = totalCicilanBulanan.multiply(tenorBD).add(biayaAdmin);
@@ -83,7 +87,7 @@ public class PublicService {
         return SimulasiPinjamanResponse.builder()
                 .jumlahPinjaman(jumlahPinjaman)
                 .tenorBulan(tenorBulan)
-                .sukuBungaPersen(sukuBungaPersen)
+                .sukuBungaPersen(ratePct)
                 .cicilanPokokBulanan(cicilanPokokBulanan)
                 .bungaBulanan(bungaBulanan)
                 .totalCicilanBulanan(totalCicilanBulanan)
@@ -94,12 +98,17 @@ public class PublicService {
     }
 
     private PublicPlafondResponse toPlafondResponse(Plafond p) {
+        BigDecimal rawBunga = p.getBunga();
+        BigDecimal normalizedBunga = (rawBunga != null && rawBunga.compareTo(BigDecimal.ONE) <= 0 && rawBunga.compareTo(BigDecimal.ZERO) > 0)
+                ? rawBunga.multiply(BigDecimal.valueOf(100))
+                : rawBunga;
+
         return PublicPlafondResponse.builder()
                 .id(p.getId())
                 .nama(p.getNama())
                 .minPlafond(p.getMinPlafond())
                 .maxPlafond(p.getMaxPlafond())
-                .bunga(p.getBunga())
+                .bunga(normalizedBunga)
                 .biayaAdmin(p.getBiayaAdmin())
                 .minSkor(p.getMinSkor())
                 .maxSkor(p.getMaxSkor())

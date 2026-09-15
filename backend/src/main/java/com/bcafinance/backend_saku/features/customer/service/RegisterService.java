@@ -39,6 +39,7 @@ public class RegisterService {
     private final DokumenCustomerRepository dokumenRepository;
     private final ScoringCustomerRepository scoringRepository;
     private final VerifikasiCustomerRepository verifikasiRepository;
+    private final com.bcafinance.backend_saku.core.repository.PlafondRepository plafondRepository;
     private final ScoringService scoringService;
     private final OtpService otpService;
     private final PasswordEncoder passwordEncoder;
@@ -305,8 +306,19 @@ public class RegisterService {
                 req.pendapatan(),
                 req.lamaBekerjaBulan(),
                 req.statusPekerjaan());
-        scoring.setSkor((int) Math.round(result.score()));
+        int calculatedScore = (int) Math.round(result.score());
+        scoring.setSkor(calculatedScore);
         scoring.setStatusScoring(result.decision());
+
+        if (plafondRepository != null) {
+            var activePlafonds = plafondRepository.findAllByStatusTrue();
+            activePlafonds.stream()
+                    .filter(p -> p.getMinSkor() != null && p.getMaxSkor() != null
+                            && calculatedScore >= p.getMinSkor() && calculatedScore <= p.getMaxSkor())
+                    .findFirst()
+                    .ifPresent(p -> scoring.setMstPlafondId(p.getId()));
+        }
+
         scoring.setCreatedDate(LocalDateTime.now());
         scoring.setUpdatedDate(LocalDateTime.now());
         scoringRepository.save(scoring);

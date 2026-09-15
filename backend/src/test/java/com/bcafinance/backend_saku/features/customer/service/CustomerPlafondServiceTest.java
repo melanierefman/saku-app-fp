@@ -66,11 +66,16 @@ class CustomerPlafondServiceTest {
 
         Plafond plafond = new Plafond();
         plafond.setId(plafondId);
+        plafond.setNama("Prioritas");
+        plafond.setMinSkor(70);
+        plafond.setMaxSkor(100);
+        plafond.setMinPendapatan(BigDecimal.valueOf(5_000_000));
         plafond.setPlafondMaksimal(BigDecimal.valueOf(50_000_000));
+        plafond.setStatus(true);
 
         when(scoringRepository.findFirstByMstCustomerIdOrderByCreatedDateDesc(customerId))
                 .thenReturn(Optional.of(scoring));
-        when(plafondRepository.findById(plafondId)).thenReturn(Optional.of(plafond));
+        when(plafondRepository.findAllByStatusTrue()).thenReturn(java.util.List.of(plafond));
         when(pengajuanRepository.findAllByMstCustomerIdOrderByCreatedDateDesc(customerId))
                 .thenReturn(Collections.emptyList());
 

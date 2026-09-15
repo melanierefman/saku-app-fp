@@ -65,6 +65,9 @@ public class CustomerProfileResponse {
     private BigDecimal totalPlafond;
     private BigDecimal usedPlafond;
     private BigDecimal availablePlafond;
+    private String tierPlafond;
+    private BigDecimal sukuBunga;
+    private BigDecimal biayaAdmin;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdDate;

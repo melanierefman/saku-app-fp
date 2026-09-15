@@ -55,6 +55,7 @@ public class MarketingReviewService {
     private final AlamatCustomerRepository alamatRepository;
     private final DokumenCustomerRepository dokumenCustomerRepository;
     private final DokumenPinjamanRepository dokumenPinjamanRepository;
+    private final com.bcafinance.backend_saku.core.repository.PlafondRepository plafondRepository;
     private final ScoringCustomerRepository scoringRepository;
     private final KaryawanRepository karyawanRepository;
     private final CabangRepository cabangRepository;
@@ -250,6 +251,22 @@ public class MarketingReviewService {
         BigDecimal estimasiCicilan = calculateEstimasiAngsuran(
                 pengajuan.getJumlahPinjaman(), pengajuan.getTenorBulan(), pengajuan.getBunga());
 
+        List<com.bcafinance.backend_saku.core.dto.PlafondOptionResponse> availablePlafondTiers = (plafondRepository != null)
+                ? plafondRepository.findAllByStatusTrue().stream()
+                        .map(p -> com.bcafinance.backend_saku.core.dto.PlafondOptionResponse.builder()
+                                .id(p.getId())
+                                .nama(p.getNama())
+                                .minPendapatan(p.getMinPendapatan())
+                                .plafondMaksimal(p.getPlafondMaksimal())
+                                .minSkor(p.getMinSkor())
+                                .maxSkor(p.getMaxSkor())
+                                .bunga(p.getBunga())
+                                .biayaAdmin(p.getBiayaAdmin())
+                                .status(p.getStatus())
+                                .build())
+                        .toList()
+                : List.of();
+
         return MarketingPengajuanDetailResponse.builder()
                 // Info Pengajuan
                 .pengajuanId(pengajuan.getId())
@@ -300,6 +317,13 @@ public class MarketingReviewService {
                 .isAmbigu(analysis != null ? analysis.getIsAmbigu() : false)
                 .notesAmbigu(analysis != null ? analysis.getIndikatorAmbigu() : List.of())
                 .ringkasanAnalisis(analysis != null ? analysis.getRingkasanAnalisis() : null)
+                .rekomendasiAksi(analysis != null ? analysis.getRekomendasiAksi() : null)
+                .rekomendasiTierId(analysis != null ? analysis.getRekomendasiTierId() : null)
+                .rekomendasiTierNama(analysis != null ? analysis.getRekomendasiTierNama() : null)
+                .rekomendasiBunga(analysis != null ? analysis.getRekomendasiBunga() : null)
+                .rekomendasiBiayaAdmin(analysis != null ? analysis.getRekomendasiBiayaAdmin() : null)
+                .rekomendasiAlasan(analysis != null ? analysis.getRekomendasiAlasan() : null)
+                .availablePlafondTiers(availablePlafondTiers)
                 .breakdown(analysis != null ? analysis.getBreakdown() : null)
 
                 // Detail Pinjaman
@@ -488,16 +512,19 @@ public class MarketingReviewService {
     }
 
     private BigDecimal calculateEstimasiAngsuran(BigDecimal jumlahPinjaman, Integer tenorBulan,
-            BigDecimal bungaTahunan) {
+            BigDecimal bunga) {
         if (jumlahPinjaman == null || tenorBulan == null || tenorBulan <= 0) {
             return BigDecimal.ZERO;
         }
 
         BigDecimal pokokBulanan = jumlahPinjaman.divide(BigDecimal.valueOf(tenorBulan), 2, RoundingMode.HALF_UP);
-        BigDecimal rate = bungaTahunan != null ? bungaTahunan : BigDecimal.ZERO;
+        BigDecimal rate = bunga != null ? bunga : BigDecimal.ZERO;
+        BigDecimal ratePct = (rate.compareTo(BigDecimal.ONE) <= 0 && rate.compareTo(BigDecimal.ZERO) > 0)
+                ? rate.multiply(BigDecimal.valueOf(100))
+                : rate;
         BigDecimal bungaBulanan = jumlahPinjaman
-                .multiply(rate.movePointLeft(2))
-                .divide(BigDecimal.valueOf(12), 2, RoundingMode.HALF_UP);
+                .multiply(ratePct)
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
 
         return pokokBulanan.add(bungaBulanan);
     }
