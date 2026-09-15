@@ -93,6 +93,7 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
 
   // Review Form
   selectedReviewStatus = signal<string>('');
+  selectedKategoriAlasan = signal<string>('');
   catatanReview = signal<string>('');
   isSubmitting = signal<boolean>(false);
   isConfirmModalOpen = signal<boolean>(false);
@@ -105,10 +106,67 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
   }
 
   readonly reviewStatusOptions: DropdownOption[] = [
-    { value: 'DISETUJUI', label: 'Disetujui' },
-    { value: 'PERLU_REVISI', label: 'Perlu Revisi' },
-    { value: 'DITOLAK', label: 'Ditolak' },
+    { value: 'DISETUJUI', label: 'Disetujui (Lolos Review)' },
+    { value: 'PERLU_REVISI', label: 'Perlu Revisi Dokumen' },
+    { value: 'DITOLAK', label: 'Tolak Pengajuan' },
   ];
+
+  readonly presetReasons: Record<string, DropdownOption[]> = {
+    DISETUJUI: [
+      {
+        value: 'Dokumen lengkap dan valid. Pendapatan, slip gaji, dan mutasi rekening sesuai kemampuan bayar customer.',
+        label: 'Dokumen & Kapasitas Bayar Valid (Lolos)',
+      },
+      {
+        value: 'Data pekerjaan terverifikasi valid, status karyawan tetap dengan masa kerja stabil.',
+        label: 'Data Pekerjaan Stabil & Terverifikasi',
+      },
+      {
+        value: 'Credit scoring dan rasio DBR sehat, direkomendasikan lanjut ke persetujuan Branch Manager.',
+        label: 'Direkomendasikan Lanjut ke Branch Manager',
+      },
+      { value: 'LAINNYA', label: 'Lainnya (Tulis catatan khusus)...' },
+    ],
+    PERLU_REVISI: [
+      {
+        value: 'Foto e-KTP buram atau nomor NIK tidak terbaca jelas. Mohon unggah ulang foto e-KTP asli.',
+        label: 'Foto e-KTP Buram / Tidak Jelas',
+      },
+      {
+        value: 'Slip gaji tidak mencantumkan stempel/tanda tangan HRD atau nominal tidak sesuai. Mohon unggah slip gaji resmi.',
+        label: 'Slip Gaji Tidak Lengkap / Non-Resmi',
+      },
+      {
+        value: 'Foto liveness selfie tidak cocok dengan foto identitas e-KTP. Mohon unggah ulang foto selfie wajah terbaru.',
+        label: 'Foto Selfie Liveness Tidak Cocok',
+      },
+      {
+        value: 'Dokumen rekening koran 3 bulan terakhir terpotong. Mohon unggah ulang berkas PDF/foto lengkap.',
+        label: 'Rekening Koran Terpotong / Belum Lengkap',
+      },
+      { value: 'LAINNYA', label: 'Lainnya (Tulis catatan khusus)...' },
+    ],
+    DITOLAK: [
+      {
+        value: 'Dokumen identitas atau bukti penghasilan tidak valid / terindikasi manipulasi.',
+        label: 'Dokumen Tidak Valid / Manipulasi',
+      },
+      {
+        value: 'Penghasilan bulanan di bawah kriteria minimum pembiayaan atau DBR melampaui batas toleransi.',
+        label: 'Penghasilan Tidak Memenuhi Standar Minimal',
+      },
+      {
+        value: 'Profil pekerjaan dan masa kerja tidak memenuhi kriteria kelayakan kredit.',
+        label: 'Profil Pekerjaan Tidak Memenuhi Syarat',
+      },
+      { value: 'LAINNYA', label: 'Lainnya (Tulis catatan khusus)...' },
+    ],
+  };
+
+  get kategoriAlasanOptions(): DropdownOption[] {
+    const s = this.selectedReviewStatus();
+    return this.presetReasons[s] || [];
+  }
 
   ngOnInit(): void {
     this.pengajuanId = this.route.snapshot.paramMap.get('id') || '';
@@ -139,12 +197,36 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
   }
 
   onReviewStatusChange(event: DropdownOption | null | string): void {
-    if (!event) {
-      this.selectedReviewStatus.set('');
-    } else if (typeof event === 'object' && 'value' in event) {
-      this.selectedReviewStatus.set(event.value || '');
+    let val = '';
+    if (event && typeof event === 'object' && 'value' in event) {
+      val = event.value || '';
+    } else if (event) {
+      val = String(event);
+    }
+    this.selectedReviewStatus.set(val);
+    this.selectedKategoriAlasan.set('');
+
+    const presets = this.presetReasons[val];
+    if (presets && presets.length > 0 && presets[0].value !== 'LAINNYA') {
+      this.selectedKategoriAlasan.set(presets[0].value || '');
+      this.catatanReview.set(presets[0].value || '');
     } else {
-      this.selectedReviewStatus.set(String(event));
+      this.catatanReview.set('');
+    }
+  }
+
+  onKategoriAlasanChange(event: DropdownOption | null | string): void {
+    let val = '';
+    if (event && typeof event === 'object' && 'value' in event) {
+      val = event.value || '';
+    } else if (event) {
+      val = String(event);
+    }
+    this.selectedKategoriAlasan.set(val);
+    if (val === 'LAINNYA') {
+      this.catatanReview.set('');
+    } else if (val) {
+      this.catatanReview.set(val);
     }
   }
 
@@ -176,6 +258,7 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
     const payload: ReviewPengajuanRequest = {
       hasilReview: decision,
       catatan: note || 'Review pengajuan telah diselesaikan oleh Marketing.',
+      kategoriAlasan: this.selectedKategoriAlasan() || undefined,
     };
 
     this.isSubmitting.set(true);
@@ -366,20 +449,25 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
 
   getDbrPercentage(): string {
     const d = this.detail();
-    if (d?.dbrPercentage !== undefined && d?.dbrPercentage !== null) {
-      return String(d.dbrPercentage).replace('.', ',');
+    if (d?.dbrPercentage !== undefined && d?.dbrPercentage !== null && !isNaN(Number(d.dbrPercentage)) && Number(d.dbrPercentage) > 0) {
+      return Number(d.dbrPercentage).toFixed(1).replace('.', ',');
     }
-    if (d?.dbr !== undefined && d?.dbr !== null) {
+    if (d?.dbr !== undefined && d?.dbr !== null && !isNaN(Number(d.dbr)) && Number(d.dbr) > 0) {
       const num = Number(d.dbr);
-      const pct = num < 1 ? num * 100 : num;
-      return pct.toFixed(2).replace('.', ',');
+      const pct = num <= 1 ? num * 100 : num;
+      return pct.toFixed(1).replace('.', ',');
     }
-    return '17,78';
+    const cicilan = this.getCicilanBerjalan();
+    const pendapatan = this.getPendapatanBulanan();
+    if (pendapatan > 0 && cicilan > 0) {
+      return ((cicilan / pendapatan) * 100).toFixed(1).replace('.', ',');
+    }
+    return '0,0';
   }
 
   getDbrColorClass(): string {
-    const raw = this.detail()?.dbrPercentage ?? this.detail()?.dbr ?? 0;
-    const num = Number(raw) <= 1 && Number(raw) > 0 ? Number(raw) * 100 : Number(raw);
+    const pctStr = this.getDbrPercentage().replace(',', '.');
+    const num = parseFloat(pctStr) || 0;
     if (num <= 30) return 'text-success-60';
     if (num <= 40) return 'text-warning-60';
     return 'text-error-60';

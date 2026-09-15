@@ -242,6 +242,13 @@ export interface MarketingPengajuanDetailResponse {
   isAmbigu?: boolean;
   notesAmbigu?: string[];
   ringkasanAnalisis?: string;
+  rekomendasiAksi?: string;
+  rekomendasiTierId?: string;
+  rekomendasiTierNama?: string;
+  rekomendasiBunga?: number;
+  rekomendasiBiayaAdmin?: number;
+  rekomendasiAlasan?: string;
+  availablePlafondTiers?: any[];
   breakdown?: BreakdownInfo;
 
   customerDetail?: CustomerDetail;

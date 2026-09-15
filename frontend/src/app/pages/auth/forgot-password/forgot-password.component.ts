@@ -83,7 +83,7 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
     this.stopTimer();
   }
 
-  // --- Step 1: Request OTP ---
+  // Step 1: Request OTP
   onRequestOtp(): void {
     this.emailError = '';
 
@@ -118,7 +118,7 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
     });
   }
 
-  // --- Step 2: Resend OTP ---
+  // Step 2: Resend OTP
   onResendOtp(): void {
     if (!this.canResend || this.isLoading) return;
 
@@ -167,7 +167,7 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
     }
   }
 
-  // --- Step 2: OTP Input Management ---
+  // Step 2: OTP Input Management
   onOtpInput(index: number, event: Event): void {
     const input = event.target as HTMLInputElement;
     const val = input.value.replace(/[^0-9]/g, '');
@@ -211,7 +211,7 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
     return this.otpDigits.join('');
   }
 
-  // --- Step 2: Verify OTP ---
+  // Step 2: Verify OTP
   onVerifyOtp(): void {
     this.otpError = '';
 
@@ -238,7 +238,7 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
     });
   }
 
-  // --- Step 3: Submit Reset Password ---
+  // Step 3: Submit Reset Password
   onResetPassword(): void {
     this.newPasswordError = '';
     this.confirmPasswordError = '';
