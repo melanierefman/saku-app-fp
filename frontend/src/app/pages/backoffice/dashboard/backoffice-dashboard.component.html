@@ -21,42 +21,46 @@
 
   <!-- Skeleton Loading State -->
   @if (isLoadingStats()) {
-  <div class="space-y-6">
+  <div class="flex flex-col gap-6">
     <!-- Skeleton Container 1 (2 Cards in 1 Row) -->
-    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
-      <div class="space-y-1">
+    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col gap-5">
+      <div class="flex flex-col gap-2.5">
         <app-skeleton variant="text" width="w-56" height="h-5"></app-skeleton>
         <app-skeleton variant="text" width="w-72" height="h-3.5"></app-skeleton>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         @for (i of [1, 2]; track i) {
-        <div class="p-4 rounded-xl border border-[#E5E7EB] space-y-3">
+        <div class="p-4 rounded-xl border border-[#E5E7EB] flex flex-col gap-4">
           <div class="flex items-center justify-between">
             <app-skeleton variant="rect" width="w-8" height="h-8" rounded="lg"></app-skeleton>
             <app-skeleton variant="text" width="w-20" height="h-4"></app-skeleton>
           </div>
-          <app-skeleton variant="text" width="w-36" height="h-7"></app-skeleton>
-          <app-skeleton variant="text" width="w-44" height="h-3"></app-skeleton>
+          <div class="flex flex-col gap-2.5">
+            <app-skeleton variant="text" width="w-36" height="h-7"></app-skeleton>
+            <app-skeleton variant="text" width="w-44" height="h-3.5"></app-skeleton>
+          </div>
         </div>
         }
       </div>
     </div>
 
     <!-- Skeleton Container 2 (3 Cards in 1 Row) -->
-    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
-      <div class="space-y-1">
+    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col gap-5">
+      <div class="flex flex-col gap-2.5">
         <app-skeleton variant="text" width="w-56" height="h-5"></app-skeleton>
         <app-skeleton variant="text" width="w-72" height="h-3.5"></app-skeleton>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         @for (i of [1,2,3]; track i) {
-        <div class="p-4 rounded-xl border border-[#E5E7EB] space-y-3">
+        <div class="p-4 rounded-xl border border-[#E5E7EB] flex flex-col gap-4">
           <div class="flex items-center justify-between">
             <app-skeleton variant="text" width="w-32" height="h-4"></app-skeleton>
             <app-skeleton variant="rect" width="w-8" height="h-8" rounded="lg"></app-skeleton>
           </div>
-          <app-skeleton variant="text" width="w-36" height="h-7"></app-skeleton>
-          <app-skeleton variant="text" width="w-32" height="h-3"></app-skeleton>
+          <div class="flex flex-col gap-2.5">
+            <app-skeleton variant="text" width="w-36" height="h-7"></app-skeleton>
+            <app-skeleton variant="text" width="w-32" height="h-3.5"></app-skeleton>
+          </div>
         </div>
         }
       </div>
@@ -65,14 +69,14 @@
     <!-- Charts Skeleton -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs h-72 flex flex-col justify-between">
-        <div class="space-y-2">
+        <div class="flex flex-col gap-2.5">
           <app-skeleton variant="text" width="w-48" height="h-5"></app-skeleton>
           <app-skeleton variant="text" width="w-64" height="h-3.5"></app-skeleton>
         </div>
         <app-skeleton variant="rect" width="w-full" height="h-44" rounded="xl"></app-skeleton>
       </div>
       <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs h-72 flex flex-col justify-between">
-        <div class="space-y-2">
+        <div class="flex flex-col gap-2.5">
           <app-skeleton variant="text" width="w-48" height="h-5"></app-skeleton>
           <app-skeleton variant="text" width="w-64" height="h-3.5"></app-skeleton>
         </div>
@@ -127,7 +131,7 @@
           <div
             class="mt-2.5 pt-2 border-t border-[#E5E7EB] flex items-center justify-between text-xs text-neutral-50">
             <span class="text-neutral-40 truncate text-[11px]">Buka Antrean KYC</span>
-            <span class="font-medium text-cyan-700 shrink-0 text-xs ml-2 flex items-center gap-1 group-hover:text-cyan-800">
+            <span class="font-medium text-neutral-70 shrink-0 text-xs ml-2 flex items-center gap-1 group-hover:text-neutral-90">
               <span>Proses Sekarang</span>
               <svg lucideArrowRight [size]="12" class="w-3 h-3 group-hover:translate-x-0.5 transition-transform"></svg>
             </span>
@@ -152,7 +156,7 @@
 
             <div class="mt-2.5">
               <span class="text-[11px] font-medium text-neutral-40 uppercase tracking-wider">Eksekusi Pencairan Dana</span>
-              <div class="text-xl sm:text-2xl font-bold text-success-70 tracking-tight mt-0.5">
+              <div class="text-xl sm:text-2xl font-bold text-neutral-90 tracking-tight mt-0.5">
                 {{ stats()?.siapDicairkan ?? 0 }} <span class="text-xs font-normal text-neutral-50">Pinjaman</span>
               </div>
             </div>
@@ -161,7 +165,7 @@
           <div
             class="mt-2.5 pt-2 border-t border-[#E5E7EB] flex items-center justify-between text-xs text-neutral-50">
             <span class="text-neutral-40 truncate text-[11px]">Buka Pencairan Dana</span>
-            <span class="font-medium text-success-70 shrink-0 text-xs ml-2 flex items-center gap-1 group-hover:text-success-80">
+            <span class="font-medium text-neutral-70 shrink-0 text-xs ml-2 flex items-center gap-1 group-hover:text-neutral-90">
               <span>Transfer Dana</span>
               <svg lucideArrowRight [size]="12" class="w-3 h-3 group-hover:translate-x-0.5 transition-transform"></svg>
             </span>
@@ -212,7 +216,7 @@
 
           <div class="mt-2.5 pt-2 border-t border-[#E5E7EB] flex items-center justify-between text-xs text-neutral-50">
             <span class="text-neutral-40 truncate text-[11px]">Sukses Transfer</span>
-            <span class="font-medium text-success-70 shrink-0 text-xs ml-2">{{ stats()?.totalTransaksiPencairan ?? 0 }} Transaksi</span>
+            <span class="font-medium text-neutral-70 shrink-0 text-xs ml-2">{{ stats()?.totalTransaksiPencairan ?? 0 }} Transaksi</span>
           </div>
         </div>
 
@@ -243,7 +247,7 @@
 
           <div class="mt-2.5 pt-2 border-t border-[#E5E7EB] flex items-center justify-between text-xs text-neutral-50">
             <span class="text-neutral-40 truncate text-[11px]">Fee Terkumpul</span>
-            <span class="font-medium text-warning-80 shrink-0 text-xs ml-2">Pendapatan Admin</span>
+            <span class="font-medium text-neutral-70 shrink-0 text-xs ml-2">Pendapatan Admin</span>
           </div>
         </div>
 
@@ -273,7 +277,7 @@
 
           <div class="mt-2.5 pt-2 border-t border-[#E5E7EB] flex items-center justify-between text-xs text-neutral-50">
             <span class="text-neutral-40 truncate text-[11px]">Portofolio Aktif</span>
-            <span class="font-medium text-purple-700 shrink-0 text-xs ml-2">Pembayaran Berjalan</span>
+            <span class="font-medium text-neutral-70 shrink-0 text-xs ml-2">Pembayaran Berjalan</span>
           </div>
         </div>
       </div>
@@ -386,7 +390,7 @@
               </div>
             </div>
             <div class="text-right">
-              <span class="text-sm font-bold text-success-70 block">{{ formatCurrency(totalWeeklyDisbursementNominal()) }}</span>
+              <span class="text-sm font-bold text-neutral-90 block">{{ formatCurrency(totalWeeklyDisbursementNominal()) }}</span>
             </div>
           </div>
         </div>
@@ -630,7 +634,7 @@
                   </div>
                 </td>
                 <td class="py-2.5 px-3.5 text-left whitespace-nowrap">
-                  <span class="font-semibold text-primary text-xs">
+                  <span class="font-medium text-neutral-90 text-xs">
                     {{ formatCurrency(item.jumlahPencairan || item.jumlahPencairanBersih || item.jumlahPinjaman || 0) }}
                   </span>
                 </td>

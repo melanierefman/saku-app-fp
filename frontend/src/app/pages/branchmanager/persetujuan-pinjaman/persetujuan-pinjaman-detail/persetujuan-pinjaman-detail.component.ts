@@ -92,12 +92,68 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
 
   // Form Signals
   selectedKeputusan = signal<string>('');
+  selectedTierId = signal<string>('');
+  selectedKategoriAlasan = signal<string>('');
   catatanPersetujuan = signal<string>('');
 
   readonly keputusanOptions: DropdownOption[] = [
-    { value: 'DISETUJUI', label: 'Disetujui' },
-    { value: 'DITOLAK', label: 'Ditolak' },
+    { value: 'DISETUJUI', label: 'Setujui Pengajuan' },
+    { value: 'DITOLAK', label: 'Tolak Pengajuan' },
   ];
+
+  readonly presetReasons: Record<string, DropdownOption[]> = {
+    DISETUJUI: [
+      {
+        value: 'Data keuangan, slip gaji, dan credit scoring memenuhi seluruh kriteria kelayakan pembiayaan.',
+        label: 'Kriteria Kelayakan Terpenuhi Lengkap',
+      },
+      {
+        value: 'Disetujui sesuai dengan tier, limit plafon, dan suku bunga yang telah ditetapkan sistem.',
+        label: 'Sesuai Rekomendasi & Tier Sistem',
+      },
+      {
+        value: 'Kapasitas bayar (DBR) sehat dan stabilitas kepegawaian terverifikasi dengan baik.',
+        label: 'Kapasitas Bayar & DBR Sehat',
+      },
+      {
+        value: 'Dokumen identitas, rekening koran, dan data keuangan valid tanpa catatan anomali.',
+        label: 'Dokumen & Mutasi Valid',
+      },
+      { value: 'LAINNYA', label: 'Lainnya (Tulis catatan khusus)...' },
+    ],
+    DITOLAK: [
+      {
+        value: 'Rasio beban hutang (DBR) terlalu tinggi, risiko gagal bayar tergolong tinggi.',
+        label: 'Rasio Beban Hutang Terlalu Tinggi',
+      },
+      {
+        value: 'Kapasitas penghasilan tidak mencukupi untuk pembayaran angsuran bulanan yang diajukan.',
+        label: 'Kapasitas Penghasilan Tidak Mencukupi',
+      },
+      {
+        value: 'Dokumen identitas / bukti penghasilan tidak valid atau gagal verifikasi keaslian.',
+        label: 'Dokumen Gagal Verifikasi / Tidak Valid',
+      },
+      {
+        value: 'Status pekerjaan dan riwayat kredit belum memenuhi kriteria minimal pembiayaan.',
+        label: 'Profil Pekerjaan & Kredit Tidak Memenuhi Syarat',
+      },
+      { value: 'LAINNYA', label: 'Lainnya (Tulis catatan khusus)...' },
+    ],
+  };
+
+  get tierOptions(): DropdownOption[] {
+    const tiers = this.detail()?.availablePlafondTiers || [];
+    return tiers.map((t) => ({
+      value: t.id || '',
+      label: `${t.nama || 'Tier'} (Bunga ${t.bunga || 5}% / Admin ${this.formatCurrency(t.biayaAdmin || 250000)})`,
+    }));
+  }
+
+  get kategoriAlasanOptions(): DropdownOption[] {
+    const k = this.selectedKeputusan();
+    return this.presetReasons[k] || [];
+  }
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -127,25 +183,50 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
         if (res?.catatanBM) {
           this.catatanPersetujuan.set(res.catatanBM);
         }
-
-        this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Failed to load BM detail:', err);
         this.isLoading.set(false);
-        this.toastService.error('Gagal memuat detail persetujuan pinjaman');
-        this.cdr.detectChanges();
+        this.toastService.error('Gagal memuat detail pengajuan pinjaman');
+        console.error('Error loading BM pengajuan detail:', err);
       },
     });
   }
 
   onKeputusanChange(event: DropdownOption | null | string): void {
-    if (!event) {
-      this.selectedKeputusan.set('');
-    } else if (typeof event === 'object' && 'value' in event) {
-      this.selectedKeputusan.set(event.value || '');
+    let val = '';
+    if (event && typeof event === 'object' && 'value' in event) {
+      val = event.value || '';
+    } else if (event) {
+      val = String(event);
+    }
+
+    this.selectedKeputusan.set(val);
+    this.selectedKategoriAlasan.set('');
+
+    // Pre-populate default preset if available
+    const presets = this.presetReasons[val];
+    if (presets && presets.length > 0 && presets[0].value !== 'LAINNYA') {
+      this.selectedKategoriAlasan.set(presets[0].value || '');
+      this.catatanPersetujuan.set(presets[0].value || '');
     } else {
-      this.selectedKeputusan.set(String(event));
+      this.catatanPersetujuan.set('');
+    }
+  }
+
+  onKategoriAlasanChange(event: DropdownOption | null | string): void {
+    let val = '';
+    if (event && typeof event === 'object' && 'value' in event) {
+      val = event.value || '';
+    } else if (event) {
+      val = String(event);
+    }
+
+    this.selectedKategoriAlasan.set(val);
+
+    if (val === 'LAINNYA') {
+      this.catatanPersetujuan.set('');
+    } else if (val) {
+      this.catatanPersetujuan.set(val);
     }
   }
 
@@ -156,7 +237,7 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
       return;
     }
     if (!this.catatanPersetujuan().trim()) {
-      this.toastService.warning('Catatan persetujuan / penolakan wajib diisi');
+      this.toastService.warning('Catatan pertimbangan persetujuan / penolakan wajib diisi');
       return;
     }
     this.isConfirmModalOpen.set(true);
@@ -171,8 +252,9 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
     const keputusan = this.selectedKeputusan();
 
     const payload: PersetujuanPinjamanRequest = {
-      hasilPersetujuan: keputusan,
+      hasilPersetujuan: keputusan === 'DITOLAK' ? 'DITOLAK' : 'DISETUJUI',
       catatan: this.catatanPersetujuan().trim() || undefined,
+      kategoriAlasan: this.selectedKategoriAlasan() || undefined,
     };
 
     this.isSubmitting.set(true);
@@ -309,8 +391,18 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
   }
 
   getDbrPercentage(): number {
-    const val = this.detail()?.dbrPercentage ?? this.detail()?.dbr ?? 0;
-    return val <= 1 && val > 0 ? parseFloat((val * 100).toFixed(1)) : parseFloat(Number(val).toFixed(1));
+    const d = this.detail();
+    const val = d?.dbrPercentage ?? d?.dbr;
+    if (val !== undefined && val !== null && !isNaN(Number(val)) && Number(val) > 0) {
+      const num = Number(val);
+      return num <= 1 ? parseFloat((num * 100).toFixed(1)) : parseFloat(num.toFixed(1));
+    }
+    const cicilan = this.getCicilanBerjalan();
+    const pendapatan = this.getPendapatanBulanan();
+    if (pendapatan > 0 && cicilan > 0) {
+      return parseFloat(((cicilan / pendapatan) * 100).toFixed(1));
+    }
+    return 0;
   }
 
   getDbrColorClass(): string {
