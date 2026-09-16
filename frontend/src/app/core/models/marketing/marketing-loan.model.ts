@@ -1,6 +1,7 @@
 export interface ReviewPengajuanRequest {
   hasilReview: 'DISETUJUI' | 'PERLU_REVISI' | 'DITOLAK' | string;
   catatan: string;
+  kategoriAlasan?: string;
 }
 
 export interface ReviewPengajuanResponse {

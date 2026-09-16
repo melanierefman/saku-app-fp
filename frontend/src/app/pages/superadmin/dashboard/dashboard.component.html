@@ -22,19 +22,19 @@
 
   <!-- Skeleton Loading State -->
   @if (isLoading()) {
-  <div class="space-y-6">
+  <div class="flex flex-col gap-6">
     <!-- Skeleton Container 1 (4 Cards in 1 Row) -->
-    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
-      <div class="space-y-1">
+    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col gap-5">
+      <div class="flex flex-col gap-2.5">
         <app-skeleton variant="text" width="w-56" height="h-5"></app-skeleton>
         <app-skeleton variant="text" width="w-72" height="h-3.5"></app-skeleton>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         @for (i of [1,2,3,4]; track i) {
-        <div class="p-3.5 rounded-xl border border-[#E5E7EB] flex items-center justify-between gap-2.5">
-          <div class="flex items-center gap-2.5">
+        <div class="p-3.5 rounded-xl border border-[#E5E7EB] flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
             <app-skeleton variant="rect" width="w-9" height="h-9" rounded="xl"></app-skeleton>
-            <div class="space-y-1">
+            <div class="flex flex-col gap-2">
               <app-skeleton variant="text" width="w-24" height="h-4"></app-skeleton>
               <app-skeleton variant="text" width="w-20" height="h-3"></app-skeleton>
             </div>
@@ -46,38 +46,44 @@
     </div>
 
     <!-- Skeleton Container 2 (2 Cards in 1 Row) -->
-    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
-      <div class="space-y-1">
+    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col gap-5">
+      <div class="flex flex-col gap-2.5">
         <app-skeleton variant="text" width="w-56" height="h-5"></app-skeleton>
         <app-skeleton variant="text" width="w-72" height="h-3.5"></app-skeleton>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         @for (i of [1,2]; track i) {
-        <div class="p-4 rounded-xl border border-[#E5E7EB] space-y-3">
+        <div class="p-4 rounded-xl border border-[#E5E7EB] flex flex-col gap-4">
           <div class="flex items-center justify-between">
             <app-skeleton variant="text" width="w-32" height="h-4"></app-skeleton>
             <app-skeleton variant="rect" width="w-8" height="h-8" rounded="lg"></app-skeleton>
           </div>
-          <app-skeleton variant="text" width="w-36" height="h-7"></app-skeleton>
-          <app-skeleton variant="text" width="w-32" height="h-3"></app-skeleton>
+          <div class="flex flex-col gap-2.5">
+            <app-skeleton variant="text" width="w-36" height="h-7"></app-skeleton>
+            <app-skeleton variant="text" width="w-32" height="h-3.5"></app-skeleton>
+          </div>
         </div>
         }
       </div>
     </div>
 
     <!-- Funnel Skeleton -->
-    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs space-y-4">
-      <app-skeleton variant="text" width="w-48" height="h-5"></app-skeleton>
-      <app-skeleton variant="rect" width="w-full" height="h-2.5" rounded="xl"></app-skeleton>
-      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs flex flex-col gap-5">
+      <div class="flex flex-col gap-3">
+        <app-skeleton variant="text" width="w-48" height="h-5"></app-skeleton>
+        <app-skeleton variant="rect" width="w-full" height="h-2.5" rounded="xl"></app-skeleton>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
         @for (i of [1,2,3,4,5]; track i) {
-        <div class="p-3.5 rounded-xl border border-[#E5E7EB] space-y-2.5">
+        <div class="p-3.5 rounded-xl border border-[#E5E7EB] flex flex-col gap-3">
           <div class="flex items-center justify-between">
             <app-skeleton variant="text" width="w-20" height="h-3.5"></app-skeleton>
             <app-skeleton variant="rect" width="w-7" height="h-7" rounded="lg"></app-skeleton>
           </div>
-          <app-skeleton variant="text" width="w-10" height="h-6"></app-skeleton>
-          <app-skeleton variant="text" width="w-16" height="h-3"></app-skeleton>
+          <div class="flex flex-col gap-2">
+            <app-skeleton variant="text" width="w-10" height="h-6"></app-skeleton>
+            <app-skeleton variant="text" width="w-16" height="h-3"></app-skeleton>
+          </div>
         </div>
         }
       </div>
@@ -86,14 +92,14 @@
     <!-- Charts Skeleton -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs h-72 flex flex-col justify-between">
-        <div class="space-y-2">
+        <div class="flex flex-col gap-2.5">
           <app-skeleton variant="text" width="w-44" height="h-5"></app-skeleton>
           <app-skeleton variant="text" width="w-64" height="h-3.5"></app-skeleton>
         </div>
         <app-skeleton variant="rect" width="w-full" height="h-44" rounded="xl"></app-skeleton>
       </div>
       <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs h-72 flex flex-col justify-between">
-        <div class="space-y-2">
+        <div class="flex flex-col gap-2.5">
           <app-skeleton variant="text" width="w-44" height="h-5"></app-skeleton>
           <app-skeleton variant="text" width="w-64" height="h-3.5"></app-skeleton>
         </div>
@@ -156,7 +162,7 @@
             </div>
           </div>
           <div class="text-right shrink-0">
-            <div class="text-lg font-bold text-warning-80 tracking-tight">
+            <div class="text-lg font-bold text-neutral-90 tracking-tight">
               {{ formatNumber(stats()?.approvalRateNasional, 1) }}%
             </div>
             <div class="w-14 bg-neutral-10 rounded-full h-1 mt-1 overflow-hidden ml-auto">
@@ -252,7 +258,7 @@
 
           <div class="mt-2.5 pt-2 border-t border-[#E5E7EB] flex items-center justify-between text-xs text-neutral-50">
             <span class="text-neutral-40 truncate text-[11px]">Permohonan</span>
-            <span class="font-medium text-blue-700 shrink-0 text-xs ml-2">{{ stats()?.totalPengajuan || 0 }} Berkas</span>
+            <span class="font-medium text-neutral-70 shrink-0 text-xs ml-2">{{ stats()?.totalPengajuan || 0 }} Berkas</span>
           </div>
         </div>
 
@@ -283,7 +289,7 @@
 
           <div class="mt-2.5 pt-2 border-t border-[#E5E7EB] flex items-center justify-between text-xs text-neutral-50">
             <span class="text-neutral-40 truncate text-[11px]">Sukses cair</span>
-            <span class="font-medium text-success-70 shrink-0 text-xs ml-2">{{ stats()?.telahDicairkan || 0 }} Berkas Cair</span>
+            <span class="font-medium text-neutral-70 shrink-0 text-xs ml-2">{{ stats()?.telahDicairkan || 0 }} Berkas Cair</span>
           </div>
         </div>
       </div>
@@ -469,7 +475,7 @@
             <span class="font-semibold text-neutral-80">{{ trend.month }}</span>
             <div class="flex items-center gap-3 text-neutral-50 text-[11px]">
               <span>{{ trend.totalPengajuan }} Pengajuan</span>
-              <span class="font-semibold text-success-70">{{ formatCompactCurrency(trend.totalNominalDicairkan)
+              <span class="font-semibold text-neutral-80">{{ formatCompactCurrency(trend.totalNominalDicairkan)
                 }}</span>
             </div>
           </div>
@@ -534,12 +540,12 @@
           </div>
 
           <div class="text-right shrink-0">
-            <div class="text-xs font-bold text-primary">
+            <div class="text-xs font-bold text-neutral-90">
               {{ formatCurrency(branch.totalNominal) }}
             </div>
             <div class="text-[11px] text-neutral-50 mt-0.5">
               <span class="font-medium text-neutral-80">{{ branch.totalPengajuan }}</span> pengajuan •
-              <span class="font-medium text-success">{{ branch.totalDisetujui }} disetujui</span>
+              <span class="font-medium text-neutral-70">{{ branch.totalDisetujui }} disetujui</span>
             </div>
           </div>
         </div>
@@ -608,7 +614,7 @@
                 </td>
                 <td class="py-2.5 px-3.5 text-left whitespace-nowrap">
                   <div class="flex flex-col">
-                    <span class="text-primary font-semibold text-xs">
+                    <span class="text-neutral-90 font-medium text-xs">
                       {{ formatCurrency(row.jumlahPinjaman) }}
                     </span>
                     <span class="text-neutral-40 text-[11px]">

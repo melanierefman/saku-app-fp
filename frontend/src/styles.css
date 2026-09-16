@@ -1,9 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
-/* ========================================================= */
-/* PRIMARY FONT: OVERUSED GROTESK (SELF-HOSTED LOCAL ASSET) */
-/* ========================================================= */
+/* Primary Font: Overused Grotesk */
 @font-face {
   font-family: 'Overused Grotesk';
   src: url('/fonts/OverusedGrotesk-VF.woff2') format('woff2-variations'),

@@ -55,7 +55,7 @@ export class TabsComponent {
   getTabClass(item: TabItem): string {
     const isActive = this.activeKey === item.key;
 
-    // --- 1. Folder / Rounded-Top Variant (Matches User's Screenshot) ---
+    // 1. Folder / Rounded-Top Variant
     if (this.variant === 'folder') {
       if (item.disabled) {
         return 'px-4 py-2.5 rounded-t-lg text-neutral-30 cursor-not-allowed font-medium text-sm flex items-center gap-2 select-none';
@@ -68,7 +68,7 @@ export class TabsComponent {
       return `${base} text-neutral-60 hover:text-neutral-90 hover:bg-neutral-0/80`;
     }
 
-    // --- 2. Underline Variant ---
+    // 2. Underline Variant
     if (this.variant === 'underline') {
       if (item.disabled) {
         return 'relative pb-3 pt-1 text-sm text-neutral-30 cursor-not-allowed font-medium flex items-center gap-2 select-none';
@@ -81,7 +81,7 @@ export class TabsComponent {
       return `${base} border-transparent text-neutral-50 hover:text-neutral-90 font-medium`;
     }
 
-    // --- 3. Pill Variant ---
+    // 3. Pill Variant
     if (this.variant === 'pill') {
       if (item.disabled) {
         return 'px-3.5 py-1.5 rounded-full text-xs text-neutral-30 bg-neutral-0 cursor-not-allowed font-medium';
@@ -94,7 +94,7 @@ export class TabsComponent {
       return `${base} bg-neutral-0 text-neutral-60 hover:bg-neutral-10 border border-[#E5E7EB]`;
     }
 
-    // --- 4. Segmented Variant ---
+    // 4. Segmented Variant
     const base =
       'transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap select-none font-medium';
 

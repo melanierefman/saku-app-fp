@@ -20,19 +20,19 @@
 
   <!-- Skeleton Loading State -->
   @if (isLoadingStats()) {
-  <div class="space-y-6">
+  <div class="flex flex-col gap-6">
     <!-- Skeleton Container 1 (4 Cards in 1 Row) -->
-    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
-      <div class="space-y-1">
+    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col gap-5">
+      <div class="flex flex-col gap-2.5">
         <app-skeleton variant="text" width="w-56" height="h-5"></app-skeleton>
         <app-skeleton variant="text" width="w-72" height="h-3.5"></app-skeleton>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         @for (i of [1,2,3,4]; track i) {
-        <div class="p-3.5 rounded-xl border border-[#E5E7EB] flex items-center justify-between gap-2.5">
-          <div class="flex items-center gap-2.5">
+        <div class="p-3.5 rounded-xl border border-[#E5E7EB] flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
             <app-skeleton variant="rect" width="w-9" height="h-9" rounded="xl"></app-skeleton>
-            <div class="space-y-1">
+            <div class="flex flex-col gap-2">
               <app-skeleton variant="text" width="w-24" height="h-4"></app-skeleton>
               <app-skeleton variant="text" width="w-20" height="h-3"></app-skeleton>
             </div>
@@ -44,20 +44,22 @@
     </div>
 
     <!-- Skeleton Container 2 (3 Cards in 1 Row) -->
-    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
-      <div class="space-y-1">
+    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col gap-5">
+      <div class="flex flex-col gap-2.5">
         <app-skeleton variant="text" width="w-56" height="h-5"></app-skeleton>
         <app-skeleton variant="text" width="w-72" height="h-3.5"></app-skeleton>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         @for (i of [1,2,3]; track i) {
-        <div class="p-4 rounded-xl border border-[#E5E7EB] space-y-3">
+        <div class="p-4 rounded-xl border border-[#E5E7EB] flex flex-col gap-4">
           <div class="flex items-center justify-between">
             <app-skeleton variant="text" width="w-32" height="h-4"></app-skeleton>
             <app-skeleton variant="rect" width="w-8" height="h-8" rounded="lg"></app-skeleton>
           </div>
-          <app-skeleton variant="text" width="w-36" height="h-7"></app-skeleton>
-          <app-skeleton variant="text" width="w-32" height="h-3"></app-skeleton>
+          <div class="flex flex-col gap-2.5">
+            <app-skeleton variant="text" width="w-36" height="h-7"></app-skeleton>
+            <app-skeleton variant="text" width="w-32" height="h-3.5"></app-skeleton>
+          </div>
         </div>
         }
       </div>
@@ -66,14 +68,14 @@
     <!-- Charts Skeleton -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs h-72 flex flex-col justify-between">
-        <div class="space-y-2">
+        <div class="flex flex-col gap-2.5">
           <app-skeleton variant="text" width="w-48" height="h-5"></app-skeleton>
           <app-skeleton variant="text" width="w-64" height="h-3.5"></app-skeleton>
         </div>
         <app-skeleton variant="rect" width="w-full" height="h-44" rounded="xl"></app-skeleton>
       </div>
       <div class="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs h-72 flex flex-col justify-between">
-        <div class="space-y-2">
+        <div class="flex flex-col gap-2.5">
           <app-skeleton variant="text" width="w-48" height="h-5"></app-skeleton>
           <app-skeleton variant="text" width="w-64" height="h-3.5"></app-skeleton>
         </div>
@@ -111,11 +113,11 @@
             </div>
             <div class="min-w-0 truncate">
               <p class="text-xs font-semibold text-neutral-90 truncate">Menunggu Persetujuan</p>
-              <p class="text-[11px] text-primary font-medium truncate">Perlu Tindakan</p>
+              <p class="text-[11px] text-neutral-40 truncate">Perlu Tindakan</p>
             </div>
           </div>
           <div class="text-right shrink-0">
-            <div class="text-lg font-bold text-primary tracking-tight">
+            <div class="text-lg font-bold text-neutral-90 tracking-tight">
               {{ stats()?.menungguPersetujuan ?? 0 }}
             </div>
             <p class="text-[11px] text-neutral-40">Berkas</p>
@@ -136,7 +138,7 @@
             </div>
           </div>
           <div class="text-right shrink-0">
-            <div class="text-lg font-bold text-warning-80 tracking-tight">
+            <div class="text-lg font-bold text-neutral-90 tracking-tight">
               {{ (stats()?.approvalRateBM ?? 0) | number:'1.0-1' }}%
             </div>
             <div class="w-14 bg-neutral-10 rounded-full h-1 mt-1 overflow-hidden ml-auto">
@@ -156,11 +158,11 @@
             </div>
             <div class="min-w-0 truncate">
               <p class="text-xs font-semibold text-neutral-90 truncate">Disetujui Cabang</p>
-              <p class="text-[11px] text-success-70 truncate font-medium">Lolos verifikasi BM</p>
+              <p class="text-[11px] text-neutral-40 truncate">Lolos verifikasi BM</p>
             </div>
           </div>
           <div class="text-right shrink-0">
-            <div class="text-lg font-bold text-success-70 tracking-tight">
+            <div class="text-lg font-bold text-neutral-90 tracking-tight">
               {{ stats()?.disetujuiBM ?? 0 }}
             </div>
             <p class="text-[11px] text-neutral-40">Berkas</p>
@@ -177,11 +179,11 @@
             </div>
             <div class="min-w-0 truncate">
               <p class="text-xs font-semibold text-neutral-90 truncate">Ditolak Cabang</p>
-              <p class="text-[11px] text-error-70 truncate font-medium">Tidak penuhi syarat</p>
+              <p class="text-[11px] text-neutral-40 truncate">Tidak penuhi syarat</p>
             </div>
           </div>
           <div class="text-right shrink-0">
-            <div class="text-lg font-bold text-error-70 tracking-tight">
+            <div class="text-lg font-bold text-neutral-90 tracking-tight">
               {{ stats()?.ditolakBM ?? 0 }}
             </div>
             <p class="text-[11px] text-neutral-40">Berkas</p>
@@ -232,7 +234,7 @@
 
           <div class="mt-2.5 pt-2 border-t border-[#E5E7EB] flex items-center justify-between text-xs text-neutral-50">
             <span class="text-neutral-40 truncate text-[11px]">Total Masuk</span>
-            <span class="font-medium text-blue-700 shrink-0 text-xs ml-2">{{ stats()?.totalPengajuanCabang ?? 0 }} Berkas</span>
+            <span class="font-medium text-neutral-70 shrink-0 text-xs ml-2">{{ stats()?.totalPengajuanCabang ?? 0 }} Berkas</span>
           </div>
         </div>
 
@@ -254,7 +256,7 @@
 
             <div class="mt-2.5">
               <span class="text-[11px] font-medium text-neutral-40 uppercase tracking-wider">Total Nominal Disetujui</span>
-              <div class="text-xl sm:text-2xl font-bold text-success-70 tracking-tight mt-0.5 truncate"
+              <div class="text-xl sm:text-2xl font-bold text-neutral-90 tracking-tight mt-0.5 truncate"
                 [title]="formatCurrency(stats()?.totalNominalDisetujui)">
                 {{ formatCurrency(stats()?.totalNominalDisetujui) }}
               </div>
@@ -263,7 +265,7 @@
 
           <div class="mt-2.5 pt-2 border-t border-[#E5E7EB] flex items-center justify-between text-xs text-neutral-50">
             <span class="text-neutral-40 truncate text-[11px]">Persetujuan BM</span>
-            <span class="font-medium text-success-70 shrink-0 text-xs ml-2">{{ stats()?.disetujuiBM ?? 0 }} Berkas Disetujui</span>
+            <span class="font-medium text-neutral-70 shrink-0 text-xs ml-2">{{ stats()?.disetujuiBM ?? 0 }} Berkas Disetujui</span>
           </div>
         </div>
 
@@ -294,7 +296,7 @@
 
           <div class="mt-2.5 pt-2 border-t border-[#E5E7EB] flex items-center justify-between text-xs text-neutral-50">
             <span class="text-neutral-40 truncate text-[11px]">Estimasi Tiket</span>
-            <span class="font-medium text-warning-80 shrink-0 text-xs ml-2">Per Nasabah</span>
+            <span class="font-medium text-neutral-70 shrink-0 text-xs ml-2">Per Nasabah</span>
           </div>
         </div>
       </div>
@@ -408,7 +410,7 @@
               </div>
             </div>
             <div class="text-right">
-              <span class="text-sm font-bold text-primary block">{{ formatCurrency(totalMonthlyNominalDisetujui()) }}</span>
+              <span class="text-sm font-bold text-neutral-90 block">{{ formatCurrency(totalMonthlyNominalDisetujui()) }}</span>
             </div>
           </div>
         </div>
@@ -567,7 +569,7 @@
                 </div>
               </td>
               <td class="py-2.5 px-3.5 text-left whitespace-nowrap">
-                <span class="font-semibold text-primary text-xs">
+                <span class="font-medium text-neutral-90 text-xs">
                   {{ formatCurrency(item.nominalPinjaman || item.jumlahPinjaman || item.nominal || item.jumlah) }}
                 </span>
               </td>

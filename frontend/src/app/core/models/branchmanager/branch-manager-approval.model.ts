@@ -67,6 +67,18 @@ export interface PersetujuanHistoryItem {
   statusPengajuan?: string;
 }
 
+export interface PlafondTierOption {
+  id?: string;
+  nama?: string;
+  minPendapatan?: number;
+  plafondMaksimal?: number;
+  minSkor?: number;
+  maxSkor?: number;
+  bunga?: number;
+  biayaAdmin?: number;
+  status?: boolean;
+}
+
 export interface BranchManagerPengajuanDetailResponse {
   pengajuanId?: string;
   id?: string;
@@ -121,6 +133,13 @@ export interface BranchManagerPengajuanDetailResponse {
   notesAmbigu?: string[];
   ringkasanScoring?: string;
   ringkasanAnalisis?: string;
+  rekomendasiAksi?: string;
+  rekomendasiTierId?: string;
+  rekomendasiTierNama?: string;
+  rekomendasiBunga?: number;
+  rekomendasiBiayaAdmin?: number;
+  rekomendasiAlasan?: string;
+  availablePlafondTiers?: PlafondTierOption[];
 
   // Facility Details
   jumlahPinjaman?: number;
@@ -155,6 +174,11 @@ export interface BranchManagerPengajuanDetailResponse {
 export interface PersetujuanPinjamanRequest {
   hasilPersetujuan: 'DISETUJUI' | 'DITOLAK' | string;
   catatan?: string;
+  penyesuaianTierId?: string;
+  kategoriAlasan?: string;
+  adjustedJumlahPinjaman?: number;
+  adjustedBunga?: number;
+  adjustedBiayaAdmin?: number;
 }
 
 export interface PersetujuanPinjamanResponse {

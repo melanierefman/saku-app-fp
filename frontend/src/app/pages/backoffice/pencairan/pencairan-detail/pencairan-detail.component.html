@@ -25,18 +25,24 @@
   @if (isLoading()) {
   <!-- Skeleton Loading State -->
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-    <div class="lg:col-span-2 space-y-6">
-      <div class="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-xs space-y-4">
+    <div class="lg:col-span-2 flex flex-col gap-6">
+      <div class="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-xs flex flex-col gap-5">
         <app-skeleton variant="text" width="w-1/3" height="h-6"></app-skeleton>
         <app-skeleton variant="rect" width="w-full" height="h-24" rounded="xl"></app-skeleton>
-        <div class="grid grid-cols-2 gap-4 pt-4">
-          <app-skeleton variant="text" width="w-3/4" height="h-4"></app-skeleton>
-          <app-skeleton variant="text" width="w-2/3" height="h-4"></app-skeleton>
+        <div class="grid grid-cols-2 gap-4 pt-2">
+          <div class="flex flex-col gap-2">
+            <app-skeleton variant="text" width="w-20" height="h-3"></app-skeleton>
+            <app-skeleton variant="text" width="w-3/4" height="h-4"></app-skeleton>
+          </div>
+          <div class="flex flex-col gap-2">
+            <app-skeleton variant="text" width="w-24" height="h-3"></app-skeleton>
+            <app-skeleton variant="text" width="w-2/3" height="h-4"></app-skeleton>
+          </div>
         </div>
       </div>
     </div>
-    <div class="space-y-5">
-      <div class="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-xs space-y-4">
+    <div class="flex flex-col gap-5">
+      <div class="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-xs flex flex-col gap-4">
         <app-skeleton variant="text" width="w-1/2" height="h-5"></app-skeleton>
         <app-skeleton variant="rect" width="w-full" height="h-20" rounded="xl"></app-skeleton>
         <app-skeleton variant="button" width="w-full" height="h-10"></app-skeleton>
