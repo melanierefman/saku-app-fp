@@ -1,6 +1,21 @@
-# SAKU App (Sistem Aplikasi Kredit Usaha)
+# SAKU App (Solusi Keuangan Digital Terintegrasi)
 
-SAKU adalah platform pengajuan dan persetujuan pembiayaan multiguna digital terintegrasi yang menghubungkan nasabah peminjam (*mobile client*), tim marketing, branch manager, dan tim backoffice dalam satu ekosistem yang aman, transparan, dan cepat.
+**SAKU** adalah platform ekosistem pembiayaan digital dan pinjaman multiguna (*multipurpose & business financing platform*) yang dirancang untuk melayani nasabah perorangan, karyawan, hingga pelaku usaha/UMKM. Platform ini mengintegrasikan nasabah peminjam (*mobile client*), tim marketing, branch manager, dan tim backoffice dalam satu alur pembiayaan yang aman, transparan, dan cepat.
+
+### 🎯 Target Pengguna & Tujuan Pembiayaan
+1. **Nasabah Perorangan / Karyawan (Pembiayaan Multiguna)**:
+   - Biaya Pendidikan (sekolah/kuliah)
+   - Renovasi Rumah & Perbaikan Tempat Tinggal
+   - Kebutuhan Medis, Kesehatan & Dana Darurat
+   - Pembelian Elektronik & Kebutuhan Konsumtif Terencana
+2. **Pelaku Usaha & UMKM (Pembiayaan Produktif)**:
+   - Tambahan Modal Kerja & Kas Operasional Usaha
+   - Pembelian Alat Kerja & Inventaris Usaha
+3. **Internal Lembaga Finansial (Portal Manajemen & Tata Kelola)**:
+   - **Marketing**: Verifikasi awal, pengecekan skor kredit, dan rekomendasi berkas
+   - **Branch Manager**: Otorisasi persetujuan kredit berjenjang berbasis limit cabang
+   - **Back Office**: Verifikasi kepatuhan KYC (*Know Your Customer*) & eksekusi pencairan dana
+   - **Super Admin**: Monitoring operasional real-time, audit log aktivitas, dan kontrol hak akses (RBAC)
 
 ---
 
