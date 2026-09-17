@@ -97,6 +97,7 @@ export interface BranchManagerPengajuanDetailResponse {
   email?: string;
   nik?: string;
   noHp?: string;
+  namaIbuKandung?: string;
   pekerjaan?: string;
   tempatKerja?: string;
   statusPekerjaan?: string;

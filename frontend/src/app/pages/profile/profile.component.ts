@@ -56,6 +56,7 @@ export class ProfileComponent implements OnInit {
   readonly user = this.authStore.currentUser;
   isLoading = signal<boolean>(true);
   showLogoutModal = false;
+  showChangePasswordModal = false;
 
   // Change Password Form Signals
   oldPassword = signal<string>('');
@@ -122,6 +123,10 @@ export class ProfileComponent implements OnInit {
   }
 
   onChangePassword(): void {
+    this.openChangePasswordModal();
+  }
+
+  openChangePasswordModal(): void {
     // Reset field errors
     this.oldPasswordError.set(null);
     this.newPasswordError.set(null);
@@ -159,7 +164,14 @@ export class ProfileComponent implements OnInit {
       return;
     }
 
+    this.showChangePasswordModal = true;
+    this.cdr.detectChanges();
+  }
+
+  onConfirmChangePassword(): void {
+    this.showChangePasswordModal = false;
     this.isSubmitting.set(true);
+    this.cdr.detectChanges();
 
     this.authService
       .changePassword({

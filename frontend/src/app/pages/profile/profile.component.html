@@ -149,7 +149,7 @@
       }
 
       <!-- Form Inputs Grid -->
-      <form (ngSubmit)="onChangePassword()" class="space-y-6">
+      <form (ngSubmit)="openChangePasswordModal()" class="space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
           <!-- Password Saat Ini -->
           <app-input label="Password Saat Ini" [type]="showOldPassword() ? 'text' : 'password'"
@@ -208,7 +208,7 @@
           </app-button>
 
           <app-button variant="primary" size="md" [loading]="isSubmitting()" [disabled]="isSubmitting()"
-            (btnClick)="onChangePassword()">
+            (btnClick)="openChangePasswordModal()">
             <span class="flex items-center gap-2">
               <svg lucideKey [size]="14" class="w-3.5 h-3.5"></svg>
               <span>Simpan Password Baru</span>
@@ -220,6 +220,16 @@
   </app-card>
   }
 </div>
+
+<!-- Change Password Confirmation Dialog Modal -->
+<app-modal [isOpen]="showChangePasswordModal" variant="confirm" icon="alert"
+  title="Ganti Password Akun"
+  message="Apakah Anda yakin ingin memperbarui password akun Anda?"
+  confirmText="Ya, Ganti" cancelText="Batal"
+  confirmVariant="primary" (confirm)="onConfirmChangePassword()"
+  (close)="showChangePasswordModal = false"
+  (cancel)="showChangePasswordModal = false">
+</app-modal>
 
 <!-- Logout Confirmation Dialog Modal -->
 <app-modal [isOpen]="showLogoutModal" variant="confirm" icon="alert"

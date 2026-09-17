@@ -185,6 +185,7 @@ export interface MarketingPengajuanDetailResponse {
   nik?: string;
   email?: string;
   noHp?: string;
+  namaIbuKandung?: string;
   pekerjaan?: string;
   tempatKerja?: string;
   statusPekerjaan?: string;

@@ -33,6 +33,9 @@ import {
   LucideBriefcase,
   LucideCreditCard,
   LucideArrowLeft,
+  LucideCheckCircle2,
+  LucideXCircle,
+  LucideAlertTriangle,
 } from '@lucide/angular';
 import { environment } from '../../../../../environments/environment';
 import { formatDate as formatDateHelper } from '../../../../shared/utils/date.util';
@@ -57,6 +60,9 @@ import { formatDate as formatDateHelper } from '../../../../shared/utils/date.ut
     LucideBriefcase,
     LucideCreditCard,
     LucideArrowLeft,
+    LucideCheckCircle2,
+    LucideXCircle,
+    LucideAlertTriangle,
   ],
   templateUrl: './verifikasi-customer-detail.component.html',
   styleUrl: './verifikasi-customer-detail.component.css',
@@ -82,6 +88,7 @@ export class VerifikasiCustomerDetailComponent implements OnInit {
 
   // Form Signals
   selectedStatusVerifikasi = signal<string>('');
+  selectedKategoriAlasan = signal<string>('');
   catatanVerifikasi = signal<string>('');
 
   // Image Preview Lightbox Modal
@@ -98,6 +105,67 @@ export class VerifikasiCustomerDetailComponent implements OnInit {
     { value: 'PERLU_REVISI', label: 'Perlu Revisi (PERLU_REVISI)' },
     { value: 'REJECTED', label: 'Ditolak (REJECTED)' },
   ];
+
+  readonly presetReasons: Record<string, DropdownOption[]> = {
+    APPROVED: [
+      {
+        value:
+          'Dokumen fisik e-KTP dan foto selfie liveness lengkap, jelas, dan sesuai dengan data identitas kependudukan.',
+        label: 'Dokumen KTP & Selfie Valid (Lolos Verifikasi)',
+      },
+      {
+        value:
+          'Data identitas, pekerjaan, rekening, dan foto KYC nasabah terverifikasi valid.',
+        label: 'Seluruh Data & KYC Terverifikasi Lengkap',
+      },
+      { value: 'LAINNYA', label: 'Lainnya (Tulis catatan khusus)...' },
+    ],
+    PERLU_REVISI: [
+      {
+        value:
+          'Foto fisik e-KTP buram atau nomor NIK tidak terbaca jelas. Mohon unggah ulang foto fisik e-KTP asli.',
+        label: 'Foto e-KTP Buram / Tidak Terbaca Jelas',
+      },
+      {
+        value:
+          'Foto selfie / liveness buram, terpotong, atau wajah tidak terlihat jelas. Mohon unggah ulang foto selfie wajah terbaru.',
+        label: 'Foto Selfie Buram / Wajah Terpotong',
+      },
+      {
+        value:
+          'Data NIK atau Nama Lengkap yang diinput tidak sesuai dengan fisik e-KTP. Mohon unggah ulang foto e-KTP yang valid.',
+        label: 'Data Input Tidak Sesuai Fisik e-KTP',
+      },
+      {
+        value:
+          'Dokumen foto bukan fisik e-KTP asli (fotokopi / foto dari layar monitor). Mohon unggah foto fisik e-KTP asli.',
+        label: 'Bukan Fisik e-KTP Asli (Fotokopi / Layar)',
+      },
+      { value: 'LAINNYA', label: 'Lainnya (Tulis catatan khusus)...' },
+    ],
+    REJECTED: [
+      {
+        value: 'Dokumen e-KTP terindikasi palsu / manipulasi digital.',
+        label: 'Dokumen Terindikasi Manipulasi / Palsu',
+      },
+      {
+        value:
+          'Wajah pada foto selfie liveness tidak sesuai / berbeda orang dengan foto fisik e-KTP.',
+        label: 'Wajah Selfie Berbeda dengan Foto e-KTP',
+      },
+      {
+        value:
+          'Data pendaftaran nasabah tidak memenuhi kriteria dan regulasi verifikasi identitas SAKU.',
+        label: 'Tidak Memenuhi Kriteria Verifikasi SAKU',
+      },
+      { value: 'LAINNYA', label: 'Lainnya (Tulis catatan khusus)...' },
+    ],
+  };
+
+  get kategoriAlasanOptions(): DropdownOption[] {
+    const s = this.selectedStatusVerifikasi();
+    return this.presetReasons[s] || [];
+  }
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -144,12 +212,36 @@ export class VerifikasiCustomerDetailComponent implements OnInit {
   }
 
   onStatusChange(event: DropdownOption | null | string): void {
-    if (!event) {
-      this.selectedStatusVerifikasi.set('');
-    } else if (typeof event === 'object' && 'value' in event) {
-      this.selectedStatusVerifikasi.set(event.value || '');
+    let val = '';
+    if (event && typeof event === 'object' && 'value' in event) {
+      val = event.value || '';
+    } else if (event) {
+      val = String(event);
+    }
+    this.selectedStatusVerifikasi.set(val);
+    this.selectedKategoriAlasan.set('');
+
+    const presets = this.presetReasons[val];
+    if (presets && presets.length > 0 && presets[0].value !== 'LAINNYA') {
+      this.selectedKategoriAlasan.set(presets[0].value || '');
+      this.catatanVerifikasi.set(presets[0].value || '');
     } else {
-      this.selectedStatusVerifikasi.set(String(event));
+      this.catatanVerifikasi.set('');
+    }
+  }
+
+  onKategoriAlasanChange(event: DropdownOption | null | string): void {
+    let val = '';
+    if (event && typeof event === 'object' && 'value' in event) {
+      val = event.value || '';
+    } else if (event) {
+      val = String(event);
+    }
+    this.selectedKategoriAlasan.set(val);
+    if (val === 'LAINNYA') {
+      this.catatanVerifikasi.set('');
+    } else if (val) {
+      this.catatanVerifikasi.set(val);
     }
   }
 
@@ -341,6 +433,38 @@ export class VerifikasiCustomerDetailComponent implements OnInit {
         return 'Pegawai Negeri Sipil (PNS)';
       default:
         return s.replace(/_/g, ' ');
+    }
+  }
+
+  isVerifikasiApproved(): boolean {
+    const label = this.getStatusDisplayLabel();
+    return label === 'Disetujui (APPROVED)';
+  }
+
+  isVerifikasiRejected(): boolean {
+    const label = this.getStatusDisplayLabel();
+    return label === 'Ditolak (REJECTED)';
+  }
+
+  isVerifikasiRevision(): boolean {
+    const label = this.getStatusDisplayLabel();
+    return label === 'Perlu Revisi (PERLU_REVISI)';
+  }
+
+  formatDateTime(dateStr?: string | null): string {
+    if (!dateStr) return '-';
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return String(dateStr);
+      return new Intl.DateTimeFormat('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(d);
+    } catch {
+      return String(dateStr);
     }
   }
 }
