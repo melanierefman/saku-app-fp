@@ -1,12 +1,8 @@
 package com.example.saku.app.features.auth.login
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.saku.app.core.data.TokenManager
 import com.example.saku.app.core.data.repository.AuthRepository
-import com.example.saku.app.core.data.repository.AuthRepositoryImpl
-import com.example.saku.app.core.network.ApiClient
 import com.example.saku.app.core.network.ApiResult
 import com.example.saku.app.core.network.dto.AuthResponse
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,13 +10,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class LoginViewModel @JvmOverloads constructor(
-    application: Application,
-    private val authRepository: AuthRepository = AuthRepositoryImpl(
-        ApiClient.getAuthApiService(application),
-        TokenManager.getInstance(application)
-    )
-) : AndroidViewModel(application) {
+class LoginViewModel(
+    private val authRepository: AuthRepository
+) : ViewModel() {
 
     var username = MutableStateFlow("")
         private set
@@ -45,7 +37,7 @@ class LoginViewModel @JvmOverloads constructor(
         if (passwordError.value != null) passwordError.value = null
     }
 
-    fun login(onSuccess: () -> Unit) {
+    fun login(onSuccess: (isKycVerified: Boolean) -> Unit) {
         val userVal = username.value.trim()
         val passVal = password.value.trim()
 
@@ -70,7 +62,9 @@ class LoginViewModel @JvmOverloads constructor(
             val result = authRepository.login(userVal, passVal)
             _loginState.value = result
             if (result is ApiResult.Success) {
-                onSuccess()
+                val user = result.data?.user
+                val isVerified = user?.isKycVerified == true || user?.status == true
+                onSuccess(isVerified)
             }
         }
     }

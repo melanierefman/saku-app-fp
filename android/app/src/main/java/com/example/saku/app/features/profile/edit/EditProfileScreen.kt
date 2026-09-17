@@ -42,7 +42,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.Briefcase
 import com.composables.icons.lucide.CreditCard
@@ -51,6 +50,8 @@ import com.composables.icons.lucide.MapPin
 import com.example.saku.app.core.ui.components.Button
 import com.example.saku.app.core.ui.components.ButtonSize
 import com.example.saku.app.core.ui.components.ButtonVariant
+import com.example.saku.app.core.ui.components.ConfirmationDialog
+import com.example.saku.app.core.ui.components.DialogType
 import com.example.saku.app.core.ui.components.TextField
 import com.example.saku.app.features.home.HomeViewModel
 import com.example.saku.app.ui.theme.Background
@@ -61,13 +62,14 @@ import com.example.saku.app.ui.theme.Primary0
 import com.example.saku.app.ui.theme.Surface
 import com.example.saku.app.ui.theme.TextPrimary
 import com.example.saku.app.ui.theme.TextSecondary
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileScreen(
     initialTab: String = "REKENING",
     onNavigateBack: () -> Unit,
-    viewModel: HomeViewModel = viewModel()
+    viewModel: HomeViewModel = koinViewModel()
 ) {
     val context = LocalContext.current
     val customerProfile by viewModel.customerProfile.collectAsState()
@@ -104,6 +106,8 @@ fun EditProfileScreen(
     var tempatKerja by remember(customerProfile) { mutableStateOf(customerProfile?.tempatKerja ?: "") }
     var statusPekerjaan by remember(customerProfile) { mutableStateOf(customerProfile?.statusPekerjaan ?: "") }
     var penghasilan by remember(customerProfile) { mutableStateOf(customerProfile?.penghasilanBulanan?.toLong()?.toString() ?: "") }
+
+    var showConfirmDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -245,17 +249,7 @@ fun EditProfileScreen(
                                             Toast.makeText(context, "Semua data rekening wajib diisi", Toast.LENGTH_SHORT).show()
                                             return@Button
                                         }
-                                        viewModel.updateRekening(
-                                            namaBank = namaBank,
-                                            noRekening = noRekening,
-                                            namaRekening = namaRekening,
-                                            onSuccess = { msg ->
-                                                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                                            },
-                                            onError = { err ->
-                                                Toast.makeText(context, err, Toast.LENGTH_LONG).show()
-                                            }
-                                        )
+                                        showConfirmDialog = true
                                     },
                                     isLoading = isUpdating,
                                     variant = ButtonVariant.Primary,
@@ -307,14 +301,16 @@ fun EditProfileScreen(
                                         onValueChange = { rt = it },
                                         label = "RT",
                                         placeholder = "001",
-                                        modifier = Modifier.weight(1f)
+                                        modifier = Modifier.weight(1f),
+                                        required = true
                                     )
                                     TextField(
                                         value = rw,
                                         onValueChange = { rw = it },
                                         label = "RW",
                                         placeholder = "002",
-                                        modifier = Modifier.weight(1f)
+                                        modifier = Modifier.weight(1f),
+                                        required = true
                                     )
                                 }
 
@@ -322,21 +318,24 @@ fun EditProfileScreen(
                                     value = kelurahan,
                                     onValueChange = { kelurahan = it },
                                     label = "Kelurahan / Desa",
-                                    placeholder = "Nama kelurahan"
+                                    placeholder = "Nama kelurahan",
+                                    required = true
                                 )
 
                                 TextField(
                                     value = kecamatan,
                                     onValueChange = { kecamatan = it },
                                     label = "Kecamatan",
-                                    placeholder = "Nama kecamatan"
+                                    placeholder = "Nama kecamatan",
+                                    required = true
                                 )
 
                                 TextField(
                                     value = kota,
                                     onValueChange = { kota = it },
                                     label = "Kota / Kabupaten",
-                                    placeholder = "Nama kota"
+                                    placeholder = "Nama kota",
+                                    required = true
                                 )
 
                                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -345,14 +344,16 @@ fun EditProfileScreen(
                                         onValueChange = { provinsi = it },
                                         label = "Provinsi",
                                         placeholder = "DKI Jakarta",
-                                        modifier = Modifier.weight(1.2f)
+                                        modifier = Modifier.weight(1.2f),
+                                        required = true
                                     )
                                     TextField(
                                         value = kodePos,
                                         onValueChange = { kodePos = it },
                                         label = "Kode Pos",
                                         placeholder = "12345",
-                                        modifier = Modifier.weight(0.8f)
+                                        modifier = Modifier.weight(0.8f),
+                                        required = true
                                     )
                                 }
 
@@ -361,26 +362,11 @@ fun EditProfileScreen(
                                 Button(
                                     text = "Simpan Perubahan Domisili",
                                     onClick = {
-                                        if (alamat.isBlank()) {
-                                            Toast.makeText(context, "Alamat lengkap wajib diisi", Toast.LENGTH_SHORT).show()
+                                        if (alamat.isBlank() || rt.isBlank() || rw.isBlank() || kelurahan.isBlank() || kecamatan.isBlank() || kota.isBlank() || provinsi.isBlank() || kodePos.isBlank()) {
+                                            Toast.makeText(context, "Semua data alamat domisili wajib diisi", Toast.LENGTH_SHORT).show()
                                             return@Button
                                         }
-                                        viewModel.updateDomisili(
-                                            alamat = alamat,
-                                            rt = rt,
-                                            rw = rw,
-                                            kelurahan = kelurahan,
-                                            kecamatan = kecamatan,
-                                            kota = kota,
-                                            provinsi = provinsi,
-                                            kodePos = kodePos,
-                                            onSuccess = { msg ->
-                                                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                                            },
-                                            onError = { err ->
-                                                Toast.makeText(context, err, Toast.LENGTH_LONG).show()
-                                            }
-                                        )
+                                        showConfirmDialog = true
                                     },
                                     isLoading = isUpdating,
                                     variant = ButtonVariant.Primary,
@@ -430,21 +416,24 @@ fun EditProfileScreen(
                                     value = tempatKerja,
                                     onValueChange = { tempatKerja = it },
                                     label = "Nama Perusahaan / Tempat Kerja",
-                                    placeholder = "PT Nama Perusahaan"
+                                    placeholder = "PT Nama Perusahaan",
+                                    required = true
                                 )
 
                                 TextField(
                                     value = statusPekerjaan,
                                     onValueChange = { statusPekerjaan = it },
                                     label = "Status Karyawan",
-                                    placeholder = "Karyawan Tetap / Kontrak / Profesional"
+                                    placeholder = "Karyawan Tetap / Kontrak / Profesional",
+                                    required = true
                                 )
 
                                 TextField(
                                     value = penghasilan,
                                     onValueChange = { penghasilan = it },
                                     label = "Penghasilan Bersih Bulanan (Rp)",
-                                    placeholder = "Contoh: 7500000"
+                                    placeholder = "Contoh: 7500000",
+                                    required = true
                                 )
 
                                 Spacer(modifier = Modifier.height(8.dp))
@@ -452,22 +441,11 @@ fun EditProfileScreen(
                                 Button(
                                     text = "Simpan Perubahan Pekerjaan",
                                     onClick = {
-                                        if (pekerjaan.isBlank()) {
-                                            Toast.makeText(context, "Profesi / pekerjaan wajib diisi", Toast.LENGTH_SHORT).show()
+                                        if (pekerjaan.isBlank() || tempatKerja.isBlank() || statusPekerjaan.isBlank() || penghasilan.isBlank()) {
+                                            Toast.makeText(context, "Semua data pekerjaan & finansial wajib diisi", Toast.LENGTH_SHORT).show()
                                             return@Button
                                         }
-                                        viewModel.updatePekerjaan(
-                                            pekerjaan = pekerjaan,
-                                            tempatKerja = tempatKerja,
-                                            statusPekerjaan = statusPekerjaan,
-                                            penghasilanBulanan = penghasilan.toDoubleOrNull(),
-                                            onSuccess = { msg ->
-                                                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                                            },
-                                            onError = { err ->
-                                                Toast.makeText(context, err, Toast.LENGTH_LONG).show()
-                                            }
-                                        )
+                                        showConfirmDialog = true
                                     },
                                     isLoading = isUpdating,
                                     variant = ButtonVariant.Primary,
@@ -481,6 +459,95 @@ fun EditProfileScreen(
             }
         }
     }
+
+    // Modal Confirmation Dialog for Edit Profile Actions
+    val dialogTitle = when (currentTab) {
+        "DOMISILI" -> "Simpan Perubahan Domisili?"
+        "PEKERJAAN" -> "Simpan Perubahan Pekerjaan?"
+        else -> "Simpan Perubahan Rekening?"
+    }
+    val dialogMessage = when (currentTab) {
+        "DOMISILI" -> "Pastikan seluruh data alamat domisili tempat tinggal Anda sudah lengkap dan sesuai data terkini."
+        "PEKERJAAN" -> "Pastikan informasi profesi, tempat kerja, dan penghasilan bulanan sudah sesuai dengan data sebenarnya."
+        else -> "Pastikan nomor rekening dan nama pemilik rekening pencairan sudah benar dan aktif atas nama Anda."
+    }
+    val dialogIcon = when (currentTab) {
+        "DOMISILI" -> Lucide.MapPin
+        "PEKERJAAN" -> Lucide.Briefcase
+        else -> Lucide.CreditCard
+    }
+
+    ConfirmationDialog(
+        visible = showConfirmDialog,
+        title = dialogTitle,
+        message = dialogMessage,
+        type = DialogType.INFO,
+        icon = dialogIcon,
+        confirmButtonText = "Ya, Simpan",
+        dismissButtonText = "Batal",
+        confirmButtonVariant = ButtonVariant.Primary,
+        isLoading = isUpdating,
+        onConfirm = {
+            when (currentTab) {
+                "DOMISILI" -> {
+                    viewModel.updateDomisili(
+                        alamat = alamat,
+                        rt = rt,
+                        rw = rw,
+                        kelurahan = kelurahan,
+                        kecamatan = kecamatan,
+                        kota = kota,
+                        provinsi = provinsi,
+                        kodePos = kodePos,
+                        onSuccess = { msg ->
+                            showConfirmDialog = false
+                            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                        },
+                        onError = { err ->
+                            showConfirmDialog = false
+                            Toast.makeText(context, err, Toast.LENGTH_LONG).show()
+                        }
+                    )
+                }
+                "PEKERJAAN" -> {
+                    viewModel.updatePekerjaan(
+                        pekerjaan = pekerjaan,
+                        tempatKerja = tempatKerja,
+                        statusPekerjaan = statusPekerjaan,
+                        penghasilanBulanan = penghasilan.toDoubleOrNull(),
+                        onSuccess = { msg ->
+                            showConfirmDialog = false
+                            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                        },
+                        onError = { err ->
+                            showConfirmDialog = false
+                            Toast.makeText(context, err, Toast.LENGTH_LONG).show()
+                        }
+                    )
+                }
+                else -> {
+                    viewModel.updateRekening(
+                        namaBank = namaBank,
+                        noRekening = noRekening,
+                        namaRekening = namaRekening,
+                        onSuccess = { msg ->
+                            showConfirmDialog = false
+                            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                        },
+                        onError = { err ->
+                            showConfirmDialog = false
+                            Toast.makeText(context, err, Toast.LENGTH_LONG).show()
+                        }
+                    )
+                }
+            }
+        },
+        onDismiss = {
+            if (!isUpdating) {
+                showConfirmDialog = false
+            }
+        }
+    )
 }
 
 @Composable

@@ -6,6 +6,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import com.example.saku.app.core.network.dto.CustomerProfileDto
 import com.example.saku.app.core.network.dto.NotifikasiItemDto
 import com.example.saku.app.core.network.dto.SimulasiPinjamanResponseDto
+import com.example.saku.app.features.history.HistoryScreen
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -49,6 +50,7 @@ import androidx.compose.material.icons.rounded.Calculate
 import androidx.compose.material.icons.rounded.CreditCard
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Speed
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
@@ -58,8 +60,11 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -95,7 +100,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.saku.app.ui.theme.OverusedGrotesk
 import androidx.compose.ui.window.Dialog
-import androidx.lifecycle.viewmodel.compose.viewModel
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import com.composables.icons.lucide.Award
@@ -163,6 +167,7 @@ import com.example.saku.app.features.loans.payment.PaymentInfoBottomSheet
 
 import androidx.compose.foundation.layout.statusBarsPadding
 import com.example.saku.app.ui.theme.Neutral
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -175,7 +180,7 @@ fun HomeScreen(
     onNavigateToEditProfile: (String) -> Unit = {},
     onNavigateToChangePassword: () -> Unit = {},
     onNavigateToLoanSimulation: () -> Unit = {},
-    viewModel: HomeViewModel = viewModel(),
+    viewModel: HomeViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
     val userSession by viewModel.userSession.collectAsState()
@@ -265,12 +270,39 @@ fun HomeScreen(
         },
         containerColor = Background,
     ) { innerPadding ->
-        Crossfade(
+        val tabOrder = remember { listOf("home", "loans", "bills", "history", "profile") }
+        AnimatedContent(
             targetState = currentNavRoute,
-            animationSpec = tween(220),
+            transitionSpec = {
+                val initialIndex = tabOrder.indexOf(initialState).let { if (it == -1) 0 else it }
+                val targetIndex = tabOrder.indexOf(targetState).let { if (it == -1) 0 else it }
+
+                if (targetIndex >= initialIndex) {
+                    (slideInHorizontally(
+                        initialOffsetX = { width -> (width * 0.15f).toInt() },
+                        animationSpec = tween(durationMillis = 240, easing = FastOutSlowInEasing)
+                    ) + fadeIn(animationSpec = tween(durationMillis = 200))).togetherWith(
+                        slideOutHorizontally(
+                            targetOffsetX = { width -> (-width * 0.15f).toInt() },
+                            animationSpec = tween(durationMillis = 240, easing = FastOutSlowInEasing)
+                        ) + fadeOut(animationSpec = tween(durationMillis = 180))
+                    )
+                } else {
+                    (slideInHorizontally(
+                        initialOffsetX = { width -> (-width * 0.15f).toInt() },
+                        animationSpec = tween(durationMillis = 240, easing = FastOutSlowInEasing)
+                    ) + fadeIn(animationSpec = tween(durationMillis = 200))).togetherWith(
+                        slideOutHorizontally(
+                            targetOffsetX = { width -> (width * 0.15f).toInt() },
+                            animationSpec = tween(durationMillis = 240, easing = FastOutSlowInEasing)
+                        ) + fadeOut(animationSpec = tween(durationMillis = 180))
+                    )
+                }
+            },
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(innerPadding),
+            label = "tab_content_transition"
         ) { route ->
             when (route) {
                 "home" -> {
@@ -349,7 +381,7 @@ fun HomeScreen(
                     )
                 }
                 "history" -> {
-                    HistoryTabContent(
+                    HistoryScreen(
                         myLoans = myLoans,
                         selectedFilter = selectedHistoryFilter,
                         onFilterSelect = viewModel::setHistoryFilter,
@@ -383,7 +415,7 @@ fun HomeScreen(
     ConfirmationDialog(
         visible = showLogoutDialog,
         title = "Keluar dari Akun?",
-        message = "Anda harus memasukkan email dan kata sandi kembali untuk masuk ke SAKU.",
+        message = "Apakah Anda yakin ingin keluar dari akun Anda?",
         confirmButtonText = "Keluar",
         dismissButtonText = "Batal",
         type = DialogType.DESTRUCTIVE,
@@ -511,7 +543,7 @@ private fun HomeTabContent(
             )
         }
 
-        // 3. KONTEN YANG DI-SCROLL KE BAWAH (Menu Utama, Tagihan, Promo, Tips, Footer OJK)
+        // 3. KONTEN YANG DI-SCROLL KE BAWAH (Menu Utama, Tagihan, Promo, Tips)
         LazyColumn(
             state = listState,
             modifier = Modifier
@@ -958,25 +990,25 @@ private fun MenuUtamaSection(
                     ActionItemColumn(
                         title = "Simulasi",
                         icon = Icons.Rounded.Calculate,
-                        containerColor = Primary,
+                        containerColor = Primary0,
                         onClick = onSimulasiClick,
                     )
                     ActionItemColumn(
                         title = "Cek Skor",
                         icon = Icons.Rounded.Speed,
-                        containerColor = Primary,
+                        containerColor = Primary0,
                         onClick = onCreditScoreClick,
                     )
                     ActionItemColumn(
                         title = "Naikkan Limit",
                         icon = Icons.AutoMirrored.Rounded.TrendingUp,
-                        containerColor = Primary,
+                        containerColor = Primary0,
                         onClick = onUpgradeLimitClick,
                     )
                     ActionItemColumn(
                         title = "Riwayat",
                         icon = Icons.Rounded.History,
-                        containerColor = Primary,
+                        containerColor = Primary0,
                         onClick = onRiwayatClick,
                     )
                 }
@@ -989,8 +1021,8 @@ private fun MenuUtamaSection(
 private fun ActionItemColumn(
     title: String,
     icon: ImageVector,
-    containerColor: Color = Primary,
-    iconColor: Color = Color.White,
+    containerColor: Color = Primary0,
+    iconColor: Color = Primary,
     enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
@@ -1016,7 +1048,7 @@ private fun ActionItemColumn(
                 imageVector = icon,
                 contentDescription = title,
                 tint = effectiveIconColor,
-                modifier = Modifier.size(26.dp),
+                modifier = Modifier.size(32.dp),
             )
         }
         Spacer(modifier = Modifier.height(6.dp))
@@ -1096,7 +1128,7 @@ private fun TagihanPinjamanAktifCard(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Tidak ada tagihan aktif. Semua tagihan telah lunas!",
+                            text = "Tidak ada tagihan aktif.",
                             fontSize = 12.sp,
                             color = Color(0xFF15803D),
                             fontWeight = FontWeight.Medium,
@@ -1270,8 +1302,8 @@ private fun FullWidthPromoBannerSection(
         ),
         PromoBannerData(
             imageRes = R.drawable.banner_promo_3,
-            contentDescription = "Mobil Impian DP Ringan Cicilan Nyaman - Cek Simulasi Sekarang!",
-            action = onSimulasiClick,
+            contentDescription = "Butuh Dana Buat Wujudkan Mobil Impianmu? - Ajukan Pinjaman!",
+            action = onAjukanClick,
         ),
     )
 
@@ -1342,26 +1374,6 @@ private fun FullWidthPromoBannerSection(
                     contentDescription = item.contentDescription,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // Dot Page Indicators
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            repeat(promoList.size) { index ->
-                val isSelected = pagerState.currentPage == index
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 3.dp)
-                        .size(if (isSelected) 7.dp else 5.dp)
-                        .clip(CircleShape)
-                        .background(if (isSelected) Primary else Neutral20)
                 )
             }
         }
@@ -1630,7 +1642,7 @@ private fun LoanSimulationDialog(
                             text = "Rp ${currencyFormatter.format(monthlyInstallment)} / bulan",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Primary,
+                            color = TextPrimary,
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         val tierName = simulasiResult?.estimasiTierPlafond ?: "Standar"

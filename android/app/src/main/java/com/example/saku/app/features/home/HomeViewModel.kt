@@ -1,19 +1,12 @@
 package com.example.saku.app.features.home
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.saku.app.core.data.TokenManager
 import com.example.saku.app.core.data.UserSession
 import com.example.saku.app.core.data.repository.AuthRepository
-import com.example.saku.app.core.data.repository.AuthRepositoryImpl
 import com.example.saku.app.core.data.repository.CustomerRepository
-import com.example.saku.app.core.data.repository.CustomerRepositoryImpl
 import com.example.saku.app.core.data.repository.LoanRepository
-import com.example.saku.app.core.data.repository.LoanRepositoryImpl
 import com.example.saku.app.core.data.repository.NotificationRepository
-import com.example.saku.app.core.data.repository.NotificationRepositoryImpl
-import com.example.saku.app.core.network.ApiClient
 import com.example.saku.app.core.network.ApiResult
 import com.example.saku.app.core.network.dto.ChangePasswordRequestDto
 import com.example.saku.app.core.network.dto.CustomerProfileDto
@@ -33,23 +26,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlin.math.roundToLong
 
-class HomeViewModel @JvmOverloads constructor(
-    application: Application,
-    private val customerRepository: CustomerRepository = CustomerRepositoryImpl(
-        ApiClient.getCustomerApiService(application),
-        TokenManager.getInstance(application)
-    ),
-    private val loanRepository: LoanRepository = LoanRepositoryImpl(
-        ApiClient.getCustomerApiService(application)
-    ),
-    private val notificationRepository: NotificationRepository = NotificationRepositoryImpl(
-        ApiClient.getCustomerApiService(application)
-    ),
-    private val authRepository: AuthRepository = AuthRepositoryImpl(
-        ApiClient.getAuthApiService(application),
-        TokenManager.getInstance(application)
-    )
-) : AndroidViewModel(application) {
+class HomeViewModel(
+    private val customerRepository: CustomerRepository,
+    private val loanRepository: LoanRepository,
+    private val notificationRepository: NotificationRepository,
+    private val authRepository: AuthRepository
+) : ViewModel() {
 
     private val gson = Gson()
 
@@ -333,14 +315,11 @@ class HomeViewModel @JvmOverloads constructor(
     }
 
     fun calculateMonthlyInstallment(amount: Double, tenorMonths: Int): Long {
-        val serverVal = _simulasiResult.value?.totalCicilanBulanan
-        if (serverVal != null && serverVal > 0) {
-            return serverVal.roundToLong()
-        }
         if (tenorMonths <= 0) return 0L
-        val principalPerMonth = amount / tenorMonths
-        val rawRate = _simulasiResult.value?.sukuBungaPersen ?: 1.5
+        val profileRate = _customerProfile.value?.sukuBunga
+        val rawRate = if (profileRate != null && profileRate > 0) profileRate else (_simulasiResult.value?.sukuBungaPersen ?: 5.0)
         val ratePct = if (rawRate <= 1.0 && rawRate > 0.0) rawRate * 100 else rawRate
+        val principalPerMonth = amount / tenorMonths
         val interestPerMonth = amount * (ratePct / 100.0)
         return (principalPerMonth + interestPerMonth).roundToLong()
     }

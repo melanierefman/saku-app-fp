@@ -58,44 +58,66 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.saku.app.core.util.ImageCompressorHelper
+import org.koin.androidx.compose.koinViewModel
 import coil.compose.AsyncImage
 import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.Camera
 import com.composables.icons.lucide.CircleAlert
 import com.composables.icons.lucide.CircleCheck
+import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.CreditCard
+import com.composables.icons.lucide.Eye
+import com.composables.icons.lucide.EyeOff
+import com.composables.icons.lucide.FileText
 import com.composables.icons.lucide.IdCard
-import com.composables.icons.lucide.Image
+import com.composables.icons.lucide.Image as LucideImage
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Mail
 import com.composables.icons.lucide.Phone
+import com.composables.icons.lucide.RefreshCw
+import com.composables.icons.lucide.RotateCw
+import com.composables.icons.lucide.ShieldCheck
+import com.composables.icons.lucide.Trash2
 import com.composables.icons.lucide.User
+import com.composables.icons.lucide.X
+import com.example.saku.app.R
+import com.example.saku.app.core.network.dto.AlamatCustomerDto
+import com.example.saku.app.core.ui.components.Badge
+import com.example.saku.app.core.ui.components.BadgeSize
+import com.example.saku.app.core.ui.components.BadgeVariant
 import com.example.saku.app.core.ui.components.Button
 import com.example.saku.app.core.ui.components.ButtonSize
 import com.example.saku.app.core.ui.components.ButtonVariant
+import com.example.saku.app.core.ui.components.Checkbox
 import com.example.saku.app.core.ui.components.CheckboxWithLabel
+import com.example.saku.app.core.ui.components.ConfirmationDialog
 import com.example.saku.app.core.ui.components.CurrencyField
-import com.example.saku.app.core.ui.components.DocumentUploadCard
 import com.example.saku.app.core.ui.components.DropdownField
 import com.example.saku.app.core.ui.components.DropdownOption
 import com.example.saku.app.core.ui.components.OtpInputField
 import com.example.saku.app.core.ui.components.PasswordField
+import com.example.saku.app.core.ui.components.StepProgressBar
 import com.example.saku.app.core.ui.components.TextField
 import com.example.saku.app.core.ui.components.UploadStatus
+import com.example.saku.app.core.util.KtpOcrHelper
 import com.example.saku.app.ui.theme.Border
 import com.example.saku.app.ui.theme.Error
 import com.example.saku.app.ui.theme.Error0
+import com.example.saku.app.ui.theme.Error60
 import com.example.saku.app.ui.theme.Neutral0
-import com.example.saku.app.ui.theme.Neutral40
 import com.example.saku.app.ui.theme.Neutral60
 import com.example.saku.app.ui.theme.Primary
 import com.example.saku.app.ui.theme.Primary0
+import com.example.saku.app.ui.theme.Primary10
+import com.example.saku.app.ui.theme.Primary20
 import com.example.saku.app.ui.theme.Primary60
 import com.example.saku.app.ui.theme.Success
 import com.example.saku.app.ui.theme.Success0
@@ -110,7 +132,8 @@ import kotlinx.coroutines.delay
 fun RegisterScreen(
     onNavigateBack: () -> Unit,
     onNavigateToLogin: () -> Unit,
-    viewModel: RegisterViewModel = viewModel()
+    onNavigateToKycPending: () -> Unit = onNavigateToLogin,
+    viewModel: RegisterViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
@@ -127,8 +150,8 @@ fun RegisterScreen(
             onDismissRequest = { /* Modal tidak bisa di-dismiss selain tombol */ },
             confirmButton = {
                 Button(
-                    text = "Masuk ke Akun SAKU",
-                    onClick = onNavigateToLogin,
+                    text = "Lihat Status Verifikasi",
+                    onClick = onNavigateToKycPending,
                     modifier = Modifier.fillMaxWidth()
                 )
             },
@@ -166,6 +189,101 @@ fun RegisterScreen(
             },
             containerColor = Color.White,
             shape = RoundedCornerShape(20.dp)
+        )
+    }
+
+    // Modal Konfirmasi Sebelum Pendaftaran Final
+    if (uiState.showConfirmationModal) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissConfirmationModal() },
+            shape = RoundedCornerShape(20.dp),
+            containerColor = Color.White,
+            icon = {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(Primary0),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Lucide.CircleCheck,
+                        contentDescription = null,
+                        tint = Primary,
+                        modifier = Modifier.size(30.dp)
+                    )
+                }
+            },
+            title = {
+                Text(
+                    text = "Konfirmasi Pendaftaran",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = TextPrimary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = "Apakah seluruh data dan dokumen pendaftaran Anda sudah benar?",
+                        fontSize = 13.sp,
+                        color = TextSecondary,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Neutral0),
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, Border)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            ConfirmSummaryRow(label = "Nama Lengkap", value = uiState.namaLengkap)
+                            ConfirmSummaryRow(label = "NIK", value = uiState.nik)
+                            ConfirmSummaryRow(label = "Email", value = uiState.email)
+                            ConfirmSummaryRow(label = "No. Handphone", value = uiState.noHp)
+                        }
+                    }
+
+                    Text(
+                        text = "Data pendaftaran Anda akan segera diverifikasi oleh tim Backoffice SAKU.",
+                        fontSize = 11.5.sp,
+                        color = TextMuted,
+                        lineHeight = 15.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    text = "Ya, Daftarkan Sekarang",
+                    onClick = { viewModel.submitStep6FinalRegistration() },
+                    isLoading = uiState.isLoading,
+                    modifier = Modifier.fillMaxWidth(),
+                    variant = ButtonVariant.Primary
+                )
+            },
+            dismissButton = {
+                Button(
+                    text = "Periksa Kembali",
+                    onClick = { viewModel.dismissConfirmationModal() },
+                    enabled = !uiState.isLoading,
+                    modifier = Modifier.fillMaxWidth(),
+                    variant = ButtonVariant.Outline
+                )
+            }
         )
     }
 
@@ -304,31 +422,31 @@ fun RegisterScreen(
                             fullWidth = true
                         )
                     }
-                    // Step 5: Syarat & Ketentuan
+                    // Step 5: Buat Kata Sandi
                     5 -> {
                         Button(
                             text = "Lanjut →",
                             onClick = {
                                 focusManager.clearFocus()
-                                viewModel.submitStep5Tnc()
+                                viewModel.submitStep5Credentials()
                             },
                             isLoading = uiState.isLoading,
-                            enabled = uiState.isTncAgreed && !uiState.isLoading,
+                            enabled = uiState.password.length >= 8 && uiState.confirmPassword.isNotBlank() && !uiState.isLoading,
                             variant = ButtonVariant.Primary,
                             size = ButtonSize.LG,
                             fullWidth = true
                         )
                     }
-                    // Step 6: Buat Password
+                    // Step 6: Syarat & Ketentuan (Langkah Terakhir)
                     6 -> {
                         Button(
                             text = "Daftar Akun SAKU",
                             onClick = {
                                 focusManager.clearFocus()
-                                viewModel.submitStep6Complete()
+                                viewModel.openConfirmationModal()
                             },
                             isLoading = uiState.isLoading,
-                            enabled = uiState.password.length >= 8 && uiState.confirmPassword.isNotBlank() && !uiState.isLoading,
+                            enabled = uiState.isTncAgreed && !uiState.isLoading,
                             variant = ButtonVariant.Primary,
                             size = ButtonSize.LG,
                             fullWidth = true
@@ -419,8 +537,8 @@ fun RegisterScreen(
                 2 -> Step2JobAndBankForm(viewModel = viewModel, uiState = uiState)
                 3 -> Step3AddressForm(viewModel = viewModel, uiState = uiState)
                 4 -> Step4KycDocumentsForm(viewModel = viewModel, uiState = uiState)
-                5 -> Step5TncForm(viewModel = viewModel, uiState = uiState)
-                6 -> Step6CredentialsForm(viewModel = viewModel, uiState = uiState)
+                5 -> Step5CredentialsForm(viewModel = viewModel, uiState = uiState)
+                6 -> Step6TncForm(viewModel = viewModel, uiState = uiState)
             }
 
             Spacer(modifier = Modifier.height(28.dp))
@@ -448,8 +566,8 @@ private fun RegisterStepProgressBar(currentStep: Int) {
         2 -> "Data Pekerjaan & Rekening" to "Lengkapi informasi pekerjaan dan rekening bank untuk pencairan dana."
         3 -> "Alamat KTP & Domisili" to "Isi manual alamat lengkap sesuai e-KTP dan tempat tinggal saat ini."
         4 -> "Upload Dokumen KYC" to "Unggah foto fisik e-KTP dan foto selfie untuk verifikasi tim Backoffice."
-        5 -> "Syarat & Ketentuan" to "Pelajari dan setujui syarat & ketentuan layanan pembiayaan SAKU."
-        6 -> "Buat Kata Sandi" to "Buat kata sandi yang aman untuk mengakses akun SAKU Anda."
+        5 -> "Buat Kata Sandi" to "Buat kata sandi yang aman untuk mengakses akun SAKU Anda."
+        6 -> "Syarat & Ketentuan" to "Pelajari dan setujui syarat & ketentuan layanan pembiayaan SAKU."
         else -> "Pendaftaran SAKU" to "Lengkapi formulir pendaftaran akun nasabah SAKU."
     }
 
@@ -697,7 +815,7 @@ private fun Step2JobAndBankForm(viewModel: RegisterViewModel, uiState: RegisterU
             value = uiState.tempatKerja,
             onValueChange = viewModel::onTempatKerjaChange,
             label = "Nama Perusahaan / Tempat Bekerja",
-            placeholder = "Contoh: PT BCA Finance",
+            placeholder = "Contoh: PT SAKU Digital Indonesia",
             required = true
         )
 
@@ -883,7 +1001,8 @@ private fun Step3AddressForm(viewModel: RegisterViewModel, uiState: RegisterUiSt
             onValueChange = { viewModel.onAlamatKtpChange(uiState.alamatKtp.copy(kodePos = it)) },
             label = "Kode Pos",
             placeholder = "12345",
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            required = true
         )
 
         SectionHeader(title = "Alamat Domisili Saat Ini")
@@ -972,6 +1091,17 @@ private fun Step3AddressForm(viewModel: RegisterViewModel, uiState: RegisterUiSt
                         required = true
                     )
                 }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                TextField(
+                    value = uiState.alamatDomisili.kodePos,
+                    onValueChange = { viewModel.onAlamatDomisiliChange(uiState.alamatDomisili.copy(kodePos = it)) },
+                    label = "Kode Pos Domisili",
+                    placeholder = "12345",
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    required = true
+                )
             }
         }
     }
@@ -980,231 +1110,307 @@ private fun Step3AddressForm(viewModel: RegisterViewModel, uiState: RegisterUiSt
 // Step 4: Upload Dokumen KYC (Foto e-KTP & Foto Selfie)
 @Composable
 private fun Step4KycDocumentsForm(viewModel: RegisterViewModel, uiState: RegisterUiState) {
-    var activeDocumentTarget by remember { mutableStateOf<String?>(null) }
-
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicturePreview()
-    ) { bitmap: Bitmap? ->
-        if (bitmap != null) {
-            when (activeDocumentTarget) {
-                "ktp" -> viewModel.onKtpBitmapCaptured(bitmap)
-                "selfie" -> viewModel.onSelfieBitmapCaptured(bitmap)
-            }
-        }
-        activeDocumentTarget = null
-    }
+    val context = LocalContext.current
+    var pendingCameraUri by remember { mutableStateOf<Uri?>(null) }
+    var pendingCameraTarget by remember { mutableStateOf<String?>(null) }
+    var activeGalleryTarget by remember { mutableStateOf<String?>(null) }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
-            when (activeDocumentTarget) {
+            when (activeGalleryTarget) {
                 "ktp" -> viewModel.onKtpImageSelected(uri)
                 "selfie" -> viewModel.onSelfieUriSelected(uri)
             }
         }
-        activeDocumentTarget = null
+        activeGalleryTarget = null
     }
 
-    if (activeDocumentTarget != null) {
-        AlertDialog(
-            onDismissRequest = { activeDocumentTarget = null },
-            title = {
-                Text(
-                    text = if (activeDocumentTarget == "ktp") "Pilih Foto e-KTP" else "Pilih Foto Selfie Wajah",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = TextPrimary
-                )
-            },
-            text = {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        text = "Silakan pilih metode pengambilan foto:",
-                        fontSize = 13.sp,
-                        color = TextSecondary
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(Neutral0)
-                            .clickable { cameraLauncher.launch(null) }
-                            .padding(14.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(imageVector = Lucide.Camera, contentDescription = null, tint = Primary, modifier = Modifier.size(20.dp))
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(text = "Ambil Foto dengan Kamera", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(Neutral0)
-                            .clickable { galleryLauncher.launch("image/*") }
-                            .padding(14.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(imageVector = Lucide.Image, contentDescription = null, tint = Primary, modifier = Modifier.size(20.dp))
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(text = "Pilih dari Galeri Foto", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
-                    }
-                }
-            },
-            confirmButton = {},
-            dismissButton = {
-                TextButton(onClick = { activeDocumentTarget = null }) {
-                    Text(text = "Batal", color = TextSecondary)
-                }
-            },
-            containerColor = Color.White,
-            shape = RoundedCornerShape(16.dp)
-        )
-    }
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        SectionHeader(title = "1. Foto Fisik e-KTP")
-
-        DocumentUploadCard(
-            title = "Foto e-KTP Asli",
-            description = "Foto e-KTP asli secara jelas dan utuh tanpa pantulan cahaya",
-            status = if (uiState.ktpBitmap != null || uiState.ktpUri != null) UploadStatus.UPLOADED else UploadStatus.EMPTY,
-            icon = Lucide.IdCard,
-            fileName = if (uiState.ktpBitmap != null) "ktp_foto.jpg" else uiState.ktpUri?.lastPathSegment,
-            statusBadgeText = if (uiState.ktpBitmap != null || uiState.ktpUri != null) "Foto Tersimpan" else null,
-            onUploadClick = { activeDocumentTarget = "ktp" },
-            onDeleteClick = { viewModel.onKtpImageSelected(null) }
-        )
-
-        if (uiState.ktpBitmap != null) {
-            Spacer(modifier = Modifier.height(10.dp))
-            Image(
-                bitmap = uiState.ktpBitmap!!.asImageBitmap(),
-                contentDescription = "Preview e-KTP",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .border(1.dp, Border, RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Crop
-            )
-        } else if (uiState.ktpUri != null) {
-            Spacer(modifier = Modifier.height(10.dp))
-            AsyncImage(
-                model = uiState.ktpUri,
-                contentDescription = "Preview e-KTP",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .border(1.dp, Border, RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Crop
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        SectionHeader(title = "2. Foto Selfie Wajah")
-
-        DocumentUploadCard(
-            title = "Foto Selfie Wajah",
-            description = "Foto wajah tampak depan dengan pencahayaan terang",
-            status = if (uiState.selfieBitmap != null || uiState.selfieUri != null) UploadStatus.UPLOADED else UploadStatus.EMPTY,
-            icon = Lucide.Camera,
-            fileName = if (uiState.selfieBitmap != null) "selfie_foto.jpg" else uiState.selfieUri?.lastPathSegment,
-            statusBadgeText = if (uiState.selfieBitmap != null || uiState.selfieUri != null) "Foto Tersimpan" else null,
-            onUploadClick = { activeDocumentTarget = "selfie" },
-            onDeleteClick = { viewModel.onSelfieUriSelected(null) }
-        )
-
-        if (uiState.selfieBitmap != null) {
-            Spacer(modifier = Modifier.height(10.dp))
-            Image(
-                bitmap = uiState.selfieBitmap!!.asImageBitmap(),
-                contentDescription = "Preview Selfie",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .border(1.dp, Border, RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Crop
-            )
-        } else if (uiState.selfieUri != null) {
-            Spacer(modifier = Modifier.height(10.dp))
-            AsyncImage(
-                model = uiState.selfieUri,
-                contentDescription = "Preview Selfie",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .border(1.dp, Border, RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Crop
-            )
-        }
-    }
-}
-
-// Step 5: Syarat & Ketentuan Layanan
-@Composable
-private fun Step5TncForm(viewModel: RegisterViewModel, uiState: RegisterUiState) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        SectionHeader(title = "Syarat & Ketentuan Layanan")
-
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(180.dp),
-            colors = CardDefaults.cardColors(containerColor = Neutral0),
-            shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(1.dp, Border)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = "SYARAT & KETENTUAN SAKU (BCA FINANCE)",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.5.sp,
-                    color = TextPrimary
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = "1. Pendaftaran akun SAKU diperuntukkan bagi nasabah perorangan yang memenuhi kriteria kelayakan pembiayaan BCA Finance.\n\n" +
-                            "2. Nasabah menjamin keaslian, keakuratan, dan kebenaran seluruh data identitas, pekerjaan, rekening, serta dokumen foto e-KTP dan foto selfie yang diunggah.\n\n" +
-                            "3. Data dan dokumen KYC akan diverifikasi secara manual oleh tim Backoffice SAKU sesuai kebijakan kepatuhan OJK.\n\n" +
-                            "4. SAKU berhak melakukan penilaian credit scoring otomatis di background demi keamanan transaksi pembiayaan.\n\n" +
-                            "5. Kerahasiaan data pribadi nasabah dilindungi sesuai Kebijakan Privasi SAKU dan peraturan perundang-undangan Republik Indonesia.",
-                    fontSize = 12.sp,
-                    color = TextSecondary,
-                    lineHeight = 18.sp
-                )
+    val nativeCameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success: Boolean ->
+        if (success && pendingCameraUri != null) {
+            val uri = pendingCameraUri!!
+            when (pendingCameraTarget) {
+                "ktp" -> viewModel.onKtpImageSelected(uri)
+                "selfie" -> viewModel.onSelfieUriSelected(uri)
             }
         }
+        pendingCameraUri = null
+        pendingCameraTarget = null
+    }
 
-        Spacer(modifier = Modifier.height(14.dp))
+    val launchCamera = { target: String ->
+        val tempUri = ImageCompressorHelper.createTempPictureUri(context, if (target == "ktp") "ktp_" else "selfie_")
+        pendingCameraUri = tempUri
+        pendingCameraTarget = target
+        nativeCameraLauncher.launch(tempUri)
+    }
 
-        CheckboxWithLabel(
-            checked = uiState.isTncAgreed,
-            onCheckedChange = viewModel::onTncAgreedToggle,
-            label = "Saya telah membaca, memahami, dan menyetujui seluruh Syarat & Ketentuan serta Kebijakan Privasi SAKU.",
-            modifier = Modifier.padding(vertical = 4.dp)
+    val launchGallery = { target: String ->
+        activeGalleryTarget = target
+        galleryLauncher.launch("image/*")
+    }
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // 1. Foto Fisik e-KTP
+        RegisterDocumentUploadBox(
+            title = "Foto Fisik e-KTP Asli",
+            subtitle = "Foto e-KTP asli secara jelas dan utuh tanpa pantulan cahaya",
+            isRequired = true,
+            hasFile = uiState.ktpUri != null || uiState.ktpBitmap != null,
+            fileName = if (uiState.ktpBitmap != null) "ktp_foto.jpg" else (uiState.ktpUri?.lastPathSegment ?: "ktp_foto.jpg"),
+            icon = Lucide.IdCard,
+            onGalleryClick = { launchGallery("ktp") },
+            onCameraClick = { launchCamera("ktp") },
+            onRemoveClick = { viewModel.onKtpImageSelected(null) }
+        )
+
+        // 2. Foto Selfie Wajah
+        RegisterDocumentUploadBox(
+            title = "Foto Selfie Wajah",
+            subtitle = "Foto wajah tampak depan dengan pencahayaan terang",
+            isRequired = true,
+            hasFile = uiState.selfieUri != null || uiState.selfieBitmap != null,
+            fileName = if (uiState.selfieBitmap != null) "selfie_foto.jpg" else (uiState.selfieUri?.lastPathSegment ?: "selfie_foto.jpg"),
+            icon = Lucide.Camera,
+            onGalleryClick = { launchGallery("selfie") },
+            onCameraClick = { launchCamera("selfie") },
+            onRemoveClick = { viewModel.onSelfieUriSelected(null) }
         )
     }
 }
 
-// Step 6: Buat Kredensial Kata Sandi
 @Composable
-private fun Step6CredentialsForm(viewModel: RegisterViewModel, uiState: RegisterUiState) {
+private fun RegisterDocumentUploadBox(
+    title: String,
+    subtitle: String,
+    isRequired: Boolean = true,
+    hasFile: Boolean,
+    fileName: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector = Lucide.IdCard,
+    onGalleryClick: () -> Unit,
+    onCameraClick: () -> Unit,
+    onRemoveClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Surface),
+        border = BorderStroke(1.dp, if (hasFile) Primary20 else Border)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            // Header Info & Status Badge
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = title,
+                            fontSize = 13.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                        if (isRequired) {
+                            Text(text = " *", color = Error, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(text = subtitle, fontSize = 11.5.sp, color = TextMuted)
+                }
+
+                Badge(
+                    text = if (hasFile) "Terunggah" else (if (isRequired) "Wajib" else "Opsional"),
+                    variant = if (hasFile) BadgeVariant.Success else (if (isRequired) BadgeVariant.Error else BadgeVariant.Neutral),
+                    size = BadgeSize.SM
+                )
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            if (hasFile) {
+                // Attached File View
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Neutral0)
+                        .border(1.dp, Border, RoundedCornerShape(12.dp))
+                        .padding(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Primary0),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = null,
+                                    tint = Primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = fileName.ifBlank { "dokumen_terlampir.jpg" },
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = TextPrimary,
+                                    maxLines = 1,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "Berkas Foto • Siap diverifikasi",
+                                    fontSize = 11.sp,
+                                    color = TextSecondary
+                                )
+                            }
+                        }
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(
+                                onClick = onGalleryClick,
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Lucide.RotateCw,
+                                    contentDescription = "Ganti Foto",
+                                    tint = Primary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                            IconButton(
+                                onClick = onRemoveClick,
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Lucide.Trash2,
+                                    contentDescription = "Hapus Foto",
+                                    tint = Error,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            } else {
+                // Empty state: Gallery picker primary CTA + Camera scan secondary CTA
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // 1. Primary CTA: Pilih dari Galeri Foto
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Primary0)
+                            .border(1.dp, Primary20, RoundedCornerShape(12.dp))
+                            .clickable { onGalleryClick() }
+                            .padding(vertical = 14.dp, horizontal = 14.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(38.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(Primary),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Lucide.LucideImage,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Pilih dari Galeri Foto",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "Format JPG atau PNG (Maks. 5 MB)",
+                                    fontSize = 11.5.sp,
+                                    color = TextSecondary
+                                )
+                            }
+                        }
+                    }
+
+                    // 2. Secondary CTA: Ambil Foto Kamera HP
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Neutral0)
+                            .border(1.dp, Border, RoundedCornerShape(10.dp))
+                            .clickable { onCameraClick() }
+                            .padding(vertical = 10.dp, horizontal = 14.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(Surface),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Lucide.Camera,
+                                    contentDescription = null,
+                                    tint = Primary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = "Atau ambil foto langsung dengan kamera HP",
+                                fontSize = 12.sp,
+                                color = TextSecondary,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Step 5: Buat Kredensial Kata Sandi
+@Composable
+private fun Step5CredentialsForm(viewModel: RegisterViewModel, uiState: RegisterUiState) {
     Column(modifier = Modifier.fillMaxWidth()) {
         SectionHeader(title = "Keamanan Akun")
 
@@ -1225,6 +1431,163 @@ private fun Step6CredentialsForm(viewModel: RegisterViewModel, uiState: Register
             label = "Konfirmasi Kata Sandi",
             placeholder = "Ulangi kata sandi Anda",
             required = true
+        )
+    }
+}
+
+// Step 6: Syarat & Ketentuan Layanan (Langkah Terakhir)
+@Composable
+private fun Step6TncForm(viewModel: RegisterViewModel, uiState: RegisterUiState) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        SectionHeader(title = "Syarat & Ketentuan Layanan")
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(280.dp),
+            colors = CardDefaults.cardColors(containerColor = Neutral0),
+            shape = RoundedCornerShape(14.dp),
+            border = BorderStroke(1.dp, Border)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Lucide.FileText,
+                        contentDescription = null,
+                        tint = Primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text(
+                        text = "KETENTUAN LAYANAN SAKU (PT SAKU)",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.5.sp,
+                        color = TextPrimary
+                    )
+                }
+
+                HorizontalDivider(color = Border)
+
+                TncListItem(
+                    number = "1",
+                    title = "Kelayakan Pendaftaran Nasabah",
+                    description = "Pendaftaran akun SAKU diperuntukkan bagi nasabah perorangan Warga Negara Indonesia (WNI) berusia minimal 21 tahun atau telah menikah, serta memiliki penghasilan tetap bulanan."
+                )
+
+                TncListItem(
+                    number = "2",
+                    title = "Keaslian Data & Dokumen Identitas (KYC)",
+                    description = "Nasabah menjamin keaslian, keabsahan, keakuratan, dan keterbaruan seluruh data diri, pekerjaan, rekening bank, serta dokumen foto fisik e-KTP dan foto selfie yang diunggah ke dalam sistem SAKU."
+                )
+
+                TncListItem(
+                    number = "3",
+                    title = "Prosedur Verifikasi Tim Backoffice",
+                    description = "Seluruh dokumen dan informasi yang didaftarkan akan melalui proses audit dan verifikasi manual oleh tim Backoffice SAKU sesuai regulasi perbankan dan otoritas keuangan yang berlaku."
+                )
+
+                TncListItem(
+                    number = "4",
+                    title = "Penilaian Kelayakan Kredit & Plafond",
+                    description = "Nasabah memberikan kuasa dan persetujuan penuh kepada SAKU untuk melakukan analisis scoring risiko kredit dan penetapan limit plafond pembiayaan secara otomatis berdasarkan data yang diserahkan."
+                )
+
+                TncListItem(
+                    number = "5",
+                    title = "Perlindungan & Kerahasiaan Data Pribadi",
+                    description = "SAKU berkomitmen melindungi seluruh kerahasiaan data pribadi nasabah dan tidak akan membagikannya kepada pihak ketiga tanpa persetujuan, sesuai ketentuan Undang-Undang Perlindungan Data Pribadi (UU PDP)."
+                )
+
+                TncListItem(
+                    number = "6",
+                    title = "Kewajiban Pengembalian Pembiayaan",
+                    description = "Apabila pengajuan pinjaman disetujui dan dicairkan, nasabah wajib melakukan pembayaran angsuran tepat waktu sesuai jadwal jatuh tempo yang telah disepakati bersama."
+                )
+
+                TncListItem(
+                    number = "7",
+                    title = "Kekuatan Hukum Persetujuan Digital",
+                    description = "Dengan mencentang persetujuan di bawah ini, nasabah menyatakan telah membaca, memahami, dan menyetujui seluruh ketentuan ini dengan kekuatan hukum yang sah dan mengikat."
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        CheckboxWithLabel(
+            checked = uiState.isTncAgreed,
+            onCheckedChange = viewModel::onTncAgreedToggle,
+            label = "Saya telah membaca, memahami, dan menyetujui seluruh Syarat & Ketentuan serta Kebijakan Privasi SAKU.",
+            modifier = Modifier.padding(vertical = 4.dp)
+        )
+    }
+}
+
+@Composable
+private fun TncListItem(
+    number: String,
+    title: String,
+    description: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Box(
+            modifier = Modifier
+                .size(22.dp)
+                .clip(CircleShape)
+                .background(Primary0),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = number,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = Primary
+            )
+        }
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                fontSize = 12.5.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = TextPrimary
+            )
+            Spacer(modifier = Modifier.height(3.dp))
+            Text(
+                text = description,
+                fontSize = 11.5.sp,
+                color = TextSecondary,
+                lineHeight = 16.5.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun ConfirmSummaryRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(text = label, fontSize = 12.sp, color = TextSecondary)
+        Text(
+            text = value.ifBlank { "-" },
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = TextPrimary
         )
     }
 }

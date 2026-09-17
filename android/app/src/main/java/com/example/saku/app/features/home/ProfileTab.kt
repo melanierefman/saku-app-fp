@@ -116,7 +116,9 @@ fun ProfileTabContent(
                     )
                 )
             )
-    ) {
+    )
+
+    {
         // 1. TALL ORANGE HEADER (Avatar, Nama, Email, dan Level Plafond)
         Box(
             modifier = Modifier
@@ -377,9 +379,9 @@ fun ProfileTabContent(
                                 ProfileMenuRow(
                                     icon = Lucide.Headphones,
                                     title = "Pusat Bantuan & Layanan CS",
-                                    subtitle = "Hubungi Halo BCA (1500888) & CS SAKU",
+                                    subtitle = "Hubungi Halo SAKU (1500888) & CS SAKU",
                                     onClick = {
-                                        Toast.makeText(context, "Layanan Halo BCA: 1500888 atau email halobca@bca.co.id", Toast.LENGTH_LONG).show()
+                                        Toast.makeText(context, "Layanan Halo SAKU: 1500888 atau email halosaku@saku.co.id", Toast.LENGTH_LONG).show()
                                     }
                                 )
 
@@ -392,9 +394,9 @@ fun ProfileTabContent(
                                 ProfileMenuRow(
                                     icon = Lucide.ShieldCheck,
                                     title = "Syarat & Ketentuan",
-                                    subtitle = "Kebijakan privasi & regulasi berizin OJK",
+                                    subtitle = "Kebijakan privasi & regulasi berizin",
                                     onClick = {
-                                        Toast.makeText(context, "SAKU berizin dan diawasi oleh Otoritas Jasa Keuangan (OJK).", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, "SAKU berizin dan diawasi sesuai hukum yang berlaku.", Toast.LENGTH_SHORT).show()
                                     }
                                 )
                             }
@@ -422,7 +424,7 @@ fun ProfileTabContent(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Text(
-                            text = "SAKU Mobile App v1.0.0\nPT BCA Finance • Berizin & Diawasi oleh OJK",
+                            text = "SAKU Mobile App v1.0.0\nPT SAKU • 2026",
                             fontSize = 11.5.sp,
                             color = TextMuted,
                             textAlign = TextAlign.Center,

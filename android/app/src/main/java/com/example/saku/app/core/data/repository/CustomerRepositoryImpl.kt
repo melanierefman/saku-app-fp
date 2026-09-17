@@ -1,6 +1,8 @@
 package com.example.saku.app.core.data.repository
 
 import com.example.saku.app.core.data.TokenManager
+import com.example.saku.app.core.database.dao.CustomerDao
+import com.example.saku.app.core.database.entity.CustomerProfileEntity
 import com.example.saku.app.core.network.ApiClient
 import com.example.saku.app.core.network.ApiResult
 import com.example.saku.app.core.network.api.CustomerApiService
@@ -13,10 +15,14 @@ import com.example.saku.app.core.network.dto.UpdatePekerjaanRequestDto
 import com.example.saku.app.core.network.dto.UpdateProfileRequestDto
 import com.example.saku.app.core.network.dto.UpdateRekeningRequestDto
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class CustomerRepositoryImpl(
+@Singleton
+class CustomerRepositoryImpl @Inject constructor(
     private val customerApiService: CustomerApiService,
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
+    private val customerDao: CustomerDao
 ) : CustomerRepository {
 
     override val cachedProfileFlow: Flow<String?> = tokenManager.cachedProfileJsonFlow
@@ -29,12 +35,27 @@ class CustomerRepositoryImpl(
         return try {
             val response = customerApiService.getProfile()
             if (response.isSuccessful && response.body()?.data != null) {
-                ApiResult.Success(response.body()!!.data!!, response.body()?.message)
+                val profileDto = response.body()!!.data!!
+                // Save to Room Database
+                customerDao.insertProfile(CustomerProfileEntity.fromDto(profileDto))
+                ApiResult.Success(profileDto, response.body()?.message)
             } else {
-                ApiResult.Error(ApiClient.parseError(response), response.code())
+                // Try offline cache from Room
+                val cached = customerDao.getProfile()
+                if (cached != null) {
+                    ApiResult.Success(cached.toDto(), "Menampilkan data tersimpan")
+                } else {
+                    ApiResult.Error(ApiClient.parseError(response), response.code())
+                }
             }
         } catch (e: Exception) {
-            ApiResult.Error(e.localizedMessage ?: "Gagal memuat profil nasabah")
+            // Offline fallback from Room Database
+            val cached = customerDao.getProfile()
+            if (cached != null) {
+                ApiResult.Success(cached.toDto(), "Offline mode - data profil lokal")
+            } else {
+                ApiResult.Error(e.localizedMessage ?: "Gagal memuat profil nasabah")
+            }
         }
     }
 
@@ -42,7 +63,9 @@ class CustomerRepositoryImpl(
         return try {
             val response = customerApiService.updateProfile(request)
             if (response.isSuccessful && response.body()?.data != null) {
-                ApiResult.Success(response.body()!!.data!!, response.body()?.message)
+                val profileDto = response.body()!!.data!!
+                customerDao.insertProfile(CustomerProfileEntity.fromDto(profileDto))
+                ApiResult.Success(profileDto, response.body()?.message)
             } else {
                 ApiResult.Error(ApiClient.parseError(response), response.code())
             }
@@ -55,7 +78,9 @@ class CustomerRepositoryImpl(
         return try {
             val response = customerApiService.updateRekening(request)
             if (response.isSuccessful && response.body()?.data != null) {
-                ApiResult.Success(response.body()!!.data!!, response.body()?.message)
+                val profileDto = response.body()!!.data!!
+                customerDao.insertProfile(CustomerProfileEntity.fromDto(profileDto))
+                ApiResult.Success(profileDto, response.body()?.message)
             } else {
                 ApiResult.Error(ApiClient.parseError(response), response.code())
             }
@@ -68,7 +93,9 @@ class CustomerRepositoryImpl(
         return try {
             val response = customerApiService.updateDomisili(request)
             if (response.isSuccessful && response.body()?.data != null) {
-                ApiResult.Success(response.body()!!.data!!, response.body()?.message)
+                val profileDto = response.body()!!.data!!
+                customerDao.insertProfile(CustomerProfileEntity.fromDto(profileDto))
+                ApiResult.Success(profileDto, response.body()?.message)
             } else {
                 ApiResult.Error(ApiClient.parseError(response), response.code())
             }
@@ -81,7 +108,9 @@ class CustomerRepositoryImpl(
         return try {
             val response = customerApiService.updatePekerjaan(request)
             if (response.isSuccessful && response.body()?.data != null) {
-                ApiResult.Success(response.body()!!.data!!, response.body()?.message)
+                val profileDto = response.body()!!.data!!
+                customerDao.insertProfile(CustomerProfileEntity.fromDto(profileDto))
+                ApiResult.Success(profileDto, response.body()?.message)
             } else {
                 ApiResult.Error(ApiClient.parseError(response), response.code())
             }
@@ -129,6 +158,24 @@ class CustomerRepositoryImpl(
             }
         } catch (e: Exception) {
             ApiResult.Error(e.localizedMessage ?: "Gagal menghitung simulasi pinjaman")
+        }
+    }
+
+    override suspend fun updateKycDocuments(
+        ktp: okhttp3.MultipartBody.Part?,
+        selfie: okhttp3.MultipartBody.Part?
+    ): ApiResult<CustomerProfileDto> {
+        return try {
+            val response = customerApiService.updateKycDocuments(ktp, selfie)
+            if (response.isSuccessful && response.body()?.data != null) {
+                val profile = response.body()!!.data!!
+                customerDao.insertProfile(CustomerProfileEntity.fromDto(profile))
+                ApiResult.Success(profile, response.body()?.message)
+            } else {
+                ApiResult.Error(ApiClient.parseError(response), response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.localizedMessage ?: "Gagal memperbarui dokumen KYC.")
         }
     }
 

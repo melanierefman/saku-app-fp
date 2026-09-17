@@ -110,9 +110,8 @@ class LoginViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        application = ApplicationProvider.getApplicationContext()
         fakeAuthRepository = FakeAuthRepository()
-        viewModel = LoginViewModel(application, fakeAuthRepository)
+        viewModel = LoginViewModel(fakeAuthRepository)
     }
 
     @After

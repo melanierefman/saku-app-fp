@@ -2,6 +2,9 @@ package com.example.saku.app.core.data.repository
 
 import com.example.saku.app.core.data.TokenManager
 import com.example.saku.app.core.data.UserSession
+import com.example.saku.app.core.database.dao.CustomerDao
+import com.example.saku.app.core.database.dao.LoanDao
+import com.example.saku.app.core.database.dao.NotificationDao
 import com.example.saku.app.core.network.ApiClient
 import com.example.saku.app.core.network.ApiResult
 import com.example.saku.app.core.network.api.AuthApiService
@@ -20,10 +23,16 @@ import com.example.saku.app.core.network.dto.VerifyOtpResponse
 import kotlinx.coroutines.flow.Flow
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class AuthRepositoryImpl(
+@Singleton
+class AuthRepositoryImpl @Inject constructor(
     private val authApiService: AuthApiService,
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
+    private val customerDao: CustomerDao,
+    private val loanDao: LoanDao,
+    private val notificationDao: NotificationDao
 ) : AuthRepository {
 
     override val userSession: Flow<UserSession?> = tokenManager.userSessionFlow
@@ -72,7 +81,7 @@ class AuthRepositoryImpl(
                 ApiResult.Error(ApiClient.parseError(response), response.code())
             }
         } catch (e: Exception) {
-            ApiResult.Error(e.localizedMessage ?: "Gagal mengirim permintaan forgot password.")
+            ApiResult.Error(e.localizedMessage ?: "Gagal memproses lupa password.")
         }
     }
 
@@ -94,16 +103,25 @@ class AuthRepositoryImpl(
             try {
                 authApiService.logout()
             } catch (_: Exception) {}
-            tokenManager.clearSession()
+            clearLocalData()
             ApiResult.Success(Unit, "Berhasil keluar")
         } catch (e: Exception) {
-            tokenManager.clearSession()
+            clearLocalData()
             ApiResult.Error(e.localizedMessage ?: "Gagal logout")
         }
     }
 
     override suspend fun clearSession() {
+        clearLocalData()
+    }
+
+    private suspend fun clearLocalData() {
         tokenManager.clearSession()
+        try {
+            customerDao.clearProfile()
+            loanDao.clearLoans()
+            notificationDao.clearNotifications()
+        } catch (_: Exception) {}
     }
 
     override suspend fun sendOtp(email: String, purpose: String): ApiResult<SendOtpResponse> {
@@ -194,6 +212,23 @@ class AuthRepositoryImpl(
             }
         } catch (e: Exception) {
             ApiResult.Error(e.localizedMessage ?: "Gagal memproses verifikasi liveness selfie.")
+        }
+    }
+
+    override suspend fun registerStep4(
+        customerId: String,
+        ktp: MultipartBody.Part?,
+        selfie: MultipartBody.Part?
+    ): ApiResult<RegisterStepResponse> {
+        return try {
+            val response = authApiService.registerStep4(customerId, ktp, selfie)
+            if (response.isSuccessful && response.body()?.data != null) {
+                ApiResult.Success(response.body()!!.data!!, response.body()?.message)
+            } else {
+                ApiResult.Error(ApiClient.parseError(response), response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.localizedMessage ?: "Gagal mengunggah dokumen pendaftaran.")
         }
     }
 

@@ -68,12 +68,13 @@ data class RegisterUiState(
     val selfieUri: Uri? = null,
     val selfieBitmap: Bitmap? = null,
 
-    // Step 5: Syarat & Ketentuan
-    val isTncAgreed: Boolean = false,
-
-    // Step 6: Buat Kredensial (Kata Sandi)
+    // Step 5: Buat Kredensial (Kata Sandi)
     val password: String = "",
-    val confirmPassword: String = ""
+    val confirmPassword: String = "",
+
+    // Step 6: Syarat & Ketentuan (Langkah Terakhir)
+    val isTncAgreed: Boolean = false,
+    val showConfirmationModal: Boolean = false
 )
 
 data class AlamatFormState(
@@ -87,12 +88,9 @@ data class AlamatFormState(
     val kodePos: String = ""
 )
 
-class RegisterViewModel @JvmOverloads constructor(
-    application: Application,
-    private val authRepository: AuthRepository = AuthRepositoryImpl(
-        ApiClient.getAuthApiService(application),
-        TokenManager.getInstance(application)
-    )
+class RegisterViewModel(
+    private val authRepository: AuthRepository,
+    application: Application
 ) : AndroidViewModel(application) {
 
     private val gson = Gson()
@@ -279,14 +277,14 @@ class RegisterViewModel @JvmOverloads constructor(
         }
 
         val ktp = s.alamatKtp
-        if (ktp.alamatLengkap.isBlank() || ktp.rt.isBlank() || ktp.rw.isBlank() || ktp.kelurahan.isBlank() || ktp.kecamatan.isBlank() || ktp.kotaKabupaten.isBlank() || ktp.provinsi.isBlank()) {
-            _uiState.value = s.copy(errorMessage = "Seluruh field alamat e-KTP wajib diisi")
+        if (ktp.alamatLengkap.isBlank() || ktp.rt.isBlank() || ktp.rw.isBlank() || ktp.kelurahan.isBlank() || ktp.kecamatan.isBlank() || ktp.kotaKabupaten.isBlank() || ktp.provinsi.isBlank() || ktp.kodePos.isBlank()) {
+            _uiState.value = s.copy(errorMessage = "Seluruh field alamat e-KTP dan kode pos wajib diisi")
             return
         }
 
         val domisili = if (s.sameAsKtp) ktp else s.alamatDomisili
-        if (!s.sameAsKtp && (domisili.alamatLengkap.isBlank() || domisili.rt.isBlank() || domisili.rw.isBlank() || domisili.kelurahan.isBlank() || domisili.kecamatan.isBlank() || domisili.kotaKabupaten.isBlank() || domisili.provinsi.isBlank())) {
-            _uiState.value = s.copy(errorMessage = "Seluruh field alamat domisili wajib diisi jika berbeda dengan e-KTP")
+        if (!s.sameAsKtp && (domisili.alamatLengkap.isBlank() || domisili.rt.isBlank() || domisili.rw.isBlank() || domisili.kelurahan.isBlank() || domisili.kecamatan.isBlank() || domisili.kotaKabupaten.isBlank() || domisili.provinsi.isBlank() || domisili.kodePos.isBlank())) {
+            _uiState.value = s.copy(errorMessage = "Seluruh field alamat domisili dan kode pos wajib diisi jika berbeda dengan e-KTP")
             return
         }
 
@@ -401,7 +399,7 @@ class RegisterViewModel @JvmOverloads constructor(
             try {
                 val context = getApplication<Application>().applicationContext
 
-                // 1. Upload Berkas Foto e-KTP
+                // 1. Prepare Berkas Foto e-KTP
                 val ktpBytes: ByteArray? = when {
                     s.ktpUri != null -> com.example.saku.app.core.util.ImageCompressorHelper.compressImageUri(context, s.ktpUri, maxDimension = 1920, quality = 82)
                     s.ktpBitmap != null -> com.example.saku.app.core.util.ImageCompressorHelper.compressBitmap(s.ktpBitmap, maxDimension = 1920, quality = 82)
@@ -413,55 +411,30 @@ class RegisterViewModel @JvmOverloads constructor(
                     MultipartBody.Part.createFormData("ktp", "ktp_${custId}.jpg", reqFile)
                 }
 
-                val ktpDataDto = RegisterStep1KtpRequestDto(
-                    nik = s.nik.trim(),
-                    namaLengkap = s.namaLengkap.trim(),
-                    alamatKtp = AlamatCustomerDto(
-                        alamatLengkap = s.alamatKtp.alamatLengkap.trim(),
-                        rt = s.alamatKtp.rt.trim(),
-                        rw = s.alamatKtp.rw.trim(),
-                        kelurahan = s.alamatKtp.kelurahan.trim(),
-                        kecamatan = s.alamatKtp.kecamatan.trim(),
-                        kotaKabupaten = s.alamatKtp.kotaKabupaten.trim(),
-                        provinsi = s.alamatKtp.provinsi.trim(),
-                        kodePos = s.alamatKtp.kodePos.trim()
-                    )
-                )
-                val jsonStr = gson.toJson(ktpDataDto)
-                val dataPart = jsonStr.toRequestBody("application/json".toMediaTypeOrNull())
-
-                val ktpUploadRes = authRepository.registerStep1Ktp(custId, ktpPart, dataPart)
-                if (ktpUploadRes is ApiResult.Error) {
-                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = ktpUploadRes.message)
-                    return@launch
-                }
-
-                // 2. Upload Berkas Foto Selfie (Backend mentrigger ScoringService otomatis di background)
+                // 2. Prepare Berkas Foto Selfie
                 val selfieBytes: ByteArray? = when {
                     s.selfieUri != null -> com.example.saku.app.core.util.ImageCompressorHelper.compressImageUri(context, s.selfieUri, maxDimension = 1440, quality = 80)
                     s.selfieBitmap != null -> com.example.saku.app.core.util.ImageCompressorHelper.compressBitmap(s.selfieBitmap, maxDimension = 1440, quality = 80)
                     else -> null
                 }
 
-                if (selfieBytes == null) {
-                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = "Gagal memproses file foto selfie")
+                val selfiePart: MultipartBody.Part? = selfieBytes?.let {
+                    val selfieReqFile = it.toRequestBody("image/jpeg".toMediaTypeOrNull())
+                    MultipartBody.Part.createFormData("selfie", "selfie_${custId}.jpg", selfieReqFile)
+                }
+
+                // 3. Upload Dokumen KYC (KTP & Selfie) via Register Step 4 Endpoint
+                val uploadRes = authRepository.registerStep4(custId, ktpPart, selfiePart)
+                if (uploadRes is ApiResult.Error) {
+                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = uploadRes.message)
                     return@launch
                 }
 
-                val selfieReqFile = selfieBytes.toRequestBody("image/jpeg".toMediaTypeOrNull())
-                val selfiePart = MultipartBody.Part.createFormData("selfie", "selfie_${custId}.jpg", selfieReqFile)
-
-                val selfieUploadRes = authRepository.registerStep3Liveness(custId, selfiePart)
-                if (selfieUploadRes is ApiResult.Error) {
-                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = selfieUploadRes.message)
-                    return@launch
-                }
-
-                // Sukses unggah dokumen KYC, lanjut ke Step 5 (Syarat & Ketentuan)
+                // Sukses unggah dokumen KYC, lanjut ke Step 5 (Buat Kata Sandi)
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     currentStep = 5,
-                    successMessage = "Dokumen KYC berhasil diunggah! Lanjut ke Syarat & Ketentuan."
+                    successMessage = "Dokumen KYC berhasil diunggah! Lanjut membuat kata sandi akun Anda."
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = "Gagal mengunggah dokumen. Periksa koneksi backend Anda.")
@@ -469,69 +442,78 @@ class RegisterViewModel @JvmOverloads constructor(
         }
     }
 
-    // Step 5: Syarat & Ketentuan
-    fun onTncAgreedToggle(agreed: Boolean) { _uiState.value = _uiState.value.copy(isTncAgreed = agreed, errorMessage = null) }
+    // Step 5: Buat Kredensial (Kata Sandi)
+    fun onPasswordChange(v: String) { _uiState.value = _uiState.value.copy(password = v, errorMessage = null) }
+    fun onConfirmPasswordChange(v: String) { _uiState.value = _uiState.value.copy(confirmPassword = v, errorMessage = null) }
 
-    fun submitStep5Tnc() {
+    fun submitStep5Credentials() {
         val s = _uiState.value
-        val custId = s.customerId
-        if (custId.isNullOrBlank()) {
-            _uiState.value = s.copy(errorMessage = "ID Customer tidak ditemukan")
+        if (s.password.length < 8) {
+            _uiState.value = s.copy(errorMessage = "Kata sandi minimal 8 karakter")
             return
         }
+        if (s.password != s.confirmPassword) {
+            _uiState.value = s.copy(errorMessage = "Konfirmasi kata sandi tidak sesuai")
+            return
+        }
+        _uiState.value = s.copy(
+            currentStep = 6,
+            errorMessage = null,
+            successMessage = "Kata sandi tersimpan. Langkah terakhir: pelajari dan setujui Syarat & Ketentuan."
+        )
+    }
+
+    // Step 6: Syarat & Ketentuan (Langkah Terakhir Pendaftaran)
+    fun onTncAgreedToggle(agreed: Boolean) { _uiState.value = _uiState.value.copy(isTncAgreed = agreed, errorMessage = null) }
+
+    fun openConfirmationModal() {
+        val s = _uiState.value
         if (!s.isTncAgreed) {
             _uiState.value = s.copy(errorMessage = "Anda harus menyetujui Syarat & Ketentuan SAKU untuk melanjutkan")
             return
         }
-
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null, successMessage = null)
-            when (val tncRes = authRepository.registerStep4Tnc(custId)) {
-                is ApiResult.Success -> {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        currentStep = 6,
-                        successMessage = "Ketentuan disetujui. Langkah terakhir: buat kata sandi akun Anda."
-                    )
-                }
-                is ApiResult.Error -> {
-                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = tncRes.message)
-                }
-                else -> {
-                    _uiState.value = _uiState.value.copy(isLoading = false)
-                }
-            }
-        }
+        _uiState.value = s.copy(showConfirmationModal = true, errorMessage = null)
     }
 
-    // Step 6: Buat Kredensial (Kata Sandi)
-    fun onPasswordChange(v: String) { _uiState.value = _uiState.value.copy(password = v, errorMessage = null) }
-    fun onConfirmPasswordChange(v: String) { _uiState.value = _uiState.value.copy(confirmPassword = v, errorMessage = null) }
+    fun dismissConfirmationModal() {
+        _uiState.value = _uiState.value.copy(showConfirmationModal = false)
+    }
 
-    fun submitStep6Complete() {
+    fun submitStep6FinalRegistration() {
         val s = _uiState.value
         val custId = s.customerId
         if (custId.isNullOrBlank()) {
-            _uiState.value = s.copy(errorMessage = "ID Customer tidak ditemukan")
+            _uiState.value = s.copy(errorMessage = "ID Customer tidak ditemukan", showConfirmationModal = false)
             return
         }
-        if (s.password.length < 8) {
-            _uiState.value = s.copy(errorMessage = "Password minimal 8 karakter")
+        if (!s.isTncAgreed) {
+            _uiState.value = s.copy(errorMessage = "Anda harus menyetujui Syarat & Ketentuan SAKU untuk melanjutkan", showConfirmationModal = false)
             return
         }
-        if (s.password != s.confirmPassword) {
-            _uiState.value = s.copy(errorMessage = "Konfirmasi password tidak sesuai")
+        if (s.password.length < 8 || s.password != s.confirmPassword) {
+            _uiState.value = s.copy(errorMessage = "Kata sandi tidak valid. Silakan kembali ke langkah sebelumnya.", showConfirmationModal = false)
             return
         }
 
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null, successMessage = null)
+            _uiState.value = _uiState.value.copy(isLoading = true, showConfirmationModal = false, errorMessage = null, successMessage = null)
+            
+            // 1. Submit T&C acceptance
+            try {
+                authRepository.registerStep4Tnc(custId)
+            } catch (e: Exception) {
+                // Log and continue
+            }
+
+            // 2. Complete registration with password
             val completeReq = RegisterStep5CompleteRequest(
                 password = s.password,
                 confirmPassword = s.confirmPassword
             )
             when (val completeRes = authRepository.registerStep5Complete(custId, completeReq)) {
                 is ApiResult.Success -> {
+                    // Otomatis login agar session token tersimpan untuk halaman Status Verifikasi
+                    authRepository.login(s.email.trim(), s.password)
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         isRegistrationComplete = true,

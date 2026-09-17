@@ -1,5 +1,7 @@
 package com.example.saku.app.core.data.repository
 
+import com.example.saku.app.core.database.dao.LoanDao
+import com.example.saku.app.core.database.entity.LoanApplicationEntity
 import com.example.saku.app.core.network.ApiClient
 import com.example.saku.app.core.network.ApiResult
 import com.example.saku.app.core.network.api.CustomerApiService
@@ -8,21 +10,42 @@ import com.example.saku.app.core.network.dto.LoanApplicationItemDto
 import com.example.saku.app.core.network.dto.PengajuanPinjamanRequestDto
 import com.example.saku.app.core.network.dto.PengajuanStepResponseDto
 import okhttp3.MultipartBody
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class LoanRepositoryImpl(
-    private val customerApiService: CustomerApiService
+@Singleton
+class LoanRepositoryImpl @Inject constructor(
+    private val customerApiService: CustomerApiService,
+    private val loanDao: LoanDao
 ) : LoanRepository {
 
     override suspend fun getMyLoans(): ApiResult<List<LoanApplicationItemDto>> {
         return try {
             val response = customerApiService.getMyLoans()
             if (response.isSuccessful && response.body()?.data != null) {
-                ApiResult.Success(response.body()!!.data ?: emptyList(), response.body()?.message)
+                val list = response.body()!!.data ?: emptyList()
+                // Cache into Room Database
+                if (list.isNotEmpty()) {
+                    loanDao.insertLoans(list.map { LoanApplicationEntity.fromDto(it) })
+                }
+                ApiResult.Success(list, response.body()?.message)
             } else {
-                ApiResult.Error(ApiClient.parseError(response), response.code())
+                // Offline fallback from Room
+                val cached = loanDao.getAllLoans()
+                if (cached.isNotEmpty()) {
+                    ApiResult.Success(cached.map { it.toDto() }, "Menampilkan data pinjaman tersimpan")
+                } else {
+                    ApiResult.Error(ApiClient.parseError(response), response.code())
+                }
             }
         } catch (e: Exception) {
-            ApiResult.Error(e.localizedMessage ?: "Gagal memuat daftar pinjaman")
+            // Offline fallback from Room
+            val cached = loanDao.getAllLoans()
+            if (cached.isNotEmpty()) {
+                ApiResult.Success(cached.map { it.toDto() }, "Offline mode - data pinjaman lokal")
+            } else {
+                ApiResult.Error(e.localizedMessage ?: "Gagal memuat daftar pinjaman")
+            }
         }
     }
 
@@ -30,12 +53,24 @@ class LoanRepositoryImpl(
         return try {
             val response = customerApiService.getLoanById(id)
             if (response.isSuccessful && response.body()?.data != null) {
-                ApiResult.Success(response.body()!!.data!!, response.body()?.message)
+                val loan = response.body()!!.data!!
+                loanDao.insertLoan(LoanApplicationEntity.fromDto(loan))
+                ApiResult.Success(loan, response.body()?.message)
             } else {
-                ApiResult.Error(ApiClient.parseError(response), response.code())
+                val cached = loanDao.getLoanById(id)
+                if (cached != null) {
+                    ApiResult.Success(cached.toDto(), "Menampilkan detail pinjaman tersimpan")
+                } else {
+                    ApiResult.Error(ApiClient.parseError(response), response.code())
+                }
             }
         } catch (e: Exception) {
-            ApiResult.Error(e.localizedMessage ?: "Gagal memuat detail pinjaman")
+            val cached = loanDao.getLoanById(id)
+            if (cached != null) {
+                ApiResult.Success(cached.toDto(), "Offline mode - data detail lokal")
+            } else {
+                ApiResult.Error(e.localizedMessage ?: "Gagal memuat detail pinjaman")
+            }
         }
     }
 
@@ -43,7 +78,11 @@ class LoanRepositoryImpl(
         return try {
             val response = customerApiService.submitLoanStep1(request)
             if (response.isSuccessful && response.body()?.data != null) {
-                ApiResult.Success(response.body()!!.data!!, response.body()?.message)
+                val stepData = response.body()!!.data!!
+                stepData.data?.let { loanItem ->
+                    loanDao.insertLoan(LoanApplicationEntity.fromDto(loanItem))
+                }
+                ApiResult.Success(stepData, response.body()?.message)
             } else {
                 ApiResult.Error(ApiClient.parseError(response), response.code())
             }
@@ -61,7 +100,11 @@ class LoanRepositoryImpl(
         return try {
             val response = customerApiService.submitLoanStep2(pengajuanId, slipGaji, rekeningKoran, npwp)
             if (response.isSuccessful && response.body()?.data != null) {
-                ApiResult.Success(response.body()!!.data!!, response.body()?.message)
+                val stepData = response.body()!!.data!!
+                stepData.data?.let { loanItem ->
+                    loanDao.insertLoan(LoanApplicationEntity.fromDto(loanItem))
+                }
+                ApiResult.Success(stepData, response.body()?.message)
             } else {
                 ApiResult.Error(ApiClient.parseError(response), response.code())
             }

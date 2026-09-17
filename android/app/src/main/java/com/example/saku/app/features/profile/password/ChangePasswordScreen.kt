@@ -40,7 +40,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.CircleCheck
 import com.composables.icons.lucide.KeyRound
@@ -50,6 +49,8 @@ import com.composables.icons.lucide.ShieldCheck
 import com.example.saku.app.core.ui.components.Button
 import com.example.saku.app.core.ui.components.ButtonSize
 import com.example.saku.app.core.ui.components.ButtonVariant
+import com.example.saku.app.core.ui.components.ConfirmationDialog
+import com.example.saku.app.core.ui.components.DialogType
 import com.example.saku.app.core.ui.components.PasswordField
 import com.example.saku.app.features.home.HomeViewModel
 import com.example.saku.app.ui.theme.Background
@@ -62,13 +63,14 @@ import com.example.saku.app.ui.theme.Success
 import com.example.saku.app.ui.theme.Surface
 import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary
+import org.koin.androidx.compose.koinViewModel
 import com.example.saku.app.ui.theme.TextSecondary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChangePasswordScreen(
     onNavigateBack: () -> Unit,
-    viewModel: HomeViewModel = viewModel()
+    viewModel: HomeViewModel = koinViewModel()
 ) {
     val context = LocalContext.current
     val isUpdating by viewModel.isProfileUpdating.collectAsState()
@@ -77,6 +79,7 @@ fun ChangePasswordScreen(
     var newPassword by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var showConfirmDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -244,18 +247,7 @@ fun ChangePasswordScreen(
                                     return@Button
                                 }
 
-                                viewModel.changePassword(
-                                    oldPass = oldPassword,
-                                    newPass = newPassword,
-                                    confirmPass = confirmPassword,
-                                    onSuccess = { msg ->
-                                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                                        onNavigateBack()
-                                    },
-                                    onError = { err ->
-                                        errorMessage = err
-                                    }
-                                )
+                                showConfirmDialog = true
                             },
                             isLoading = isUpdating,
                             variant = ButtonVariant.Primary,
@@ -267,6 +259,40 @@ fun ChangePasswordScreen(
             }
         }
     }
+
+    // Confirmation Dialog
+    ConfirmationDialog(
+        visible = showConfirmDialog,
+        title = "Ganti Kata Sandi?",
+        message = "Pastikan Anda mengingat kata sandi baru ini saat masuk ke akun SAKU Anda berikutnya.",
+        type = DialogType.INFO,
+        icon = Lucide.KeyRound,
+        confirmButtonText = "Ya, Ganti",
+        dismissButtonText = "Batal",
+        confirmButtonVariant = ButtonVariant.Primary,
+        isLoading = isUpdating,
+        onConfirm = {
+            viewModel.changePassword(
+                oldPass = oldPassword,
+                newPass = newPassword,
+                confirmPass = confirmPassword,
+                onSuccess = { msg ->
+                    showConfirmDialog = false
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                    onNavigateBack()
+                },
+                onError = { err ->
+                    showConfirmDialog = false
+                    errorMessage = err
+                }
+            )
+        },
+        onDismiss = {
+            if (!isUpdating) {
+                showConfirmDialog = false
+            }
+        }
+    )
 }
 
 @Composable

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -51,11 +52,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.Building
 import com.composables.icons.lucide.Calendar
 import com.composables.icons.lucide.Check
+import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.CircleAlert
 import com.composables.icons.lucide.CircleCheck
 import com.composables.icons.lucide.Clock
@@ -67,6 +68,7 @@ import com.composables.icons.lucide.Landmark
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.ShieldAlert
 import com.composables.icons.lucide.ShieldCheck
+import com.composables.icons.lucide.TriangleAlert
 import com.composables.icons.lucide.UserCheck
 import com.composables.icons.lucide.Wallet
 import com.example.saku.app.core.network.dto.AngsuranItemDto
@@ -91,19 +93,28 @@ import com.example.saku.app.ui.theme.Primary0
 import com.example.saku.app.ui.theme.Primary20
 import com.example.saku.app.ui.theme.Primary70
 import com.example.saku.app.ui.theme.Primary80
+import com.example.saku.app.ui.theme.Success
+import com.example.saku.app.ui.theme.Success0
 import com.example.saku.app.ui.theme.Surface
 import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary
 import com.example.saku.app.ui.theme.TextSecondary
+import com.example.saku.app.ui.theme.Warning
+import com.example.saku.app.ui.theme.Warning0
+import com.example.saku.app.ui.theme.Warning20
+import com.example.saku.app.ui.theme.Warning70
+import com.example.saku.app.ui.theme.Warning80
 import java.text.NumberFormat
 import java.util.Locale
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoanDetailScreen(
     loanId: String,
     onNavigateBack: () -> Unit,
-    viewModel: LoanDetailViewModel = viewModel()
+    onNavigateToRevision: (String) -> Unit = {},
+    viewModel: LoanDetailViewModel = koinViewModel()
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
@@ -131,14 +142,12 @@ fun LoanDetailScreen(
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .shadow(12.dp),
-                    color = Surface
+                        .navigationBarsPadding(),
+                    shadowElevation = 8.dp,
+                    color = Surface,
+                    border = BorderStroke(1.dp, Border)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 14.dp)
-                    ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
                         Button(
                             text = "Bayar Angsuran Sekarang",
                             onClick = { viewModel.openPaymentSheet() },
@@ -170,7 +179,10 @@ fun LoanDetailScreen(
                 ) {
                     // 1. Status Tracking Timeline Card
                     item {
-                        LoanTrackingTimelineCard(status = rawStatus)
+                        LoanTrackingTimelineCard(
+                            status = rawStatus,
+                            onRevisionClick = { loan.id?.let { onNavigateToRevision(it) } }
+                        )
                     }
 
                     // 2. Review Note Alert (if any)
@@ -179,36 +191,40 @@ fun LoanDetailScreen(
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(containerColor = Primary0),
-                                border = BorderStroke(1.dp, Primary20)
+                                colors = CardDefaults.cardColors(containerColor = Warning0),
+                                border = BorderStroke(1.dp, Warning20)
                             ) {
-                                Row(
+                                Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(14.dp),
-                                    verticalAlignment = Alignment.Top
+                                        .padding(14.dp)
                                 ) {
-                                    Icon(
-                                        imageVector = Lucide.Info,
-                                        contentDescription = null,
-                                        tint = Primary,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(10.dp))
-                                    Column {
-                                        Text(
-                                            text = "Catatan Review Verifikator",
-                                            fontSize = 12.5.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Primary80
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.Top
+                                    ) {
+                                        Icon(
+                                            imageVector = Lucide.Info,
+                                            contentDescription = null,
+                                            tint = Warning,
+                                            modifier = Modifier.size(20.dp)
                                         )
-                                        Spacer(modifier = Modifier.height(2.dp))
-                                        Text(
-                                            text = note,
-                                            fontSize = 12.sp,
-                                            color = Primary70,
-                                            lineHeight = 16.sp
-                                        )
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        Column {
+                                            Text(
+                                                text = "Catatan Review Verifikator",
+                                                fontSize = 12.5.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Warning80
+                                            )
+                                            Spacer(modifier = Modifier.height(2.dp))
+                                            Text(
+                                                text = note,
+                                                fontSize = 12.sp,
+                                                color = Warning70,
+                                                lineHeight = 16.sp
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -263,7 +279,7 @@ fun LoanDetailScreen(
                                 DetailRow(label = "Suku Bunga", value = "$displayBunga% flat / bulan")
                                 DetailRow(label = "Biaya Administrasi", value = "Rp ${currencyFormatter.format(loan.biayaAdmin ?: 0.0)}")
                                 DetailRow(label = "Tujuan Pinjaman", value = loan.tujuanPinjaman ?: "-")
-                                DetailRow(label = "Cabang Pengelola", value = loan.namaCabang ?: "BCA Finance Pusat")
+                                DetailRow(label = "Cabang Pengelola", value = loan.namaCabang ?: "PT SAKU Pusat")
 
                                 HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Border)
 
@@ -434,9 +450,13 @@ private fun LoanDetailTopBar(
 
 // Status Timeline Card
 @Composable
-private fun LoanTrackingTimelineCard(status: String) {
+private fun LoanTrackingTimelineCard(
+    status: String,
+    onRevisionClick: (() -> Unit)? = null
+) {
     val s = status.uppercase()
     val isRejected = s in listOf("DITOLAK", "REJECTED", "PENGAJUAN_DITOLAK", "DITOLAK_MARKETING", "DITOLAK_BM", "REJECT", "BATAL", "CANCELLED")
+    val isRevision = !isRejected && s in listOf("PERLU_REVISI", "REVISI")
 
     // Step 1: Pengajuan Terkirim (Centang jika form berhasil diajukan dan bukan ditolak awal)
     val step1Passed = !isRejected && s !in listOf("DRAFT")
@@ -524,9 +544,15 @@ private fun LoanTrackingTimelineCard(status: String) {
             TimelineStepItem(
                 step = 2,
                 title = "Verifikasi Marketing & Dokumen",
-                desc = if (step2Passed) "Berkas dokumen telah diverifikasi & disetujui tim marketing" else "Pemeriksaan kelengkapan berkas oleh tim operasional",
+                desc = when {
+                    step2Passed -> "Berkas dokumen telah diverifikasi & disetujui tim marketing"
+                    isRevision -> "Dokumen perlu perbaikan. Ketuk tombol di bawah untuk unggah ulang."
+                    else -> "Pemeriksaan kelengkapan berkas oleh tim operasional"
+                },
                 isPassed = step2Passed,
                 isCurrent = step2Current,
+                isRevision = isRevision,
+                onRevisionClick = onRevisionClick,
                 isLast = false
             )
 
@@ -542,7 +568,7 @@ private fun LoanTrackingTimelineCard(status: String) {
             TimelineStepItem(
                 step = 4,
                 title = "Pencairan Dana ke Rekening",
-                desc = if (step4Passed) "Dana pinjaman telah berhasil ditransfer ke rekening bank Anda" else "Dana pinjaman ditransfer ke rekening BCA Anda",
+                desc = if (step4Passed) "Dana pinjaman telah berhasil ditransfer ke rekening bank Anda" else "Dana pinjaman ditransfer ke rekening bank terdaftar Anda",
                 isPassed = step4Passed,
                 isCurrent = step4Current,
                 isLast = true
@@ -558,6 +584,8 @@ private fun TimelineStepItem(
     desc: String,
     isPassed: Boolean,
     isCurrent: Boolean,
+    isRevision: Boolean = false,
+    onRevisionClick: (() -> Unit)? = null,
     isLast: Boolean
 ) {
     Row(modifier = Modifier.fillMaxWidth()) {
@@ -569,12 +597,17 @@ private fun TimelineStepItem(
                     .background(
                         when {
                             isPassed -> Primary
+                            isRevision -> Warning0
                             isCurrent -> Primary.copy(alpha = 0.12f)
                             else -> Neutral20
                         }
                     )
                     .then(
-                        if (isCurrent && !isPassed) Modifier.border(1.5.dp, Primary, CircleShape) else Modifier
+                        when {
+                            isRevision -> Modifier.border(1.5.dp, Warning, CircleShape)
+                            isCurrent && !isPassed -> Modifier.border(1.5.dp, Primary, CircleShape)
+                            else -> Modifier
+                        }
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -584,6 +617,13 @@ private fun TimelineStepItem(
                         contentDescription = null,
                         tint = Color.White,
                         modifier = Modifier.size(14.dp)
+                    )
+                } else if (isRevision) {
+                    Icon(
+                        imageVector = Lucide.TriangleAlert,
+                        contentDescription = null,
+                        tint = Warning,
+                        modifier = Modifier.size(13.dp)
                     )
                 } else {
                     Text(
@@ -599,7 +639,7 @@ private fun TimelineStepItem(
                 Box(
                     modifier = Modifier
                         .width(2.dp)
-                        .height(34.dp)
+                        .height(if (isRevision && onRevisionClick != null) 58.dp else 34.dp)
                         .background(if (isPassed) Primary else Neutral20)
                 )
             }
@@ -608,19 +648,58 @@ private fun TimelineStepItem(
         Spacer(modifier = Modifier.width(12.dp))
 
         Column(modifier = Modifier.padding(bottom = if (isLast) 0.dp else 12.dp)) {
-            Text(
-                text = title,
-                fontSize = 13.sp,
-                fontWeight = if (isCurrent || isPassed) FontWeight.Bold else FontWeight.Medium,
-                color = if (isCurrent || isPassed) TextPrimary else TextMuted
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = title,
+                    fontSize = 13.sp,
+                    fontWeight = if (isCurrent || isPassed) FontWeight.Bold else FontWeight.Medium,
+                    color = if (isCurrent || isPassed) TextPrimary else TextMuted
+                )
+            }
             Spacer(modifier = Modifier.height(1.dp))
             Text(
                 text = desc,
                 fontSize = 11.5.sp,
-                color = if (isCurrent) TextSecondary else TextMuted,
+                color = if (isRevision) Warning80 else (if (isCurrent) TextSecondary else TextMuted),
                 lineHeight = 15.sp
             )
+
+            if (isRevision && onRevisionClick != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Warning0)
+                        .border(1.dp, Warning20, RoundedCornerShape(8.dp))
+                        .clickable { onRevisionClick() }
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Lucide.FileText,
+                        contentDescription = null,
+                        tint = Warning,
+                        modifier = Modifier.size(13.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Unggah Revisi Dokumen",
+                        fontSize = 11.5.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Warning80
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = Lucide.ChevronRight,
+                        contentDescription = null,
+                        tint = Warning,
+                        modifier = Modifier.size(13.dp)
+                    )
+                }
+            }
         }
     }
 }
@@ -632,7 +711,7 @@ private fun AngsuranItemRow(
     currencyFormatter: NumberFormat,
     onPayClick: () -> Unit
 ) {
-    val isLunas = angsuran.statusBayar == "LUNAS"
+    val isLunas = (angsuran.statusBayar ?: "").uppercase() in listOf("LUNAS", "PAID", "SUDAH_BAYAR")
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -651,12 +730,12 @@ private fun AngsuranItemRow(
                 Text(
                     text = "Cicilan Ke-${angsuran.cicilanKe ?: 1}",
                     fontSize = 13.5.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = TextPrimary
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = "Jatuh Tempo: ${angsuran.jatuhTempo ?: "-"}",
+                    text = "Jatuh Tempo: ${formatIndoDate(angsuran.jatuhTempo)}",
                     fontSize = 11.5.sp,
                     color = TextMuted
                 )
@@ -665,7 +744,7 @@ private fun AngsuranItemRow(
                     text = "Rp ${currencyFormatter.format(angsuran.jumlahAngsuran ?: 0.0)}",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = if (isLunas) TextSecondary else Primary
+                    color = if (isLunas) TextSecondary else TextPrimary
                 )
             }
 
@@ -711,10 +790,30 @@ private fun DetailRow(
             text = value,
             fontSize = if (isHighlight) 14.sp else 12.5.sp,
             fontWeight = if (isHighlight) FontWeight.ExtraBold else FontWeight.SemiBold,
-            color = if (isHighlight) Primary else TextPrimary,
+            color = TextPrimary,
             textAlign = TextAlign.End,
             modifier = Modifier.weight(0.62f),
             lineHeight = 16.5.sp
         )
+    }
+}
+
+private fun formatIndoDate(dateStr: String?): String {
+    if (dateStr.isNullOrBlank()) return "-"
+    return try {
+        val clean = dateStr.substringBefore("T")
+        val parts = clean.split("-")
+        if (parts.size == 3) {
+            val year = parts[0]
+            val monthNum = parts[1].toIntOrNull() ?: 1
+            val day = parts[2].toIntOrNull() ?: 1
+            val monthNames = listOf("Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember")
+            val monthName = monthNames.getOrElse(monthNum - 1) { "Bulan" }
+            "$day $monthName $year"
+        } else {
+            dateStr
+        }
+    } catch (e: Exception) {
+        dateStr
     }
 }

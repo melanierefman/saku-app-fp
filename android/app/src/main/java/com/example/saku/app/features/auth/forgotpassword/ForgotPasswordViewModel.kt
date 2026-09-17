@@ -1,12 +1,8 @@
 package com.example.saku.app.features.auth.forgotpassword
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.saku.app.core.data.TokenManager
 import com.example.saku.app.core.data.repository.AuthRepository
-import com.example.saku.app.core.data.repository.AuthRepositoryImpl
-import com.example.saku.app.core.network.ApiClient
 import com.example.saku.app.core.network.ApiResult
 import com.example.saku.app.core.network.dto.ResetPasswordRequest
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,13 +17,9 @@ enum class ForgotPasswordStep {
     SUCCESS
 }
 
-class ForgotPasswordViewModel @JvmOverloads constructor(
-    application: Application,
-    private val authRepository: AuthRepository = AuthRepositoryImpl(
-        ApiClient.getAuthApiService(application),
-        TokenManager.getInstance(application)
-    )
-) : AndroidViewModel(application) {
+class ForgotPasswordViewModel(
+    private val authRepository: AuthRepository
+) : ViewModel() {
 
     var currentStep = MutableStateFlow(ForgotPasswordStep.REQUEST_OTP)
         private set

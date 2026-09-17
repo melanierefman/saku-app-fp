@@ -7,7 +7,9 @@ import android.graphics.Matrix
 import android.media.ExifInterface
 import android.net.Uri
 import android.util.Log
+import androidx.core.content.FileProvider
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.InputStream
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -15,6 +17,25 @@ import kotlin.math.roundToInt
 object ImageCompressorHelper {
 
     private const val TAG = "ImageCompressorHelper"
+
+    /**
+     * Membuat Uri sementara untuk kamera bawaan HP menggunakan FileProvider.
+     */
+    fun createTempPictureUri(context: Context, prefix: String = "camera_capture_"): Uri {
+        val tempFile = File.createTempFile(
+            "${prefix}${System.currentTimeMillis()}_",
+            ".jpg",
+            context.cacheDir
+        ).apply {
+            createNewFile()
+            deleteOnExit()
+        }
+        return FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            tempFile
+        )
+    }
 
     /**
      * Mengompresi dan me-resize gambar dari Uri menjadi ByteArray JPEG berukuran ringan (~300KB - 800KB).

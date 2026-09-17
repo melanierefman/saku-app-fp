@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.saku.app.core.data.TokenManager
 import com.example.saku.app.core.data.repository.CustomerRepository
@@ -83,16 +84,10 @@ data class LoanApplyUiState(
         get() = if (tenorBulan > 0) jumlahPinjaman / tenorBulan else 0.0
 }
 
-class LoanApplyViewModel @JvmOverloads constructor(
-    application: Application,
-    private val customerRepository: CustomerRepository = CustomerRepositoryImpl(
-        ApiClient.getCustomerApiService(application),
-        TokenManager.getInstance(application)
-    ),
-    private val loanRepository: LoanRepository = LoanRepositoryImpl(
-        ApiClient.getCustomerApiService(application)
-    )
-) : AndroidViewModel(application) {
+class LoanApplyViewModel(
+    private val customerRepository: CustomerRepository,
+    private val loanRepository: LoanRepository
+) : ViewModel() {
 
     private val gson = Gson()
 
@@ -187,7 +182,7 @@ class LoanApplyViewModel @JvmOverloads constructor(
         val pokokBln = if (tenor > 0) amount / tenor else 0.0
         val cicilanBln = (pokokBln + bungaBln).roundToLong()
         val admin = _uiState.value.biayaAdmin
-        val totalBayar = cicilanBln * tenor + admin.roundToLong()
+        val totalBayar = (amount + (bungaBln * tenor) + admin).roundToLong()
 
         _uiState.value = _uiState.value.copy(
             bungaBulanan = bungaBln,

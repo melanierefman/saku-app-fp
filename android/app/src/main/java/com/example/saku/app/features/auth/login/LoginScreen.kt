@@ -47,7 +47,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.androidx.compose.koinViewModel
 import com.composables.icons.lucide.CircleAlert
 import com.composables.icons.lucide.Lucide
 import com.example.saku.app.R
@@ -72,8 +72,9 @@ fun LoginScreen(
     onNavigateToHome: () -> Unit,
     onNavigateToRegister: () -> Unit,
     onNavigateToForgotPassword: () -> Unit,
+    onNavigateToKycPending: () -> Unit,
     onNavigateToSandbox: (() -> Unit)? = null,
-    viewModel: LoginViewModel = viewModel()
+    viewModel: LoginViewModel = koinViewModel()
 ) {
     val username by viewModel.username.collectAsState()
     val password by viewModel.password.collectAsState()
@@ -84,6 +85,14 @@ fun LoginScreen(
     val focusManager = LocalFocusManager.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollState = rememberScrollState()
+
+    val handleLoginSuccess: (Boolean) -> Unit = { isVerified ->
+        if (isVerified) {
+            onNavigateToHome()
+        } else {
+            onNavigateToKycPending()
+        }
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -125,7 +134,7 @@ fun LoginScreen(
                     isLoading = loginState is ApiResult.Loading,
                     onClick = {
                         focusManager.clearFocus()
-                        viewModel.login(onSuccess = onNavigateToHome)
+                        viewModel.login(onSuccess = handleLoginSuccess)
                     },
                     variant = ButtonVariant.Primary,
                     size = ButtonSize.LG,
@@ -210,12 +219,14 @@ fun LoginScreen(
             TextField(
                 value = username,
                 onValueChange = viewModel::onUsernameChange,
-                label = "Email / Username",
-                placeholder = "Masukkan email atau username",
+                label = "Email",
+                placeholder = "Masukkan email",
                 isError = usernameError != null,
                 errorMessage = usernameError,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
+
+
                     imeAction = ImeAction.Next
                 ),
                 keyboardActions = KeyboardActions(
@@ -261,7 +272,7 @@ fun LoginScreen(
                 imeAction = ImeAction.Done,
                 onImeAction = {
                     focusManager.clearFocus()
-                    viewModel.login(onSuccess = onNavigateToHome)
+                    viewModel.login(onSuccess = handleLoginSuccess)
                 }
             )
 

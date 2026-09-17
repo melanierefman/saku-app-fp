@@ -3,6 +3,8 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.ksp)
 }
 
 val keystoreProperties = Properties().apply {
@@ -90,6 +92,10 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.navigation.compose)
 
+    // Firebase (Push Notifications)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
+
     // DataStore (Token & Session Storage)
     implementation(libs.androidx.datastore.preferences)
 
@@ -98,6 +104,18 @@ dependencies {
     implementation(libs.retrofit.converter.gson)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging.interceptor)
+
+    // Room Database
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
+    // Dependency Injection (Koin)
+    implementation(libs.koin.android)
+    implementation(libs.koin.androidx.compose)
+
+    // Security & Root Detection
+    implementation(libs.rootbeer.lib)
 
     // Image Loading
     implementation(libs.coil.compose)
@@ -123,5 +141,4 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.okhttp.mockwebserver)
-//    androidTestImplementation(libs.androidx.room.testing)
 }

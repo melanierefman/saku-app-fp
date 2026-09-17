@@ -31,6 +31,7 @@ interface AuthRepository {
     suspend fun registerStep1KtpJson(customerId: String, request: RegisterStep1KtpRequestDto): ApiResult<RegisterStepResponse>
     suspend fun registerStep2Personal(customerId: String, request: RegisterStep2PersonalRequestDto): ApiResult<RegisterStepResponse>
     suspend fun registerStep3Liveness(customerId: String, selfie: MultipartBody.Part): ApiResult<RegisterStepResponse>
+    suspend fun registerStep4(customerId: String, ktp: MultipartBody.Part?, selfie: MultipartBody.Part?): ApiResult<RegisterStepResponse>
     suspend fun registerStep4Tnc(customerId: String): ApiResult<RegisterStepResponse>
     suspend fun registerStep5Complete(customerId: String, request: RegisterStep5CompleteRequest): ApiResult<RegisterStepResponse>
 }

@@ -57,6 +57,18 @@ interface CustomerApiService {
         @Body request: ChangePasswordRequestDto
     ): Response<ApiResponse<String>>
 
+    @PUT("customer/profile/fcm-token")
+    suspend fun updateFcmToken(
+        @Body request: com.example.saku.app.core.network.dto.FcmTokenRequestDto
+    ): Response<ApiResponse<String>>
+
+    @Multipart
+    @POST("customer/profile/kyc-documents")
+    suspend fun updateKycDocuments(
+        @Part ktp: MultipartBody.Part? = null,
+        @Part selfie: MultipartBody.Part? = null
+    ): Response<ApiResponse<CustomerProfileDto>>
+
 
     // Pengajuan Pinjaman
     @GET("customer/pengajuan-pinjaman/my")

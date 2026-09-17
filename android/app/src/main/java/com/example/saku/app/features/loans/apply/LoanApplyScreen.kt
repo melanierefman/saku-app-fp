@@ -16,8 +16,10 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -32,6 +34,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -39,6 +44,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -64,11 +72,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -83,7 +95,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 import coil.compose.AsyncImage
 import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.Camera
@@ -98,6 +112,10 @@ import com.composables.icons.lucide.Landmark
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.RotateCw
 import com.composables.icons.lucide.Trash2
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.painterResource
+import com.example.saku.app.R
 import com.example.saku.app.core.ui.components.Badge
 import com.example.saku.app.core.ui.components.BadgeSize
 import com.example.saku.app.core.ui.components.BadgeVariant
@@ -105,16 +123,20 @@ import com.example.saku.app.core.ui.components.Button
 import com.example.saku.app.core.ui.components.ButtonSize
 import com.example.saku.app.core.ui.components.ButtonVariant
 import com.example.saku.app.core.ui.components.CameraCaptureMode
-import com.example.saku.app.core.ui.components.CameraFramingCaptureDialog
+import com.example.saku.app.core.ui.components.ConfirmationDialog
+import com.example.saku.app.core.ui.components.DialogType
 import com.example.saku.app.core.ui.components.TextField
+import com.example.saku.app.core.util.ImageCompressorHelper
 import com.example.saku.app.ui.theme.Background
 import com.example.saku.app.ui.theme.Border
 import com.example.saku.app.ui.theme.Error
 import com.example.saku.app.ui.theme.Error0
 import com.example.saku.app.ui.theme.Error20
 import com.example.saku.app.ui.theme.Error70
+import com.example.saku.app.ui.theme.Neutral0
 import com.example.saku.app.ui.theme.Neutral10
 import com.example.saku.app.ui.theme.Neutral20
+import com.example.saku.app.ui.theme.OverusedGrotesk
 import com.example.saku.app.ui.theme.Primary
 import com.example.saku.app.ui.theme.Primary0
 import com.example.saku.app.ui.theme.Primary20
@@ -126,6 +148,11 @@ import com.example.saku.app.ui.theme.Surface
 import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary
 import com.example.saku.app.ui.theme.TextSecondary
+import com.example.saku.app.ui.theme.Warning
+import com.example.saku.app.ui.theme.Warning0
+import com.example.saku.app.ui.theme.Warning20
+import com.example.saku.app.ui.theme.Warning70
+import com.example.saku.app.ui.theme.Warning80
 import java.text.NumberFormat
 
 import java.text.SimpleDateFormat
@@ -140,7 +167,7 @@ fun LoanApplyScreen(
     onNavigateBack: () -> Unit,
     onNavigateToHome: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
-    viewModel: LoanApplyViewModel = viewModel()
+    viewModel: LoanApplyViewModel = koinViewModel()
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
@@ -163,8 +190,39 @@ fun LoanApplyScreen(
         }
     }
 
-    // Camera Capture State for Step 2
-    var activeCameraDocType by remember { mutableStateOf<String?>(null) }
+    // Native Camera Launcher for Step 2
+    var pendingCameraUri by remember { mutableStateOf<Uri?>(null) }
+    var pendingCameraDocType by remember { mutableStateOf<String?>(null) }
+
+    val nativeCameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success: Boolean ->
+        if (success && pendingCameraUri != null) {
+            val uri = pendingCameraUri!!
+            when (pendingCameraDocType) {
+                "SLIP_GAJI" -> viewModel.setSlipGaji(uri, null)
+                "REK_KORAN" -> viewModel.setRekeningKoran(uri, null)
+                "NPWP" -> viewModel.setNpwp(uri, null)
+            }
+        }
+        pendingCameraUri = null
+        pendingCameraDocType = null
+    }
+
+    val launchNativeCamera = { docType: String ->
+        val prefix = when (docType) {
+            "SLIP_GAJI" -> "slip_gaji_"
+            "REK_KORAN" -> "rek_koran_"
+            else -> "npwp_"
+        }
+        val tempUri = ImageCompressorHelper.createTempPictureUri(context, prefix)
+        pendingCameraUri = tempUri
+        pendingCameraDocType = docType
+        nativeCameraLauncher.launch(tempUri)
+    }
+
+    // Modal Konfirmasi Pengajuan Pinjaman State for Step 3
+    var showSubmitConfirmDialog by remember { mutableStateOf(false) }
 
     // Gallery Picker Launchers for Step 2
     val slipGajiPickerLauncher = rememberLauncherForActivityResult(
@@ -217,7 +275,7 @@ fun LoanApplyScreen(
                     isPlafondSufficient = uiState.availablePlafond >= 500_000.0,
                     onNextStep1 = { viewModel.submitStep1() },
                     onNextStep2 = { viewModel.proceedToStep3Summary() },
-                    onSubmitFinal = { viewModel.submitFinalApplication(context) },
+                    onSubmitFinal = { showSubmitConfirmDialog = true },
                     onPrevious = { viewModel.goToPreviousStep() }
                 )
             }
@@ -245,13 +303,13 @@ fun LoanApplyScreen(
                     )
                     2 -> Step2UploadDokumenView(
                         uiState = uiState,
-                        onCaptureSlipGaji = { activeCameraDocType = "SLIP_GAJI" },
+                        onCaptureSlipGaji = { launchNativeCamera("SLIP_GAJI") },
                         onPickSlipGaji = { slipGajiPickerLauncher.launch("*/*") },
                         onRemoveSlipGaji = { viewModel.setSlipGaji(null, null) },
-                        onCaptureRekKoran = { activeCameraDocType = "REK_KORAN" },
+                        onCaptureRekKoran = { launchNativeCamera("REK_KORAN") },
                         onPickRekKoran = { rekKoranPickerLauncher.launch("*/*") },
                         onRemoveRekKoran = { viewModel.setRekeningKoran(null, null) },
-                        onCaptureNpwp = { activeCameraDocType = "NPWP" },
+                        onCaptureNpwp = { launchNativeCamera("NPWP") },
                         onPickNpwp = { npwpPickerLauncher.launch("*/*") },
                         onRemoveNpwp = { viewModel.setNpwp(null, null) }
                     )
@@ -317,21 +375,26 @@ fun LoanApplyScreen(
         }
     }
 
-    // Camera Framing Dialog for In-App Photo Capture
-    if (activeCameraDocType != null) {
-        CameraFramingCaptureDialog(
-            mode = CameraCaptureMode.KTP, // Uses rectangular document frame cutout
-            onDismissRequest = { activeCameraDocType = null },
-            onImageCaptured = { bitmap: Bitmap ->
-                when (activeCameraDocType) {
-                    "SLIP_GAJI" -> viewModel.setSlipGaji(null, bitmap)
-                    "REK_KORAN" -> viewModel.setRekeningKoran(null, bitmap)
-                    "NPWP" -> viewModel.setNpwp(null, bitmap)
-                }
-                activeCameraDocType = null
+    // Modal Konfirmasi Sebelum Ajukan Pinjaman
+    ConfirmationDialog(
+        visible = showSubmitConfirmDialog,
+        title = "Konfirmasi Pengajuan",
+        message = "Apakah Anda yakin ingin mengajukan pinjaman sebesar Rp ${currencyFormatter.format(uiState.jumlahPinjaman)} dengan tenor ${uiState.tenorBulan} bulan? Pastikan data Anda sudah benar.",
+        confirmButtonText = "Ya, Ajukan",
+        dismissButtonText = "Periksa Kembali",
+        type = DialogType.INFO,
+        icon = Lucide.FileCheck,
+        isLoading = uiState.isLoading,
+        onConfirm = {
+            showSubmitConfirmDialog = false
+            viewModel.submitFinalApplication(context)
+        },
+        onDismiss = {
+            if (!uiState.isLoading) {
+                showSubmitConfirmDialog = false
             }
-        )
-    }
+        }
+    )
 }
 
 // Top Bar & Stepper Header
@@ -377,9 +440,9 @@ private fun ApplyTopBar(
                     )
                     Text(
                         text = when (currentStep) {
-                            1 -> "Langkah 1 dari 3: Nominal & Tenor"
-                            2 -> "Langkah 2 dari 3: Unggah Dokumen"
-                            3 -> "Langkah 3 dari 3: Ringkasan & Konfirmasi"
+                            1 -> "Langkah 1: Nominal & Tenor"
+                            2 -> "Langkah 2: Unggah Dokumen"
+                            3 -> "Langkah 3: Ringkasan & Konfirmasi"
                             else -> "Pengajuan Selesai"
                         },
                         fontSize = 12.sp,
@@ -416,7 +479,7 @@ private fun ApplyTopBar(
     }
 }
 
-// Step 1: Nominal & Tenor View
+// Step 1: Nominal & Tenor View (Diselaraskan Penuh dengan Desain Simulasi & Beranda)
 @Composable
 private fun Step1NominalTenorView(
     uiState: LoanApplyUiState,
@@ -433,13 +496,35 @@ private fun Step1NominalTenorView(
     val candidateAmounts = listOf(1_000_000.0, 2_000_000.0, 5_000_000.0, 10_000_000.0, 20_000_000.0, 30_000_000.0, 50_000_000.0)
     val quickAmounts = (candidateAmounts.filter { it < maxAmount && it >= minAmount } + maxAmount).distinct().sorted()
     val tenorOptions = listOf(3, 6, 9, 12, 18, 24, 36)
+    val minTenor = 3
+    val maxTenor = 36
     val tujuanOptions = listOf("Modal Usaha", "Renovasi Rumah", "Pendidikan", "Keperluan Medis", "Elektronik", "Lainnya")
+
+    val totalBunga = (uiState.bungaBulanan * uiState.tenorBulan).toLong()
 
     var amountInputText by remember(uiState.jumlahPinjaman) {
         mutableStateOf(if (uiState.jumlahPinjaman > 0) currencyFormatter.format(uiState.jumlahPinjaman.toLong()) else "")
     }
 
+    val coroutineScope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(uiState.tujuanPinjaman) {
+        if (uiState.tujuanPinjaman == "Lainnya") {
+            delay(250)
+            bringIntoViewRequester.bringIntoView()
+            try {
+                focusRequester.requestFocus()
+            } catch (e: Exception) {
+                // ignore
+            }
+        }
+    }
+
     LazyColumn(
+        state = listState,
         modifier = Modifier
             .fillMaxSize()
             .background(Background),
@@ -496,83 +581,67 @@ private fun Step1NominalTenorView(
             }
         }
 
-        // 1. Unified Card: Sisa Plafond Tersedia & Rekening Pencairan
+        // 1. Plafond Header Card dengan Motif SAKU
         item {
             Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Surface),
-                border = BorderStroke(1.dp, Border)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(
+                        elevation = 8.dp,
+                        shape = RoundedCornerShape(20.dp),
+                        ambientColor = Color(0x14000000),
+                        spotColor = Color(0x20000000)
+                    ),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Primary),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f))
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    // Top: Sisa Plafond Tersedia & Suku Bunga
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(20.dp))
+                ) {
+                    // Background Image Card SAKU
+                    Image(
+                        painter = painterResource(id = R.drawable.bg_card_saku),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .matchParentSize()
+                            .graphicsLayer {
+                                scaleX = 1.35f
+                                scaleY = 1.35f
+                                transformOrigin = TransformOrigin(0.85f, 0.5f)
+                            }
+                    )
+
+                    // Content Plafond Info
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 18.dp)
                     ) {
-                        Column {
-                            Text(
-                                text = "Sisa Plafond Tersedia",
-                                fontSize = 11.5.sp,
-                                color = TextMuted
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = "Rp ${currencyFormatter.format(uiState.availablePlafond)}",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = TextPrimary
-                            )
-                        }
-                        Badge(
-                            text = "Bunga ${uiState.sukuBungaPersen}%/bln",
-                            variant = BadgeVariant.Success,
-                            size = BadgeSize.SM
+                        Text(
+                            text = "Sisa Limit Plafon Tersedia",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.White.copy(alpha = 0.88f)
                         )
-                    }
-
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Border)
-
-                    // Bottom: Rekening Pencairan
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Primary0),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Lucide.Landmark,
-                                contentDescription = null,
-                                tint = Primary,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Rekening Pencairan",
-                                fontSize = 11.sp,
-                                color = TextMuted
-                            )
-                            Text(
-                                text = "${uiState.namaBank} • ${if (uiState.noRekening.length > 4) "•••• " + uiState.noRekening.takeLast(4) else uiState.noRekening}",
-                                fontSize = 13.5.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = TextPrimary
-                            )
-                            Text(
-                                text = "a.n. ${uiState.namaRekening}",
-                                fontSize = 11.5.sp,
-                                color = TextSecondary
-                            )
-                        }
-                        Badge(text = "Terverifikasi", variant = BadgeVariant.Success, size = BadgeSize.SM)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Rp ${currencyFormatter.format(uiState.availablePlafond)}",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color.White,
+                            letterSpacing = (-0.5).sp
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Suku bunga ${String.format(Locale.US, "%.1f", uiState.sukuBungaPersen)}% per bulan",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.White.copy(alpha = 0.92f)
+                        )
                     }
                 }
             }
@@ -609,144 +678,104 @@ private fun Step1NominalTenorView(
             }
         }
 
-        // 2. Jumlah Pinjaman Card (Direct Input + Stepper + Slider + LazyRow Chips)
+        // 2. Main Floating Form Card: Nominal, Tenor, Tujuan & Rincian Estimasi (Identik dengan Simulasi)
         item {
             Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(18.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(
+                        elevation = 8.dp,
+                        shape = RoundedCornerShape(20.dp),
+                        ambientColor = Color(0x14000000),
+                        spotColor = Color(0x20000000)
+                    ),
+                shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = Surface),
                 border = BorderStroke(1.dp, Border)
             ) {
-                Column(modifier = Modifier.padding(18.dp)) {
-                    Text(
-                        text = "Jumlah Pinjaman",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Stepper Box with Direct Editable TextField
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(Background)
-                            .border(1.dp, Border, RoundedCornerShape(14.dp))
-                            .padding(vertical = 12.dp, horizontal = 12.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            IconButton(
-                                onClick = {
-                                    val newVal = (uiState.jumlahPinjaman - stepAmount).coerceIn(minAmount, maxAmount)
-                                    onAmountChange(newVal)
-                                },
-                                enabled = uiState.jumlahPinjaman > minAmount,
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(if (uiState.jumlahPinjaman > minAmount) Surface else Background)
-                                    .border(1.dp, Border, RoundedCornerShape(10.dp))
-                            ) {
-                                Text(
-                                    text = "−",
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (uiState.jumlahPinjaman > minAmount) TextPrimary else TextMuted
-                                )
-                            }
-
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(horizontal = 8.dp)
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center
-                                ) {
-                                    Text(
-                                        text = "Rp ",
-                                        fontSize = 22.sp,
-                                        fontWeight = FontWeight.ExtraBold,
-                                        color = TextPrimary
-                                    )
-                                    BasicTextField(
-                                        value = amountInputText,
-                                        onValueChange = { input ->
-                                            val digits = input.filter { it.isDigit() }
-                                            if (digits.length <= 11) {
-                                                val parsed = digits.toDoubleOrNull() ?: 0.0
-                                                val clamped = if (parsed > maxAmount) maxAmount else parsed
-                                                amountInputText = if (digits.isNotEmpty()) currencyFormatter.format(clamped.toLong()) else ""
-                                                if (clamped >= minAmount) {
-                                                    onAmountChange(clamped)
-                                                }
-                                            }
-                                        },
-                                        textStyle = TextStyle(
-                                            fontSize = 22.sp,
-                                            fontWeight = FontWeight.ExtraBold,
-                                            color = TextPrimary,
-                                            textAlign = TextAlign.Start
-                                        ),
-                                        keyboardOptions = KeyboardOptions(
-                                            keyboardType = KeyboardType.Number,
-                                            imeAction = ImeAction.Done
-                                        ),
-                                        singleLine = true,
-                                        cursorBrush = SolidColor(Primary)
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = "Ketik nominal atau geser slider",
-                                    fontSize = 11.sp,
-                                    color = TextMuted
-                                )
-                            }
-
-                            IconButton(
-                                onClick = {
-                                    val newVal = (uiState.jumlahPinjaman + stepAmount).coerceIn(minAmount, maxAmount)
-                                    onAmountChange(newVal)
-                                },
-                                enabled = uiState.jumlahPinjaman < maxAmount,
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(if (uiState.jumlahPinjaman < maxAmount) Surface else Background)
-                                    .border(1.dp, Border, RoundedCornerShape(10.dp))
-                            ) {
-                                Text(
-                                    text = "+",
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (uiState.jumlahPinjaman < maxAmount) TextPrimary else TextMuted
-                                )
-                            }
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animateContentSize()
+                        .padding(20.dp)
+                ) {
+                    // --- SECTION 1: NOMINAL YANG DIAJUKAN ---
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "Nominal yang Diajukan",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = TextPrimary
+                            )
+                            Text(text = " *", color = Error, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                         }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "Rp ",
+                                fontSize = 26.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = TextPrimary,
+                                letterSpacing = (-0.5).sp
+                            )
+                            BasicTextField(
+                                value = amountInputText,
+                                onValueChange = { input ->
+                                    val digits = input.filter { it.isDigit() }
+                                    if (digits.length <= 11) {
+                                        val parsed = digits.toDoubleOrNull() ?: 0.0
+                                        val clamped = if (parsed > maxAmount) maxAmount else parsed
+                                        amountInputText = if (clamped > 0) currencyFormatter.format(clamped.toLong()) else ""
+                                        if (clamped >= minAmount) {
+                                            onAmountChange(clamped)
+                                        } else if (clamped == 0.0) {
+                                            onAmountChange(minAmount)
+                                        }
+                                    }
+                                },
+                                textStyle = TextStyle(
+                                    fontFamily = OverusedGrotesk,
+                                    fontSize = 26.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = TextPrimary,
+                                    letterSpacing = (-0.5).sp
+                                ),
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Number,
+                                    imeAction = ImeAction.Done
+                                ),
+                                singleLine = true,
+                                cursorBrush = SolidColor(Primary),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "Ketuk untuk edit",
+                            fontSize = 11.sp,
+                            color = TextMuted
+                        )
                     }
 
-                    Spacer(modifier = Modifier.height(14.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
+                    // Slider 1: Jumlah Pinjaman
                     val currentVal = uiState.jumlahPinjaman.toFloat().coerceIn(minAmount.toFloat(), maxAmount.toFloat())
                     Slider(
                         value = currentVal,
                         onValueChange = { newVal ->
-                            val rounded = (Math.round(newVal / 100_000.0) * 100_000.0).coerceIn(minAmount, maxAmount)
+                            val rounded = (Math.round(newVal / stepAmount) * stepAmount).coerceIn(minAmount, maxAmount)
                             onAmountChange(rounded)
                         },
                         valueRange = minAmount.toFloat()..maxAmount.toFloat(),
                         colors = SliderDefaults.colors(
                             thumbColor = Primary,
                             activeTrackColor = Primary,
-                            inactiveTrackColor = Neutral20
+                            inactiveTrackColor = Color(0xFFEBEBEB)
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -755,144 +784,154 @@ private fun Step1NominalTenorView(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(text = "Min: Rp ${currencyFormatter.format(minAmount)}", fontSize = 11.sp, color = TextMuted)
-                        Text(text = "Maks: Rp ${currencyFormatter.format(uiState.availablePlafond)}", fontSize = 11.sp, color = TextMuted)
+                        Text(
+                            text = "Rp ${currencyFormatter.format(minAmount)}",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = TextMuted
+                        )
+                        Text(
+                            text = "Rp ${currencyFormatter.format(maxAmount)}",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = TextMuted
+                        )
                     }
 
-                    Spacer(modifier = Modifier.height(14.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
+                    // Quick Selection Chips (Nominal)
                     Text(
-                        text = "Pilihan Cepat",
+                        text = "Akses Cepat",
                         fontSize = 12.sp,
-                        color = TextSecondary,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        color = TextSecondary
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-
+                    Spacer(modifier = Modifier.height(6.dp))
                     LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         items(quickAmounts) { amt ->
                             val isSelected = uiState.jumlahPinjaman == amt
-                            val isMax = amt == uiState.availablePlafond
-                            val label = if (isMax) "Maksimal" else "Rp ${currencyFormatter.format(amt)}"
+                            val isMax = amt == maxAmount
+                            val label = if (isMax) "Maksimal" else "Rp ${currencyFormatter.format(amt / 1_000_000)} Jt"
 
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(10.dp))
-                                    .background(if (isSelected) Primary0 else Surface)
+                                    .background(if (isSelected) Primary0 else Neutral0)
                                     .border(
                                         width = if (isSelected) 1.5.dp else 1.dp,
                                         color = if (isSelected) Primary else Border,
                                         shape = RoundedCornerShape(10.dp)
                                     )
                                     .clickable { onAmountChange(amt) }
-                                    .padding(horizontal = 14.dp, vertical = 9.dp)
+                                    .padding(horizontal = 12.dp, vertical = 6.dp)
                             ) {
                                 Text(
                                     text = label,
-                                    fontSize = 12.sp,
+                                    fontSize = 11.5.sp,
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                    color = if (isSelected) Primary else TextPrimary
+                                    color = TextPrimary
                                 )
                             }
                         }
                     }
-                }
-            }
-        }
 
-        // 3. Card: Pilihan Tenor
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = Surface),
-                border = BorderStroke(1.dp, Border)
-            ) {
-                Column(modifier = Modifier.padding(18.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // --- SECTION 2: TENOR PINJAMAN (DILENGKAPI SLIDER & CHIPS) ---
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "Jangka Waktu (Tenor)",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
+                            text = "Tenor Pinjaman",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
                             color = TextPrimary
                         )
+                        Text(text = " *", color = Error, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    // Slider 2: Tenor Pinjaman (Scroll/Geser)
+                    val currentTenorFloat = uiState.tenorBulan.toFloat().coerceIn(minTenor.toFloat(), maxTenor.toFloat())
+                    Slider(
+                        value = currentTenorFloat,
+                        onValueChange = { newVal ->
+                            val closest = tenorOptions.minByOrNull { Math.abs(it - newVal) } ?: 6
+                            onTenorChange(closest)
+                        },
+                        valueRange = minTenor.toFloat()..maxTenor.toFloat(),
+                        steps = 0,
+                        colors = SliderDefaults.colors(
+                            thumbColor = Primary,
+                            activeTrackColor = Primary,
+                            inactiveTrackColor = Color(0xFFEBEBEB)
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
                         Text(
-                            text = "${uiState.tenorBulan} Bulan",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Primary
+                            text = "$minTenor Bulan",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = TextMuted
+                        )
+                        Text(
+                            text = "$maxTenor Bulan",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = TextMuted
                         )
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // Quick Tenor Chips
                     LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         items(tenorOptions) { months ->
                             val isSelected = uiState.tenorBulan == months
                             Box(
                                 modifier = Modifier
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(if (isSelected) Primary0 else Surface)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(if (isSelected) Primary0 else Neutral0)
                                     .border(
                                         width = if (isSelected) 1.5.dp else 1.dp,
                                         color = if (isSelected) Primary else Border,
-                                        shape = RoundedCornerShape(12.dp)
+                                        shape = RoundedCornerShape(10.dp)
                                     )
                                     .clickable { onTenorChange(months) }
-                                    .padding(horizontal = 16.dp, vertical = 10.dp)
+                                    .padding(horizontal = 12.dp, vertical = 6.dp)
                             ) {
                                 Text(
                                     text = "$months Bulan",
-                                    fontSize = 13.sp,
+                                    fontSize = 11.5.sp,
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                    color = if (isSelected) Primary else TextPrimary
+                                    color = TextPrimary
                                 )
                             }
                         }
                     }
-                }
-            }
-        }
 
-        // 4. Card: Tujuan Penggunaan Dana
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = Surface),
-                border = BorderStroke(
-                    1.dp,
-                    if (uiState.isFromSimulation && uiState.effectiveTujuan.isBlank()) Primary.copy(alpha = 0.6f) else Border
-                )
-            ) {
-                Column(modifier = Modifier.padding(18.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "Tujuan Penggunaan Dana",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = TextPrimary
-                            )
-                            Text(text = " *", color = Error, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                        }
-                        Badge(
-                            text = if (uiState.effectiveTujuan.isNotBlank()) "Sudah Dipilih" else "Wajib Dipilih",
-                            variant = if (uiState.effectiveTujuan.isNotBlank()) BadgeVariant.Success else BadgeVariant.Warning,
-                            size = BadgeSize.SM
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // --- SECTION 3: TUJUAN PENGGUNAAN DANA ---
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "Tujuan Penggunaan Dana",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = TextPrimary
                         )
+                        Text(text = " *", color = Error, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
 
                     if (uiState.effectiveTujuan.isBlank()) {
@@ -919,7 +958,7 @@ private fun Step1NominalTenorView(
                                         .weight(1f)
                                         .height(44.dp)
                                         .clip(RoundedCornerShape(10.dp))
-                                        .background(if (isSelected) Primary0 else Surface)
+                                        .background(if (isSelected) Primary0 else Neutral0)
                                         .border(
                                             width = if (isSelected) 1.5.dp else 1.dp,
                                             color = if (isSelected) Primary else Border,
@@ -933,7 +972,7 @@ private fun Step1NominalTenorView(
                                         text = opt,
                                         fontSize = 11.5.sp,
                                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                        color = if (isSelected) Primary else TextPrimary,
+                                        color = TextPrimary,
                                         textAlign = TextAlign.Center,
                                         maxLines = 2,
                                         lineHeight = 14.sp
@@ -953,7 +992,7 @@ private fun Step1NominalTenorView(
                                         .weight(1f)
                                         .height(44.dp)
                                         .clip(RoundedCornerShape(10.dp))
-                                        .background(if (isSelected) Primary0 else Surface)
+                                        .background(if (isSelected) Primary0 else Neutral0)
                                         .border(
                                             width = if (isSelected) 1.5.dp else 1.dp,
                                             color = if (isSelected) Primary else Border,
@@ -967,7 +1006,7 @@ private fun Step1NominalTenorView(
                                         text = opt,
                                         fontSize = 11.5.sp,
                                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                        color = if (isSelected) Primary else TextPrimary,
+                                        color = TextPrimary,
                                         textAlign = TextAlign.Center,
                                         maxLines = 2,
                                         lineHeight = 14.sp
@@ -977,88 +1016,115 @@ private fun Step1NominalTenorView(
                         }
                     }
 
-                    if (uiState.tujuanPinjaman == "Lainnya") {
-                        Spacer(modifier = Modifier.height(12.dp))
-                        TextField(
-                            value = uiState.customTujuan,
-                            onValueChange = onCustomTujuanChange,
-                            placeholder = "Tuliskan keperluan pinjaman Anda...",
-                            label = "Detail Keperluan"
-                        )
-                    }
-                }
-            }
-        }
-
-        // 5. Card: Rincian Estimasi Pembiayaan
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = Surface),
-                border = BorderStroke(1.dp, Border)
-            ) {
-                Column(modifier = Modifier.padding(18.dp)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Lucide.FileCheck,
-                            contentDescription = null,
-                            tint = Primary,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Text(
-                            text = "Rincian Estimasi Pembiayaan",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Hero Monthly Box
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(Primary0)
-                            .border(1.dp, Primary.copy(alpha = 0.25f), RoundedCornerShape(14.dp))
-                            .padding(16.dp)
+                    AnimatedVisibility(
+                        visible = uiState.tujuanPinjaman == "Lainnya",
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically()
                     ) {
                         Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 12.dp)
+                                .bringIntoViewRequester(bringIntoViewRequester)
                         ) {
-                            Text(
-                                text = "Estimasi Cicilan Bulanan",
-                                fontSize = 12.sp,
-                                color = TextSecondary
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = "Rp ${currencyFormatter.format(uiState.estimasiCicilanBulanan)}",
-                                fontSize = 24.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = Primary
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = "per bulan selama ${uiState.tenorBulan} bulan",
-                                fontSize = 11.5.sp,
-                                color = TextMuted
+                            TextField(
+                                value = uiState.customTujuan,
+                                onValueChange = onCustomTujuanChange,
+                                placeholder = "Tuliskan keperluan pinjaman Anda...",
+                                label = "Detail Keperluan",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .focusRequester(focusRequester)
+                                    .onFocusEvent { focusState ->
+                                        if (focusState.isFocused) {
+                                            coroutineScope.launch {
+                                                delay(250)
+                                                bringIntoViewRequester.bringIntoView()
+                                            }
+                                        }
+                                    }
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(22.dp))
 
-                    CostBreakdownRow(label = "Pokok Pinjaman", value = "Rp ${currencyFormatter.format(uiState.jumlahPinjaman)}")
-                    CostBreakdownRow(label = "Biaya Admin", value = "Rp ${currencyFormatter.format(uiState.biayaAdmin)}")
-                    CostBreakdownRow(label = "Suku Bunga", value = "${uiState.sukuBungaPersen}% / bulan flat")
-                    CostBreakdownRow(label = "Tenor Pinjaman", value = "${uiState.tenorBulan} Bulan")
+                    // Subtle Divider
+                    HorizontalDivider(
+                        color = Border,
+                        thickness = 1.dp
+                    )
+
+                    Spacer(modifier = Modifier.height(18.dp))
+
+                    // --- SECTION 4: RINCIAN ESTIMASI ANGSURAN (IDENTIK DENGAN SIMULASI) ---
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        BreakdownRow(
+                            label = "Cicilan Bulanan (Estimasi):",
+                            value = "Rp ${currencyFormatter.format(uiState.estimasiCicilanBulanan)} / bln",
+                            isHighlight = true
+                        )
+
+                        BreakdownRow(
+                            label = "Total Estimasi Bunga:",
+                            value = "Rp ${currencyFormatter.format(totalBunga)}"
+                        )
+
+                        BreakdownRow(
+                            label = "Biaya Administrasi:",
+                            value = "Rp ${currencyFormatter.format(uiState.biayaAdmin)}"
+                        )
+
+                        BreakdownRow(
+                            label = "Total Pengembalian:",
+                            value = "Rp ${currencyFormatter.format(uiState.totalPengembalian)}",
+                            isBold = true
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(18.dp))
+
+                    // Disclaimer Note in Warning Style
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Warning0)
+                            .border(1.dp, Warning.copy(alpha = 0.35f), RoundedCornerShape(12.dp))
+                            .padding(12.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.Top,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Lucide.CircleAlert,
+                                contentDescription = null,
+                                tint = Warning80,
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .offset(y = 1.dp)
+                            )
+                            Column {
+                                Text(
+                                    text = "Disclaimer",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Warning80
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "Perhitungan di atas bersifat estimasi indikatif dan dapat disesuaikan berdasarkan skor profil kredit nasabah.",
+                                    fontSize = 11.sp,
+                                    color = Warning80.copy(alpha = 0.9f),
+                                    lineHeight = 15.sp
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1066,26 +1132,63 @@ private fun Step1NominalTenorView(
 }
 
 @Composable
-private fun CostBreakdownRow(label: String, value: String, isBold: Boolean = false) {
+private fun BreakdownRow(
+    label: String,
+    value: String,
+    isHighlight: Boolean = false,
+    isBold: Boolean = false
+) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 3.dp),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = label,
-            fontSize = 12.5.sp,
-            color = if (isBold) TextPrimary else TextSecondary,
-            fontWeight = if (isBold) FontWeight.SemiBold else FontWeight.Normal
+            fontSize = if (isHighlight) 13.5.sp else 12.5.sp,
+            color = if (isHighlight || isBold) TextPrimary else TextSecondary,
+            fontWeight = if (isHighlight || isBold) FontWeight.SemiBold else FontWeight.Normal
         )
         Text(
             text = value,
-            fontSize = 12.5.sp,
-            fontWeight = if (isBold) FontWeight.Bold else FontWeight.SemiBold,
-            color = TextPrimary
+            fontSize = if (isHighlight) 14.5.sp else 12.5.sp,
+            fontWeight = if (isHighlight || isBold) FontWeight.Bold else FontWeight.SemiBold,
+            color = if (isHighlight) Primary else TextPrimary
         )
+    }
+}
+
+@Composable
+private fun CostBreakdownRow(
+    label: String,
+    value: String,
+    isBold: Boolean = false,
+    isBadge: Boolean = false,
+    isHighlight: Boolean = false
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 3.5.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            fontSize = if (isHighlight) 13.sp else 12.5.sp,
+            color = if (isHighlight || isBold) TextPrimary else TextSecondary,
+            fontWeight = if (isHighlight || isBold) FontWeight.Bold else FontWeight.Medium
+        )
+        if (isBadge) {
+            Badge(text = value, variant = BadgeVariant.Success, size = BadgeSize.SM)
+        } else {
+            Text(
+                text = value,
+                fontSize = if (isHighlight) 14.sp else 12.5.sp,
+                fontWeight = if (isHighlight || isBold) FontWeight.Bold else FontWeight.SemiBold,
+                color = if (isHighlight) Primary else TextPrimary
+            )
+        }
     }
 }
 
@@ -1115,8 +1218,8 @@ private fun Step2UploadDokumenView(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Primary0),
-                border = BorderStroke(1.dp, Primary20)
+                colors = CardDefaults.cardColors(containerColor = Warning0),
+                border = BorderStroke(1.dp, Warning20)
             ) {
                 Row(
                     modifier = Modifier
@@ -1127,14 +1230,14 @@ private fun Step2UploadDokumenView(
                     Icon(
                         imageVector = Lucide.Info,
                         contentDescription = null,
-                        tint = Primary,
+                        tint = Warning,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
                         text = "Unggah dokumen pendukung untuk proses verifikasi kilat. Pastikan foto jelas, terbaca, dan tidak terpotong.",
                         fontSize = 12.5.sp,
-                        color = Primary80,
+                        color = Warning80,
                         lineHeight = 17.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -1209,23 +1312,12 @@ private fun Step3SummarySubmitView(
                 border = BorderStroke(1.dp, Border)
             ) {
                 Column(modifier = Modifier.padding(18.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Ringkasan Pengajuan",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary
-                        )
-                        Badge(
-                            text = "Tahap Akhir",
-                            variant = BadgeVariant.Primary,
-                            size = BadgeSize.SM
-                        )
-                    }
+                    Text(
+                        text = "Ringkasan Pengajuan",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
 
                     CostBreakdownRow(label = "Status", value = "Siap Diajukan", isBadge = true)
                     CostBreakdownRow(label = "Nominal Pinjaman", value = "Rp ${currencyFormatter.format(uiState.jumlahPinjaman)}")
@@ -1373,7 +1465,7 @@ private fun Step3SummarySubmitView(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "Saya menyatakan data yang diajukan adalah benar dan menyetujui Syarat & Ketentuan Pembiayaan SAKU BCA Finance serta regulasi OJK & AFPI.",
+                        text = "Saya menyatakan data yang diajukan adalah benar dan menyetujui Syarat & Ketentuan Pembiayaan SAKU (PT SAKU) serta regulasi yang berlaku.",
                         fontSize = 12.sp,
                         color = TextPrimary,
                         lineHeight = 16.sp
@@ -1435,7 +1527,7 @@ private fun Step4SuccessReceiptView(
             Spacer(modifier = Modifier.height(6.dp))
 
             Text(
-                text = "Permohonan pinjaman Anda telah masuk ke sistem dan sedang ditinjau oleh tim verifikasi BCA Finance.",
+                text = "Permohonan pinjaman Anda telah masuk ke sistem dan sedang ditinjau oleh tim verifikasi PT SAKU.",
                 fontSize = 13.sp,
                 color = TextSecondary,
                 textAlign = TextAlign.Center,
@@ -1522,7 +1614,7 @@ private fun Step4SuccessReceiptView(
 
                     NextStepRow(stepNum = "1", title = "Verifikasi Dokumen", desc = "Tim verifikasi memeriksa kelengkapan slip gaji & mutasi rekening.")
                     NextStepRow(stepNum = "2", title = "Persetujuan Cabang", desc = "Kepala cabang menyetujui rekomendasi kredit.")
-                    NextStepRow(stepNum = "3", title = "Pencairan Dana Instan", desc = "Dana pinjaman langsung ditransfer ke rekening BCA Anda.")
+                    NextStepRow(stepNum = "3", title = "Pencairan Dana Instan", desc = "Dana pinjaman langsung ditransfer ke rekening bank terdaftar Anda.")
                 }
             }
         }
@@ -1581,7 +1673,7 @@ private fun CostBreakdownRow(
                 text = value,
                 fontSize = if (isHighlight) 14.sp else 13.sp,
                 fontWeight = if (isHighlight) FontWeight.Bold else FontWeight.SemiBold,
-                color = if (isHighlight) Primary else TextPrimary
+                color = TextPrimary
             )
         }
     }
@@ -1700,12 +1792,28 @@ private fun DocumentUploadBox(
                                     .background(if (isPdf) Error0 else Primary0),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(
-                                    imageVector = Lucide.FileText,
-                                    contentDescription = null,
-                                    tint = if (isPdf) Error else Primary,
-                                    modifier = Modifier.size(20.dp)
-                                )
+                                if (bitmap != null) {
+                                    Image(
+                                        bitmap = bitmap.asImageBitmap(),
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                } else if (uri != null && !isPdf) {
+                                    AsyncImage(
+                                        model = uri,
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Lucide.FileText,
+                                        contentDescription = null,
+                                        tint = if (isPdf) Error else Primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
                             }
                             Spacer(modifier = Modifier.width(10.dp))
                             Column(modifier = Modifier.weight(1f)) {
@@ -1774,15 +1882,15 @@ private fun DocumentUploadBox(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(36.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(Surface),
+                                    .size(38.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(Primary),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = Lucide.FileText,
                                     contentDescription = null,
-                                    tint = Primary,
+                                    tint = Color.White,
                                     modifier = Modifier.size(20.dp)
                                 )
                             }
@@ -1792,13 +1900,13 @@ private fun DocumentUploadBox(
                                     text = "Pilih File Dokumen",
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Primary70
+                                    color = TextPrimary
                                 )
-                                Spacer(modifier = Modifier.height(1.dp))
+                                Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = "Format PDF, JPG, atau PNG (Maks. 5 MB)",
-                                    fontSize = 11.sp,
-                                    color = TextMuted
+                                    fontSize = 11.5.sp,
+                                    color = TextSecondary
                                 )
                             }
                         }
@@ -1809,7 +1917,7 @@ private fun DocumentUploadBox(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(10.dp))
-                            .background(Surface)
+                            .background(Neutral0)
                             .border(1.dp, Border, RoundedCornerShape(10.dp))
                             .clickable { onCameraClick() }
                             .padding(vertical = 10.dp, horizontal = 14.dp)
@@ -1818,16 +1926,24 @@ private fun DocumentUploadBox(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                imageVector = Lucide.Camera,
-                                contentDescription = null,
-                                tint = TextSecondary,
-                                modifier = Modifier.size(18.dp)
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(Surface),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Lucide.Camera,
+                                    contentDescription = null,
+                                    tint = Primary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
                             Spacer(modifier = Modifier.width(10.dp))
                             Text(
                                 text = "Atau ambil foto / scan langsung dengan kamera",
-                                fontSize = 11.5.sp,
+                                fontSize = 12.sp,
                                 color = TextSecondary,
                                 fontWeight = FontWeight.Medium
                             )
@@ -1886,7 +2002,9 @@ private fun ApplyBottomActionBar(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(12.dp),
+            .shadow(12.dp)
+            .navigationBarsPadding()
+            .imePadding(),
         color = Surface
     ) {
         Row(

@@ -1,11 +1,7 @@
 package com.example.saku.app.features.notification
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,41 +45,43 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.Bell
 import com.composables.icons.lucide.CheckCheck
+import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.CircleCheck
 import com.composables.icons.lucide.Clock
 import com.composables.icons.lucide.Info
 import com.composables.icons.lucide.Lucide
 import com.example.saku.app.core.network.dto.NotifikasiItemDto
-import com.example.saku.app.core.ui.components.Badge
-import com.example.saku.app.core.ui.components.BadgeSize
-import com.example.saku.app.core.ui.components.BadgeVariant
+import com.example.saku.app.core.ui.components.ButtonVariant
+import com.example.saku.app.core.ui.components.ConfirmationDialog
+import com.example.saku.app.core.ui.components.DialogType
 import com.example.saku.app.features.home.HomeViewModel
 import com.example.saku.app.ui.theme.Background
 import com.example.saku.app.ui.theme.Border
-import com.example.saku.app.ui.theme.Neutral10
-import com.example.saku.app.ui.theme.Neutral20
 import com.example.saku.app.ui.theme.Primary
 import com.example.saku.app.ui.theme.Primary0
 import com.example.saku.app.ui.theme.Surface
 import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary
 import com.example.saku.app.ui.theme.TextSecondary
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationScreen(
     onNavigateBack: () -> Unit,
-    viewModel: HomeViewModel = viewModel()
+    onNavigateToLoanDetail: (String) -> Unit = {},
+    onNavigateToKycPending: () -> Unit = {},
+    viewModel: HomeViewModel = koinViewModel()
 ) {
     val notifikasiList by viewModel.notifikasiList.collectAsState()
     val unreadCount by viewModel.unreadNotifikasiCount.collectAsState()
     val isLoading by viewModel.isNotifikasiLoading.collectAsState()
 
     var selectedTab by remember { mutableStateOf("SEMUA") } // "SEMUA" or "UNREAD"
+    var showMarkAllReadDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.fetchNotifications()
@@ -136,7 +134,7 @@ fun NotificationScreen(
                         Row(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(8.dp))
-                                .clickable { viewModel.markAllNotificationsAsRead() }
+                                .clickable { showMarkAllReadDialog = true }
                                 .padding(horizontal = 8.dp, vertical = 6.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -264,6 +262,13 @@ fun NotificationScreen(
                             item = notif,
                             onClick = {
                                 notif.id?.let { viewModel.markNotificationAsRead(it) }
+                                val loanId = notif.pengajuanPinjamanId
+                                val type = notif.type?.uppercase() ?: ""
+                                if (!loanId.isNullOrBlank()) {
+                                    onNavigateToLoanDetail(loanId)
+                                } else if (type.contains("KYC") || type.contains("VERIFIKASI")) {
+                                    onNavigateToKycPending()
+                                }
                             }
                         )
                     }
@@ -271,6 +276,25 @@ fun NotificationScreen(
             }
         }
     }
+
+    // Confirmation Dialog for Mark All As Read
+    ConfirmationDialog(
+        visible = showMarkAllReadDialog,
+        title = "Tandai Semua Dibaca?",
+        message = "Semua pemberitahuan yang belum dibaca akan ditandai sebagai sudah dibaca.",
+        type = DialogType.INFO,
+        icon = Lucide.CheckCheck,
+        confirmButtonText = "Ya, Tandai",
+        dismissButtonText = "Batal",
+        confirmButtonVariant = ButtonVariant.Primary,
+        onConfirm = {
+            showMarkAllReadDialog = false
+            viewModel.markAllNotificationsAsRead()
+        },
+        onDismiss = {
+            showMarkAllReadDialog = false
+        }
+    )
 }
 
 @Composable
@@ -279,6 +303,9 @@ private fun NotificationPageCard(
     onClick: () -> Unit
 ) {
     val isRead = item.isNotificationRead
+    val hasLoanLink = !item.pengajuanPinjamanId.isNullOrBlank()
+    val isKyc = item.type?.contains("KYC", ignoreCase = true) == true || item.type?.contains("VERIFIKASI", ignoreCase = true) == true
+    val hasActionLink = hasLoanLink || isKyc
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -352,20 +379,46 @@ private fun NotificationPageCard(
 
                 Spacer(modifier = Modifier.height(6.dp))
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Lucide.Clock,
-                        contentDescription = null,
-                        tint = TextMuted,
-                        modifier = Modifier.size(11.dp)
-                    )
-                    Text(
-                        text = formatTime(item.createdDate),
-                        fontSize = 10.5.sp,
-                        color = TextMuted
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Lucide.Clock,
+                            contentDescription = null,
+                            tint = TextMuted,
+                            modifier = Modifier.size(11.dp)
+                        )
+                        Text(
+                            text = formatTime(item.createdDate),
+                            fontSize = 10.5.sp,
+                            color = TextMuted
+                        )
+                    }
+
+                    if (hasActionLink) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
+                            Text(
+                                text = if (hasLoanLink) "Lihat Detail" else "Lihat Status",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Primary
+                            )
+                            Icon(
+                                imageVector = Lucide.ChevronRight,
+                                contentDescription = null,
+                                tint = Primary,
+                                modifier = Modifier.size(13.dp)
+                            )
+                        }
+                    }
                 }
             }
         }

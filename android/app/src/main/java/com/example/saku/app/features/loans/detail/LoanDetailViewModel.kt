@@ -2,6 +2,7 @@ package com.example.saku.app.features.loans.detail
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.saku.app.core.data.repository.LoanRepository
 import com.example.saku.app.core.data.repository.LoanRepositoryImpl
@@ -23,12 +24,9 @@ data class LoanDetailUiState(
     val selectedAngsuranForPayment: AngsuranItemDto? = null
 )
 
-class LoanDetailViewModel @JvmOverloads constructor(
-    application: Application,
-    private val loanRepository: LoanRepository = LoanRepositoryImpl(
-        ApiClient.getCustomerApiService(application)
-    )
-) : AndroidViewModel(application) {
+class LoanDetailViewModel(
+    private val loanRepository: LoanRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoanDetailUiState())
     val uiState: StateFlow<LoanDetailUiState> = _uiState.asStateFlow()

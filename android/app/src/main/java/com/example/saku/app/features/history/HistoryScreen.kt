@@ -1,7 +1,6 @@
-package com.example.saku.app.features.home
+package com.example.saku.app.features.history
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -31,11 +29,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.composables.icons.lucide.ArrowLeft
@@ -51,16 +51,18 @@ import com.example.saku.app.core.ui.components.ButtonSize
 import com.example.saku.app.core.ui.components.ButtonVariant
 import com.example.saku.app.ui.theme.Background
 import com.example.saku.app.ui.theme.Border
+import com.example.saku.app.ui.theme.Neutral0
 import com.example.saku.app.ui.theme.Primary
 import com.example.saku.app.ui.theme.Primary0
 import com.example.saku.app.ui.theme.Surface
 import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary
 import com.example.saku.app.ui.theme.TextSecondary
+import com.example.saku.app.ui.theme.Warning0
 import java.text.NumberFormat
 
 @Composable
-fun HistoryTabContent(
+fun HistoryScreen(
     myLoans: List<LoanApplicationItemDto>,
     selectedFilter: String,
     onFilterSelect: (String) -> Unit,
@@ -101,7 +103,7 @@ fun HistoryTabContent(
             .fillMaxSize()
             .background(Background)
     ) {
-        // TOP BAR (Standard Header: White background, back button, title, and refresh button)
+        // Top Bar: Header putih dengan tombol back, judul, dan tombol refresh
         Surface(
             modifier = Modifier.fillMaxWidth(),
             color = Surface,
@@ -151,113 +153,113 @@ fun HistoryTabContent(
             }
         }
 
-        // BODY: Filter Chips Bar and History Cards
+        // Body: Filter bar dan daftar kartu riwayat pinjaman
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(top = 16.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-                // 1. HORIZONTAL FILTER CHIPS BAR
-                item {
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(7.dp),
-                        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 2.dp)
-                    ) {
-                        items(filters) { (key, label) ->
-                            val isSelected = selectedFilter == key
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(if (isSelected) Primary else Surface)
-                                    .border(1.dp, if (isSelected) Primary else Border, RoundedCornerShape(10.dp))
-                                    .clickable { onFilterSelect(key) }
-                                    .padding(horizontal = 13.dp, vertical = 7.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = label,
-                                    fontSize = 12.sp,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                    color = if (isSelected) Color.White else TextPrimary
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // 2. LIST ITEMS RIWAYAT
-                if (filteredList.isEmpty()) {
-                    item {
-                        Box(modifier = Modifier.padding(horizontal = 18.dp)) {
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(18.dp),
-                                colors = CardDefaults.cardColors(containerColor = Surface),
-                                border = BorderStroke(1.dp, Border)
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 28.dp, horizontal = 20.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(48.dp)
-                                            .clip(CircleShape)
-                                            .background(Primary0),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = Lucide.FileText,
-                                            contentDescription = null,
-                                            tint = Primary,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.height(10.dp))
-                                    Text(
-                                        text = "Belum Ada Pengajuan",
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = TextPrimary
-                                    )
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = "Pengajuan pinjaman Anda akan otomatis tercatat dan dapat dipantau langsung di sini.",
-                                        fontSize = 11.5.sp,
-                                        color = TextSecondary,
-                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                                        lineHeight = 16.sp
-                                    )
-                                    Spacer(modifier = Modifier.height(16.dp))
-                                    Button(
-                                        text = if (isAjukanEnabled) "Ajukan Pinjaman Baru" else "Limit Tidak Mencukupi (Rp 0)",
-                                        onClick = onAjukanClick,
-                                        enabled = isAjukanEnabled,
-                                        variant = ButtonVariant.Primary,
-                                        size = ButtonSize.MD,
-                                        fullWidth = true
-                                    )
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    items(filteredList, key = { it.id ?: it.hashCode().toString() }) { loan ->
-                        Box(modifier = Modifier.padding(horizontal = 18.dp)) {
-                            HistoryLoanCard(
-                                loan = loan,
-                                currencyFormatter = currencyFormatter,
-                                onClick = { onDetailClick(loan) }
+            // 1. Filter Chips Bar
+            item {
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(7.dp),
+                    contentPadding = PaddingValues(horizontal = 18.dp, vertical = 2.dp)
+                ) {
+                    items(filters) { (key, label) ->
+                        val isSelected = selectedFilter == key
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(if (isSelected) Primary else Surface)
+                                .border(1.dp, if (isSelected) Primary else Border, RoundedCornerShape(10.dp))
+                                .clickable { onFilterSelect(key) }
+                                .padding(horizontal = 13.dp, vertical = 7.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = label,
+                                fontSize = 12.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isSelected) Color.White else TextPrimary
                             )
                         }
                     }
                 }
             }
+
+            // 2. Daftar Riwayat Pinjaman
+            if (filteredList.isEmpty()) {
+                item {
+                    Box(modifier = Modifier.padding(horizontal = 18.dp)) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(18.dp),
+                            colors = CardDefaults.cardColors(containerColor = Surface),
+                            border = BorderStroke(1.dp, Border)
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 28.dp, horizontal = 20.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .clip(CircleShape)
+                                        .background(Primary0),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Lucide.FileText,
+                                        contentDescription = null,
+                                        tint = Primary,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(10.dp))
+                                Text(
+                                    text = "Belum Ada Pengajuan",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Pengajuan pinjaman Anda akan otomatis tercatat dan dapat dipantau langsung di sini.",
+                                    fontSize = 11.5.sp,
+                                    color = TextSecondary,
+                                    textAlign = TextAlign.Center,
+                                    lineHeight = 16.sp
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Button(
+                                    text = if (isAjukanEnabled) "Ajukan Pinjaman Baru" else "Limit Tidak Mencukupi (Rp 0)",
+                                    onClick = onAjukanClick,
+                                    enabled = isAjukanEnabled,
+                                    variant = ButtonVariant.Primary,
+                                    size = ButtonSize.MD,
+                                    fullWidth = true
+                                )
+                            }
+                        }
+                    }
+                }
+            } else {
+                items(filteredList, key = { it.id ?: it.hashCode().toString() }) { loan ->
+                    Box(modifier = Modifier.padding(horizontal = 18.dp)) {
+                        HistoryLoanCard(
+                            loan = loan,
+                            currencyFormatter = currencyFormatter,
+                            onClick = { onDetailClick(loan) }
+                        )
+                    }
+                }
+            }
         }
     }
+}
 
 @Composable
 private fun HistoryLoanCard(
@@ -293,39 +295,24 @@ private fun HistoryLoanCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Icon riwayat dikomen sesuai permintaan agar lebih clean
-                    /*
-                    Box(
-                        modifier = Modifier
-                            .size(28.dp)
-                            .clip(RoundedCornerShape(7.dp))
-                            .background(Primary0),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Lucide.FileText,
-                            contentDescription = null,
-                            tint = Primary,
-                            modifier = Modifier.size(15.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    */
-                    Column {
-                        Text(
-                            text = loan.nomorPengajuan ?: "No. Pengajuan",
-                            fontSize = 13.5.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary
-                        )
-                        Spacer(modifier = Modifier.height(1.dp))
-                        Text(
-                            text = loan.createdDate?.take(10) ?: "Baru saja",
-                            fontSize = 11.sp,
-                            color = TextMuted
-                        )
-                    }
+                Column {
+                    Text(
+                        text = loan.nomorPengajuan ?: "No. Pengajuan",
+                        fontSize = 13.5.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+                    Spacer(modifier = Modifier.height(1.dp))
+                    // Text(
+                    //     text = loan.createdDate?.take(10) ?: "Baru saja",
+                    //     fontSize = 11.sp,
+                    //     color = TextMuted
+                    // )
+                    Text(
+                        text = formatIndoDate(loan.createdDate),
+                        fontSize = 11.sp,
+                        color = TextMuted
+                    )
                 }
 
                 Badge(
@@ -342,7 +329,7 @@ private fun HistoryLoanCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(10.dp))
-                    .background(Background)
+                    .background(Primary0)
                     .padding(10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -352,7 +339,7 @@ private fun HistoryLoanCard(
                         text = "Rp ${currencyFormatter.format(loan.jumlahPinjaman ?: 0.0)}",
                         fontSize = 13.5.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Primary
+                        color = TextPrimary
                     )
                 }
 
@@ -393,5 +380,25 @@ private fun HistoryLoanCard(
                 )
             }
         }
+    }
+}
+
+private fun formatIndoDate(dateStr: String?): String {
+    if (dateStr.isNullOrBlank()) return "Baru saja"
+    return try {
+        val clean = dateStr.substringBefore("T")
+        val parts = clean.split("-")
+        if (parts.size == 3) {
+            val year = parts[0]
+            val monthNum = parts[1].toIntOrNull() ?: 1
+            val day = parts[2].toIntOrNull() ?: 1
+            val monthNames = listOf("Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember")
+            val monthName = monthNames.getOrElse(monthNum - 1) { "Bulan" }
+            "$day $monthName $year"
+        } else {
+            dateStr
+        }
+    } catch (e: Exception) {
+        dateStr
     }
 }

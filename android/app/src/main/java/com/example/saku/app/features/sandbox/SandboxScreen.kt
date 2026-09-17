@@ -463,7 +463,7 @@ private fun Phase5ShowcaseSection(onToast: (String) -> Unit) {
                             amountLabel = "Total Pencairan Bersih",
                             referenceId = "SK-TRX-8829103",
                             details = listOf(
-                                ResultDetailItem("Rekening Tujuan", "BCA (•••• 8821)"),
+                                ResultDetailItem("Rekening Tujuan", "Bank Transfer (•••• 8821)"),
                                 ResultDetailItem("Tenor Pinjaman", "12 Bulan"),
                                 ResultDetailItem("Angsuran per Bulan", "Rp 476.000 / bln", isHighlighted = true),
                                 ResultDetailItem("Biaya Administrasi", "Gratis")
@@ -485,7 +485,7 @@ private fun Phase5ShowcaseSection(onToast: (String) -> Unit) {
                             amountLabel = "Nominal Pembayaran Angsuran",
                             referenceId = "SK-PAY-9921004",
                             details = listOf(
-                                ResultDetailItem("Metode Pembayaran", "BCA Virtual Account"),
+                                ResultDetailItem("Metode Pembayaran", "SAKU Virtual Account"),
                                 ResultDetailItem("Waktu Transaksi", "10 Sep 2026, 14:30 WIB"),
                                 ResultDetailItem("Estimasi Selesai", "Maks. 5 - 10 Menit", isHighlighted = true)
                             ),
@@ -795,7 +795,7 @@ private fun Phase5ShowcaseSection(onToast: (String) -> Unit) {
                         onClick = {
                             confirmDialogType = DialogType.INFO
                             confirmDialogTitle = "Kirim Pengajuan Sekarang?"
-                            confirmDialogMessage = "Pastikan nominal pinjaman Rp 5.000.000 dan rekening bank BCA sudah sesuai."
+                            confirmDialogMessage = "Pastikan nominal pinjaman Rp 5.000.000 dan rekening bank tujuan sudah sesuai."
                             showConfirmDialog = true
                         },
                         variant = ButtonVariant.Primary,
@@ -836,7 +836,7 @@ private fun Phase4ShowcaseSection(onToast: (String) -> Unit) {
             NotificationItem(
                 id = "1",
                 title = "Pengajuan Pinjaman Disetujui",
-                message = "Pinjaman Kilat Rp 5.000.000 telah disetujui. Dana siap dicairkan ke rekening BCA kamu.",
+                message = "Pinjaman Kilat Rp 5.000.000 telah disetujui. Dana siap dicairkan ke rekening bank kamu.",
                 timestamp = "10 menit yang lalu",
                 category = NotificationCategory.TRANSACTION,
                 isRead = false,
@@ -898,7 +898,7 @@ private fun Phase4ShowcaseSection(onToast: (String) -> Unit) {
             ),
             TimelineStepItem(
                 title = "Pencairan ke Rekening Bank",
-                description = "Dana akan otomatis ditransfer ke rekening BCA terdaftar",
+                description = "Dana akan otomatis ditransfer ke rekening bank terdaftar",
                 state = TimelineStepState.PENDING
             )
         )
@@ -918,7 +918,7 @@ private fun Phase4ShowcaseSection(onToast: (String) -> Unit) {
             HistoryItem(
                 id = "TRX-001",
                 title = "Pencairan Pinjaman Kilat",
-                subtitle = "Rekening BCA (•••• 8821) • 10 Sep 2026, 09:30",
+                subtitle = "Rekening Bank (•••• 8821) • 10 Sep 2026, 09:30",
                 date = "10 Sep 2026",
                 amount = "Rp 5.000.000",
                 isIncome = true,
@@ -929,7 +929,7 @@ private fun Phase4ShowcaseSection(onToast: (String) -> Unit) {
             HistoryItem(
                 id = "TRX-002",
                 title = "Pembayaran Angsuran ke-2",
-                subtitle = "BCA Virtual Account • 08 Sep 2026, 14:15",
+                subtitle = "SAKU Virtual Account • 08 Sep 2026, 14:15",
                 date = "08 Sep 2026",
                 amount = "Rp 476.000",
                 isIncome = false,
@@ -2139,7 +2139,7 @@ private fun SelectionShowcaseSection() {
                 checked = termsChecked,
                 onCheckedChange = { termsChecked = it },
                 label = "Saya menyetujui Syarat dan Ketentuan SAKU",
-                description = "Dengan menyetujui, Anda tunduk pada regulasi OJK dan kebijakan privasi yang berlaku."
+                description = "Dengan menyetujui, Anda tunduk pada regulasi dan kebijakan privasi yang berlaku."
             )
 
             CheckboxWithLabel(

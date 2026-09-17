@@ -180,33 +180,40 @@ private fun CameraFramingContent(
     // Bind CameraX Lifecycle
     LaunchedEffect(lensFacing, flashMode) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-        val cameraProvider = cameraProviderFuture.get()
+        cameraProviderFuture.addListener({
+            try {
+                val cameraProvider = cameraProviderFuture.get()
 
-        val preview = Preview.Builder().build().also {
-            it.setSurfaceProvider(previewView.surfaceProvider)
-        }
+                val preview = Preview.Builder().build().also {
+                    it.setSurfaceProvider(previewView.surfaceProvider)
+                }
 
-        val capture = ImageCapture.Builder()
-            .setFlashMode(flashMode)
-            .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
-            .build()
-        imageCapture = capture
+                val captureBuilder = ImageCapture.Builder()
+                    .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                
+                // Only set flash mode if not front lens
+                if (lensFacing != CameraSelector.LENS_FACING_FRONT) {
+                    captureBuilder.setFlashMode(flashMode)
+                }
 
-        val cameraSelector = CameraSelector.Builder()
-            .requireLensFacing(lensFacing)
-            .build()
+                val capture = captureBuilder.build()
+                imageCapture = capture
 
-        try {
-            cameraProvider.unbindAll()
-            cameraProvider.bindToLifecycle(
-                lifecycleOwner,
-                cameraSelector,
-                preview,
-                capture
-            )
-        } catch (e: Exception) {
-            Log.e("CameraFraming", "Gagal bind camera lifecycle", e)
-        }
+                val cameraSelector = CameraSelector.Builder()
+                    .requireLensFacing(lensFacing)
+                    .build()
+
+                cameraProvider.unbindAll()
+                cameraProvider.bindToLifecycle(
+                    lifecycleOwner,
+                    cameraSelector,
+                    preview,
+                    capture
+                )
+            } catch (e: Exception) {
+                Log.e("CameraFraming", "Gagal bind camera lifecycle", e)
+            }
+        }, ContextCompat.getMainExecutor(context))
     }
 
     // Scanning animated line effect
@@ -555,12 +562,17 @@ private fun CameraFramingContent(
                                             imageProxy.close()
 
                                             // Crop bitmap directly to the framed viewport area for maximum OCR clarity
-                                            val croppedBitmap = cropBitmapToFrame(
-                                                rawBitmap = rawBitmap,
-                                                screenWidth = screenWidthPx,
-                                                screenHeight = screenHeightPx,
-                                                frameRect = frameRect
-                                            )
+                                            val croppedBitmap = try {
+                                                cropBitmapToFrame(
+                                                    rawBitmap = rawBitmap,
+                                                    screenWidth = screenWidthPx,
+                                                    screenHeight = screenHeightPx,
+                                                    frameRect = frameRect
+                                                )
+                                            } catch (cropErr: Exception) {
+                                                Log.w("CameraFraming", "Crop failed, fallback to raw bitmap", cropErr)
+                                                rawBitmap
+                                            }
 
                                             onImageCaptured(croppedBitmap)
                                             onDismiss()
@@ -640,13 +652,17 @@ private fun CameraFramingContent(
  * Mengonversi ImageProxy dari CameraX menjadi Bitmap dengan rotasi yang benar
  */
 private fun imageProxyToBitmap(imageProxy: ImageProxy): Bitmap {
-    val buffer = imageProxy.planes[0].buffer
-    val bytes = ByteArray(buffer.remaining())
-    buffer.get(bytes)
-    val bitmap = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-
     val rotation = imageProxy.imageInfo.rotationDegrees
-    return if (rotation != 0) {
+    val bitmap = try {
+        imageProxy.toBitmap()
+    } catch (_: Exception) {
+        val buffer = imageProxy.planes[0].buffer
+        val bytes = ByteArray(buffer.remaining())
+        buffer.get(bytes)
+        android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+    }
+
+    return if (rotation != 0 && bitmap != null) {
         val matrix = Matrix().apply { postRotate(rotation.toFloat()) }
         val rotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
         if (rotated != bitmap) {
@@ -654,7 +670,7 @@ private fun imageProxyToBitmap(imageProxy: ImageProxy): Bitmap {
         }
         rotated
     } else {
-        bitmap
+        bitmap ?: Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
     }
 }
 
@@ -671,6 +687,10 @@ private fun cropBitmapToFrame(
     val bmpWidth = rawBitmap.width.toFloat()
     val bmpHeight = rawBitmap.height.toFloat()
 
+    if (screenWidth <= 0 || screenHeight <= 0 || bmpWidth <= 0 || bmpHeight <= 0) {
+        return rawBitmap
+    }
+
     // Hitung rasio skala tampilan terhadap ukuran bitmap sesungguhnya
     val scale = max(bmpWidth / screenWidth, bmpHeight / screenHeight)
 
@@ -684,13 +704,13 @@ private fun cropBitmapToFrame(
     val marginX = (frameRect.width * 0.06f)
     val marginY = (frameRect.height * 0.06f)
 
-    val cropLeft = ((frameRect.left - marginX) * scale - offsetX).toInt().coerceIn(0, rawBitmap.width - 1)
-    val cropTop = ((frameRect.top - marginY) * scale - offsetY).toInt().coerceIn(0, rawBitmap.height - 1)
-    val cropRight = ((frameRect.right + marginX) * scale - offsetX).toInt().coerceIn(cropLeft + 1, rawBitmap.width)
-    val cropBottom = ((frameRect.bottom + marginY) * scale - offsetY).toInt().coerceIn(cropTop + 1, rawBitmap.height)
+    val cropLeft = ((frameRect.left - marginX) * scale - offsetX).toInt().coerceIn(0, (rawBitmap.width - 1).coerceAtLeast(0))
+    val cropTop = ((frameRect.top - marginY) * scale - offsetY).toInt().coerceIn(0, (rawBitmap.height - 1).coerceAtLeast(0))
+    val rawCropRight = ((frameRect.right + marginX) * scale - offsetX).toInt()
+    val rawCropBottom = ((frameRect.bottom + marginY) * scale - offsetY).toInt()
 
-    val cropWidth = cropRight - cropLeft
-    val cropHeight = cropBottom - cropTop
+    val cropWidth = (rawCropRight - cropLeft).coerceIn(1, rawBitmap.width - cropLeft)
+    val cropHeight = (rawCropBottom - cropTop).coerceIn(1, rawBitmap.height - cropTop)
 
     return if (cropWidth > 50 && cropHeight > 50) {
         val cropped = Bitmap.createBitmap(rawBitmap, cropLeft, cropTop, cropWidth, cropHeight)

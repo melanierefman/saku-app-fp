@@ -49,7 +49,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.androidx.compose.koinViewModel
 import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.CircleAlert
 import com.composables.icons.lucide.CircleCheck
@@ -77,7 +77,7 @@ import kotlinx.coroutines.delay
 fun ForgotPasswordScreen(
     onNavigateBack: () -> Unit,
     onNavigateToLogin: () -> Unit,
-    viewModel: ForgotPasswordViewModel = viewModel()
+    viewModel: ForgotPasswordViewModel = koinViewModel()
 ) {
     val step by viewModel.currentStep.collectAsState()
     val email by viewModel.email.collectAsState()

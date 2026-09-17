@@ -28,6 +28,7 @@ class TokenManager(private val context: Context) {
         private val KEY_NO_HP = stringPreferencesKey("no_hp")
         private val KEY_ROLE = stringPreferencesKey("role")
         private val KEY_IS_KYC_VERIFIED = booleanPreferencesKey("is_kyc_verified")
+        private val KEY_IS_ONBOARDING_COMPLETED = booleanPreferencesKey("is_onboarding_completed")
         private val KEY_CACHED_PROFILE_JSON = stringPreferencesKey("cached_profile_json")
 
         @Volatile
@@ -39,6 +40,14 @@ class TokenManager(private val context: Context) {
             }
         }
     }
+
+    val isOnboardingCompletedFlow: Flow<Boolean> = context.dataStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }
+        .map { preferences ->
+            preferences[KEY_IS_ONBOARDING_COMPLETED] ?: false
+        }
 
     val accessTokenFlow: Flow<String?> = context.dataStore.data
         .catch { exception ->
@@ -156,9 +165,17 @@ class TokenManager(private val context: Context) {
         return cachedProfileJsonFlow.first()
     }
 
+    suspend fun setOnboardingCompleted(completed: Boolean = true) {
+        context.dataStore.edit { preferences ->
+            preferences[KEY_IS_ONBOARDING_COMPLETED] = completed
+        }
+    }
+
     suspend fun clearSession() {
         context.dataStore.edit { preferences ->
+            val wasOnboardingCompleted = preferences[KEY_IS_ONBOARDING_COMPLETED] ?: true
             preferences.clear()
+            preferences[KEY_IS_ONBOARDING_COMPLETED] = wasOnboardingCompleted
         }
     }
 }

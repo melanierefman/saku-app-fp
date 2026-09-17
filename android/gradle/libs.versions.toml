@@ -7,6 +7,7 @@ espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.11.0"
 activityCompose = "1.13.0"
 kotlin = "2.2.10"
+ksp = "2.2.10-2.0.2"
 composeBom = "2026.02.01"
 navigationCompose = "2.8.8"
 retrofit = "2.11.0"
@@ -21,8 +22,17 @@ coroutines = "1.10.2"
 mockk = "1.14.11"
 androidxTestCore = "1.7.0"
 robolectric = "4.17"
+room = "2.7.0"
+hilt = "2.51.1"
+hiltNavigationCompose = "1.2.0"
+rootbeer = "0.1.1"
+
+googleServices = "4.4.2"
+firebaseBom = "33.10.0"
 
 [libraries]
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging-ktx" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -59,7 +69,23 @@ androidx-test-core = { group = "androidx.test", name = "core", version.ref = "an
 okhttp-mockwebserver = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "okhttp" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 
+# Room
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+
+# Koin Dependency Injection
+koin-android = { group = "io.insert-koin", name = "koin-android", version = "3.5.6" }
+koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version = "3.5.6" }
+
+# Root Detection & Security
+rootbeer-lib = { group = "com.scottyab", name = "rootbeer-lib", version.ref = "rootbeer" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+
 

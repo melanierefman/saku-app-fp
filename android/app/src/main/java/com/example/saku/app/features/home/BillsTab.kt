@@ -81,6 +81,10 @@ import com.example.saku.app.ui.theme.Surface
 import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary
 import com.example.saku.app.ui.theme.TextSecondary
+import com.example.saku.app.ui.theme.Warning
+import com.example.saku.app.ui.theme.Warning0
+import com.example.saku.app.ui.theme.Warning20
+import com.example.saku.app.ui.theme.Warning80
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -578,7 +582,7 @@ private fun CleanBillItemCard(
                         text = "Rp ${currencyFormatter.format(Math.round(item.nominal))}",
                         fontSize = 17.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = if (item.isPaid) TextPrimary else (if (isTopUrgent) Primary else TextPrimary),
+                        color = TextPrimary,
                         style = TextStyle(
                             fontFamily = OverusedGrotesk,
                             platformStyle = PlatformTextStyle(includeFontPadding = false),
@@ -616,33 +620,25 @@ private fun CleanBillItemCard(
                 Spacer(modifier = Modifier.height(10.dp))
                 val noteBg = when {
                     item.isOverdue -> Color(0xFFFEF2F2)
-                    item.daysRemaining <= 1L -> Color(0xFFFFF7ED)
-                    item.daysRemaining <= 3L -> Color(0xFFFFFBEB)
-                    else -> Primary0.copy(alpha = 0.5f)
+                    else -> Warning0
                 }
                 val noteBorder = when {
                     item.isOverdue -> Color(0xFFFECACA)
-                    item.daysRemaining <= 1L -> Color(0xFFFED7AA)
-                    item.daysRemaining <= 3L -> Color(0xFFFDE68A)
-                    else -> Primary.copy(alpha = 0.15f)
+                    else -> Warning20
                 }
                 val noteTextColor = when {
                     item.isOverdue -> Color(0xFF991B1B)
-                    item.daysRemaining <= 1L -> Color(0xFF9A3412)
-                    item.daysRemaining <= 3L -> Color(0xFF92400E)
-                    else -> Primary
+                    else -> Warning80
                 }
                 val noteIconTint = when {
                     item.isOverdue -> Error
-                    item.daysRemaining <= 1L -> Color(0xFFEA580C)
-                    item.daysRemaining <= 3L -> Color(0xFFD97706)
-                    else -> Primary
+                    else -> Warning
                 }
                 val noteMessage = when {
                     item.isOverdue -> "Tagihan telah lewat jatuh tempo ${Math.abs(item.daysRemaining)} hari. Harap segera bayar agar terhindar dari denda."
                     item.daysRemaining == 0L -> "Jatuh tempo hari ini! Segera lakukan pembayaran sebelum pukul 23:59 WIB."
                     item.daysRemaining == 1L -> "Jatuh tempo besok. Pastikan saldo Anda mencukupi untuk pembayaran."
-                    else -> "Jatuh tempo dalam ${item.daysRemaining} hari lagi (${item.formattedJatuhTempo})."
+                    else -> "Jatuh tempo dalam ${item.daysRemaining} hari lagi."
                 }
 
                 Row(

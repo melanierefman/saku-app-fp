@@ -63,6 +63,7 @@ import com.example.saku.app.core.ui.components.ButtonSize
 import com.example.saku.app.core.ui.components.ButtonVariant
 import com.example.saku.app.ui.theme.Background
 import com.example.saku.app.ui.theme.Border
+import com.example.saku.app.ui.theme.Neutral0
 import com.example.saku.app.ui.theme.Primary
 import com.example.saku.app.ui.theme.Primary0
 import com.example.saku.app.ui.theme.Primary60
@@ -71,6 +72,7 @@ import com.example.saku.app.ui.theme.Surface
 import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary
 import com.example.saku.app.ui.theme.TextSecondary
+import com.example.saku.app.ui.theme.Warning0
 import java.text.NumberFormat
 
 @Composable
@@ -213,12 +215,12 @@ fun LoansTabContent(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
-                                        Icon(
-                                            imageVector = Lucide.Wallet,
-                                            contentDescription = null,
-                                            tint = TextPrimary,
-                                            modifier = Modifier.size(18.dp)
-                                        )
+//                                        Icon(
+//                                            imageVector = Lucide.Wallet,
+//                                            contentDescription = null,
+//                                            tint = TextPrimary,
+//                                            modifier = Modifier.size(18.dp)
+//                                        )
                                         Text(
                                             text = "Sisa Plafond Pinjaman",
                                             fontSize = 13.5.sp,
@@ -243,7 +245,7 @@ fun LoansTabContent(
                                     text = "Rp ${currencyFormatter.format(availablePlafond)}",
                                     fontSize = 25.sp,
                                     fontWeight = FontWeight.ExtraBold,
-                                    color = Primary,
+                                    color = TextPrimary,
                                     letterSpacing = (-0.5).sp
                                 )
 
@@ -473,8 +475,13 @@ private fun LoanItemCard(
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
                     )
+                    // Text(
+                    //     text = loan.createdDate?.take(10) ?: "Baru saja",
+                    //     fontSize = 10.5.sp,
+                    //     color = TextMuted
+                    // )
                     Text(
-                        text = loan.createdDate?.take(10) ?: "Baru saja",
+                        text = formatIndoDate(loan.createdDate),
                         fontSize = 10.5.sp,
                         color = TextMuted
                     )
@@ -503,7 +510,7 @@ private fun LoanItemCard(
                         text = "Rp ${currencyFormatter.format(loan.jumlahPinjaman ?: 0.0)}",
                         fontSize = 13.5.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Primary
+                        color = TextPrimary
                     )
                 }
                 Column(horizontalAlignment = Alignment.End) {
@@ -597,5 +604,25 @@ private fun LoanFeatureRow(
                 color = TextSecondary
             )
         }
+    }
+}
+
+private fun formatIndoDate(dateStr: String?): String {
+    if (dateStr.isNullOrBlank()) return "Baru saja"
+    return try {
+        val clean = dateStr.substringBefore("T")
+        val parts = clean.split("-")
+        if (parts.size == 3) {
+            val year = parts[0]
+            val monthNum = parts[1].toIntOrNull() ?: 1
+            val day = parts[2].toIntOrNull() ?: 1
+            val monthNames = listOf("Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember")
+            val monthName = monthNames.getOrElse(monthNum - 1) { "Bulan" }
+            "$day $monthName $year"
+        } else {
+            dateStr
+        }
+    } catch (e: Exception) {
+        dateStr
     }
 }

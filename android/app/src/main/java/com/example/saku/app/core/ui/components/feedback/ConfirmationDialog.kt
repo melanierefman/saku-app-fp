@@ -76,7 +76,7 @@ fun ConfirmationDialog(
         val (bubbleBg, iconTint, defaultIcon, defaultConfirmVariant) = when (type) {
             DialogType.WARNING -> Tuple4(Warning0, Warning, Lucide.CircleAlert, ButtonVariant.Warning)
             DialogType.DESTRUCTIVE -> Tuple4(Error0, Error, Lucide.Trash2, ButtonVariant.Error)
-            DialogType.INFO -> Tuple4(Info0, Info, Lucide.Info, ButtonVariant.Primary)
+            DialogType.INFO -> Tuple4(Primary0, Primary, Lucide.Info, ButtonVariant.Primary)
             DialogType.SUCCESS -> Tuple4(Success0, Success, Lucide.CircleCheck, ButtonVariant.Success)
         }
 

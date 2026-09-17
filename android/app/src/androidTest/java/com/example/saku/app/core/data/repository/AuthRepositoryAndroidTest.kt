@@ -132,7 +132,14 @@ class AuthRepositoryAndroidTest {
         context = ApplicationProvider.getApplicationContext()
         tokenManager = TokenManager.getInstance(context)
         fakeAuthApiService = FakeAuthApiService()
-        authRepository = AuthRepositoryImpl(fakeAuthApiService, tokenManager)
+        val db = com.example.saku.app.core.database.AppDatabase.getInstance(context)
+        authRepository = AuthRepositoryImpl(
+            authApiService = fakeAuthApiService,
+            tokenManager = tokenManager,
+            customerDao = db.customerDao(),
+            loanDao = db.loanDao(),
+            notificationDao = db.notificationDao()
+        )
     }
 
     @After
