@@ -32,6 +32,9 @@ import com.bcafinance.backend_saku.core.repository.KaryawanRepository;
 import com.bcafinance.backend_saku.core.repository.PengajuanPinjamanRepository;
 import com.bcafinance.backend_saku.core.repository.PersetujuanRepository;
 import com.bcafinance.backend_saku.core.repository.ReviewPengajuanRepository;
+import com.bcafinance.backend_saku.core.dto.PlafondOptionResponse;
+import com.bcafinance.backend_saku.core.entity.Plafond;
+import com.bcafinance.backend_saku.core.repository.PlafondRepository;
 import com.bcafinance.backend_saku.core.repository.ScoringCustomerRepository;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
@@ -59,7 +62,7 @@ public class BranchManagerPersetujuanService {
     private final AlamatCustomerRepository alamatRepository;
     private final DokumenCustomerRepository dokumenCustomerRepository;
     private final DokumenPinjamanRepository dokumenPinjamanRepository;
-
+    private final PlafondRepository plafondRepository;
     private final ScoringCustomerRepository scoringRepository;
     private final KaryawanRepository karyawanRepository;
     private final CabangRepository cabangRepository;
@@ -292,6 +295,20 @@ public class BranchManagerPersetujuanService {
         BigDecimal estimasiCicilan = calculateEstimasiAngsuran(
                 pengajuan.getJumlahPinjaman(), pengajuan.getTenorBulan(), pengajuan.getBunga());
 
+        List<PlafondOptionResponse> availablePlafondTiers = plafondRepository.findAllByStatusTrue().stream()
+                .map(p -> PlafondOptionResponse.builder()
+                        .id(p.getId())
+                        .nama(p.getNama())
+                        .minPendapatan(p.getMinPendapatan())
+                        .plafondMaksimal(p.getPlafondMaksimal())
+                        .minSkor(p.getMinSkor())
+                        .maxSkor(p.getMaxSkor())
+                        .bunga(p.getBunga())
+                        .biayaAdmin(p.getBiayaAdmin())
+                        .status(p.getStatus())
+                        .build())
+                .toList();
+
         return BranchManagerPengajuanDetailResponse.builder()
                 // 1. Info Utama Pengajuan
                 .pengajuanId(pengajuan.getId())
@@ -306,6 +323,7 @@ public class BranchManagerPersetujuanService {
                 .email(customer.getEmail())
                 .nik(customer.getNik())
                 .noHp(customer.getNoHp())
+                .namaIbuKandung(customer.getNamaIbuKandung())
                 .pekerjaan(scoringOpt.map(ScoringCustomer::getPekerjaan).orElse(null))
                 .tempatKerja(scoringOpt.map(ScoringCustomer::getTempatKerja).orElse(null))
                 .statusPekerjaan(scoringOpt.map(ScoringCustomer::getStatusPekerjaan).orElse(null))
@@ -330,12 +348,23 @@ public class BranchManagerPersetujuanService {
                 .penghasilanBulananScoring(scoringOpt.map(ScoringCustomer::getPenghasilanBulanan).orElse(null))
                 .lamaBekerjaBulan(scoringOpt.map(ScoringCustomer::getLamaBekerjaBulan).orElse(null))
                 .cicilanBerjalan(scoringOpt.map(ScoringCustomer::getTotalCicilanLainBulanan).orElse(null))
-                .skor(scoringOpt.map(ScoringCustomer::getSkor).orElse(null))
-                .statusScoring(scoringOpt.map(ScoringCustomer::getStatusScoring).orElse(null))
+                .skor(analysis != null ? analysis.getSkor() : (scoringOpt.map(ScoringCustomer::getSkor).orElse(null)))
+                .statusScoring(analysis != null ? analysis.getStatusScoring() : (scoringOpt.map(ScoringCustomer::getStatusScoring).orElse(null)))
+                .keputusanSistem(analysis != null ? analysis.getKeputusanSistem() : null)
+                .dbr(analysis != null ? analysis.getDbr() : null)
+                .dbrPercentage(analysis != null ? analysis.getDbrPercentage() : null)
                 .plafonNama(analysis != null ? analysis.getMatchedPlafondNama() : null)
                 .plafonMaksimal(analysis != null ? analysis.getMatchedPlafondMaksimal() : null)
                 .notesAmbigu(analysis != null ? analysis.getIndikatorAmbigu() : List.of())
                 .ringkasanScoring(analysis != null ? analysis.getRingkasanAnalisis() : null)
+                .isAmbigu(analysis != null ? analysis.getIsAmbigu() : false)
+                .rekomendasiAksi(analysis != null ? analysis.getRekomendasiAksi() : null)
+                .rekomendasiTierId(analysis != null ? analysis.getRekomendasiTierId() : null)
+                .rekomendasiTierNama(analysis != null ? analysis.getRekomendasiTierNama() : null)
+                .rekomendasiBunga(analysis != null ? analysis.getRekomendasiBunga() : null)
+                .rekomendasiBiayaAdmin(analysis != null ? analysis.getRekomendasiBiayaAdmin() : null)
+                .rekomendasiAlasan(analysis != null ? analysis.getRekomendasiAlasan() : null)
+                .availablePlafondTiers(availablePlafondTiers)
 
                 // 5. Detail Pinjaman
                 .jumlahPinjaman(pengajuan.getJumlahPinjaman())
@@ -403,6 +432,45 @@ public class BranchManagerPersetujuanService {
         } else {
             hasilPersetujuan = "DITOLAK";
             newStatusPengajuan = "PENGAJUAN_DITOLAK";
+        }
+
+        if ("DISETUJUI".equals(hasilPersetujuan)) {
+            // Penyesuaian Tier jika dipilih oleh BM
+            if (request.getPenyesuaianTierId() != null) {
+                Plafond targetTier = plafondRepository.findById(request.getPenyesuaianTierId()).orElse(null);
+                if (targetTier != null) {
+                    BigDecimal bunga = request.getAdjustedBunga() != null ? request.getAdjustedBunga() : targetTier.getBunga();
+                    BigDecimal admin = request.getAdjustedBiayaAdmin() != null ? request.getAdjustedBiayaAdmin() : targetTier.getBiayaAdmin();
+                    pengajuan.setBunga(bunga);
+                    pengajuan.setBiayaAdmin(admin);
+
+                    // Update scoring customer profile plafond jika ada
+                    Optional<ScoringCustomer> scoringOpt = Optional.empty();
+                    if (pengajuan.getTrxScoringCustomerId() != null) {
+                        scoringOpt = scoringRepository.findById(pengajuan.getTrxScoringCustomerId());
+                    }
+                    if (scoringOpt.isEmpty()) {
+                        scoringOpt = scoringRepository.findFirstByMstCustomerIdOrderByCreatedDateDesc(pengajuan.getMstCustomerId());
+                    }
+                    if (scoringOpt.isPresent()) {
+                        ScoringCustomer sc = scoringOpt.get();
+                        sc.setMstPlafondId(targetTier.getId());
+                        sc.setUpdatedDate(LocalDateTime.now());
+                        scoringRepository.save(sc);
+                    }
+                }
+            } else {
+                if (request.getAdjustedBunga() != null) {
+                    pengajuan.setBunga(request.getAdjustedBunga());
+                }
+                if (request.getAdjustedBiayaAdmin() != null) {
+                    pengajuan.setBiayaAdmin(request.getAdjustedBiayaAdmin());
+                }
+            }
+
+            if (request.getAdjustedJumlahPinjaman() != null && request.getAdjustedJumlahPinjaman().compareTo(BigDecimal.ZERO) > 0) {
+                pengajuan.setJumlahPinjaman(request.getAdjustedJumlahPinjaman());
+            }
         }
 
         Persetujuan persetujuan = new Persetujuan();
@@ -520,16 +588,19 @@ public class BranchManagerPersetujuanService {
     }
 
     private BigDecimal calculateEstimasiAngsuran(BigDecimal jumlahPinjaman, Integer tenorBulan,
-            BigDecimal bungaTahunan) {
+            BigDecimal bunga) {
         if (jumlahPinjaman == null || tenorBulan == null || tenorBulan <= 0) {
             return BigDecimal.ZERO;
         }
 
         BigDecimal pokokBulanan = jumlahPinjaman.divide(BigDecimal.valueOf(tenorBulan), 2, RoundingMode.HALF_UP);
-        BigDecimal rate = bungaTahunan != null ? bungaTahunan : BigDecimal.ZERO;
+        BigDecimal rate = bunga != null ? bunga : BigDecimal.ZERO;
+        BigDecimal ratePct = (rate.compareTo(BigDecimal.ONE) <= 0 && rate.compareTo(BigDecimal.ZERO) > 0)
+                ? rate.multiply(BigDecimal.valueOf(100))
+                : rate;
         BigDecimal bungaBulanan = jumlahPinjaman
-                .multiply(rate.movePointLeft(2))
-                .divide(BigDecimal.valueOf(12), 2, RoundingMode.HALF_UP);
+                .multiply(ratePct)
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
 
         return pokokBulanan.add(bungaBulanan);
     }

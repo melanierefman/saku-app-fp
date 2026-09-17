@@ -38,6 +38,14 @@ public class ScoringAnalysisResponse {
     private List<String> indikatorAmbigu;
     private String ringkasanAnalisis;
 
+    // Rekomendasi Aksi Sistem (untuk BM / Marketing)
+    private String rekomendasiAksi;
+    private UUID rekomendasiTierId;
+    private String rekomendasiTierNama;
+    private BigDecimal rekomendasiBunga;
+    private BigDecimal rekomendasiBiayaAdmin;
+    private String rekomendasiAlasan;
+
     // Rincian Penilaian Tiap Faktor
     private ScoringBreakdown breakdown;
 }

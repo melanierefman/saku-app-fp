@@ -22,7 +22,10 @@ public class NotifikasiResponse {
     private String judul;
     private String pesan;
     private String status;
+
+    @com.fasterxml.jackson.annotation.JsonProperty("isRead")
     private boolean isRead;
+
     private UUID pengajuanPinjamanId;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")

@@ -34,6 +34,7 @@ public class MarketingPengajuanDetailResponse {
     private String email;
     private String nik;
     private String noHp;
+    private String namaIbuKandung;
     private String pekerjaan;
     private String tempatKerja;
     private String statusPekerjaan;
@@ -69,6 +70,13 @@ public class MarketingPengajuanDetailResponse {
     private Boolean isAmbigu;
     private List<String> notesAmbigu;
     private String ringkasanAnalisis;
+    private String rekomendasiAksi;
+    private UUID rekomendasiTierId;
+    private String rekomendasiTierNama;
+    private BigDecimal rekomendasiBunga;
+    private BigDecimal rekomendasiBiayaAdmin;
+    private String rekomendasiAlasan;
+    private List<com.bcafinance.backend_saku.core.dto.PlafondOptionResponse> availablePlafondTiers;
     private ScoringBreakdown breakdown;
 
     // Detail Pinjaman

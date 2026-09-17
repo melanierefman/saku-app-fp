@@ -1,0 +1,18 @@
+services:
+  # ==========================================
+  # SAKU Spring Boot Backend Application
+  # Connects to remote PostgreSQL & Redis at 129.226.195.9
+  # ==========================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: saku-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    volumes:
+      # Persistent host directory for customer uploads (KTP, selfies, loan files)
+      - ./uploads:/app/uploads

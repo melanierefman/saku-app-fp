@@ -34,16 +34,16 @@ export class LandingPageComponent implements OnInit {
     this.titleService.setTitle('SAKU - Solusi Pinjaman Digital Cepat, Aman & Terpercaya | Aplikasi Fintech SAKU');
     this.metaService.updateTag({
       name: 'description',
-      content: 'SAKU adalah platform pinjaman digital terdepan di Indonesia. Dapatkan pinjaman dana tunai dan modal usaha kilat hingga Rp 50 Juta dengan bunga rendah mulai 0.99%, persetujuan 5 menit, tanpa agunan, dan resmi diawasi oleh OJK.',
+      content: 'SAKU adalah platform pinjaman digital terdepan di Indonesia. Dapatkan pinjaman dana tunai dan modal usaha kilat hingga Rp 50 Juta dengan bunga rendah mulai 0.99%, persetujuan 5 menit, tanpa agunan, aman dan terpercaya sesuai regulasi yang berlaku.',
     });
     this.metaService.updateTag({
       name: 'keywords',
-      content: 'SAKU, aplikasi SAKU, SAKU app, pinjaman SAKU, pinjaman online SAKU, fintech SAKU, pinjaman dana tunai, pinjol legal OJK, pinjaman bunga rendah, kredit instan, pinjaman modal UMKM',
+      content: 'SAKU, aplikasi SAKU, SAKU app, pinjaman SAKU, pinjaman online SAKU, fintech SAKU, pinjaman dana tunai, pinjaman terpercaya, pinjaman bunga rendah, kredit instan, pinjaman modal UMKM',
     });
     this.metaService.updateTag({ property: 'og:title', content: 'SAKU - Solusi Pinjaman Digital Cepat, Aman & Terpercaya' });
     this.metaService.updateTag({
       property: 'og:description',
-      content: 'Solusi pinjaman dana tunai & modal usaha instan hingga Rp 50 Juta dengan bunga bersahabat mulai 0.99%. Terdaftar & diawasi resmi oleh OJK.',
+      content: 'Solusi pinjaman dana tunai & modal usaha instan hingga Rp 50 Juta dengan bunga bersahabat mulai 0.99%. Aman dan sesuai regulasi yang berlaku.',
     });
   }
 }

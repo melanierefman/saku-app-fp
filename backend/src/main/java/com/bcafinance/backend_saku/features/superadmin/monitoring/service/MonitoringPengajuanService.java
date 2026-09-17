@@ -106,6 +106,7 @@ public class MonitoringPengajuanService {
                 .email(base.getEmail())
                 .nik(base.getNik())
                 .noHp(base.getNoHp())
+                .namaIbuKandung(base.getNamaIbuKandung())
                 .pekerjaan(base.getPekerjaan())
                 .tempatKerja(base.getTempatKerja())
                 .statusPekerjaan(base.getStatusPekerjaan())

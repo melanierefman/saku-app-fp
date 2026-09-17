@@ -37,6 +37,9 @@ import {
   LucideSend,
   LucideBriefcase,
   LucideArrowLeft,
+  LucideCheckCircle2,
+  LucideXCircle,
+  LucideAlertTriangle,
 } from '@lucide/angular';
 import { environment } from '../../../../../environments/environment';
 import { formatDate as formatDateHelper } from '../../../../shared/utils/date.util';
@@ -71,6 +74,9 @@ export interface DisplayDocItem {
     LucideSend,
     LucideBriefcase,
     LucideArrowLeft,
+    LucideCheckCircle2,
+    LucideXCircle,
+    LucideAlertTriangle,
   ],
   templateUrl: './pengajuan-pinjaman-detail.component.html',
   styleUrl: './pengajuan-pinjaman-detail.component.css',
@@ -129,27 +135,35 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
     ],
     PERLU_REVISI: [
       {
-        value: 'Foto e-KTP buram atau nomor NIK tidak terbaca jelas. Mohon unggah ulang foto e-KTP asli.',
-        label: 'Foto e-KTP Buram / Tidak Jelas',
+        value: 'Rekening koran wajib memuat mutasi 3 bulan terakhir. Berkas yang diunggah belum genap 3 bulan. Mohon unggah ulang rekening koran 3 bulan lengkap.',
+        label: 'Rekening Koran Kurang dari 3 Bulan',
       },
       {
-        value: 'Slip gaji tidak mencantumkan stempel/tanda tangan HRD atau nominal tidak sesuai. Mohon unggah slip gaji resmi.',
-        label: 'Slip Gaji Tidak Lengkap / Non-Resmi',
+        value: 'Berkas rekening koran terpotong, buram, atau rincian transaksi tidak terbaca jelas. Mohon unggah ulang dokumen asli/PDF resmi.',
+        label: 'Rekening Koran Buram / Terpotong',
       },
       {
-        value: 'Foto liveness selfie tidak cocok dengan foto identitas e-KTP. Mohon unggah ulang foto selfie wajah terbaru.',
-        label: 'Foto Selfie Liveness Tidak Cocok',
+        value: 'Slip gaji tidak jelas, terpotong, atau tidak memuat stempel/pengesahan resmi HRD perusahaan. Mohon unggah slip gaji resmi.',
+        label: 'Slip Gaji Buram / Tanpa Pengesahan HRD',
       },
       {
-        value: 'Dokumen rekening koran 3 bulan terakhir terpotong. Mohon unggah ulang berkas PDF/foto lengkap.',
-        label: 'Rekening Koran Terpotong / Belum Lengkap',
+        value: 'Nominal penghasilan pada slip gaji tidak sesuai dengan data penghasilan yang diinput pada formulir pengajuan. Mohon unggah bukti penghasilan yang valid.',
+        label: 'Nominal Slip Gaji Tidak Sesuai Input',
+      },
+      {
+        value: 'Foto kartu NPWP buram, terpotong, atau nomor NPWP tidak terbaca jelas. Mohon unggah ulang foto fisik kartu NPWP yang jelas.',
+        label: 'Foto Kartu NPWP Buram / Nomor Tidak Terbaca',
+      },
+      {
+        value: 'Berkas dokumen salah input atau tertukar pada kolom unggahan (misal slip gaji dan rekening koran tertukar). Mohon unggah berkas pada kolom yang sesuai.',
+        label: 'Dokumen Tertukar / Salah Kolom Unggah',
       },
       { value: 'LAINNYA', label: 'Lainnya (Tulis catatan khusus)...' },
     ],
     DITOLAK: [
       {
-        value: 'Dokumen identitas atau bukti penghasilan tidak valid / terindikasi manipulasi.',
-        label: 'Dokumen Tidak Valid / Manipulasi',
+        value: 'Dokumen keuangan atau bukti penghasilan tidak valid / terindikasi manipulasi.',
+        label: 'Dokumen Keuangan Tidak Valid / Manipulasi',
       },
       {
         value: 'Penghasilan bulanan di bawah kriteria minimum pembiayaan atau DBR melampaui batas toleransi.',
@@ -270,7 +284,7 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
         this.toastService.success(
           `Keputusan review berhasil disimpan: ${this.getDecisionLabel(decision)}`
         );
-        this.router.navigate(['/pengajuan-pinjaman']);
+        this.loadDetail();
       },
       error: (err) => {
         this.isSubmitting.set(false);
@@ -307,6 +321,11 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
   getEmail(): string {
     const d = this.detail();
     return d?.email || d?.customer?.email || '-';
+  }
+
+  getNamaIbuKandung(): string {
+    const d = this.detail();
+    return d?.namaIbuKandung || (d as any)?.customer?.namaIbuKandung || '-';
   }
 
   getPekerjaan(): string {
@@ -488,7 +507,7 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
     if (d?.isAmbigu !== undefined && d?.isAmbigu !== null) {
       return Boolean(d.isAmbigu);
     }
-    return !!(d?.notesAmbigu && d.notesAmbigu.length > 0);
+    return false;
   }
 
   getNotesAmbigu(): string[] {
@@ -596,73 +615,56 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
     return this.getFileUrl(d?.fotoSelfie);
   }
 
-  getDocuments(): DisplayDocItem[] {
+  getDokumenList(): { type: string; label: string; fileUrl?: string }[] {
     const d = this.detail();
-    const list: DisplayDocItem[] = [];
+    if (!d) return [];
 
-    if (d?.fotoKtp) {
-      list.push({
-        name: 'KTP_Customer.jpg',
-        type: 'KTP',
-        url: this.resolveUrl(d.fotoKtp),
-        isImage: true,
-      });
-    }
+    const list: { type: string; label: string; fileUrl?: string }[] = [];
 
-    if (d?.slipGaji) {
-      list.push({
-        name: 'Slip_Gaji.pdf',
-        type: 'Slip Gaji',
-        url: this.resolveUrl(d.slipGaji),
-        isImage: false,
-      });
-    }
+    if (d.fotoKtp) list.push({ type: 'KTP', label: 'Foto KTP', fileUrl: d.fotoKtp });
+    if (d.slipGaji)
+      list.push({ type: 'SLIP_GAJI', label: 'Slip Gaji', fileUrl: d.slipGaji });
+    if (d.rekeningKoran)
+      list.push({ type: 'REKENING_KORAN', label: 'Rekening Koran', fileUrl: d.rekeningKoran });
+    if (d.npwp)
+      list.push({ type: 'NPWP', label: 'NPWP', fileUrl: d.npwp });
 
-    if (d?.rekeningKoran) {
-      list.push({
-        name: 'Rekening_Koran.pdf',
-        type: 'Rekening Koran',
-        url: this.resolveUrl(d.rekeningKoran),
-        isImage: false,
-      });
-    }
-
-    if (d?.npwp) {
-      list.push({
-        name: 'NPWP.pdf',
-        type: 'NPWP',
-        url: this.resolveUrl(d.npwp),
-        isImage: false,
-      });
-    }
-
-    if (Array.isArray(d?.dokumenPinjamanList)) {
-      d.dokumenPinjamanList.forEach((item: DokumenPinjamanItem) => {
-        if (item.fileUrl) {
-          const docName = this.formatDocTypeName(item.docType);
-          const resolved = this.resolveUrl(item.fileUrl);
-          if (!list.some((existing) => existing.url === resolved)) {
-            list.push({
-              id: item.id,
-              name: docName,
-              type: item.docType || 'Dokumen',
-              url: resolved,
-              isImage: !!item.fileUrl && (item.fileUrl.endsWith('.jpg') || item.fileUrl.endsWith('.png') || item.fileUrl.endsWith('.jpeg')),
-            });
-          }
+    const docs = d.dokumenPinjamanList || d.dokumenList;
+    if (docs && Array.isArray(docs)) {
+      docs.forEach((doc) => {
+        const type = doc.docType || doc.jenisDokumen || 'DOKUMEN';
+        if (type.toUpperCase() !== 'SELFIE' && !list.some((existing) => existing.type === type)) {
+          list.push({
+            type,
+            label: this.formatDocLabel(type),
+            fileUrl: doc.fileUrl,
+          });
         }
       });
     }
 
-    if (list.length === 0) {
-      list.push(
-        { name: 'KTP_Customer.jpg', type: 'KTP', url: '', isImage: true },
-        { name: 'Slip_Gaji_Bulan_Lalu.pdf', type: 'Slip Gaji', url: '', isImage: false },
-        { name: 'Rekening_Koran.pdf', type: 'Rekening Koran', url: '', isImage: false }
-      );
-    }
-
     return list;
+  }
+
+  formatDocLabel(type: string): string {
+    switch (type.toUpperCase()) {
+      case 'KTP':
+        return 'Foto KTP';
+      case 'SLIP_GAJI':
+        return 'Slip Gaji';
+      case 'REKENING_KORAN':
+        return 'Rekening Koran';
+      case 'NPWP':
+        return 'NPWP';
+      case 'KK':
+        return 'Kartu Keluarga';
+      default:
+        return type.replace(/_/g, ' ');
+    }
+  }
+
+  getDocuments(): { type: string; label: string; fileUrl?: string }[] {
+    return this.getDokumenList();
   }
 
   openDocument(fileUrl?: string, docType?: string): void {
@@ -680,28 +682,6 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
     const baseUrl = environment.apiUrl.replace(/\/api\/?$/, '');
     const absoluteUrl = `${baseUrl}/uploads/${cleanPath}`;
     window.open(absoluteUrl, '_blank', 'noopener,noreferrer');
-  }
-
-  private resolveUrl(path?: string): string {
-    return this.getFileUrl(path);
-  }
-
-  private formatDocTypeName(type?: string): string {
-    if (!type) return 'Dokumen_Pendukung.pdf';
-    switch (type.toUpperCase()) {
-      case 'SLIP_GAJI':
-        return 'Slip_Gaji.pdf';
-      case 'REKENING_KORAN':
-        return 'Rekening_Koran.pdf';
-      case 'NPWP':
-        return 'NPWP.pdf';
-      case 'KTP':
-        return 'KTP_Customer.jpg';
-      case 'KK':
-        return 'Kartu_Keluarga.jpg';
-      default:
-        return `${type.toLowerCase()}.pdf`;
-    }
   }
 
   formatCurrency(val: number | null | undefined): string {
@@ -798,5 +778,34 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
       return 'bg-warning-0 border border-warning-20 text-warning-80';
     }
     return 'bg-warning-0 border border-warning-20 text-warning-80';
+  }
+
+  isReviewApproved(): boolean {
+    return this.getStatusDisplayLabel() === 'Disetujui Marketing';
+  }
+
+  isReviewRejected(): boolean {
+    return this.getStatusDisplayLabel() === 'Ditolak Marketing';
+  }
+
+  isReviewRevision(): boolean {
+    return this.getStatusDisplayLabel() === 'Perlu Revisi';
+  }
+
+  formatDateTime(dateStr?: string | null): string {
+    if (!dateStr) return '-';
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return String(dateStr);
+      return new Intl.DateTimeFormat('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(d);
+    } catch {
+      return String(dateStr);
+    }
   }
 }

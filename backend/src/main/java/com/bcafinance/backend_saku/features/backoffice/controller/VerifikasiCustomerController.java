@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -59,8 +60,17 @@ public class VerifikasiCustomerController {
         return ResponseEntity.ok(ApiResponse.success(verifikasiService.getDetail(customerId)));
     }
 
-    @PutMapping("/{customerId}")
+    @PutMapping({"/{customerId}", "/{customerId}/verifikasi"})
     public ResponseEntity<ApiResponse<VerifikasiCustomerResponse>> verify(
+            @PathVariable UUID customerId,
+            @Valid @RequestBody VerifikasiCustomerRequest request,
+            @AuthenticationPrincipal AppUser karyawan) {
+        return ResponseEntity.ok(ApiResponse.success(
+                verifikasiService.verify(customerId, karyawan.getIdKaryawan(), request)));
+    }
+
+    @PostMapping({"/{customerId}", "/{customerId}/verifikasi"})
+    public ResponseEntity<ApiResponse<VerifikasiCustomerResponse>> verifyPost(
             @PathVariable UUID customerId,
             @Valid @RequestBody VerifikasiCustomerRequest request,
             @AuthenticationPrincipal AppUser karyawan) {

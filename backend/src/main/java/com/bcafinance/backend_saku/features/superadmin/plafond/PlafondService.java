@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -56,11 +57,38 @@ public class PlafondService {
 
 
     public PlafondCalculationResponse calculateApprovedAmount(BigDecimal pendapatan, double skorAkhir) {
-        Plafond plafond = plafondRepository
-                .findTopByMinPendapatanLessThanEqualAndStatusTrueOrderByMinPendapatanDesc(pendapatan)
-                .or(() -> plafondRepository.findFirstByStatusTrueOrderByMinSkorAsc())
-                .orElseThrow(() -> new BussinessRuleException(
-                        "Data master plafond aktif belum tersedia di sistem"));
+        List<Plafond> activePlafonds = plafondRepository.findAllByStatusTrue();
+        int skorInt = (int) Math.round(skorAkhir);
+        BigDecimal income = pendapatan != null ? pendapatan : BigDecimal.ZERO;
+
+        // 1. Cari tier berdasarkan rentang skor kredit
+        Optional<Plafond> matchedByScore = activePlafonds.stream()
+                .filter(p -> p.getMinSkor() != null && p.getMaxSkor() != null
+                        && skorInt >= p.getMinSkor() && skorInt <= p.getMaxSkor())
+                .findFirst();
+
+        Plafond plafond = null;
+        if (matchedByScore.isPresent()) {
+            Plafond pScore = matchedByScore.get();
+            BigDecimal minIncome = pScore.getMinPendapatan() != null ? pScore.getMinPendapatan() : BigDecimal.ZERO;
+
+            // Hard Rule: Jika pendapatan nasabah < syarat minimal tier skornya, sistem otomatis down-tier ke tier tertinggi yang sesuai gajinya
+            if (income.compareTo(minIncome) < 0) {
+                plafond = plafondRepository
+                        .findTopByMinPendapatanLessThanEqualAndStatusTrueOrderByMinPendapatanDesc(income)
+                        .orElse(pScore);
+            } else {
+                plafond = pScore;
+            }
+        }
+
+        if (plafond == null) {
+            plafond = plafondRepository
+                    .findTopByMinPendapatanLessThanEqualAndStatusTrueOrderByMinPendapatanDesc(income)
+                    .or(() -> plafondRepository.findFirstByStatusTrueOrderByMinSkorAsc())
+                    .orElseThrow(() -> new BussinessRuleException(
+                            "Data master plafond aktif belum tersedia di sistem"));
+        }
 
         int percentage = mapScoreToPercentage(skorAkhir);
         if (percentage == 0) {

@@ -11,6 +11,8 @@ public interface AlamatCustomerRepository extends JpaRepository<AlamatCustomer, 
 
     void deleteByCustomer_Id(UUID customerId);
 
+    void deleteByCustomer_IdAndJenisAlamat(UUID customerId, String jenisAlamat);
+
     List<AlamatCustomer> findAllByCustomer_Id(UUID customerId);
 
     Optional<AlamatCustomer> findByCustomer_IdAndJenisAlamat(UUID customerId, String jenisAlamat);

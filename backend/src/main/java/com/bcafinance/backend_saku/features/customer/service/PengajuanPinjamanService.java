@@ -261,18 +261,13 @@ public class PengajuanPinjamanService {
     }
 
     private Plafond resolvePlafond(ScoringCustomer scoring) {
-        if (scoring.getMstPlafondId() != null) {
-            Optional<Plafond> opt = plafondRepository.findById(scoring.getMstPlafondId());
-            if (opt.isPresent()) {
-                return opt.get();
-            }
+        Plafond resolved = customerPlafondService.resolveCustomerPlafond(scoring);
+        if (resolved != null) {
+            return resolved;
         }
-
-        BigDecimal pendapatan = scoring.getPenghasilanBulanan() != null ? scoring.getPenghasilanBulanan()
-                : BigDecimal.ZERO;
-
         return plafondRepository
-                .findTopByMinPendapatanLessThanEqualAndStatusTrueOrderByMinPendapatanDesc(pendapatan)
+                .findTopByMinPendapatanLessThanEqualAndStatusTrueOrderByMinPendapatanDesc(
+                        scoring.getPenghasilanBulanan() != null ? scoring.getPenghasilanBulanan() : BigDecimal.ZERO)
                 .or(() -> plafondRepository.findFirstByStatusTrueOrderByMinSkorAsc())
                 .orElseThrow(() -> new BussinessRuleException("Produk plafond belum tersedia di sistem"));
     }
@@ -365,16 +360,19 @@ public class PengajuanPinjamanService {
     }
 
     private BigDecimal calculateEstimasiAngsuran(BigDecimal jumlahPinjaman, Integer tenorBulan,
-            BigDecimal bungaTahunan) {
+            BigDecimal bunga) {
         if (jumlahPinjaman == null || tenorBulan == null || tenorBulan <= 0) {
             return BigDecimal.ZERO;
         }
 
         BigDecimal pokokBulanan = jumlahPinjaman.divide(BigDecimal.valueOf(tenorBulan), 2, RoundingMode.HALF_UP);
-        BigDecimal rate = bungaTahunan != null ? bungaTahunan : BigDecimal.ZERO;
+        BigDecimal rate = bunga != null ? bunga : BigDecimal.ZERO;
+        BigDecimal ratePct = (rate.compareTo(BigDecimal.ONE) <= 0 && rate.compareTo(BigDecimal.ZERO) > 0)
+                ? rate.multiply(BigDecimal.valueOf(100))
+                : rate;
         BigDecimal bungaBulanan = jumlahPinjaman
-                .multiply(rate.movePointLeft(2))
-                .divide(BigDecimal.valueOf(12), 2, RoundingMode.HALF_UP);
+                .multiply(ratePct)
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
 
         return pokokBulanan.add(bungaBulanan);
     }

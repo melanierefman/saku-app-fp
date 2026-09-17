@@ -35,6 +35,7 @@ public class BranchManagerPengajuanDetailResponse {
     private String email;
     private String nik;
     private String noHp;
+    private String namaIbuKandung;
     private String pekerjaan;
     private String tempatKerja;
     private String statusPekerjaan;
@@ -63,10 +64,21 @@ public class BranchManagerPengajuanDetailResponse {
     private BigDecimal cicilanBerjalan;
     private Integer skor;
     private String statusScoring;
+    private String keputusanSistem;
+    private BigDecimal dbr;
+    private Double dbrPercentage;
     private String plafonNama;
     private BigDecimal plafonMaksimal;
     private List<String> notesAmbigu;
     private String ringkasanScoring;
+    private Boolean isAmbigu;
+    private String rekomendasiAksi;
+    private UUID rekomendasiTierId;
+    private String rekomendasiTierNama;
+    private BigDecimal rekomendasiBunga;
+    private BigDecimal rekomendasiBiayaAdmin;
+    private String rekomendasiAlasan;
+    private List<com.bcafinance.backend_saku.core.dto.PlafondOptionResponse> availablePlafondTiers;
 
     // 5. Detail Pinjaman
     private BigDecimal jumlahPinjaman;

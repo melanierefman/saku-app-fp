@@ -33,8 +33,15 @@ public class CustomerPlafondService {
     public record CustomerPlafondSummary(
             BigDecimal totalPlafond,
             BigDecimal usedPlafond,
-            BigDecimal availablePlafond
-    ) {}
+            BigDecimal availablePlafond,
+            String tierName,
+            BigDecimal sukuBunga,
+            BigDecimal biayaAdmin
+    ) {
+        public CustomerPlafondSummary(BigDecimal totalPlafond, BigDecimal usedPlafond, BigDecimal availablePlafond) {
+            this(totalPlafond, usedPlafond, availablePlafond, "Reguler", BigDecimal.valueOf(5.0), BigDecimal.valueOf(250_000));
+        }
+    }
 
     /**
      * Menghitung ringkasan plafond nasabah secara real-time:
@@ -42,48 +49,101 @@ public class CustomerPlafondService {
      */
     public CustomerPlafondSummary calculatePlafondSummary(UUID customerId) {
         if (customerId == null) {
-            return new CustomerPlafondSummary(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
+            return new CustomerPlafondSummary(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, "Reguler", BigDecimal.valueOf(5.0), BigDecimal.valueOf(250_000));
         }
 
         Optional<ScoringCustomer> scoringOpt = scoringRepository.findFirstByMstCustomerIdOrderByCreatedDateDesc(customerId);
         if (scoringOpt.isEmpty()) {
-            return new CustomerPlafondSummary(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
+            return new CustomerPlafondSummary(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, "Reguler", BigDecimal.valueOf(5.0), BigDecimal.valueOf(250_000));
         }
 
         ScoringCustomer scoring = scoringOpt.get();
-        BigDecimal totalLimit = resolveTotalPlafond(scoring);
+        Plafond plafond = resolveCustomerPlafond(scoring);
+        BigDecimal totalLimit = resolveTotalPlafondFromPlafond(scoring, plafond);
         BigDecimal usedLimit = calculateUsedPlafond(customerId);
         BigDecimal availableLimit = totalLimit.subtract(usedLimit);
         if (availableLimit.compareTo(BigDecimal.ZERO) < 0) {
             availableLimit = BigDecimal.ZERO;
         }
 
+        String tierName = plafond != null ? plafond.getNama() : "Reguler";
+        BigDecimal rawBunga = plafond != null ? plafond.getBunga() : BigDecimal.valueOf(5.0);
+        BigDecimal sukuBunga = (rawBunga != null && rawBunga.compareTo(BigDecimal.ONE) <= 0 && rawBunga.compareTo(BigDecimal.ZERO) > 0)
+                ? rawBunga.multiply(BigDecimal.valueOf(100))
+                : (rawBunga != null ? rawBunga : BigDecimal.valueOf(5.0));
+        BigDecimal biayaAdmin = plafond != null && plafond.getBiayaAdmin() != null ? plafond.getBiayaAdmin() : BigDecimal.valueOf(250_000);
+
         return new CustomerPlafondSummary(
                 totalLimit.setScale(2, RoundingMode.HALF_UP),
                 usedLimit.setScale(2, RoundingMode.HALF_UP),
-                availableLimit.setScale(2, RoundingMode.HALF_UP)
+                availableLimit.setScale(2, RoundingMode.HALF_UP),
+                tierName,
+                sukuBunga,
+                biayaAdmin
         );
     }
 
-    /**
-     * Menentukan Total Plafond maksimal yang disetujui berdasarkan scoring nasabah
-     */
-    public BigDecimal resolveTotalPlafond(ScoringCustomer scoring) {
+    public Plafond resolveCustomerPlafond(ScoringCustomer scoring) {
         if (scoring == null) {
-            return BigDecimal.ZERO;
+            return null;
         }
 
-        Plafond plafond = null;
-        if (scoring.getMstPlafondId() != null) {
-            plafond = plafondRepository.findById(scoring.getMstPlafondId()).orElse(null);
+        BigDecimal pendapatan = scoring.getPenghasilanBulanan() != null ? scoring.getPenghasilanBulanan() : BigDecimal.ZERO;
+        List<Plafond> activePlafonds = plafondRepository.findAllByStatusTrue();
+
+        Plafond resolved = null;
+
+        // 1. Prioritaskan pencocokan berdasarkan Rentang Skor (min_skor s/d max_skor) dengan validasi kapasitas pendapatan riil
+        if (scoring.getSkor() != null) {
+            int skor = scoring.getSkor();
+            Optional<Plafond> matchedByScore = activePlafonds.stream()
+                    .filter(p -> p.getMinSkor() != null && p.getMaxSkor() != null
+                            && skor >= p.getMinSkor() && skor <= p.getMaxSkor())
+                    .findFirst();
+            if (matchedByScore.isPresent()) {
+                Plafond pScore = matchedByScore.get();
+                BigDecimal minIncome = pScore.getMinPendapatan() != null ? pScore.getMinPendapatan() : BigDecimal.ZERO;
+
+                // Hard Rule: Jika pendapatan nasabah < syarat minimal tier skornya, sistem otomatis down-tier ke tier tertinggi yang sesuai gajinya
+                if (pendapatan.compareTo(minIncome) < 0) {
+                    resolved = plafondRepository
+                            .findTopByMinPendapatanLessThanEqualAndStatusTrueOrderByMinPendapatanDesc(pendapatan)
+                            .orElse(pScore);
+                } else {
+                    resolved = pScore;
+                }
+            }
         }
 
-        if (plafond == null) {
-            BigDecimal pendapatan = scoring.getPenghasilanBulanan() != null ? scoring.getPenghasilanBulanan() : BigDecimal.ZERO;
-            plafond = plafondRepository
+        // 2. Jika skor belum match rentang skor aktif, fallback ke pencocokan berdasarkan pendapatan tertinggi
+        if (resolved == null) {
+            resolved = plafondRepository
                     .findTopByMinPendapatanLessThanEqualAndStatusTrueOrderByMinPendapatanDesc(pendapatan)
                     .or(() -> plafondRepository.findFirstByStatusTrueOrderByMinSkorAsc())
                     .orElse(null);
+        }
+
+        // 3. Fallback terakhir jika belum ada tier aktif yang match sama sekali, gunakan mstPlafondId existing jika ada
+        if (resolved == null && scoring.getMstPlafondId() != null) {
+            resolved = plafondRepository.findById(scoring.getMstPlafondId()).orElse(null);
+        }
+
+        // Sinkronisasi mstPlafondId pada entity scoring jika berbeda
+        if (resolved != null && (scoring.getMstPlafondId() == null || !resolved.getId().equals(scoring.getMstPlafondId()))) {
+            scoring.setMstPlafondId(resolved.getId());
+            try {
+                scoringRepository.save(scoring);
+            } catch (Exception e) {
+                log.warn("Failed to auto-sync mstPlafondId for scoring id {}: {}", scoring.getId(), e.getMessage());
+            }
+        }
+
+        return resolved;
+    }
+
+    private BigDecimal resolveTotalPlafondFromPlafond(ScoringCustomer scoring, Plafond plafond) {
+        if (scoring == null) {
+            return BigDecimal.ZERO;
         }
 
         if (plafond == null) {
@@ -106,6 +166,17 @@ public class CustomerPlafondService {
         }
 
         return BigDecimal.valueOf(50_000_000);
+    }
+
+    /**
+     * Menentukan Total Plafond maksimal yang disetujui berdasarkan scoring nasabah
+     */
+    public BigDecimal resolveTotalPlafond(ScoringCustomer scoring) {
+        if (scoring == null) {
+            return BigDecimal.ZERO;
+        }
+        Plafond plafond = resolveCustomerPlafond(scoring);
+        return resolveTotalPlafondFromPlafond(scoring, plafond);
     }
 
     /**

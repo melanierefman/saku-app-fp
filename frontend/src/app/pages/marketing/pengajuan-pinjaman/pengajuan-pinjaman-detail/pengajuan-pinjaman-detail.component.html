@@ -71,8 +71,8 @@
   } @else if (detail()) {
   <!-- Main Grid Layout -->
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-    <!-- LEFT COLUMN (Scrollable with invisible scrollbar) -->
-    <div class="lg:col-span-2 space-y-6 lg:overflow-y-auto lg:h-[calc(100vh-170px)] lg:pr-2 lg:pb-8 no-scrollbar">
+    <!-- LEFT COLUMN (Full Natural Height) -->
+    <div class="lg:col-span-2 space-y-6">
 
       <!-- CARD 1: INFORMASI CUSTOMER (DATA PRIBADI & KONTAK) -->
       <div class="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-xs space-y-5">
@@ -120,6 +120,10 @@
               <div>
                 <span class="text-neutral-40 block mb-0.5">No. Handphone</span>
                 <span class="font-medium text-neutral-90 text-sm block">{{ getNoHp() }}</span>
+              </div>
+              <div class="sm:col-span-2">
+                <span class="text-neutral-40 block mb-0.5">Nama Ibu Kandung</span>
+                <span class="font-medium text-neutral-90 text-sm block">{{ getNamaIbuKandung() }}</span>
               </div>
 
               <!-- Alamat KTP & Domisili -->
@@ -300,7 +304,7 @@
             }
 
             <!-- 2. Catatan Evaluasi / Faktor Ambigu Terdeteksi -->
-            @if (isAmbigu() || (getNotesAmbigu() && getNotesAmbigu().length > 0)) {
+            @if (isAmbigu() && getNotesAmbigu().length > 0) {
             <div class="pt-3 border-t border-[#E5E7EB] space-y-2">
               <div class="flex items-center gap-2 text-xs font-semibold text-amber-800">
                 <svg lucideAlertCircle [size]="14" class="w-3.5 h-3.5 text-amber-600 shrink-0"></svg>
@@ -381,8 +385,8 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          @for (doc of getDocuments(); track doc.name + $index) {
-          <div (click)="openDocument(doc.url, doc.type)"
+          @for (doc of getDokumenList(); track doc.type) {
+          <div (click)="openDocument(doc.fileUrl, doc.type)"
             class="flex items-center justify-between p-3.5 rounded-xl border border-[#E5E7EB] hover:border-primary/50 hover:bg-primary-0/10 transition-all cursor-pointer group">
             <div class="flex items-center gap-3 truncate">
               <div
@@ -392,7 +396,7 @@
               <div class="truncate">
                 <span
                   class="text-sm font-medium text-neutral-90 group-hover:text-primary block truncate transition-colors">
-                  {{ doc.name }}
+                  {{ doc.label }}
                 </span>
                 <span class="text-xs text-neutral-40 block">Klik untuk melihat berkas</span>
               </div>
@@ -405,8 +409,8 @@
       </div>
     </div>
 
-    <!-- RIGHT COLUMN (Compact & Fixed) -->
-    <div class="space-y-4">
+    <!-- RIGHT COLUMN (Sticky Action Panel) -->
+    <div class="space-y-4 lg:sticky lg:top-4">
 
       <!-- 1. FORM REVIEW / KEPUTUSAN MARKETING -->
       <div class="bg-white rounded-2xl p-6 border border-[#E5E7EB] shadow-xs space-y-4">
@@ -471,29 +475,64 @@
           </button>
         </div>
         } @else {
-        <!-- State: Sudah Direview (Ringkasan Keputusan Elegan) -->
-        <div class="p-4 rounded-xl text-xs space-y-3 bg-[#F9FAFB] border border-[#E5E7EB]">
+        <!-- State: Sudah Direview (Card Hasil Review Elegan) -->
+        <div class="p-4 rounded-xl text-xs space-y-3 border"
+          [class.bg-success-0]="isReviewApproved()"
+          [class.border-success-20]="isReviewApproved()"
+          [class.bg-error-0]="isReviewRejected()"
+          [class.border-error-20]="isReviewRejected()"
+          [class.bg-warning-0]="isReviewRevision()"
+          [class.border-warning-20]="isReviewRevision()"
+          [class.bg-[#F9FAFB]]="!isReviewApproved() && !isReviewRejected() && !isReviewRevision()"
+          [class.border-[#E5E7EB]]="!isReviewApproved() && !isReviewRejected() && !isReviewRevision()">
+          
           <div class="flex items-center justify-between">
-            <span class="text-neutral-50 text-xs font-medium">Hasil Review</span>
+            <div class="flex items-center gap-2 font-bold"
+              [class.text-success-70]="isReviewApproved()"
+              [class.text-error-70]="isReviewRejected()"
+              [class.text-warning-80]="isReviewRevision()"
+              [class.text-neutral-90]="!isReviewApproved() && !isReviewRejected() && !isReviewRevision()">
+              @if (isReviewApproved()) {
+                <svg lucideCheckCircle2 [size]="16" class="w-4 h-4"></svg>
+              } @else if (isReviewRejected()) {
+                <svg lucideXCircle [size]="16" class="w-4 h-4"></svg>
+              } @else {
+                <svg lucideAlertTriangle [size]="16" class="w-4 h-4"></svg>
+              }
+              <span>{{ getStatusDisplayLabel() }}</span>
+            </div>
             <span [class]="getStatusPillClass()"
-              class="px-2.5 py-0.5 rounded-full text-[11px] font-medium uppercase tracking-wider">
-              {{ getStatusDisplayLabel() }}
+              class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider">
+              SELESAI
             </span>
           </div>
 
           @if (getCatatanReview()) {
           <div class="space-y-1 pt-1">
-            <span class="text-neutral-40 text-[11px] block">Catatan Pertimbangan:</span>
-            <p class="text-neutral-80 font-medium text-xs italic bg-white p-3 rounded-lg border border-[#E5E7EB]">
+            <span class="text-neutral-50 text-[11px] block font-medium">Catatan Pertimbangan:</span>
+            <p class="text-neutral-80 font-medium text-xs italic bg-white p-3 rounded-lg border border-[#E5E7EB] leading-relaxed shadow-2xs">
               "{{ getCatatanReview() }}"
             </p>
           </div>
           }
 
-          <div class="pt-2 border-t border-[#E5E7EB]/60 text-[11px] text-neutral-40 flex items-center justify-between">
-            <span>Reviewer: <strong class="text-neutral-70 font-semibold">{{ getNamaReviewer() }}</strong></span>
-            <span>{{ formatDate(getTanggalReview()) }}</span>
+          <div class="pt-2 border-t border-[#E5E7EB]/70 text-[11px] text-neutral-50 space-y-1">
+            <div class="flex items-center justify-between">
+              <span>Reviewer:</span>
+              <strong class="text-neutral-80 font-semibold">{{ getNamaReviewer() }}</strong>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>Waktu Review:</span>
+              <span class="text-neutral-70 font-medium">{{ formatDateTime(getTanggalReview()) }}</span>
+            </div>
           </div>
+
+          @if (isReviewApproved()) {
+          <div class="pt-2 border-t border-success-20/60 text-[11px] text-success-70 flex items-center gap-1.5 font-medium">
+            <svg lucideInfo [size]="12" class="w-3 h-3 shrink-0"></svg>
+            <span>Diteruskan ke Branch Manager untuk persetujuan.</span>
+          </div>
+          }
         </div>
         }
       </div>

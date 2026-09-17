@@ -34,6 +34,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         private final UnauthorizedHandler unauthorizedHandler;
 
         @Override
+        protected boolean shouldNotFilter(HttpServletRequest request) {
+                String path = request.getServletPath();
+                return path.startsWith("/api/auth/") ||
+                                path.startsWith("/api/public/") ||
+                                path.startsWith("/uploads/");
+        }
+
+        @Override
         protected void doFilterInternal(
                         HttpServletRequest request,
                         HttpServletResponse response,

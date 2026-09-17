@@ -22,4 +22,5 @@ public class ReviewPengajuanRequest {
     @Size(max = 1000, message = "Catatan review maksimal 1000 karakter")
     private String catatan;
 
+    private String kategoriAlasan;
 }

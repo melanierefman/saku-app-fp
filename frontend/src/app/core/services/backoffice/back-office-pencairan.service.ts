@@ -111,11 +111,23 @@ export class BackOfficePencairanService {
   // 5. Get Full File URL
   getFileUrl(path?: string | null): string {
     if (!path) return '';
+    const baseHost = environment.apiUrl.replace(/\/api\/?$/, '');
+
     if (path.startsWith('http://') || path.startsWith('https://')) {
-      return path;
+      return path
+        .replace('/api/pinjaman/', '/uploads/pinjaman/')
+        .replace('/api/ktp/', '/uploads/ktp/')
+        .replace('/api/selfie/', '/uploads/selfie/');
     }
-    const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    return `${environment.apiUrl}/files${cleanPath}`;
+
+    let cleanPath = path.replace(/\\/g, '/');
+    if (cleanPath.startsWith('/')) {
+      cleanPath = cleanPath.substring(1);
+    }
+    if (!cleanPath.startsWith('uploads/')) {
+      cleanPath = `uploads/${cleanPath}`;
+    }
+    return `${baseHost}/${cleanPath}`;
   }
 
   // MOCK DATA FALLBACKS

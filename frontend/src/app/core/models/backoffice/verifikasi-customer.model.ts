@@ -43,6 +43,7 @@ export interface VerifikasiCustomerDetail {
   email: string;
   noHp: string;
   username: string;
+  namaIbuKandung?: string;
 
   // Pekerjaan & Keuangan
   pekerjaan?: string;

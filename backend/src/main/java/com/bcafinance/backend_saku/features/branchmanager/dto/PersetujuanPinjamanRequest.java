@@ -18,7 +18,7 @@ import lombok.Setter;
 public class PersetujuanPinjamanRequest {
 
     @NotBlank(message = "Hasil persetujuan tidak boleh kosong")
-    @Pattern(regexp = "^(?i)(DISETUJUI|APPROVED|DITOLAK|REJECTED)$", message = "Hasil persetujuan harus DISETUJUI atau DITOLAK")
+    @Pattern(regexp = "^(?i)(DISETUJUI|APPROVED|DISETUJUI_DENGAN_PENYESUAIAN|SETUJU_PENYESUAIAN|DITOLAK|REJECTED)$", message = "Hasil persetujuan harus DISETUJUI atau DITOLAK")
     @JsonAlias({"statusPersetujuan", "status", "hasil"})
     private String hasilPersetujuan;
 
@@ -27,4 +27,15 @@ public class PersetujuanPinjamanRequest {
     @JsonAlias({"catatanPersetujuan", "notes"})
     private String catatan;
 
+    @JsonAlias({"adjustedPlafondId", "tierId", "selectedTierId"})
+    private java.util.UUID penyesuaianTierId;
+
+    @JsonAlias({"alasanKategori", "presetReason", "jenisMasalah"})
+    private String kategoriAlasan;
+
+    @JsonAlias({"jumlahDisetujui", "adjustedPlafond"})
+    private java.math.BigDecimal adjustedJumlahPinjaman;
+
+    private java.math.BigDecimal adjustedBunga;
+    private java.math.BigDecimal adjustedBiayaAdmin;
 }

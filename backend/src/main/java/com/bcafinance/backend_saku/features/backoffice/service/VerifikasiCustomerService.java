@@ -39,7 +39,9 @@ public class VerifikasiCustomerService {
     private final AlamatCustomerRepository alamatRepository;
     private final DokumenCustomerRepository dokumenRepository;
     private final PlafondService plafondService;
+    private final com.bcafinance.backend_saku.features.scoring.service.ScoringService scoringService;
     private final com.bcafinance.backend_saku.features.superadmin.auditlog.service.AuditLogService auditLogService;
+    private final com.bcafinance.backend_saku.features.customer.service.NotifikasiService notifikasiService;
 
     public PageResponse<VerifikasiCustomerItemResponse> findAllPaginated(int page, int size, String search, String statusFilter) {
         List<VerifikasiCustomerItemResponse> all = findAll(statusFilter);
@@ -145,6 +147,7 @@ public class VerifikasiCustomerService {
                 .email(customer.getEmail())
                 .noHp(customer.getNoHp())
                 .username(customer.getUsername())
+                .namaIbuKandung(customer.getNamaIbuKandung())
 
                 // Rekening
                 .namaBank(customer.getNamaBank())
@@ -192,8 +195,17 @@ public class VerifikasiCustomerService {
         if (rawStatus.contains("APPROV") || rawStatus.contains("SETUJU")) {
             status = "APPROVED";
 
+            // Hitung skor kredit resmi dari data pekerjaan & finansial nasabah yang telah diverifikasi
+            com.bcafinance.backend_saku.features.scoring.service.ScoringService.ScoringResult scoringResult = scoringService.calculateScore(
+                    scoring.getTotalCicilanLainBulanan() != null ? scoring.getTotalCicilanLainBulanan() : java.math.BigDecimal.ZERO,
+                    scoring.getPenghasilanBulanan() != null ? scoring.getPenghasilanBulanan() : java.math.BigDecimal.ZERO,
+                    scoring.getLamaBekerjaBulan() != null ? scoring.getLamaBekerjaBulan() : 0,
+                    scoring.getStatusPekerjaan());
+            int calculatedScore = (int) Math.round(scoringResult.score());
+            scoring.setSkor(calculatedScore);
+
             PlafondCalculationResponse calculation = plafondService.calculateApprovedAmount(
-                    scoring.getPenghasilanBulanan(), scoring.getSkor());
+                    scoring.getPenghasilanBulanan(), calculatedScore);
             plafondId = calculation.getPlafondId();
             approvedAmount = calculation.getApprovedAmount();
             keputusan = calculation.getKeputusan();
@@ -202,10 +214,14 @@ public class VerifikasiCustomerService {
 
         } else if (rawStatus.contains("REVISI") || rawStatus.contains("REVISION")) {
             status = "PERLU_REVISI";
+            keputusan = "PERLU_REVISI";
+            scoring.setSkor(0);
             scoring.setMstPlafondId(null);
             customer.setStatus(false);
         } else {
             status = "REJECTED";
+            keputusan = "REJECTED";
+            scoring.setSkor(0);
             scoring.setMstPlafondId(null);
             customer.setStatus(false);
         }
@@ -231,6 +247,43 @@ public class VerifikasiCustomerService {
             String desc = "Backoffice memverifikasi KYC customer " + customer.getNama() + " (" + customer.getEmail()
                     + ") dengan status: " + status;
             auditLogService.recordLog(karyawanId, "VERIFIKASI_KYC", "CUSTOMER", desc);
+        }
+
+        if (notifikasiService != null) {
+            if ("APPROVED".equalsIgnoreCase(status)) {
+                notifikasiService.createNotification(
+                        customerId,
+                        null,
+                        "KYC",
+                        "IN_APP",
+                        "Verifikasi Akun Berhasil",
+                        "Selamat! Akun Anda telah berhasil diverifikasi dan limit kredit Anda telah aktif."
+                );
+            } else if ("PERLU_REVISI".equalsIgnoreCase(status)) {
+                String catatan = (request.getCatatanVerifikasi() != null && !request.getCatatanVerifikasi().isBlank())
+                        ? request.getCatatanVerifikasi()
+                        : "Dokumen identitas (KTP/Selfie) perlu diperbaiki.";
+                notifikasiService.createNotification(
+                        customerId,
+                        null,
+                        "KYC",
+                        "IN_APP",
+                        "Perlu Revisi Dokumen Identitas",
+                        "Dokumen verifikasi akun Anda perlu diperbaiki. Catatan: " + catatan
+                );
+            } else if ("REJECTED".equalsIgnoreCase(status)) {
+                String catatan = (request.getCatatanVerifikasi() != null && !request.getCatatanVerifikasi().isBlank())
+                        ? request.getCatatanVerifikasi()
+                        : "Tidak memenuhi kriteria kelayakan.";
+                notifikasiService.createNotification(
+                        customerId,
+                        null,
+                        "KYC",
+                        "IN_APP",
+                        "Verifikasi Akun Belum Berhasil",
+                        "Mohon maaf, pengajuan verifikasi akun Anda belum dapat disetujui. Alasan: " + catatan
+                );
+            }
         }
 
         return new VerifikasiCustomerResponse(

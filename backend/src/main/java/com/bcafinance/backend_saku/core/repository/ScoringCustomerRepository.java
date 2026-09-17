@@ -10,6 +10,8 @@ public interface ScoringCustomerRepository extends JpaRepository<ScoringCustomer
 
     Optional<ScoringCustomer> findFirstByMstCustomerIdOrderByCreatedDateDesc(UUID customerId);
 
+    Optional<ScoringCustomer> findByMstCustomerId(UUID customerId);
+
     void deleteByMstCustomerId(UUID customerId);
 }
 

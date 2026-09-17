@@ -46,7 +46,7 @@ public class SecurityConfig {
 
                                 // untuk RBAC
                                 .authorizeHttpRequests(request -> request
-                                                .requestMatchers("/api/auth/**", "/api/public/**", "/uploads/**").permitAll()
+                                                .requestMatchers("/api/auth/**", "/api/public/**", "/uploads/**", "/files/**", "/api/files/**").permitAll()
                                                 .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
                                                 .requestMatchers("/api/marketing/**").hasRole("MARKETING")
                                                 .requestMatchers("/api/branch-manager/**", "/api/bm/**",
@@ -112,7 +112,7 @@ public class SecurityConfig {
                 konfigurasi.setMaxAge(3600L);
 
                 UrlBasedCorsConfigurationSource sumber = new UrlBasedCorsConfigurationSource();
-                sumber.registerCorsConfiguration("/api/**", konfigurasi);
+                sumber.registerCorsConfiguration("/**", konfigurasi);
                 return sumber;
         }
 

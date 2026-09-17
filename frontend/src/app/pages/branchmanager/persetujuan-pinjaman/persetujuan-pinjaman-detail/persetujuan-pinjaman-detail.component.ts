@@ -39,6 +39,9 @@ import {
   LucideInfo,
   LucideBriefcase,
   LucideArrowLeft,
+  LucideCheckCircle2,
+  LucideXCircle,
+  LucideAlertTriangle,
 } from '@lucide/angular';
 import { environment } from '../../../../../environments/environment';
 import { formatDate as formatDateHelper } from '../../../../shared/utils/date.util';
@@ -66,6 +69,8 @@ import { formatDate as formatDateHelper } from '../../../../shared/utils/date.ut
     LucideInfo,
     LucideBriefcase,
     LucideArrowLeft,
+    LucideCheckCircle2,
+    LucideXCircle,
   ],
   templateUrl: './persetujuan-pinjaman-detail.component.html',
   styleUrl: './persetujuan-pinjaman-detail.component.css',
@@ -322,16 +327,17 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
     const list: { type: string; label: string; fileUrl?: string }[] = [];
 
     if (d.fotoKtp) list.push({ type: 'KTP', label: 'Foto KTP', fileUrl: d.fotoKtp });
-    if (d.fotoSelfie) list.push({ type: 'SELFIE', label: 'Foto Selfie', fileUrl: d.fotoSelfie });
-    if (d.fotoSlipGaji) list.push({ type: 'SLIP_GAJI', label: 'Slip Gaji', fileUrl: d.fotoSlipGaji });
+    if (d.fotoSlipGaji)
+      list.push({ type: 'SLIP_GAJI', label: 'Slip Gaji', fileUrl: d.fotoSlipGaji });
     if (d.fotoRekeningKoran)
       list.push({ type: 'REKENING_KORAN', label: 'Rekening Koran', fileUrl: d.fotoRekeningKoran });
-    if (d.fotoNpwp) list.push({ type: 'NPWP', label: 'NPWP', fileUrl: d.fotoNpwp });
+    if (d.fotoNpwp)
+      list.push({ type: 'NPWP', label: 'NPWP', fileUrl: d.fotoNpwp });
 
     if (d.dokumenPinjamanList && Array.isArray(d.dokumenPinjamanList)) {
       d.dokumenPinjamanList.forEach((doc) => {
         const type = doc.docType || doc.jenisDokumen || 'DOKUMEN';
-        if (!list.some((existing) => existing.type === type)) {
+        if (type.toUpperCase() !== 'SELFIE' && !list.some((existing) => existing.type === type)) {
           list.push({
             type,
             label: this.formatDocLabel(type),
@@ -348,14 +354,14 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
     switch (type.toUpperCase()) {
       case 'KTP':
         return 'Foto KTP';
-      case 'SELFIE':
-        return 'Foto Selfie';
       case 'SLIP_GAJI':
         return 'Slip Gaji';
       case 'REKENING_KORAN':
         return 'Rekening Koran';
       case 'NPWP':
         return 'NPWP';
+      case 'KK':
+        return 'Kartu Keluarga';
       default:
         return type.replace(/_/g, ' ');
     }
@@ -442,7 +448,10 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
 
   isAmbigu(): boolean {
     const d = this.detail();
-    return !!d?.isAmbigu || (Array.isArray(d?.notesAmbigu) && d.notesAmbigu.length > 0);
+    if (d?.isAmbigu !== undefined && d?.isAmbigu !== null) {
+      return Boolean(d.isAmbigu);
+    }
+    return false;
   }
 
   getNotesAmbigu(): string[] {
@@ -471,9 +480,21 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
 
   isPending(): boolean {
     const d = this.detail();
+    if (!d) return true;
     const h = (d?.hasilPersetujuanBM || '').toUpperCase();
     const s = (d?.statusPengajuan || d?.status || '').toUpperCase();
-    if (h === 'DISETUJUI' || h === 'DITOLAK' || s === 'DISETUJUI' || s === 'DITOLAK' || s === 'DICAIRKAN' || s === 'DISBURSED' || s === 'LUNAS') {
+    const hasHistory = !!(d?.persetujuanHistory && d.persetujuanHistory.length > 0);
+
+    if (
+      h.includes('SETUJU') ||
+      h.includes('TOLAK') ||
+      s.includes('SETUJU') ||
+      s.includes('TOLAK') ||
+      s.includes('CAIR') ||
+      s.includes('DISBURS') ||
+      s.includes('LUNAS') ||
+      hasHistory
+    ) {
       return false;
     }
     return true;
@@ -481,13 +502,27 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
 
   getStatusDisplayLabel(): string {
     const d = this.detail();
+    if (!d) return 'Menunggu Persetujuan BM';
     const h = (d?.hasilPersetujuanBM || '').toUpperCase();
     const s = (d?.statusPengajuan || d?.status || '').toUpperCase();
+    const hasHistory = !!(d?.persetujuanHistory && d.persetujuanHistory.length > 0);
+    const firstHistory = hasHistory ? (d.persetujuanHistory![0].hasilPersetujuan || '').toUpperCase() : '';
 
-    if (h === 'DISETUJUI' || s === 'DISETUJUI' || s === 'DICAIRKAN' || s === 'DISBURSED') {
+    if (
+      h.includes('SETUJU') ||
+      s.includes('SETUJU') ||
+      s.includes('CAIR') ||
+      s.includes('DISBURS') ||
+      s.includes('LUNAS') ||
+      firstHistory.includes('SETUJU')
+    ) {
       return 'Disetujui BM';
     }
-    if (h === 'DITOLAK' || s === 'DITOLAK') {
+    if (
+      h.includes('TOLAK') ||
+      s.includes('TOLAK') ||
+      firstHistory.includes('TOLAK')
+    ) {
       return 'Ditolak BM';
     }
     return 'Menunggu Persetujuan BM';
@@ -506,24 +541,29 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
 
   getCatatanBM(): string {
     const d = this.detail();
-    if (d?.catatanBM) return d.catatanBM;
-    if (d?.persetujuanHistory && d.persetujuanHistory.length > 0) {
-      return d.persetujuanHistory[0].catatan || '';
+    if (!d) return '';
+    if (d.persetujuanHistory && d.persetujuanHistory.length > 0 && d.persetujuanHistory[0].catatan) {
+      return d.persetujuanHistory[0].catatan;
     }
+    if (d.catatanBM) return d.catatanBM;
+    if (d.catatanPengajuan) return d.catatanPengajuan;
     return '';
   }
 
   getNamaApprover(): string {
     const d = this.detail();
-    if (d?.persetujuanHistory && d.persetujuanHistory.length > 0) {
-      return d.persetujuanHistory[0].namaApprover || 'Branch Manager';
+    if (d?.persetujuanHistory && d.persetujuanHistory.length > 0 && d.persetujuanHistory[0].namaApprover) {
+      return d.persetujuanHistory[0].namaApprover;
     }
-    return 'Branch Manager';
+    return 'Branch Manager SAKU';
   }
 
   getTanggalPersetujuanBM(): string {
     const d = this.detail();
-    return d?.tanggalPersetujuanBM || (d?.persetujuanHistory && d.persetujuanHistory[0]?.tanggalPersetujuan) || '';
+    if (d?.persetujuanHistory && d.persetujuanHistory.length > 0 && d.persetujuanHistory[0].tanggalPersetujuan) {
+      return d.persetujuanHistory[0].tanggalPersetujuan;
+    }
+    return d?.tanggalPersetujuanBM || d?.tanggalPengajuan || '';
   }
 
   getReviewMarketingHistory(): ReviewMarketingHistoryItem[] {
@@ -547,5 +587,30 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
     if (val === null || val === undefined) return '0%';
     const p = val <= 1 ? val * 100 : val;
     return `${p.toFixed(1)}%`;
+  }
+
+  isBMApproved(): boolean {
+    return this.getStatusDisplayLabel() === 'Disetujui BM';
+  }
+
+  isBMRejected(): boolean {
+    return this.getStatusDisplayLabel() === 'Ditolak BM';
+  }
+
+  formatDateTime(dateStr?: string | null): string {
+    if (!dateStr) return '-';
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return String(dateStr);
+      return new Intl.DateTimeFormat('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(d);
+    } catch {
+      return String(dateStr);
+    }
   }
 }
