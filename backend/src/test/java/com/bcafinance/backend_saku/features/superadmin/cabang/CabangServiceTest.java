@@ -33,7 +33,7 @@ class CabangServiceTest {
     @DisplayName("Create Cabang: Berhasil menyimpan data cabang baru")
     void testCreateCabangSuccess() {
         CabangRequest request = new CabangRequest();
-        request.setNama("BCA Finance Kelapa Gading");
+        request.setNama("PT SAKU Kelapa Gading");
         request.setKota("Jakarta Utara");
         request.setIsDefault(false);
         request.setStatus(true);
@@ -47,7 +47,7 @@ class CabangServiceTest {
         CabangResponse response = cabangService.create(request);
 
         assertThat(response).isNotNull();
-        assertThat(response.getNama()).isEqualTo("BCA Finance Kelapa Gading");
+        assertThat(response.getNama()).isEqualTo("PT SAKU Kelapa Gading");
         assertThat(response.getKota()).isEqualTo("Jakarta Utara");
         verify(cabangRepository).save(any(Cabang.class));
     }
@@ -57,7 +57,7 @@ class CabangServiceTest {
     void testFindAllCabang() {
         Cabang c = new Cabang();
         c.setId(UUID.randomUUID());
-        c.setNama("BCA Finance BSD");
+        c.setNama("PT SAKU BSD");
         c.setKota("Tangerang Selatan");
         c.setStatus(true);
 
@@ -66,7 +66,7 @@ class CabangServiceTest {
         List<CabangResponse> list = cabangService.findAll();
 
         assertThat(list).hasSize(1);
-        assertThat(list.get(0).getNama()).isEqualTo("BCA Finance BSD");
+        assertThat(list.get(0).getNama()).isEqualTo("PT SAKU BSD");
     }
 
     @Test

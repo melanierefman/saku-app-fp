@@ -55,7 +55,7 @@ class KaryawanServiceTest {
 
         Cabang cabang = new Cabang();
         cabang.setId(branchId);
-        cabang.setNama("BCA Finance BSD");
+        cabang.setNama("PT SAKU BSD");
         cabang.setStatus(true);
 
         KaryawanRequest request = new KaryawanRequest();

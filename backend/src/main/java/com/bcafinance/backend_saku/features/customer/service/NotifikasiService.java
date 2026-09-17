@@ -22,6 +22,8 @@ public class NotifikasiService {
     public static final String STATUS_SUDAH_DIBACA = "SUDAH_DIBACA";
 
     private final NotifikasiRepository notifikasiRepository;
+    private final com.bcafinance.backend_saku.core.repository.CustomerRepository customerRepository;
+    private final FcmPushService fcmPushService;
 
     @Transactional(readOnly = true)
     public List<NotifikasiResponse> getCustomerNotifications(UUID customerId, String statusFilter) {
@@ -97,7 +99,7 @@ public class NotifikasiService {
             Notifikasi notifikasi = new Notifikasi();
             notifikasi.setId(UUID.randomUUID());
             notifikasi.setMstCustomerId(customerId);
-            notifikasi.setTrxPengajuanPinjamanId(pengajuanId != null ? pengajuanId : UUID.randomUUID());
+            notifikasi.setTrxPengajuanPinjamanId(pengajuanId != null ? pengajuanId : new UUID(0L, 0L));
             notifikasi.setType(type != null ? type : "INFO");
             notifikasi.setChannel(channel != null ? channel : "IN_APP");
             notifikasi.setJudul(judul);
@@ -108,12 +110,40 @@ public class NotifikasiService {
 
             notifikasiRepository.save(notifikasi);
             log.info("🔔 Created in-app notification for customer {}: [{}] {}", customerId, type, judul);
+
+            // Push Notification via FCM
+            try {
+                customerRepository.findById(customerId).ifPresent(customer -> {
+                    if (customer.getFcmToken() != null && !customer.getFcmToken().isBlank()) {
+                        java.util.Map<String, String> data = new java.util.HashMap<>();
+                        String safeType = type != null ? type : "INFO";
+                        data.put("type", safeType);
+                        data.put("notifId", notifikasi.getId().toString());
+                        if (pengajuanId != null) {
+                            data.put("pengajuanId", pengajuanId.toString());
+                            data.put("targetRoute", "loan_detail/" + pengajuanId);
+                        } else if ("KYC".equalsIgnoreCase(safeType) || "VERIFIKASI_AKUN".equalsIgnoreCase(safeType)) {
+                            data.put("targetRoute", "kyc_pending");
+                        } else {
+                            data.put("targetRoute", "home");
+                        }
+                        fcmPushService.sendPush(customer.getFcmToken(), judul, pesan, data);
+                    }
+                });
+            } catch (Exception fcmEx) {
+                log.warn("FCM push notification failed: {}", fcmEx.getMessage());
+            }
         } catch (Exception e) {
             log.error("Failed to create notification for customer {}: {}", customerId, e.getMessage());
         }
     }
 
     private NotifikasiResponse mapToResponse(Notifikasi n) {
+        UUID loanId = n.getTrxPengajuanPinjamanId();
+        if (loanId != null && (loanId.equals(new UUID(0L, 0L)) || "KYC".equalsIgnoreCase(n.getType()) || "INFO".equalsIgnoreCase(n.getType()))) {
+            loanId = null;
+        }
+
         return NotifikasiResponse.builder()
                 .id(n.getId())
                 .type(n.getType())
@@ -122,7 +152,7 @@ public class NotifikasiService {
                 .pesan(n.getPesan())
                 .status(n.getStatus())
                 .isRead(STATUS_SUDAH_DIBACA.equalsIgnoreCase(n.getStatus()))
-                .pengajuanPinjamanId(n.getTrxPengajuanPinjamanId())
+                .pengajuanPinjamanId(loanId)
                 .createdDate(n.getCreatedDate())
                 .build();
     }

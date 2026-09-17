@@ -68,6 +68,10 @@ public class Customer {
     @Column(name = "nama_ibu_kandung", length = 150)
     private String namaIbuKandung;
 
+    @Size(max = 255)
+    @Column(name = "fcm_token", length = 255)
+    private String fcmToken;
+
 
     @NotNull
     @Column(name = "status", nullable = false)

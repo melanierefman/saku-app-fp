@@ -35,6 +35,7 @@ public class BranchManagerPengajuanDetailResponse {
     private String email;
     private String nik;
     private String noHp;
+    private String namaIbuKandung;
     private String pekerjaan;
     private String tempatKerja;
     private String statusPekerjaan;

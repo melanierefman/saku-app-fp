@@ -323,6 +323,7 @@ public class BranchManagerPersetujuanService {
                 .email(customer.getEmail())
                 .nik(customer.getNik())
                 .noHp(customer.getNoHp())
+                .namaIbuKandung(customer.getNamaIbuKandung())
                 .pekerjaan(scoringOpt.map(ScoringCustomer::getPekerjaan).orElse(null))
                 .tempatKerja(scoringOpt.map(ScoringCustomer::getTempatKerja).orElse(null))
                 .statusPekerjaan(scoringOpt.map(ScoringCustomer::getStatusPekerjaan).orElse(null))

@@ -33,7 +33,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -116,8 +115,13 @@ class RegisterServiceTest {
                 null, true, "Siti"
         );
 
+        AlamatCustomer mockKtp = new AlamatCustomer();
+        mockKtp.setAlamatLengkap("Jl. Sudirman");
+        mockKtp.setJenisAlamat("KTP");
+
         when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
         when(customerRepository.existsByNoHpAndIdNot(req.noHp(), customerId)).thenReturn(false);
+        when(alamatRepository.findByCustomer_IdAndJenisAlamat(customerId, "KTP")).thenReturn(Optional.of(mockKtp));
 
         RegisterStepResponse res = registerService.registerStep2Personal(customerId, req);
 
@@ -125,40 +129,29 @@ class RegisterServiceTest {
         assertThat(res.step()).isEqualTo(2);
         assertThat(customer.getNoHp()).isEqualTo("081234567890");
         assertThat(customer.getNamaBank()).isEqualTo("BCA");
+        verify(alamatRepository).deleteByCustomer_IdAndJenisAlamat(customerId, "DOMISILI");
+        verify(alamatRepository).save(any(AlamatCustomer.class));
         verify(scoringRepository).save(any(ScoringCustomer.class));
     }
 
     @Test
-    @DisplayName("Step 3 (Liveness): Berhasil upload selfie dan trigger background scoring")
+    @DisplayName("Step 3 (Liveness): Berhasil upload selfie dokumen KYC")
     void testRegisterStep3LivenessSuccess() {
         UUID customerId = UUID.randomUUID();
         Customer customer = new Customer();
         customer.setId(customerId);
-
-        ScoringCustomer scoring = new ScoringCustomer();
-        scoring.setId(UUID.randomUUID());
-        scoring.setPenghasilanBulanan(new BigDecimal("15000000"));
-        scoring.setTotalCicilanLainBulanan(new BigDecimal("1000000"));
-        scoring.setLamaBekerjaBulan(24);
-        scoring.setStatusPekerjaan("TETAP");
 
         MockMultipartFile selfieFile = new MockMultipartFile("selfie", "selfie.jpg", "image/jpeg", "image".getBytes());
 
         when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
         when(fileStorageService.store(any(), any())).thenReturn("http://saku/selfie.jpg");
         when(dokumenRepository.findByCustomer_IdAndDocType(customerId, "SELFIE")).thenReturn(Optional.empty());
-        when(scoringRepository.findByMstCustomerId(customerId)).thenReturn(Optional.of(scoring));
-        when(scoringService.calculateScore(any(), any(), eq(24), eq("TETAP")))
-                .thenReturn(new ScoringService.ScoringResult(85.0, "APPROVE"));
 
         RegisterStepResponse res = registerService.registerStep3Liveness(customerId, selfieFile);
 
         assertThat(res).isNotNull();
         assertThat(res.step()).isEqualTo(3);
-        assertThat(scoring.getSkor()).isEqualTo(85);
-        assertThat(scoring.getStatusScoring()).isEqualTo("APPROVE");
         verify(dokumenRepository).save(any(DokumenCustomer.class));
-        verify(scoringRepository).save(scoring);
     }
 
     @Test

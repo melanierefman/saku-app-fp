@@ -54,7 +54,13 @@ class VerifikasiCustomerServiceTest {
     private PlafondService plafondService;
 
     @Mock
+    private com.bcafinance.backend_saku.features.scoring.service.ScoringService scoringService;
+
+    @Mock
     private AuditLogService auditLogService;
+
+    @Mock
+    private com.bcafinance.backend_saku.features.customer.service.NotifikasiService notifikasiService;
 
     @InjectMocks
     private VerifikasiCustomerService verifikasiCustomerService;
@@ -75,14 +81,19 @@ class VerifikasiCustomerServiceTest {
         scoring.setId(UUID.randomUUID());
         scoring.setMstCustomerId(customerId);
         scoring.setPenghasilanBulanan(new BigDecimal("7000000.00"));
-        scoring.setSkor(80);
-        scoring.setStatusScoring("APPROVED");
+        scoring.setTotalCicilanLainBulanan(new BigDecimal("500000.00"));
+        scoring.setLamaBekerjaBulan(24);
+        scoring.setStatusPekerjaan("TETAP");
+        scoring.setSkor(0);
+        scoring.setStatusScoring("PENDING_VERIFIKASI");
 
         PlafondCalculationResponse calcResponse = new PlafondCalculationResponse(
                 plafondId, "Plafond Gold", "APPROVED", 100, new BigDecimal("20000000.00"), new BigDecimal("20000000.00"));
 
         when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
         when(scoringRepository.findFirstByMstCustomerIdOrderByCreatedDateDesc(customerId)).thenReturn(Optional.of(scoring));
+        when(scoringService.calculateScore(any(), any(), org.mockito.ArgumentMatchers.anyInt(), any()))
+                .thenReturn(new com.bcafinance.backend_saku.features.scoring.service.ScoringService.ScoringResult(80.0, "APPROVED"));
         when(plafondService.calculateApprovedAmount(any(), anyDouble())).thenReturn(calcResponse);
         when(verifikasiRepository.save(any(VerifikasiCustomer.class))).thenAnswer(i -> i.getArgument(0));
 

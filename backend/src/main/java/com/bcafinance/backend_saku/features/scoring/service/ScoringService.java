@@ -216,7 +216,6 @@ public class ScoringService {
         if (isAmbigu) {
             ringkasanAnalisis = "Sistem mendeteksi adanya faktor anomali/ambigu antara skor kredit, pendapatan riil, atau rasio cicilan. Disarankan BM meninjau rekomendasi tindakan sistem.";
         } else {
-            indikatorAmbigu.add("Data keuangan dan skor kredit konsisten dengan kriteria tier plafond sistem.");
             ringkasanAnalisis = "Hasil scoring konsisten. Customer memenuhi seluruh kriteria kelayakan sistem.";
         }
 

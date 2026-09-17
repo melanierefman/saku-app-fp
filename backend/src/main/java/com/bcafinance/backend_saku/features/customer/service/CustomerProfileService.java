@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.bcafinance.backend_saku.core.storage.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -42,6 +43,7 @@ public class CustomerProfileService {
     private final PasswordEncoder passwordEncoder;
     private final com.bcafinance.backend_saku.features.scoring.service.ScoringService scoringService;
     private final CustomerPlafondService customerPlafondService;
+    private final FileStorageService fileStorageService;
 
 
     @Transactional(readOnly = true)
@@ -230,6 +232,63 @@ public class CustomerProfileService {
         log.info("Password changed successfully for customer {}", customerId);
     }
 
+    @Transactional
+    public CustomerProfileResponse updateKycDocuments(
+            UUID customerId,
+            org.springframework.web.multipart.MultipartFile ktpFile,
+            org.springframework.web.multipart.MultipartFile selfieFile) {
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new BussinessRuleException("Customer tidak ditemukan"));
+
+        boolean hasKtp = ktpFile != null && !ktpFile.isEmpty();
+        boolean hasSelfie = selfieFile != null && !selfieFile.isEmpty();
+
+        if (!hasKtp && !hasSelfie) {
+            throw new BussinessRuleException("Silakan pilih minimal satu dokumen KTP atau Selfie untuk diunggah");
+        }
+
+        if (hasKtp) {
+            String ktpUrl = fileStorageService.store(ktpFile, "ktp/" + customerId);
+            Optional<DokumenCustomer> existingKtpOpt = dokumenCustomerRepository.findByCustomer_IdAndDocType(customerId, "KTP");
+            DokumenCustomer docKtp = existingKtpOpt.orElseGet(() -> {
+                DokumenCustomer d = new DokumenCustomer();
+                d.setId(UUID.randomUUID());
+                d.setDocType("KTP");
+                d.setCustomer(customer);
+                d.setCreatedDate(LocalDateTime.now());
+                return d;
+            });
+            docKtp.setFileUrl(ktpUrl);
+            docKtp.setUpdatedDate(LocalDateTime.now());
+            dokumenCustomerRepository.save(docKtp);
+        }
+
+        if (hasSelfie) {
+            String selfieUrl = fileStorageService.store(selfieFile, "selfie/" + customerId);
+            Optional<DokumenCustomer> existingSelfieOpt = dokumenCustomerRepository.findByCustomer_IdAndDocType(customerId, "SELFIE");
+            DokumenCustomer docSelfie = existingSelfieOpt.orElseGet(() -> {
+                DokumenCustomer d = new DokumenCustomer();
+                d.setId(UUID.randomUUID());
+                d.setDocType("SELFIE");
+                d.setCustomer(customer);
+                d.setCreatedDate(LocalDateTime.now());
+                return d;
+            });
+            docSelfie.setFileUrl(selfieUrl);
+            docSelfie.setUpdatedDate(LocalDateTime.now());
+            dokumenCustomerRepository.save(docSelfie);
+        }
+
+        // Reset status verifikasi ke PENDING agar Backoffice memeriksa ulang dokumen revisi
+        verifikasiRepository.deleteByMstCustomerId(customerId);
+        customer.setStatus(false);
+        customer.setUpdatedDate(LocalDateTime.now());
+        customerRepository.save(customer);
+
+        log.info("Customer {} re-uploaded KYC documents for revision", customerId);
+        return buildProfileResponse(customer);
+    }
+
     private CustomerProfileResponse buildProfileResponse(Customer customer) {
         UUID customerId = customer.getId();
 
@@ -344,6 +403,16 @@ public class CustomerProfileService {
 
         scoring.setUpdatedDate(LocalDateTime.now());
         return scoringRepository.save(scoring);
+    }
+
+    @Transactional
+    public void updateFcmToken(UUID customerId, String fcmToken) {
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new BussinessRuleException("Customer tidak ditemukan"));
+        customer.setFcmToken(fcmToken);
+        customer.setUpdatedDate(LocalDateTime.now());
+        customerRepository.save(customer);
+        log.info("FCM token updated successfully for customer id: {}", customerId);
     }
 }
 

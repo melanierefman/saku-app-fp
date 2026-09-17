@@ -25,6 +25,7 @@ public class VerifikasiCustomerDetailResponse {
     private String email;
     private String noHp;
     private String username;
+    private String namaIbuKandung;
 
     // Pekerjaan & Keuangan (Informasi Dasar)
     private String pekerjaan;

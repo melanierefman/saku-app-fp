@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -73,5 +74,22 @@ public class CustomerProfileController {
             @Valid @RequestBody ChangePasswordRequest request) {
         customerProfileService.changePassword(customer.getIdKaryawan(), request);
         return ResponseEntity.ok(ApiResponse.success("Password berhasil diubah"));
+    }
+
+    @PutMapping("/fcm-token")
+    public ResponseEntity<ApiResponse<String>> updateFcmToken(
+            @AuthenticationPrincipal AppUser customer,
+            @Valid @RequestBody com.bcafinance.backend_saku.features.customer.dto.FcmTokenRequest request) {
+        customerProfileService.updateFcmToken(customer.getIdKaryawan(), request.getFcmToken());
+        return ResponseEntity.ok(ApiResponse.success("FCM token berhasil diperbarui"));
+    }
+
+    @PostMapping(value = "/kyc-documents", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<CustomerProfileResponse>> updateKycDocuments(
+            @AuthenticationPrincipal AppUser customer,
+            @org.springframework.web.bind.annotation.RequestPart(value = "ktp", required = false) org.springframework.web.multipart.MultipartFile ktpFile,
+            @org.springframework.web.bind.annotation.RequestPart(value = "selfie", required = false) org.springframework.web.multipart.MultipartFile selfieFile) {
+        CustomerProfileResponse response = customerProfileService.updateKycDocuments(customer.getIdKaryawan(), ktpFile, selfieFile);
+        return ResponseEntity.ok(ApiResponse.success(200, "Dokumen KYC berhasil diperbarui dan dikirim ulang untuk verifikasi.", response));
     }
 }

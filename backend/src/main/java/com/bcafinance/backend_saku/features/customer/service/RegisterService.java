@@ -63,7 +63,7 @@ public class RegisterService {
         customerRepository.save(customer);
 
         // Simpan / update alamat KTP
-        alamatRepository.deleteByCustomer_Id(customerId);
+        alamatRepository.deleteByCustomer_IdAndJenisAlamat(customerId, "KTP");
         alamatRepository.save(toEntity(req.alamatKtp(), "KTP", customer));
 
         // Simpan dokumen foto e-KTP jika diunggah
@@ -99,6 +99,7 @@ public class RegisterService {
         customerRepository.save(customer);
 
         // Simpan Alamat Domisili
+        alamatRepository.deleteByCustomer_IdAndJenisAlamat(customerId, "DOMISILI");
         Optional<AlamatCustomer> ktpAlamatOpt = alamatRepository.findByCustomer_IdAndJenisAlamat(customerId, "KTP");
         if (Boolean.TRUE.equals(req.sameAsKtp()) || req.alamatDomisili() == null) {
             if (ktpAlamatOpt.isPresent()) {
@@ -118,12 +119,14 @@ public class RegisterService {
                 domisili.setCreatedDate(LocalDateTime.now());
                 domisili.setUpdatedDate(LocalDateTime.now());
                 alamatRepository.save(domisili);
+            } else if (req.alamatDomisili() != null) {
+                alamatRepository.save(toEntity(req.alamatDomisili(), "DOMISILI", customer));
             }
         } else {
             alamatRepository.save(toEntity(req.alamatDomisili(), "DOMISILI", customer));
         }
 
-        // Simpan data finansial & pekerjaan untuk scoring
+        // Simpan data finansial & pekerjaan untuk scoring (Akan dihitung saat verifikasi Backoffice)
         scoringRepository.deleteByMstCustomerId(customer.getId());
 
         ScoringCustomer scoring = new ScoringCustomer();
@@ -135,7 +138,9 @@ public class RegisterService {
         scoring.setMstCustomerId(customer.getId());
         scoring.setPekerjaan(req.pekerjaan());
         scoring.setTempatKerja(req.tempatKerja());
-        scoring.setStatusScoring("PENDING");
+        scoring.setSkor(0);
+        scoring.setStatusScoring("PENDING_VERIFIKASI");
+        scoring.setMstPlafondId(null);
         scoring.setCreatedDate(LocalDateTime.now());
         scoring.setUpdatedDate(LocalDateTime.now());
         scoringRepository.save(scoring);
@@ -144,7 +149,7 @@ public class RegisterService {
     }
 
     /**
-     * Step 3: Verifikasi Wajah (Liveness Selfie) & Background Scoring Trigger
+     * Step 3: Verifikasi Wajah (Liveness Selfie)
      */
     @Transactional
     public RegisterStepResponse registerStep3Liveness(UUID customerId, MultipartFile selfieFile) {
@@ -162,21 +167,6 @@ public class RegisterService {
             docSelfie.setFileUrl(selfieUrl);
             docSelfie.setUpdatedDate(LocalDateTime.now());
             dokumenRepository.save(docSelfie);
-        }
-
-        // Trigger Scoring Otomatis di Background
-        Optional<ScoringCustomer> scoringOpt = scoringRepository.findByMstCustomerId(customerId);
-        if (scoringOpt.isPresent()) {
-            ScoringCustomer scoring = scoringOpt.get();
-            ScoringService.ScoringResult result = scoringService.calculateScore(
-                    scoring.getTotalCicilanLainBulanan(),
-                    scoring.getPenghasilanBulanan(),
-                    scoring.getLamaBekerjaBulan(),
-                    scoring.getStatusPekerjaan());
-            scoring.setSkor((int) Math.round(result.score()));
-            scoring.setStatusScoring(result.decision());
-            scoring.setUpdatedDate(LocalDateTime.now());
-            scoringRepository.save(scoring);
         }
 
         return new RegisterStepResponse(customerId, 3, "Verifikasi wajah berhasil, lanjut ke Syarat & Ketentuan");
