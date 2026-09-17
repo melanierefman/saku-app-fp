@@ -1,21 +1,19 @@
-# SAKU App (Solusi Keuangan Digital Terintegrasi)
+# SAKU: Solusi Aman Keuangan Untukmu
 
-**SAKU** adalah platform ekosistem pembiayaan digital dan pinjaman multiguna (*multipurpose & business financing platform*) yang dirancang untuk melayani nasabah perorangan, karyawan, hingga pelaku usaha/UMKM. Platform ini mengintegrasikan nasabah peminjam (*mobile client*), tim marketing, branch manager, dan tim backoffice dalam satu alur pembiayaan yang aman, transparan, dan cepat.
+> **"Pinjam Tenang, Sesuai Kemampuan."**
 
-### 🎯 Target Pengguna & Tujuan Pembiayaan
-1. **Nasabah Perorangan / Karyawan (Pembiayaan Multiguna)**:
-   - Biaya Pendidikan (sekolah/kuliah)
-   - Renovasi Rumah & Perbaikan Tempat Tinggal
-   - Kebutuhan Medis, Kesehatan & Dana Darurat
-   - Pembelian Elektronik & Kebutuhan Konsumtif Terencana
-2. **Pelaku Usaha & UMKM (Pembiayaan Produktif)**:
-   - Tambahan Modal Kerja & Kas Operasional Usaha
-   - Pembelian Alat Kerja & Inventaris Usaha
-3. **Internal Lembaga Finansial (Portal Manajemen & Tata Kelola)**:
-   - **Marketing**: Verifikasi awal, pengecekan skor kredit, dan rekomendasi berkas
-   - **Branch Manager**: Otorisasi persetujuan kredit berjenjang berbasis limit cabang
-   - **Back Office**: Verifikasi kepatuhan KYC (*Know Your Customer*) & eksekusi pencairan dana
-   - **Super Admin**: Monitoring operasional real-time, audit log aktivitas, dan kontrol hak akses (RBAC)
+**SAKU** adalah platform pinjaman dana tunai digital (*smart digital cash loan*) yang mengedepankan prinsip **Responsible Lending (Pinjaman Bertanggung Jawab)**. Didukung oleh mesin evaluasi **Intelligent Credit Scoring**, SAKU memastikan setiap nasabah mendapatkan rekomendasi plafon dan skema cicilan yang benar-benar terukur sesuai kemampuan finansialnya — menghadirkan rasa tenang (*peace of mind*) tanpa kekhawatiran bunga tersembunyi ataupun jeratan utang berlebih (*anti-overindebtedness*).
+
+Ekosistem SAKU menghubungkan nasabah peminjam (*mobile client* Android) dengan portal operasional cabang terintegrasi (Marketing, Branch Manager, Back Office, dan Super Admin) dalam satu alur pembiayaan yang aman, transparan, dan cepat.
+
+---
+
+### 💡 Nilai Utama & Keunggulan SAKU (Core Values)
+
+1. **Limit Pintar & Terukur**: Plafon pinjaman tidak dipukul rata, melainkan dihitung secara adil berdasarkan profil pendapatan, rasio beban cicilan (*Debt Burden Ratio*), dan data scoring nasabah.
+2. **Bebas Rasa Cemas**: Simulasi nominal, bunga flat transparan, dan estimasi angsuran ditampilkan jelas di awal sebelum nasabah mengajukan.
+3. **Proses Cepat & Terverifikasi**: Verifikasi identitas KYC (*e-KTP & selfie liveness*), evaluasi berjenjang, hingga pencairan dana langsung ke rekening bank nasabah.
+4. **Tampilan Modern & Human-Centric**: Pengalaman pengguna (*UI/UX*) yang segar, ramah anak muda (Gen-Z & Milenial), interaktif, dan mudah digunakan oleh siapa saja.
 
 ---
 
@@ -137,13 +135,20 @@ Setelah backend menyala pertama kali dan struktur tabel otomatis terbentuk di da
   docker exec -i saku-postgres psql -h <DB_HOST> -U <DB_USER> -d <DB_NAME> < backend\database\seeder.sql
   ```
 
-#### Kredensial Pengguna Bawaan (Default Credentials):
-| Role | Username | Password | Akses Halaman |
+#### A. Kredensial Staf Internal (Web Portal):
+| Role | Username | Password | Akses & Wewenang |
 | :--- | :--- | :--- | :--- |
 | **Super Admin** | `superadmin` | `password` | `/dashboard`, `/rbac/*`, `/master/*` |
 | **Marketing** | `marketing` | `password` | `/pengajuan-pinjaman` (Review & Scoring) |
 | **Branch Manager** | `bm` | `password` | `/persetujuan-pinjaman` (Persetujuan Plafond) |
 | **Back Office** | `backoffice` | `password` | `/verifikasi-customer`, `/pencairan` |
+
+#### B. Akun Demo Nasabah (Aplikasi Mobile Android):
+| Nama Nasabah | Username | Password | Keterangan Status Pinjaman |
+| :--- | :--- | :--- | :--- |
+| **Melanie Refman** | `melanie` | `password` | Pinjaman Aktif & **Dicairkan** (9 jadwal angsuran berjalan) |
+| **Bagus Wijaya** | `bagus_sby` | `password` | Riwayat Pengajuan Selesai Review & Pengajuan Selesai |
+| **Siti Nurhaliza** | `siti_bandung` | `password` | Pengajuan Baru Selesai Tahap Review Marketing Cabang |
 
 ---
 
