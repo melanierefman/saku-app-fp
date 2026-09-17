@@ -127,28 +127,13 @@ Backend aktif di `http://localhost:8080`.
 
 ### 2. Mengisi Data Awal (Database Seeder)
 
-Setelah backend menyala pertama kali dan struktur tabel otomatis terbentuk di database, jalankan script seeder untuk mengisi data master role, karyawan, cabang, plafond, dan akun uji coba:
+Setelah backend menyala pertama kali dan struktur tabel otomatis terbentuk di database, jalankan script seeder untuk mengisi data master awal (role, cabang, plafond, menu, dan permission):
 
 - **Via DBeaver / pgAdmin**: Buka koneksi database Anda, lalu buka dan eksekusi file [`backend/database/seeder.sql`](file:///c:/Users/melan/OneDrive/Documents/GitHub/saku-app-fp/backend/database/seeder.sql).
 - **Via Terminal (psql / Docker)**:
   ```powershell
   docker exec -i saku-postgres psql -h <DB_HOST> -U <DB_USER> -d <DB_NAME> < backend\database\seeder.sql
   ```
-
-#### A. Kredensial Staf Internal (Web Portal):
-| Role | Username | Password | Akses & Wewenang |
-| :--- | :--- | :--- | :--- |
-| **Super Admin** | `superadmin` | `password` | `/dashboard`, `/rbac/*`, `/master/*` |
-| **Marketing** | `marketing` | `password` | `/pengajuan-pinjaman` (Review & Scoring) |
-| **Branch Manager** | `bm` | `password` | `/persetujuan-pinjaman` (Persetujuan Plafond) |
-| **Back Office** | `backoffice` | `password` | `/verifikasi-customer`, `/pencairan` |
-
-#### B. Akun Demo Nasabah (Aplikasi Mobile Android):
-| Nama Nasabah | Username | Password | Keterangan Status Pinjaman |
-| :--- | :--- | :--- | :--- |
-| **Melanie Refman** | `melanie` | `password` | Pinjaman Aktif & **Dicairkan** (9 jadwal angsuran berjalan) |
-| **Bagus Wijaya** | `bagus_sby` | `password` | Riwayat Pengajuan Selesai Review & Pengajuan Selesai |
-| **Siti Nurhaliza** | `siti_bandung` | `password` | Pengajuan Baru Selesai Tahap Review Marketing Cabang |
 
 ---
 
