@@ -9,11 +9,7 @@ desktop.ini
 # IDE & Editor Configurations
 # ==========================================
 .idea/
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+.vscode/
 *.iml
 *.iws
 *.ipr
