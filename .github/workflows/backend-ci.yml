@@ -109,6 +109,18 @@ jobs:
             echo ">>> PROD_ENV_FILE secret not provided, using server/template .env."
           fi
 
+      - name: Generate Firebase Service Account from GitHub Secret (if provided)
+        env:
+          FIREBASE_SECRET: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -n "$FIREBASE_SECRET" ]; then
+            echo ">>> Creating firebase-service-account.json from FIREBASE_SERVICE_ACCOUNT_JSON secret..."
+            mkdir -p backend/src/main/resources
+            echo "$FIREBASE_SECRET" > backend/src/main/resources/firebase-service-account.json
+          else
+            echo ">>> FIREBASE_SERVICE_ACCOUNT_JSON secret not provided."
+          fi
+
       - name: Transfer Backend Files to Server via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -132,10 +144,10 @@ jobs:
             echo ">>> Navigating to ~/backend on server..."
             cd ~/backend
 
-            # Ensure .env exists (fallback to .env.production.example if not yet created)
-            if [ ! -f .env ] && [ -f .env.production.example ]; then
+            # Ensure .env exists (fallback to .env.example if not yet created)
+            if [ ! -f .env ] && [ -f .env.example ]; then
               echo ">>> Initializing .env from template..."
-              cp .env.production.example .env
+              cp .env.example .env
             fi
 
             # Ensure uploads directory exists for persistent storage
