@@ -36,6 +36,7 @@ import {
   LucideCheckCircle2,
   LucideXCircle,
   LucideAlertTriangle,
+  LucideRotateCcw,
 } from '@lucide/angular';
 import { environment } from '../../../../../environments/environment';
 import { formatDate as formatDateHelper } from '../../../../shared/utils/date.util';
@@ -63,6 +64,7 @@ import { formatDate as formatDateHelper } from '../../../../shared/utils/date.ut
     LucideCheckCircle2,
     LucideXCircle,
     LucideAlertTriangle,
+    LucideRotateCcw,
   ],
   templateUrl: './verifikasi-customer-detail.component.html',
   styleUrl: './verifikasi-customer-detail.component.css',
@@ -85,6 +87,8 @@ export class VerifikasiCustomerDetailComponent implements OnInit {
   isLoading = signal<boolean>(true);
   isSubmitting = signal<boolean>(false);
   isConfirmModalOpen = signal<boolean>(false);
+  isSuccessModalOpen = signal<boolean>(false);
+  lastSubmittedStatus = signal<string>('');
 
   // Form Signals
   selectedStatusVerifikasi = signal<string>('');
@@ -282,6 +286,8 @@ export class VerifikasiCustomerDetailComponent implements OnInit {
       next: () => {
         this.isSubmitting.set(false);
         this.isConfirmModalOpen.set(false);
+        this.lastSubmittedStatus.set(status);
+        this.isSuccessModalOpen.set(true);
         this.toastService.success(
           `Keputusan verifikasi berhasil disimpan: ${this.getStatusDisplayLabel(status)}`
         );
@@ -296,6 +302,15 @@ export class VerifikasiCustomerDetailComponent implements OnInit {
         this.cdr.detectChanges();
       },
     });
+  }
+
+  closeSuccessModal(): void {
+    this.isSuccessModalOpen.set(false);
+  }
+
+  navigateToList(): void {
+    this.isSuccessModalOpen.set(false);
+    this.router.navigate(['/verifikasi-customer']);
   }
 
   // Image Preview Helpers
