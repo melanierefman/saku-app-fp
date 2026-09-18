@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://farmers-saturn-teeth-providers.trycloudflare.com/api',
+  apiUrl: 'https://volleyball-scored-arizona-operator.trycloudflare.com/api',
 };
