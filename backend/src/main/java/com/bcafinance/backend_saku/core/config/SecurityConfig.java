@@ -105,9 +105,11 @@ public class SecurityConfig {
         @Bean
         CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration konfigurasi = new CorsConfiguration();
-                konfigurasi.setAllowedOrigins(allowedOrigins);
-                konfigurasi.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                konfigurasi.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+                konfigurasi.setAllowedOriginPatterns(allowedOrigins != null && !allowedOrigins.isEmpty() 
+                        ? allowedOrigins 
+                        : List.of("https://saku-app-fp.vercel.app", "http://localhost:*"));
+                konfigurasi.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+                konfigurasi.setAllowedHeaders(List.of("*"));
                 konfigurasi.setAllowCredentials(true);
                 konfigurasi.setMaxAge(3600L);
 
