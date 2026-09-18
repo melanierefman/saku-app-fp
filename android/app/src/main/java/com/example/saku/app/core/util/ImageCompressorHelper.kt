@@ -22,10 +22,11 @@ object ImageCompressorHelper {
      * Membuat Uri sementara untuk kamera bawaan HP menggunakan FileProvider.
      */
     fun createTempPictureUri(context: Context, prefix: String = "camera_capture_"): Uri {
+        val cacheFolder = context.externalCacheDir ?: context.cacheDir
         val tempFile = File.createTempFile(
             "${prefix}${System.currentTimeMillis()}_",
             ".jpg",
-            context.cacheDir
+            cacheFolder
         ).apply {
             createNewFile()
             deleteOnExit()

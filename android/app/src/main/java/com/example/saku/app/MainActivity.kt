@@ -62,6 +62,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        syncFcmToken(applicationContext)
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
@@ -111,31 +116,37 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun syncFcmToken() {
-        try {
-            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val token = task.result
-                    Log.d("MainActivity", "Fetched FCM Token: $token")
-                    lifecycleScope.launch(Dispatchers.IO) {
-                        try {
-                            val tokenManager = com.example.saku.app.core.data.TokenManager.getInstance(applicationContext)
-                            val accessToken = tokenManager.getAccessTokenSync()
-                            if (!accessToken.isNullOrBlank()) {
-                                val apiService = ApiClient.getCustomerApiService(applicationContext)
-                                apiService.updateFcmToken(FcmTokenRequestDto(token))
-                                Log.d("MainActivity", "Synced FCM token to backend")
+    companion object {
+        fun syncFcmToken(context: android.content.Context) {
+            try {
+                FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        val token = task.result
+                        Log.d("MainActivity", "Fetched FCM Token: $token")
+                        kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
+                            try {
+                                val tokenManager = com.example.saku.app.core.data.TokenManager.getInstance(context)
+                                val accessToken = tokenManager.getAccessTokenSync()
+                                if (!accessToken.isNullOrBlank()) {
+                                    val apiService = ApiClient.getCustomerApiService(context)
+                                    apiService.updateFcmToken(FcmTokenRequestDto(token))
+                                    Log.d("MainActivity", "Synced FCM token to backend successfully")
+                                }
+                            } catch (e: Exception) {
+                                Log.d("MainActivity", "Could not sync FCM token: ${e.message}")
                             }
-                        } catch (e: Exception) {
-                            Log.d("MainActivity", "Could not sync FCM token: ${e.message}")
                         }
+                    } else {
+                        Log.w("MainActivity", "Fetching FCM registration token failed", task.exception)
                     }
-                } else {
-                    Log.w("MainActivity", "Fetching FCM registration token failed", task.exception)
                 }
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Error initializing FCM token fetch: ${e.message}")
             }
-        } catch (e: Exception) {
-            Log.e("MainActivity", "Error initializing FCM token fetch: ${e.message}")
         }
+    }
+
+    private fun syncFcmToken() {
+        syncFcmToken(applicationContext)
     }
 }

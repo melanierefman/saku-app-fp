@@ -206,6 +206,7 @@ fun HomeScreen(
     // Refresh data saat HomeScreen aktif / tab berpindah
     LaunchedEffect(currentNavRoute) {
         viewModel.fetchDashboardData()
+        com.example.saku.app.MainActivity.syncFcmToken(context)
     }
 
     val totalPlafond = customerProfile?.totalPlafond ?: 50_000_000.0

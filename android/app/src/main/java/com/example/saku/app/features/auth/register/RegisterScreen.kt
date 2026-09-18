@@ -1,9 +1,13 @@
 package com.example.saku.app.features.auth.register
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -1141,11 +1145,44 @@ private fun Step4KycDocumentsForm(viewModel: RegisterViewModel, uiState: Registe
         pendingCameraTarget = null
     }
 
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            val target = pendingCameraTarget
+            if (target != null) {
+                try {
+                    val tempUri = ImageCompressorHelper.createTempPictureUri(context, if (target == "ktp") "ktp_" else "selfie_")
+                    pendingCameraUri = tempUri
+                    nativeCameraLauncher.launch(tempUri)
+                } catch (e: Exception) {
+                    Toast.makeText(context, "Gagal membuka kamera: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } else {
+            Toast.makeText(context, "Izin kamera diperlukan untuk mengambil foto KYC", Toast.LENGTH_LONG).show()
+            pendingCameraTarget = null
+        }
+    }
+
     val launchCamera = { target: String ->
-        val tempUri = ImageCompressorHelper.createTempPictureUri(context, if (target == "ktp") "ktp_" else "selfie_")
-        pendingCameraUri = tempUri
         pendingCameraTarget = target
-        nativeCameraLauncher.launch(tempUri)
+        val hasPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (hasPermission) {
+            try {
+                val tempUri = ImageCompressorHelper.createTempPictureUri(context, if (target == "ktp") "ktp_" else "selfie_")
+                pendingCameraUri = tempUri
+                nativeCameraLauncher.launch(tempUri)
+            } catch (e: Exception) {
+                Toast.makeText(context, "Gagal membuka kamera: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
     }
 
     val launchGallery = { target: String ->
