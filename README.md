@@ -53,7 +53,7 @@ saku-app-fp/
 │   ├── src/main/java/...          # Controllers, Services, Repositories, Entities & Security
 │   ├── src/main/resources/        # application.properties & Firebase credentials
 │   ├── pom.xml
-│   └── .env.production.example
+│   └── .env.example
 ├── frontend/                      # Web Portal Backoffice & Manajemen (Angular 22)
 │   ├── src/app/pages/             # Modul Marketing, Branch Manager, Backoffice, Superadmin
 │   ├── src/app/core/              # Guards, Interceptors, Services, Models
