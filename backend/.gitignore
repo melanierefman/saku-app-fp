@@ -33,6 +33,7 @@ build/
 .vscode/
 
 .env
+.env.github
 
 ### Custom Ignored ###
 uploads/
