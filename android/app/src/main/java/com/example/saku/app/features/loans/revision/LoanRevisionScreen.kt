@@ -40,7 +40,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,9 +55,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import androidx.compose.material3.AlertDialog
 import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.Camera
 import com.composables.icons.lucide.CircleAlert
+import com.composables.icons.lucide.CircleCheck
 import com.composables.icons.lucide.FileText
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.RotateCw
@@ -67,6 +71,8 @@ import com.example.saku.app.core.ui.components.BadgeVariant
 import com.example.saku.app.core.ui.components.Button
 import com.example.saku.app.core.ui.components.ButtonSize
 import com.example.saku.app.core.ui.components.ButtonVariant
+import com.example.saku.app.core.ui.components.ConfirmationDialog
+import com.example.saku.app.core.ui.components.DialogType
 import com.example.saku.app.ui.theme.Background
 import com.example.saku.app.ui.theme.Border
 import com.example.saku.app.ui.theme.Error
@@ -76,6 +82,8 @@ import com.example.saku.app.ui.theme.Neutral0
 import com.example.saku.app.ui.theme.Primary
 import com.example.saku.app.ui.theme.Primary0
 import com.example.saku.app.ui.theme.Primary20
+import com.example.saku.app.ui.theme.Success
+import com.example.saku.app.ui.theme.Success0
 import com.example.saku.app.ui.theme.Surface
 import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary
@@ -98,18 +106,16 @@ fun LoanRevisionScreen(
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
 
+    var showConfirmDialog by remember { mutableStateOf(false) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
+
     LaunchedEffect(loanId) {
         viewModel.loadLoan(loanId)
     }
 
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
-            Toast.makeText(
-                context,
-                uiState.successMessage ?: "Dokumen revisi berhasil diunggah ulang",
-                Toast.LENGTH_LONG
-            ).show()
-            onRevisionSuccess()
+            showSuccessDialog = true
         }
     }
 
@@ -170,7 +176,7 @@ fun LoanRevisionScreen(
                 Column(modifier = Modifier.padding(16.dp)) {
                     Button(
                         text = if (uiState.isSubmitting) "Mengirim Dokumen..." else "Kirim Dokumen Revisi",
-                        onClick = { viewModel.submitRevision(context) },
+                        onClick = { showConfirmDialog = true },
                         enabled = uiState.canSubmit && !uiState.isSubmitting,
                         modifier = Modifier.fillMaxWidth(),
                         size = ButtonSize.LG
@@ -370,6 +376,77 @@ fun LoanRevisionScreen(
                 }
             }
         }
+    }
+
+    // Modal Konfirmasi Sebelum Kirim Revisi
+    ConfirmationDialog(
+        visible = showConfirmDialog,
+        title = "Kirim Dokumen Revisi?",
+        message = "Pastikan seluruh berkas yang Anda unggah sudah lengkap dan sesuai catatan perbaikan. Dokumen akan langsung ditinjau kembali oleh tim verifikator SAKU.",
+        confirmButtonText = "Ya, Kirim Revisi",
+        dismissButtonText = "Periksa Kembali",
+        type = DialogType.INFO,
+        isLoading = uiState.isSubmitting,
+        onConfirm = {
+            showConfirmDialog = false
+            viewModel.submitRevision(context)
+        },
+        onDismiss = {
+            if (!uiState.isSubmitting) {
+                showConfirmDialog = false
+            }
+        }
+    )
+
+    // Modal Sukses Setelah Revisi Terkirim
+    if (showSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = { /* Modal ditutup lewat tombol */ },
+            confirmButton = {
+                Button(
+                    text = "Kembali ke Detail Pinjaman",
+                    onClick = {
+                        showSuccessDialog = false
+                        onRevisionSuccess()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            icon = {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(Success0),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Lucide.CircleCheck,
+                        contentDescription = null,
+                        tint = Success,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+            },
+            title = {
+                Text(
+                    text = "Dokumen Berhasil Dikirim!",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 17.sp,
+                    color = TextPrimary
+                )
+            },
+            text = {
+                Text(
+                    text = "Berkas revisi Anda telah berhasil diunggah ulang dan sedang dalam antrean review tim SAKU. Anda akan mendapatkan update notifikasi segera.",
+                    color = TextSecondary,
+                    fontSize = 13.5.sp,
+                    lineHeight = 19.sp
+                )
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(20.dp)
+        )
     }
 }
 

@@ -1,8 +1,10 @@
 package com.example.saku.app.features.loans.apply
 
+import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
@@ -12,6 +14,7 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
@@ -209,16 +212,54 @@ fun LoanApplyScreen(
         pendingCameraDocType = null
     }
 
-    val launchNativeCamera = { docType: String ->
-        val prefix = when (docType) {
-            "SLIP_GAJI" -> "slip_gaji_"
-            "REK_KORAN" -> "rek_koran_"
-            else -> "npwp_"
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            val docType = pendingCameraDocType
+            if (docType != null) {
+                try {
+                    val prefix = when (docType) {
+                        "SLIP_GAJI" -> "slip_gaji_"
+                        "REK_KORAN" -> "rek_koran_"
+                        else -> "npwp_"
+                    }
+                    val tempUri = ImageCompressorHelper.createTempPictureUri(context, prefix)
+                    pendingCameraUri = tempUri
+                    nativeCameraLauncher.launch(tempUri)
+                } catch (e: Exception) {
+                    Toast.makeText(context, "Gagal membuka kamera: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } else {
+            Toast.makeText(context, "Izin kamera diperlukan untuk mengambil foto dokumen", Toast.LENGTH_LONG).show()
+            pendingCameraDocType = null
         }
-        val tempUri = ImageCompressorHelper.createTempPictureUri(context, prefix)
-        pendingCameraUri = tempUri
+    }
+
+    val launchNativeCamera = { docType: String ->
         pendingCameraDocType = docType
-        nativeCameraLauncher.launch(tempUri)
+        val hasPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (hasPermission) {
+            try {
+                val prefix = when (docType) {
+                    "SLIP_GAJI" -> "slip_gaji_"
+                    "REK_KORAN" -> "rek_koran_"
+                    else -> "npwp_"
+                }
+                val tempUri = ImageCompressorHelper.createTempPictureUri(context, prefix)
+                pendingCameraUri = tempUri
+                nativeCameraLauncher.launch(tempUri)
+            } catch (e: Exception) {
+                Toast.makeText(context, "Gagal membuka kamera: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
     }
 
     // Modal Konfirmasi Pengajuan Pinjaman State for Step 3

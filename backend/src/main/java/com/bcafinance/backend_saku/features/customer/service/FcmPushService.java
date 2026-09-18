@@ -31,10 +31,11 @@ public class FcmPushService {
                     .build();
 
             AndroidNotification androidNotification = AndroidNotification.builder()
-                    .setIcon("saku_logo")
+                    .setIcon("ic_notification_saku")
                     .setColor("#FF7A00")
                     .setSound("default")
                     .setPriority(AndroidNotification.Priority.HIGH)
+                    .setChannelId("saku_loan_channel")
                     .build();
 
             AndroidConfig androidConfig = AndroidConfig.builder()

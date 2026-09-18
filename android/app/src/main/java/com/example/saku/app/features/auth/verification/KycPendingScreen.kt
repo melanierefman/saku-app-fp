@@ -1,9 +1,15 @@
 package com.example.saku.app.features.auth.verification
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import com.example.saku.app.core.ui.components.ConfirmationDialog
+import com.example.saku.app.core.ui.components.DialogType
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -158,6 +164,10 @@ fun KycPendingScreen(
 
     val rawStatus = (profile?.statusVerifikasi ?: "").uppercase()
     val isRevisionNeeded = rawStatus.contains("REVISI") || rawStatus.contains("REVISION") || rawStatus.contains("REJECTED") || rawStatus.contains("DITOLAK")
+
+    LaunchedEffect(Unit) {
+        com.example.saku.app.MainActivity.syncFcmToken(context)
+    }
 
     LaunchedEffect(statusState) {
         when (statusState) {
@@ -587,9 +597,6 @@ fun KycPendingScreen(
                 onSubmitRevision = {
                     viewModel.submitRevision(context) {
                         activeSheet = ActiveModalSheet.NONE
-                        scope.launch {
-                            snackbarHostState.showSnackbar("Dokumen revisi berhasil dikirim ulang ke tim Backoffice.")
-                        }
                     }
                 },
                 onDismiss = { activeSheet = ActiveModalSheet.NONE }
@@ -935,6 +942,8 @@ private fun VerifikasiIdentitasSheet(
         else -> Pair(false, false)
     }
 
+    var showConfirmDialog by remember { mutableStateOf(false) }
+
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -959,14 +968,42 @@ private fun VerifikasiIdentitasSheet(
         }
     }
 
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            val target = currentCameraTarget
+            if (target != null) {
+                try {
+                    val uri = ImageCompressorHelper.createTempPictureUri(context, prefix = "${target}_revisi_")
+                    tempCameraUri = uri
+                    cameraLauncher.launch(uri)
+                } catch (e: Exception) {
+                    galleryLauncher.launch("image/*")
+                }
+            }
+        } else {
+            Toast.makeText(context, "Izin kamera diperlukan untuk mengambil foto", Toast.LENGTH_LONG).show()
+        }
+    }
+
     val launchNativeCamera: (String) -> Unit = { target ->
         currentCameraTarget = target
-        try {
-            val uri = ImageCompressorHelper.createTempPictureUri(context, prefix = "${target}_revisi_")
-            tempCameraUri = uri
-            cameraLauncher.launch(uri)
-        } catch (e: Exception) {
-            galleryLauncher.launch("image/*")
+        val hasPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (hasPermission) {
+            try {
+                val uri = ImageCompressorHelper.createTempPictureUri(context, prefix = "${target}_revisi_")
+                tempCameraUri = uri
+                cameraLauncher.launch(uri)
+            } catch (e: Exception) {
+                galleryLauncher.launch("image/*")
+            }
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
     }
 
@@ -1146,7 +1183,7 @@ private fun VerifikasiIdentitasSheet(
             if (isRevisionNeeded) {
                 Button(
                     text = "Kirim Ulang Dokumen Revisi",
-                    onClick = onSubmitRevision,
+                    onClick = { showConfirmDialog = true },
                     isLoading = isSubmitting,
                     enabled = isFormReadyToSubmit && !isSubmitting,
                     variant = ButtonVariant.Primary,
@@ -1163,6 +1200,25 @@ private fun VerifikasiIdentitasSheet(
             }
         }
     }
+
+    ConfirmationDialog(
+        visible = showConfirmDialog,
+        title = "Kirim Dokumen Revisi?",
+        message = "Pastikan foto dokumen fisik yang Anda unggah sudah jelas, tidak buram, dan sesuai instruksi. Dokumen akan langsung diproses ulang oleh tim verifikasi SAKU.",
+        confirmButtonText = "Ya, Kirim Revisi",
+        dismissButtonText = "Periksa Kembali",
+        type = DialogType.INFO,
+        isLoading = isSubmitting,
+        onConfirm = {
+            showConfirmDialog = false
+            onSubmitRevision()
+        },
+        onDismiss = {
+            if (!isSubmitting) {
+                showConfirmDialog = false
+            }
+        }
+    )
 }
 
 @Composable
