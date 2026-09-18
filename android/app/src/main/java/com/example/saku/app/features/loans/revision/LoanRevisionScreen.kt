@@ -119,40 +119,25 @@ fun LoanRevisionScreen(
         }
     }
 
-    // Launchers for Slip Gaji
+    // Launchers for Slip Gaji (Document & Gallery)
     val slipPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) viewModel.setSlipGaji(uri, null)
     }
-    val slipCameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicturePreview()
-    ) { bitmap: Bitmap? ->
-        if (bitmap != null) viewModel.setSlipGaji(null, bitmap)
-    }
 
-    // Launchers for Rekening Koran
+    // Launchers for Rekening Koran (Document & Gallery)
     val rekKoranPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) viewModel.setRekeningKoran(uri, null)
     }
-    val rekKoranCameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicturePreview()
-    ) { bitmap: Bitmap? ->
-        if (bitmap != null) viewModel.setRekeningKoran(null, bitmap)
-    }
 
-    // Launchers for NPWP
+    // Launchers for NPWP (Document & Gallery)
     val npwpPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) viewModel.setNpwp(uri, null)
-    }
-    val npwpCameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicturePreview()
-    ) { bitmap: Bitmap? ->
-        if (bitmap != null) viewModel.setNpwp(null, bitmap)
     }
 
     val loan = uiState.loan
@@ -332,7 +317,6 @@ fun LoanRevisionScreen(
                                 uri = uiState.slipGajiUri,
                                 bitmap = uiState.slipGajiBitmap,
                                 onDocumentClick = { slipPickerLauncher.launch("*/*") },
-                                onCameraClick = { slipCameraLauncher.launch(null) },
                                 onRemoveClick = { viewModel.setSlipGaji(null, null) }
                             )
                         }
@@ -348,7 +332,6 @@ fun LoanRevisionScreen(
                                 uri = uiState.rekeningKoranUri,
                                 bitmap = uiState.rekeningKoranBitmap,
                                 onDocumentClick = { rekKoranPickerLauncher.launch("*/*") },
-                                onCameraClick = { rekKoranCameraLauncher.launch(null) },
                                 onRemoveClick = { viewModel.setRekeningKoran(null, null) }
                             )
                         }
@@ -364,7 +347,6 @@ fun LoanRevisionScreen(
                                 uri = uiState.npwpUri,
                                 bitmap = uiState.npwpBitmap,
                                 onDocumentClick = { npwpPickerLauncher.launch("*/*") },
-                                onCameraClick = { npwpCameraLauncher.launch(null) },
                                 onRemoveClick = { viewModel.setNpwp(null, null) }
                             )
                         }
@@ -505,7 +487,6 @@ private fun RevisionDocumentUploadBox(
     uri: Uri?,
     bitmap: Bitmap?,
     onDocumentClick: () -> Unit,
-    onCameraClick: () -> Unit,
     onRemoveClick: () -> Unit
 ) {
     val context = LocalContext.current
@@ -621,7 +602,7 @@ private fun RevisionDocumentUploadBox(
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
-                                    text = if (isPdf) "Dokumen PDF • Berkas perbaikan" else "Berkas Gambar • Berkas perbaikan",
+                                    text = if (isPdf) "Dokumen PDF • Berkas perbaikan" else "Berkas Dokumen / Foto • Berkas perbaikan",
                                     fontSize = 11.sp,
                                     color = TextSecondary
                                 )
@@ -655,88 +636,46 @@ private fun RevisionDocumentUploadBox(
                     }
                 }
             } else {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Primary0)
+                        .border(1.dp, Primary20, RoundedCornerShape(12.dp))
+                        .clickable { onDocumentClick() }
+                        .padding(vertical = 14.dp, horizontal = 14.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Primary0)
-                            .border(1.dp, Primary20, RoundedCornerShape(12.dp))
-                            .clickable { onDocumentClick() }
-                            .padding(vertical = 14.dp, horizontal = 14.dp)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
+                        Box(
+                            modifier = Modifier
+                                .size(38.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(Primary),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(38.dp)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(Primary),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Lucide.FileText,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = "Pilih File Dokumen Revisi",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = TextPrimary
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = "Format PDF, JPG, atau PNG (Maks. 5 MB)",
-                                    fontSize = 11.5.sp,
-                                    color = TextSecondary
-                                )
-                            }
+                            Icon(
+                                imageVector = Lucide.FileText,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
                         }
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(Neutral0)
-                            .border(1.dp, Border, RoundedCornerShape(10.dp))
-                            .clickable { onCameraClick() }
-                            .padding(vertical = 10.dp, horizontal = 14.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(28.dp)
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(Surface),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Lucide.Camera,
-                                    contentDescription = null,
-                                    tint = Primary,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(10.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Atau ambil foto fisik langsung dengan kamera",
-                                fontSize = 12.sp,
-                                color = TextSecondary,
-                                fontWeight = FontWeight.Medium
+                                text = "Pilih File Dokumen / Foto",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextPrimary
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Pilih file PDF atau foto dari Galeri / Penyimpanan (Maks. 5 MB)",
+                                fontSize = 11.5.sp,
+                                color = TextSecondary
                             )
                         }
                     }
