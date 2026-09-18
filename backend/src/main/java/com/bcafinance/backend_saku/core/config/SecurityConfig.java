@@ -46,6 +46,7 @@ public class SecurityConfig {
 
                                 // untuk RBAC
                                 .authorizeHttpRequests(request -> request
+                                                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                                                 .requestMatchers("/api/auth/**", "/api/public/**", "/uploads/**", "/files/**", "/api/files/**").permitAll()
                                                 .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
                                                 .requestMatchers("/api/marketing/**").hasRole("MARKETING")
@@ -105,11 +106,29 @@ public class SecurityConfig {
         @Bean
         CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration konfigurasi = new CorsConfiguration();
-                konfigurasi.setAllowedOriginPatterns(allowedOrigins != null && !allowedOrigins.isEmpty() 
-                        ? allowedOrigins 
-                        : List.of("https://saku-app-fp.vercel.app", "http://localhost:*"));
-                konfigurasi.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+                
+                java.util.List<String> origins = new java.util.ArrayList<>();
+                origins.add("https://saku-app-fp.vercel.app");
+                origins.add("https://*.vercel.app");
+                origins.add("http://localhost:*");
+                origins.add("http://localhost:4200");
+                origins.add("http://localhost:3000");
+                origins.add("http://localhost:5173");
+                origins.add("http://35.255.112.244:*");
+                origins.add("http://35.255.112.244");
+                origins.add("https://farmers-saturn-teeth-providers.trycloudflare.com");
+                if (allowedOrigins != null && !allowedOrigins.isEmpty()) {
+                    for (String o : allowedOrigins) {
+                        if (!origins.contains(o)) {
+                            origins.add(o);
+                        }
+                    }
+                }
+
+                konfigurasi.setAllowedOriginPatterns(origins);
+                konfigurasi.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
                 konfigurasi.setAllowedHeaders(List.of("*"));
+                konfigurasi.setExposedHeaders(List.of("Authorization", "Content-Type", "Set-Cookie"));
                 konfigurasi.setAllowCredentials(true);
                 konfigurasi.setMaxAge(3600L);
 
