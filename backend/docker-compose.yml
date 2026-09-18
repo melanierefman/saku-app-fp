@@ -1,4 +1,7 @@
 services:
+  # ==========================================
+  # SAKU Spring Boot Backend Application
+  # ==========================================
   backend:
     build:
       context: .
@@ -9,74 +12,5 @@ services:
       - "8080:8080"
     env_file:
       - .env
-    environment:
-      DB_URL: jdbc:postgresql://postgres:5432/db_saku?currentSchema=mel_saku
-      DB_SCHEMA: mel_saku
-      REDIS_HOST: redis
     volumes:
       - ./uploads:/app/uploads
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/api/public/simulasi || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 10
-      start_period: 45s
-
-  postgres:
-    image: postgres:15-alpine
-    container_name: saku-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${DB_USERNAME:-user_saku}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-pw_saku}
-      POSTGRES_DB: ${DB_NAME:-db_saku}
-    ports:
-      - "5433:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./database/00-create-schema.sql:/docker-entrypoint-initdb.d/00-create-schema.sql:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
-  redis:
-    image: redis:7-alpine
-    container_name: saku-redis
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-
-  db-seed:
-    image: postgres:15-alpine
-    profiles: ["seed"]
-    depends_on:
-      backend:
-        condition: service_healthy
-    environment:
-      PGPASSWORD: ${DB_PASSWORD:-pw_saku}
-    volumes:
-      - ./database/seeder.sql:/seed/seeder.sql:ro
-    entrypoint: ["sh", "-c"]
-    command:
-      - >-
-        until pg_isready -h postgres -U ${DB_USERNAME:-user_saku} -d ${DB_NAME:-db_saku}; do sleep 2; done;
-        until psql -h postgres -U ${DB_USERNAME:-user_saku} -d ${DB_NAME:-db_saku} -tAc "SELECT to_regclass('mel_saku.mst_customer')" | grep -q mst_customer; do sleep 2; done;
-        psql -h postgres -U ${DB_USERNAME:-user_saku} -d ${DB_NAME:-db_saku} -f /seed/seeder.sql
-
-volumes:
-  postgres_data:
-  redis_data:
