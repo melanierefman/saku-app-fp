@@ -1525,13 +1525,5 @@ private fun PreviewFieldItem(label: String, value: String) {
 }
 
 private fun formatStatusPekerjaan(status: String?): String {
-    return when (status?.uppercase()) {
-        "KARYAWAN_TETAP" -> "Karyawan Tetap"
-        "KARYAWAN_KONTRAK" -> "Karyawan Kontrak"
-        "WIRAUSAHA", "PENGUSAHA" -> "Wirausaha / Pengusaha"
-        "PROFESIONAL" -> "Profesional"
-        "PNS", "PNS_BUMN" -> "PNS / Pegawai BUMN"
-        "IBU_RUMAH_TANGGA" -> "Ibu Rumah Tangga"
-        else -> status ?: "-"
-    }
+    return com.example.saku.app.core.util.EnumLabelUtils.formatStatusPekerjaan(status)
 }

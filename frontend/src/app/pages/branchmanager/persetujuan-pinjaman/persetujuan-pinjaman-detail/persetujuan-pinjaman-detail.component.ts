@@ -597,6 +597,34 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
     return this.getStatusDisplayLabel() === 'Ditolak BM';
   }
 
+  getMarketingStatusLabel(status?: string | null): string {
+    const s = (status || '').toUpperCase();
+    if (s.includes('SETUJU') || s.includes('APPROV') || s.includes('SELESAI') || s.includes('LOLOS')) {
+      return 'Direkomendasikan (Disetujui)';
+    }
+    if (s.includes('TOLAK') || s.includes('REJECT')) {
+      return 'Tidak Direkomendasikan (Ditolak)';
+    }
+    if (s.includes('REVISI')) {
+      return 'Perlu Revisi';
+    }
+    return status ? status.replace(/_/g, ' ') : 'Belum Direview';
+  }
+
+  getMarketingStatusBadgeClass(status?: string | null): string {
+    const s = (status || '').toUpperCase();
+    if (s.includes('SETUJU') || s.includes('APPROV') || s.includes('SELESAI') || s.includes('LOLOS')) {
+      return 'bg-success-0 text-success-70 border border-success-20';
+    }
+    if (s.includes('TOLAK') || s.includes('REJECT')) {
+      return 'bg-error-0 text-error-70 border border-error-20';
+    }
+    if (s.includes('REVISI')) {
+      return 'bg-warning-0 text-warning-80 border border-warning-20';
+    }
+    return 'bg-neutral-10 text-neutral-70 border border-neutral-20';
+  }
+
   formatDateTime(dateStr?: string | null): string {
     if (!dateStr) return '-';
     try {

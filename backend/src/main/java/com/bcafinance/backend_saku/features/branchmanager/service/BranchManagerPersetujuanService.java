@@ -110,15 +110,20 @@ public class BranchManagerPersetujuanService {
                 .filter(p -> {
 
                     // Hanya tampilkan pengajuan yang sudah selesai direview oleh marketing atau
-                    // sudah diproses oleh BM
+                    // sudah diproses oleh BM (disetujui / dicairkan / ditolak)
                     String status = p.getStatusPengajuan() != null ? p.getStatusPengajuan() : "";
-                    boolean isReviewedByMarketing = "SELESAI_DIREVIEW".equalsIgnoreCase(status)
-                            || "PENGAJUAN_DISETUJUI".equalsIgnoreCase(status);
+                    boolean isReviewedOrApproved = "SELESAI_DIREVIEW".equalsIgnoreCase(status)
+                            || "PENGAJUAN_DISETUJUI".equalsIgnoreCase(status)
+                            || "MENUNGGU_PENCAIRAN".equalsIgnoreCase(status)
+                            || "DICAIRKAN".equalsIgnoreCase(status)
+                            || "PENCAIRAN_SELESAI".equalsIgnoreCase(status)
+                            || "LUNAS".equalsIgnoreCase(status)
+                            || "APPROVED".equalsIgnoreCase(status);
                     boolean isRejectedWithBMReview = "PENGAJUAN_DITOLAK".equalsIgnoreCase(status)
                             && persetujuanRepository.findFirstByTrxPengajuanPinjamanIdOrderByCreatedDateDesc(p.getId())
                                     .isPresent();
 
-                    return isReviewedByMarketing || isRejectedWithBMReview;
+                    return isReviewedOrApproved || isRejectedWithBMReview;
                 })
                 .map(p -> {
                     Customer customer = customerRepository.findById(p.getMstCustomerId()).orElse(null);
@@ -532,7 +537,12 @@ public class BranchManagerPersetujuanService {
     }
 
     private String mapStatusTampilanBM(String rawStatus, Optional<Persetujuan> latestApproval) {
-        if ("PENGAJUAN_DISETUJUI".equalsIgnoreCase(rawStatus) || "APPROVED".equalsIgnoreCase(rawStatus)) {
+        if ("PENGAJUAN_DISETUJUI".equalsIgnoreCase(rawStatus)
+                || "APPROVED".equalsIgnoreCase(rawStatus)
+                || "MENUNGGU_PENCAIRAN".equalsIgnoreCase(rawStatus)
+                || "DICAIRKAN".equalsIgnoreCase(rawStatus)
+                || "PENCAIRAN_SELESAI".equalsIgnoreCase(rawStatus)
+                || "LUNAS".equalsIgnoreCase(rawStatus)) {
             return "PENGAJUAN_DISETUJUI";
         }
         if ("PENGAJUAN_DITOLAK".equalsIgnoreCase(rawStatus) || "DITOLAK".equalsIgnoreCase(rawStatus)) {

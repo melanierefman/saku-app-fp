@@ -517,12 +517,18 @@ export class MonitoringPengajuanComponent implements OnInit {
     if (s === 'DOKUMEN_DIREVISI') return 'Dokumen Direvisi';
     if (s === 'PERLU_REVISI') return 'Perlu Revisi';
     if (s === 'MENUNGGU_PERSETUJUAN') return 'Menunggu Persetujuan';
-    if (s === 'DISETUJUI') return 'Disetujui';
+    if (s === 'DISETUJUI' || s === 'PENGAJUAN_DISETUJUI') return 'Disetujui BM';
     if (s === 'DICAIRKAN') return 'Dicairkan';
-    if (s === 'DITOLAK') return 'Ditolak';
+    if (s === 'DITOLAK' || s === 'PENGAJUAN_DITOLAK') return 'Ditolak';
     if (s === 'DISBURSED') return 'Telah Cair';
     if (s === 'BERHASIL') return 'Berhasil Cair';
-    if (s === 'PENDING') return 'Menunggu';
+    if (s === 'PENDING') return 'Menunggu Review';
+    if (s === 'KARYAWAN_TETAP') return 'Karyawan Tetap';
+    if (s === 'KARYAWAN_KONTRAK') return 'Karyawan Kontrak';
+    if (s === 'WIRASWASTA' || s === 'WIRAUSAHA' || s === 'PENGUSAHA') return 'Wiraswasta';
+    if (s === 'PROFESIONAL') return 'Profesional';
+    if (s === 'PNS' || s === 'PNS_BUMN' || s === 'PEGAWAI_NEGERI') return 'PNS / Pegawai BUMN';
+    if (s === 'IBU_RUMAH_TANGGA') return 'Ibu Rumah Tangga';
 
     return s
       .split('_')

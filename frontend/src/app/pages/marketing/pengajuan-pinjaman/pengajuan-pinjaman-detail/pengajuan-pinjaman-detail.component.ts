@@ -345,12 +345,14 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
 
   getStatusPekerjaanLabel(): string {
     const d = this.detail();
-    const s = d?.statusPekerjaan || d?.scoringStatusPekerjaan || 'KARYAWAN_TETAP';
+    const s = (d?.statusPekerjaan || d?.scoringStatusPekerjaan || '').toUpperCase();
     if (s === 'KARYAWAN_TETAP') return 'Karyawan Tetap';
     if (s === 'KARYAWAN_KONTRAK') return 'Karyawan Kontrak';
-    if (s === 'WIRASWASTA') return 'Wiraswasta';
+    if (s === 'WIRASWASTA' || s === 'WIRAUSAHA' || s === 'PENGUSAHA') return 'Wiraswasta';
     if (s === 'PROFESIONAL') return 'Profesional';
-    return s;
+    if (s === 'PNS' || s === 'PNS_BUMN' || s === 'PEGAWAI_NEGERI') return 'PNS / Pegawai BUMN';
+    if (s === 'IBU_RUMAH_TANGGA') return 'Ibu Rumah Tangga';
+    return s ? s.replace(/_/g, ' ') : '-';
   }
 
   getPendapatanBulanan(): number {

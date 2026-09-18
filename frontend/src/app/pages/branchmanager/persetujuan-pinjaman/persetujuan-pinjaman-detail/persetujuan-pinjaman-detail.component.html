@@ -453,8 +453,9 @@
             </h2>
           </div>
           <span
-            class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-success-0 text-success-70 border border-success-20">
-            {{ detail()?.hasilReviewMarketing || 'DISETUJUI' }}
+            class="px-2 py-0.5 rounded-full text-[10px] font-medium"
+            [ngClass]="getMarketingStatusBadgeClass(detail()?.hasilReviewMarketing)">
+            {{ getMarketingStatusLabel(detail()?.hasilReviewMarketing) }}
           </span>
         </div>
 

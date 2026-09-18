@@ -316,6 +316,20 @@ export class PencairanDetailComponent implements OnInit {
     return 'Rp ' + new Intl.NumberFormat('id-ID').format(val);
   }
 
+  formatReviewLabel(status?: string | null): string {
+    const s = (status || '').toUpperCase();
+    if (s.includes('SETUJU') || s.includes('APPROV') || s.includes('SELESAI') || s.includes('LOLOS')) {
+      return 'Disetujui';
+    }
+    if (s.includes('TOLAK') || s.includes('REJECT')) {
+      return 'Ditolak';
+    }
+    if (s.includes('REVISI')) {
+      return 'Perlu Revisi';
+    }
+    return status ? status.replace(/_/g, ' ') : 'Disetujui';
+  }
+
   formatDate(dateStr?: string | null): string {
     return formatDateHelper(dateStr, false);
   }

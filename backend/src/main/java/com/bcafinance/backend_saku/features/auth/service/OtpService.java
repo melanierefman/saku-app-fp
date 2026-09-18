@@ -125,8 +125,8 @@ public class OtpService {
             Optional<Customer> existingOpt = customerRepository.findByEmail(email);
             if (existingOpt.isPresent()) {
                 Customer cust = existingOpt.get();
-                if (!"PENDING".equals(cust.getPassword())) {
-                    throw new BussinessRuleException("Email sudah terdaftar. Silakan gunakan email lain atau login.");
+                if (Boolean.TRUE.equals(cust.getStatus())) {
+                    throw new BussinessRuleException("Email sudah terdaftar dan akun sudah aktif. Silakan login.");
                 }
                 return cust.getId();
             }

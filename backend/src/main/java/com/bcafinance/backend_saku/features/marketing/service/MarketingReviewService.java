@@ -455,7 +455,12 @@ public class MarketingReviewService {
             return "PERLU_REVISI";
         }
         if ("SELESAI_DIREVIEW".equalsIgnoreCase(rawStatus) || "DISETUJUI".equalsIgnoreCase(rawStatus)
-                || "APPROVED".equalsIgnoreCase(rawStatus)) {
+                || "APPROVED".equalsIgnoreCase(rawStatus)
+                || "PENGAJUAN_DISETUJUI".equalsIgnoreCase(rawStatus)
+                || "MENUNGGU_PENCAIRAN".equalsIgnoreCase(rawStatus)
+                || "DICAIRKAN".equalsIgnoreCase(rawStatus)
+                || "PENCAIRAN_SELESAI".equalsIgnoreCase(rawStatus)
+                || "LUNAS".equalsIgnoreCase(rawStatus)) {
             return "SELESAI_DIREVIEW";
         }
         if ("PENGAJUAN_DITOLAK".equalsIgnoreCase(rawStatus) || "REJECTED".equalsIgnoreCase(rawStatus)

@@ -208,7 +208,7 @@
               <span class="font-semibold text-neutral-90">Review Marketing</span>
               <span
                 class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-success-0 text-success-70 border border-success-20">
-                {{ detail()?.reviewMarketingTerakhir?.hasilReview || 'DISETUJUI' }}
+                {{ formatReviewLabel(detail()?.reviewMarketingTerakhir?.hasilReview) }}
               </span>
             </div>
             <p class="text-neutral-70 text-xs italic bg-white p-2.5 rounded-lg border border-[#E5E7EB]">
@@ -227,7 +227,7 @@
               <span class="font-semibold text-neutral-90">Persetujuan Branch Manager</span>
               <span
                 class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-success-0 text-success-70 border border-success-20">
-                {{ detail()?.persetujuanBMTerakhir?.hasilPersetujuan || 'DISETUJUI' }}
+                {{ formatReviewLabel(detail()?.persetujuanBMTerakhir?.hasilPersetujuan) }}
               </span>
             </div>
             <p class="text-neutral-70 text-xs italic bg-white p-2.5 rounded-lg border border-[#E5E7EB]">

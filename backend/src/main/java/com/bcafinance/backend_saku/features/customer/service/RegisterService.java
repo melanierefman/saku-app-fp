@@ -220,13 +220,13 @@ public class RegisterService {
         Customer customer;
         if (existingCustOpt.isPresent()) {
             Customer existing = existingCustOpt.get();
-            if (!"PENDING".equals(existing.getPassword())) {
-                throw new BussinessRuleException("Email sudah terdaftar");
+            if (Boolean.TRUE.equals(existing.getStatus())) {
+                throw new BussinessRuleException("Email sudah terdaftar dan akun sudah aktif");
             }
-            if (customerRepository.existsByUsername(req.username()) && !req.username().equals(existing.getUsername())) {
+            if (customerRepository.existsByUsernameAndIdNot(req.username(), existing.getId())) {
                 throw new BussinessRuleException("Username sudah terdaftar");
             }
-            if (customerRepository.existsByNoHp(req.noHp()) && !req.noHp().equals(existing.getNoHp())) {
+            if (customerRepository.existsByNoHpAndIdNot(req.noHp(), existing.getId())) {
                 throw new BussinessRuleException("No HP sudah terdaftar");
             }
             customer = existing;

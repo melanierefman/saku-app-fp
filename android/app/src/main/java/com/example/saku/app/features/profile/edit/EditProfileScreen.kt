@@ -104,7 +104,11 @@ fun EditProfileScreen(
     // Pekerjaan Form States
     var pekerjaan by remember(customerProfile) { mutableStateOf(customerProfile?.pekerjaan ?: "") }
     var tempatKerja by remember(customerProfile) { mutableStateOf(customerProfile?.tempatKerja ?: "") }
-    var statusPekerjaan by remember(customerProfile) { mutableStateOf(customerProfile?.statusPekerjaan ?: "") }
+    var statusPekerjaan by remember(customerProfile) {
+        mutableStateOf(
+            com.example.saku.app.core.util.EnumLabelUtils.formatStatusPekerjaan(customerProfile?.statusPekerjaan).takeIf { it != "-" } ?: (customerProfile?.statusPekerjaan ?: "")
+        )
+    }
     var penghasilan by remember(customerProfile) { mutableStateOf(customerProfile?.penghasilanBulanan?.toLong()?.toString() ?: "") }
 
     var showConfirmDialog by remember { mutableStateOf(false) }
