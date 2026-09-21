@@ -32,7 +32,6 @@ import {
   LucideShieldCheck,
   LucideClipboardCheck,
   LucideClock,
-  LucideAlertCircle,
   LucideInfo,
   LucideSend,
   LucideBriefcase,
@@ -69,7 +68,6 @@ export interface DisplayDocItem {
     LucideShieldCheck,
     LucideClipboardCheck,
     LucideClock,
-    LucideAlertCircle,
     LucideInfo,
     LucideSend,
     LucideBriefcase,
@@ -462,28 +460,47 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
   getPlafonMaksimal(): number {
     const d = this.detail();
     return (
-      d?.plafonMaksimal ??
       d?.estimasiPlafondDisetujui ??
+      d?.totalPlafond ??
+      d?.plafonMaksimal ??
       15000000
     );
   }
 
   getDbrPercentage(): string {
     const d = this.detail();
+    let num = 0;
     if (d?.dbrPercentage !== undefined && d?.dbrPercentage !== null && !isNaN(Number(d.dbrPercentage)) && Number(d.dbrPercentage) > 0) {
-      return Number(d.dbrPercentage).toFixed(1).replace('.', ',');
+      num = Number(d.dbrPercentage);
+    } else if (d?.dbr !== undefined && d?.dbr !== null && !isNaN(Number(d.dbr)) && Number(d.dbr) > 0) {
+      const raw = Number(d.dbr);
+      num = raw <= 1 ? raw * 100 : raw;
+    } else {
+      const cicilan = this.getCicilanBerjalan();
+      const pendapatan = this.getPendapatanBulanan();
+      if (pendapatan > 0 && cicilan > 0) {
+        num = (cicilan / pendapatan) * 100;
+      }
     }
-    if (d?.dbr !== undefined && d?.dbr !== null && !isNaN(Number(d.dbr)) && Number(d.dbr) > 0) {
-      const num = Number(d.dbr);
-      const pct = num <= 1 ? num * 100 : num;
-      return pct.toFixed(1).replace('.', ',');
-    }
+    return num % 1 === 0 ? num.toFixed(0) : num.toFixed(1).replace('.', ',');
+  }
+
+  getDbrFormulaDetail(): string {
     const cicilan = this.getCicilanBerjalan();
     const pendapatan = this.getPendapatanBulanan();
-    if (pendapatan > 0 && cicilan > 0) {
-      return ((cicilan / pendapatan) * 100).toFixed(1).replace('.', ',');
+    if (pendapatan > 0) {
+      return `${this.formatCurrency(cicilan)} / ${this.formatCurrency(pendapatan)}`;
     }
-    return '0,0';
+    return '';
+  }
+
+  getDbrStatusLabel(): string {
+    const pctStr = this.getDbrPercentage().replace(',', '.');
+    const num = parseFloat(pctStr) || 0;
+    if (num <= 30) return 'Kondisi Finansial Sehat';
+    if (num <= 40) return 'Kondisi Finansial Wajar';
+    if (num <= 50) return 'Perlu Diwaspadai';
+    return 'Beban Utang Tinggi';
   }
 
   getDbrColorClass(): string {
@@ -578,7 +595,11 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
   getReviewHistory(): ReviewHistoryItem[] {
     const d = this.detail();
     if (d?.reviewHistory && Array.isArray(d.reviewHistory) && d.reviewHistory.length > 0) {
-      return d.reviewHistory;
+      return [...d.reviewHistory].sort((a, b) => {
+        const timeA = new Date(a.tanggalReview || a.tanggal || a.createdDate || '').getTime() || 0;
+        const timeB = new Date(b.tanggalReview || b.tanggal || b.createdDate || '').getTime() || 0;
+        return timeA - timeB;
+      });
     }
     return [];
   }

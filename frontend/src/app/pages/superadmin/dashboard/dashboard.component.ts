@@ -8,7 +8,7 @@ import {
   computed,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { AuthStore } from '../../../core/store/auth.store';
 import {
   SuperadminDashboardService,
@@ -37,7 +37,6 @@ import {
   LucideRefreshCw,
   LucideArrowRight,
   LucideHistory,
-  LucideShield,
   LucideClock,
   LucideActivity,
   LucideUserCheck,
@@ -64,7 +63,6 @@ import {
     LucideRefreshCw,
     LucideArrowRight,
     LucideHistory,
-    LucideShield,
     LucideClock,
     LucideActivity,
     LucideUserCheck,
@@ -79,9 +77,30 @@ export class DashboardComponent implements OnInit {
   private toastService = inject(ToastService);
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
+  private router = inject(Router);
 
   readonly currentUser = this.authStore.currentUser;
   readonly userRole = this.authStore.userRole;
+
+  navigateToList(status?: string): void {
+    if (status) {
+      this.router.navigate(['/superadmin/monitoring/pengajuan'], { queryParams: { status } });
+    } else {
+      this.router.navigate(['/superadmin/monitoring/pengajuan']);
+    }
+  }
+
+  navigateToCustomer(): void {
+    this.router.navigate(['/superadmin/customer']);
+  }
+
+  navigateToCabang(): void {
+    this.router.navigate(['/superadmin/cabang']);
+  }
+
+  navigateToPlafond(): void {
+    this.router.navigate(['/superadmin/plafond']);
+  }
 
   // Signals
   isLoading = signal<boolean>(true);

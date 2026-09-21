@@ -733,7 +733,12 @@ export class MonitoringPengajuanComponent implements OnInit {
   getDetailReviews(): ReviewHistoryItem[] {
     const d = this.selectedDetail();
     if (!d) return [];
-    return d.reviews || d.reviewHistory || [];
+    const list = d.reviews || d.reviewHistory || [];
+    return [...list].sort((a, b) => {
+      const timeA = new Date(a.tanggalReview || a.tanggal || a.createdDate || '').getTime() || 0;
+      const timeB = new Date(b.tanggalReview || b.tanggal || b.createdDate || '').getTime() || 0;
+      return timeA - timeB;
+    });
   }
 
   getDetailDokumen(): DokumenPengajuanItem[] {

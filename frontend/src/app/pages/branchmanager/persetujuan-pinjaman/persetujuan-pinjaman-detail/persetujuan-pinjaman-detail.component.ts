@@ -389,30 +389,34 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
   }
 
   getPlafonMaksimal(): number {
-    return this.detail()?.plafonMaksimal ?? 0;
+    const d = this.detail();
+    return d?.estimasiPlafondDisetujui ?? d?.totalPlafond ?? d?.plafonMaksimal ?? 0;
   }
 
   getPlafonNama(): string {
     return this.detail()?.plafonNama || 'Tier Standar';
   }
 
-  getDbrPercentage(): number {
+  getDbrPercentage(): string {
     const d = this.detail();
+    let num = 0;
     const val = d?.dbrPercentage ?? d?.dbr;
     if (val !== undefined && val !== null && !isNaN(Number(val)) && Number(val) > 0) {
-      const num = Number(val);
-      return num <= 1 ? parseFloat((num * 100).toFixed(1)) : parseFloat(num.toFixed(1));
+      const raw = Number(val);
+      num = raw <= 1 ? raw * 100 : raw;
+    } else {
+      const cicilan = this.getCicilanBerjalan();
+      const pendapatan = this.getPendapatanBulanan();
+      if (pendapatan > 0 && cicilan > 0) {
+        num = (cicilan / pendapatan) * 100;
+      }
     }
-    const cicilan = this.getCicilanBerjalan();
-    const pendapatan = this.getPendapatanBulanan();
-    if (pendapatan > 0 && cicilan > 0) {
-      return parseFloat(((cicilan / pendapatan) * 100).toFixed(1));
-    }
-    return 0;
+    return num % 1 === 0 ? num.toFixed(0) : num.toFixed(1).replace('.', ',');
   }
 
   getDbrColorClass(): string {
-    const dbr = this.getDbrPercentage();
+    const pctStr = this.getDbrPercentage().replace(',', '.');
+    const dbr = parseFloat(pctStr) || 0;
     if (dbr <= 30) return 'text-success-60';
     if (dbr <= 40) return 'text-warning-60';
     return 'text-error-60';
@@ -425,6 +429,24 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
   getPendapatanBulanan(): number {
     const d = this.detail();
     return d?.penghasilanBulananScoring ?? d?.penghasilanBulanan ?? d?.pendapatan ?? 0;
+  }
+
+  getDbrFormulaDetail(): string {
+    const cicilan = this.getCicilanBerjalan();
+    const pendapatan = this.getPendapatanBulanan();
+    if (pendapatan > 0) {
+      return `${this.formatCurrency(cicilan)} / ${this.formatCurrency(pendapatan)}`;
+    }
+    return '';
+  }
+
+  getDbrStatusLabel(): string {
+    const pctStr = this.getDbrPercentage().replace(',', '.');
+    const dbr = parseFloat(pctStr) || 0;
+    if (dbr <= 30) return 'Kondisi Finansial Sehat';
+    if (dbr <= 40) return 'Kondisi Finansial Wajar';
+    if (dbr <= 50) return 'Perlu Diwaspadai';
+    return 'Beban Utang Tinggi';
   }
 
   getLamaBekerja(): number {
@@ -572,11 +594,21 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
   }
 
   getReviewMarketingHistory(): ReviewMarketingHistoryItem[] {
-    return this.detail()?.reviewMarketingHistory || [];
+    const list = this.detail()?.reviewMarketingHistory || [];
+    return [...list].sort((a, b) => {
+      const timeA = new Date(a.tanggalReview || '').getTime() || 0;
+      const timeB = new Date(b.tanggalReview || '').getTime() || 0;
+      return timeA - timeB;
+    });
   }
 
   getPersetujuanHistory(): PersetujuanHistoryItem[] {
-    return this.detail()?.persetujuanHistory || [];
+    const list = this.detail()?.persetujuanHistory || [];
+    return [...list].sort((a, b) => {
+      const timeA = new Date(a.tanggalPersetujuan || '').getTime() || 0;
+      const timeB = new Date(b.tanggalPersetujuan || '').getTime() || 0;
+      return timeA - timeB;
+    });
   }
 
   formatCurrency(val: number | null | undefined): string {

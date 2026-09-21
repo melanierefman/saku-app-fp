@@ -125,8 +125,8 @@
         </div>
 
         <!-- 2. Approval Rate Cabang -->
-        <div
-          class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-warning-20 hover:bg-warning-0/20 transition-all flex items-center justify-between gap-2.5 group">
+        <div (click)="navigateToList()"
+          class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-warning-20 hover:bg-warning-0/20 transition-all flex items-center justify-between gap-2.5 group cursor-pointer">
           <div class="flex items-center gap-2.5 min-w-0">
             <div
               class="w-9 h-9 rounded-xl bg-warning-0 text-warning-80 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
@@ -238,8 +238,8 @@
         </div>
 
         <!-- Financial Card 2: Total Nominal Disetujui -->
-        <div
-          class="p-4 rounded-xl border border-[#E5E7EB] bg-white hover:border-success-20 hover:bg-neutral-0/40 transition-all flex flex-col justify-between group">
+        <div (click)="navigateToList('DISETUJUI')"
+          class="p-4 rounded-xl border border-[#E5E7EB] bg-white hover:border-success-20 hover:bg-neutral-0/40 transition-all flex flex-col justify-between group cursor-pointer">
           <div>
             <div class="flex items-center justify-between gap-3">
               <span
@@ -268,8 +268,8 @@
         </div>
 
         <!-- Financial Card 3: Rata-Rata Nominal Pinjaman -->
-        <div
-          class="p-4 rounded-xl border border-[#E5E7EB] bg-white hover:border-warning-20 hover:bg-neutral-0/40 transition-all flex flex-col justify-between group">
+        <div (click)="navigateToList()"
+          class="p-4 rounded-xl border border-[#E5E7EB] bg-white hover:border-warning-20 hover:bg-neutral-0/40 transition-all flex flex-col justify-between group cursor-pointer">
           <div>
             <div class="flex items-center justify-between gap-3">
               <span
