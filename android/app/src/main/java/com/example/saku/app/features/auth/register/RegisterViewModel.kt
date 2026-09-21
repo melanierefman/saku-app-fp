@@ -5,15 +5,14 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.saku.app.core.data.TokenManager
 import com.example.saku.app.core.data.repository.AuthRepository
-import com.example.saku.app.core.data.repository.AuthRepositoryImpl
-import com.example.saku.app.core.network.ApiClient
+import com.example.saku.app.core.data.repository.WilayahRepository
 import com.example.saku.app.core.network.ApiResult
 import com.example.saku.app.core.network.dto.AlamatCustomerDto
 import com.example.saku.app.core.network.dto.RegisterStep1KtpRequestDto
 import com.example.saku.app.core.network.dto.RegisterStep2PersonalRequestDto
 import com.example.saku.app.core.network.dto.RegisterStep5CompleteRequest
+import com.example.saku.app.core.ui.components.DropdownOption
 import com.google.gson.Gson
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -62,6 +61,36 @@ data class RegisterUiState(
     val sameAsKtp: Boolean = true,
     val alamatDomisili: AlamatFormState = AlamatFormState(),
 
+    // Data Wilayah (API Publik)
+    val provinces: List<DropdownOption> = com.example.saku.app.core.data.repository.WilayahRepositoryImpl.DEFAULT_PROVINCES.map {
+        DropdownOption(value = it.code, label = it.name)
+    },
+    val isLoadingWilayah: Boolean = false,
+
+    // KTP Wilayah Options & Selection
+    val selectedKtpProvince: DropdownOption? = null,
+    val ktpRegencies: List<DropdownOption> = emptyList(),
+    val isLoadingKtpRegencies: Boolean = false,
+    val selectedKtpRegency: DropdownOption? = null,
+    val ktpDistricts: List<DropdownOption> = emptyList(),
+    val isLoadingKtpDistricts: Boolean = false,
+    val selectedKtpDistrict: DropdownOption? = null,
+    val ktpVillages: List<DropdownOption> = emptyList(),
+    val isLoadingKtpVillages: Boolean = false,
+    val selectedKtpVillage: DropdownOption? = null,
+
+    // Domisili Wilayah Options & Selection
+    val selectedDomisiliProvince: DropdownOption? = null,
+    val domisiliRegencies: List<DropdownOption> = emptyList(),
+    val isLoadingDomisiliRegencies: Boolean = false,
+    val selectedDomisiliRegency: DropdownOption? = null,
+    val domisiliDistricts: List<DropdownOption> = emptyList(),
+    val isLoadingDomisiliDistricts: Boolean = false,
+    val selectedDomisiliDistrict: DropdownOption? = null,
+    val domisiliVillages: List<DropdownOption> = emptyList(),
+    val isLoadingDomisiliVillages: Boolean = false,
+    val selectedDomisiliVillage: DropdownOption? = null,
+
     // Step 4: Upload Dokumen KYC (Foto e-KTP & Selfie)
     val ktpUri: Uri? = null,
     val ktpBitmap: Bitmap? = null,
@@ -74,6 +103,10 @@ data class RegisterUiState(
 
     // Step 6: Syarat & Ketentuan (Langkah Terakhir)
     val isTncAgreed: Boolean = false,
+
+    // Dialog & Confirmation Modals
+    val showExitConfirmationModal: Boolean = false,
+    val showStep3ConfirmationModal: Boolean = false,
     val showConfirmationModal: Boolean = false
 )
 
@@ -90,6 +123,7 @@ data class AlamatFormState(
 
 class RegisterViewModel(
     private val authRepository: AuthRepository,
+    private val wilayahRepository: WilayahRepository,
     application: Application
 ) : AndroidViewModel(application) {
 
@@ -99,7 +133,299 @@ class RegisterViewModel(
 
     private var countdownJob: Job? = null
 
+    init {
+        loadProvinces()
+    }
+
+    // ==========================================
+    // API Publik Wilayah Indonesia Cascading
+    // ==========================================
+    fun loadProvinces() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoadingWilayah = true)
+            when (val res = wilayahRepository.getProvinces()) {
+                is ApiResult.Success -> {
+                    val opts = res.data.map { DropdownOption(value = it.code, label = it.name) }
+                    _uiState.value = _uiState.value.copy(
+                        provinces = opts,
+                        isLoadingWilayah = false
+                    )
+                }
+                is ApiResult.Error -> {
+                    _uiState.value = _uiState.value.copy(isLoadingWilayah = false)
+                }
+                else -> {
+                    _uiState.value = _uiState.value.copy(isLoadingWilayah = false)
+                }
+            }
+        }
+    }
+
+    // KTP Cascading Selection
+    fun onKtpProvinceSelected(option: DropdownOption?) {
+        _uiState.value = _uiState.value.copy(
+            selectedKtpProvince = option,
+            selectedKtpRegency = null,
+            selectedKtpDistrict = null,
+            selectedKtpVillage = null,
+            ktpRegencies = emptyList(),
+            ktpDistricts = emptyList(),
+            ktpVillages = emptyList(),
+            isLoadingKtpRegencies = option != null,
+            alamatKtp = _uiState.value.alamatKtp.copy(
+                provinsi = option?.label ?: "",
+                kotaKabupaten = "",
+                kecamatan = "",
+                kelurahan = ""
+            ),
+            errorMessage = null
+        )
+
+        if (option != null) {
+            viewModelScope.launch {
+                when (val res = wilayahRepository.getRegencies(option.value)) {
+                    is ApiResult.Success -> {
+                        val regencies = res.data.map { DropdownOption(value = it.code, label = it.name) }
+                        _uiState.value = _uiState.value.copy(
+                            ktpRegencies = regencies,
+                            isLoadingKtpRegencies = false
+                        )
+                    }
+                    is ApiResult.Error -> {
+                        _uiState.value = _uiState.value.copy(
+                            isLoadingKtpRegencies = false,
+                            errorMessage = res.message
+                        )
+                    }
+                    else -> {
+                        _uiState.value = _uiState.value.copy(isLoadingKtpRegencies = false)
+                    }
+                }
+            }
+        }
+    }
+
+    fun onKtpRegencySelected(option: DropdownOption?) {
+        _uiState.value = _uiState.value.copy(
+            selectedKtpRegency = option,
+            selectedKtpDistrict = null,
+            selectedKtpVillage = null,
+            ktpDistricts = emptyList(),
+            ktpVillages = emptyList(),
+            isLoadingKtpDistricts = option != null,
+            alamatKtp = _uiState.value.alamatKtp.copy(
+                kotaKabupaten = option?.label ?: "",
+                kecamatan = "",
+                kelurahan = ""
+            ),
+            errorMessage = null
+        )
+
+        if (option != null) {
+            viewModelScope.launch {
+                when (val res = wilayahRepository.getDistricts(option.value)) {
+                    is ApiResult.Success -> {
+                        val districts = res.data.map { DropdownOption(value = it.code, label = it.name) }
+                        _uiState.value = _uiState.value.copy(
+                            ktpDistricts = districts,
+                            isLoadingKtpDistricts = false
+                        )
+                    }
+                    is ApiResult.Error -> {
+                        _uiState.value = _uiState.value.copy(
+                            isLoadingKtpDistricts = false,
+                            errorMessage = res.message
+                        )
+                    }
+                    else -> {
+                        _uiState.value = _uiState.value.copy(isLoadingKtpDistricts = false)
+                    }
+                }
+            }
+        }
+    }
+
+    fun onKtpDistrictSelected(option: DropdownOption?) {
+        _uiState.value = _uiState.value.copy(
+            selectedKtpDistrict = option,
+            selectedKtpVillage = null,
+            ktpVillages = emptyList(),
+            isLoadingKtpVillages = option != null,
+            alamatKtp = _uiState.value.alamatKtp.copy(
+                kecamatan = option?.label ?: "",
+                kelurahan = ""
+            ),
+            errorMessage = null
+        )
+
+        if (option != null) {
+            viewModelScope.launch {
+                when (val res = wilayahRepository.getVillages(option.value)) {
+                    is ApiResult.Success -> {
+                        val villages = res.data.map { DropdownOption(value = it.code, label = it.name) }
+                        _uiState.value = _uiState.value.copy(
+                            ktpVillages = villages,
+                            isLoadingKtpVillages = false
+                        )
+                    }
+                    is ApiResult.Error -> {
+                        _uiState.value = _uiState.value.copy(
+                            isLoadingKtpVillages = false,
+                            errorMessage = res.message
+                        )
+                    }
+                    else -> {
+                        _uiState.value = _uiState.value.copy(isLoadingKtpVillages = false)
+                    }
+                }
+            }
+        }
+    }
+
+    fun onKtpVillageSelected(option: DropdownOption?) {
+        _uiState.value = _uiState.value.copy(
+            selectedKtpVillage = option,
+            alamatKtp = _uiState.value.alamatKtp.copy(
+                kelurahan = option?.label ?: ""
+            ),
+            errorMessage = null
+        )
+    }
+
+    // Domisili Cascading Selection
+    fun onDomisiliProvinceSelected(option: DropdownOption?) {
+        _uiState.value = _uiState.value.copy(
+            selectedDomisiliProvince = option,
+            selectedDomisiliRegency = null,
+            selectedDomisiliDistrict = null,
+            selectedDomisiliVillage = null,
+            domisiliRegencies = emptyList(),
+            domisiliDistricts = emptyList(),
+            domisiliVillages = emptyList(),
+            isLoadingDomisiliRegencies = option != null,
+            alamatDomisili = _uiState.value.alamatDomisili.copy(
+                provinsi = option?.label ?: "",
+                kotaKabupaten = "",
+                kecamatan = "",
+                kelurahan = ""
+            ),
+            errorMessage = null
+        )
+
+        if (option != null) {
+            viewModelScope.launch {
+                when (val res = wilayahRepository.getRegencies(option.value)) {
+                    is ApiResult.Success -> {
+                        val regencies = res.data.map { DropdownOption(value = it.code, label = it.name) }
+                        _uiState.value = _uiState.value.copy(
+                            domisiliRegencies = regencies,
+                            isLoadingDomisiliRegencies = false
+                        )
+                    }
+                    is ApiResult.Error -> {
+                        _uiState.value = _uiState.value.copy(
+                            isLoadingDomisiliRegencies = false,
+                            errorMessage = res.message
+                        )
+                    }
+                    else -> {
+                        _uiState.value = _uiState.value.copy(isLoadingDomisiliRegencies = false)
+                    }
+                }
+            }
+        }
+    }
+
+    fun onDomisiliRegencySelected(option: DropdownOption?) {
+        _uiState.value = _uiState.value.copy(
+            selectedDomisiliRegency = option,
+            selectedDomisiliDistrict = null,
+            selectedDomisiliVillage = null,
+            domisiliDistricts = emptyList(),
+            domisiliVillages = emptyList(),
+            isLoadingDomisiliDistricts = option != null,
+            alamatDomisili = _uiState.value.alamatDomisili.copy(
+                kotaKabupaten = option?.label ?: "",
+                kecamatan = "",
+                kelurahan = ""
+            ),
+            errorMessage = null
+        )
+
+        if (option != null) {
+            viewModelScope.launch {
+                when (val res = wilayahRepository.getDistricts(option.value)) {
+                    is ApiResult.Success -> {
+                        val districts = res.data.map { DropdownOption(value = it.code, label = it.name) }
+                        _uiState.value = _uiState.value.copy(
+                            domisiliDistricts = districts,
+                            isLoadingDomisiliDistricts = false
+                        )
+                    }
+                    is ApiResult.Error -> {
+                        _uiState.value = _uiState.value.copy(
+                            isLoadingDomisiliDistricts = false,
+                            errorMessage = res.message
+                        )
+                    }
+                    else -> {
+                        _uiState.value = _uiState.value.copy(isLoadingDomisiliDistricts = false)
+                    }
+                }
+            }
+        }
+    }
+
+    fun onDomisiliDistrictSelected(option: DropdownOption?) {
+        _uiState.value = _uiState.value.copy(
+            selectedDomisiliDistrict = option,
+            selectedDomisiliVillage = null,
+            domisiliVillages = emptyList(),
+            isLoadingDomisiliVillages = option != null,
+            alamatDomisili = _uiState.value.alamatDomisili.copy(
+                kecamatan = option?.label ?: "",
+                kelurahan = ""
+            ),
+            errorMessage = null
+        )
+
+        if (option != null) {
+            viewModelScope.launch {
+                when (val res = wilayahRepository.getVillages(option.value)) {
+                    is ApiResult.Success -> {
+                        val villages = res.data.map { DropdownOption(value = it.code, label = it.name) }
+                        _uiState.value = _uiState.value.copy(
+                            domisiliVillages = villages,
+                            isLoadingDomisiliVillages = false
+                        )
+                    }
+                    is ApiResult.Error -> {
+                        _uiState.value = _uiState.value.copy(
+                            isLoadingDomisiliVillages = false,
+                            errorMessage = res.message
+                        )
+                    }
+                    else -> {
+                        _uiState.value = _uiState.value.copy(isLoadingDomisiliVillages = false)
+                    }
+                }
+            }
+        }
+    }
+
+    fun onDomisiliVillageSelected(option: DropdownOption?) {
+        _uiState.value = _uiState.value.copy(
+            selectedDomisiliVillage = option,
+            alamatDomisili = _uiState.value.alamatDomisili.copy(
+                kelurahan = option?.label ?: ""
+            ),
+            errorMessage = null
+        )
+    }
+
+    // ==========================================
     // Pra-Step: Email & OTP Handling
+    // ==========================================
     fun onEmailChange(v: String) { _uiState.value = _uiState.value.copy(email = v, errorMessage = null) }
     fun onOtpCodeChange(v: String) {
         val filtered = v.filter { it.isDigit() }.take(6)
@@ -163,7 +489,7 @@ class RegisterViewModel(
                         isOtpVerified = true,
                         customerId = custId,
                         currentStep = 1,
-                        successMessage = "Email berhasil diverifikasi! Silakan lengkapi data identitas."
+                        successMessage = "Email berhasil diverifikasi! Silakan lengkapi data pribadi Anda."
                     )
                 }
                 is ApiResult.Error -> {
@@ -176,14 +502,21 @@ class RegisterViewModel(
         }
     }
 
-    // Step 1: Data Pribadi & Identitas (Manual Input)
+    fun resendOtp() {
+        if (_uiState.value.otpCountdown > 0) return
+        sendOtp()
+    }
+
+    // ==========================================
+    // Step 1: Data Pribadi & Identitas
+    // ==========================================
     fun onNikChange(v: String) {
         val filtered = v.filter { it.isDigit() }.take(16)
         _uiState.value = _uiState.value.copy(nik = filtered, errorMessage = null)
     }
     fun onNamaLengkapChange(v: String) { _uiState.value = _uiState.value.copy(namaLengkap = v, errorMessage = null) }
     fun onNoHpChange(v: String) {
-        val filtered = v.filter { it.isDigit() || it == '+' }.take(16)
+        val filtered = v.filter { it.isDigit() || it == '+' }.take(14)
         _uiState.value = _uiState.value.copy(noHp = filtered, errorMessage = null)
     }
 
@@ -193,20 +526,50 @@ class RegisterViewModel(
             _uiState.value = s.copy(errorMessage = "NIK harus berjumlah 16 digit angka")
             return
         }
-        if (s.namaLengkap.trim().isBlank()) {
-            _uiState.value = s.copy(errorMessage = "Nama lengkap sesuai e-KTP wajib diisi")
+        if (s.namaLengkap.trim().length < 3) {
+            _uiState.value = s.copy(errorMessage = "Nama lengkap sesuai e-KTP minimal 3 karakter")
             return
         }
-        if (s.noHp.trim().length < 9) {
-            _uiState.value = s.copy(errorMessage = "Nomor handphone tidak valid (minimal 9 digit)")
+        val cleanHp = s.noHp.trim().removePrefix("+")
+        if (!cleanHp.matches(Regex("^(08|628)[0-9]{8,12}$"))) {
+            _uiState.value = s.copy(errorMessage = "Nomor handphone harus diawali 08 (10-14 digit angka)")
             return
         }
 
-        // Lanjut ke Step 2 (Data Pekerjaan & Rekening)
-        _uiState.value = s.copy(currentStep = 2, errorMessage = null, successMessage = null)
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+            
+            // 1. Validasi keunikan NIK langsung ke database backend
+            when (val nikRes = authRepository.checkNik(s.nik.trim(), s.customerId)) {
+                is ApiResult.Error -> {
+                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = nikRes.message)
+                    return@launch
+                }
+                else -> {}
+            }
+
+            // 2. Validasi keunikan No HP langsung ke database backend
+            when (val phoneRes = authRepository.checkPhone(s.noHp.trim(), s.customerId)) {
+                is ApiResult.Error -> {
+                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = phoneRes.message)
+                    return@launch
+                }
+                else -> {}
+            }
+
+            // Lolos validasi NIK & No HP, lanjut ke Step 2 (Data Pekerjaan & Rekening)
+            _uiState.value = _uiState.value.copy(
+                isLoading = false,
+                currentStep = 2,
+                errorMessage = null,
+                successMessage = null
+            )
+        }
     }
 
+    // ==========================================
     // Step 2: Data Pekerjaan & Rekening
+    // ==========================================
     fun onPekerjaanChange(v: String) { _uiState.value = _uiState.value.copy(pekerjaan = v, errorMessage = null) }
     fun onTempatKerjaChange(v: String) { _uiState.value = _uiState.value.copy(tempatKerja = v, errorMessage = null) }
     fun onStatusPekerjaanChange(v: String) { _uiState.value = _uiState.value.copy(statusPekerjaan = v, errorMessage = null) }
@@ -234,8 +597,14 @@ class RegisterViewModel(
             _uiState.value = s.copy(errorMessage = "Nama perusahaan / tempat bekerja wajib diisi")
             return
         }
-        if (s.pendapatan.trim().isBlank() || s.pendapatan == "0") {
-            _uiState.value = s.copy(errorMessage = "Pendapatan bersih bulanan wajib diisi")
+        val pend = s.pendapatan.filter { it.isDigit() }.toDoubleOrNull() ?: 0.0
+        if (pend < 1_000_000.0) {
+            _uiState.value = s.copy(errorMessage = "Pendapatan bersih bulanan minimal Rp 1.000.000")
+            return
+        }
+        val cicilan = s.totalCicilanLainnya.filter { it.isDigit() }.toDoubleOrNull() ?: 0.0
+        if (cicilan > pend) {
+            _uiState.value = s.copy(errorMessage = "Total cicilan lain tidak boleh melebihi pendapatan bulanan")
             return
         }
         if (s.lamaBekerjaBulan.trim().isBlank()) {
@@ -246,8 +615,8 @@ class RegisterViewModel(
             _uiState.value = s.copy(errorMessage = "Bank pencairan wajib dipilih")
             return
         }
-        if (s.noRekening.trim().isBlank()) {
-            _uiState.value = s.copy(errorMessage = "Nomor rekening wajib diisi")
+        if (s.noRekening.trim().length < 8) {
+            _uiState.value = s.copy(errorMessage = "Nomor rekening minimal 8 digit angka")
             return
         }
         if (s.namaRekening.trim().isBlank()) {
@@ -263,39 +632,55 @@ class RegisterViewModel(
         _uiState.value = s.copy(currentStep = 3, errorMessage = null, successMessage = null)
     }
 
+    // ==========================================
     // Step 3: Alamat KTP & Domisili
+    // ==========================================
     fun onAlamatKtpChange(alamat: AlamatFormState) { _uiState.value = _uiState.value.copy(alamatKtp = alamat, errorMessage = null) }
     fun onSameAsKtpToggle(same: Boolean) { _uiState.value = _uiState.value.copy(sameAsKtp = same, errorMessage = null) }
     fun onAlamatDomisiliChange(alamat: AlamatFormState) { _uiState.value = _uiState.value.copy(alamatDomisili = alamat, errorMessage = null) }
+
+    fun openStep3ConfirmationModal() {
+        val s = _uiState.value
+        val ktp = s.alamatKtp
+        if (ktp.provinsi.isBlank() || ktp.kotaKabupaten.isBlank() || ktp.kecamatan.isBlank() || ktp.kelurahan.isBlank() ||
+            ktp.alamatLengkap.isBlank() || ktp.rt.isBlank() || ktp.rw.isBlank() || ktp.kodePos.isBlank()) {
+            _uiState.value = s.copy(errorMessage = "Seluruh field alamat e-KTP wajib dilengkapi (Provinsi s/d Kode Pos)")
+            return
+        }
+
+        val domisili = if (s.sameAsKtp) ktp else s.alamatDomisili
+        if (!s.sameAsKtp && (domisili.provinsi.isBlank() || domisili.kotaKabupaten.isBlank() || domisili.kecamatan.isBlank() || domisili.kelurahan.isBlank() ||
+            domisili.alamatLengkap.isBlank() || domisili.rt.isBlank() || domisili.rw.isBlank() || domisili.kodePos.isBlank())) {
+            _uiState.value = s.copy(errorMessage = "Seluruh field alamat domisili wajib dilengkapi jika berbeda dengan e-KTP")
+            return
+        }
+
+        _uiState.value = s.copy(showStep3ConfirmationModal = true, errorMessage = null)
+    }
+
+    fun dismissStep3ConfirmationModal() {
+        _uiState.value = _uiState.value.copy(showStep3ConfirmationModal = false)
+    }
 
     fun submitStep3Address() {
         val s = _uiState.value
         val custId = s.customerId
         if (custId.isNullOrBlank()) {
-            _uiState.value = s.copy(errorMessage = "ID Customer tidak ditemukan. Mohon ulangi verifikasi email.")
+            _uiState.value = s.copy(errorMessage = "ID Customer tidak ditemukan. Mohon ulangi verifikasi email.", showStep3ConfirmationModal = false)
             return
         }
 
         val ktp = s.alamatKtp
-        if (ktp.alamatLengkap.isBlank() || ktp.rt.isBlank() || ktp.rw.isBlank() || ktp.kelurahan.isBlank() || ktp.kecamatan.isBlank() || ktp.kotaKabupaten.isBlank() || ktp.provinsi.isBlank() || ktp.kodePos.isBlank()) {
-            _uiState.value = s.copy(errorMessage = "Seluruh field alamat e-KTP dan kode pos wajib diisi")
-            return
-        }
-
         val domisili = if (s.sameAsKtp) ktp else s.alamatDomisili
-        if (!s.sameAsKtp && (domisili.alamatLengkap.isBlank() || domisili.rt.isBlank() || domisili.rw.isBlank() || domisili.kelurahan.isBlank() || domisili.kecamatan.isBlank() || domisili.kotaKabupaten.isBlank() || domisili.provinsi.isBlank() || domisili.kodePos.isBlank())) {
-            _uiState.value = s.copy(errorMessage = "Seluruh field alamat domisili dan kode pos wajib diisi jika berbeda dengan e-KTP")
-            return
-        }
 
         val pendapatanVal = s.pendapatan.replace(".", "").replace(",", "").toDoubleOrNull() ?: 0.0
         val lamaBekerjaVal = s.lamaBekerjaBulan.toIntOrNull() ?: 0
         val cicilanVal = s.totalCicilanLainnya.replace(".", "").replace(",", "").toDoubleOrNull() ?: 0.0
 
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null, successMessage = null)
+            _uiState.value = _uiState.value.copy(isLoading = true, showStep3ConfirmationModal = false, errorMessage = null, successMessage = null)
             try {
-                // 1. Simpan Data e-KTP & Cek Keunikan NIK di Backend
+                // 1. Simpan Data e-KTP di Backend
                 val ktpDto = RegisterStep1KtpRequestDto(
                     nik = s.nik.trim(),
                     namaLengkap = s.namaLengkap.trim(),
@@ -317,7 +702,7 @@ class RegisterViewModel(
                     return@launch
                 }
 
-                // 2. Simpan Data Pribadi, Pekerjaan, Rekening, Domisili & Cek Keunikan No HP di Backend
+                // 2. Simpan Data Pribadi, Pekerjaan, Rekening, Domisili di Backend
                 val personalDto = RegisterStep2PersonalRequestDto(
                     noHp = s.noHp.trim(),
                     namaIbuKandung = if (s.namaIbuKandung.isNotBlank()) s.namaIbuKandung.trim() else null,
@@ -361,7 +746,9 @@ class RegisterViewModel(
         }
     }
 
-    // Step 4: Upload Dokumen KYC (Foto e-KTP & Foto Selfie) — Tanpa OCR Otomatis
+    // ==========================================
+    // Step 4: Upload Dokumen KYC
+    // ==========================================
     fun onKtpImageSelected(uri: Uri?) {
         _uiState.value = _uiState.value.copy(ktpUri = uri, ktpBitmap = null, errorMessage = null)
     }
@@ -442,7 +829,9 @@ class RegisterViewModel(
         }
     }
 
+    // ==========================================
     // Step 5: Buat Kredensial (Kata Sandi)
+    // ==========================================
     fun onPasswordChange(v: String) { _uiState.value = _uiState.value.copy(password = v, errorMessage = null) }
     fun onConfirmPasswordChange(v: String) { _uiState.value = _uiState.value.copy(confirmPassword = v, errorMessage = null) }
 
@@ -463,7 +852,9 @@ class RegisterViewModel(
         )
     }
 
+    // ==========================================
     // Step 6: Syarat & Ketentuan (Langkah Terakhir Pendaftaran)
+    // ==========================================
     fun onTncAgreedToggle(agreed: Boolean) { _uiState.value = _uiState.value.copy(isTncAgreed = agreed, errorMessage = null) }
 
     fun openConfirmationModal() {
@@ -530,10 +921,30 @@ class RegisterViewModel(
         }
     }
 
+    // ==========================================
+    // Back Navigation & Dialog Control
+    // ==========================================
+    fun onBackPress(onExit: () -> Unit) {
+        val current = _uiState.value.currentStep
+        if (current > 0) {
+            _uiState.value = _uiState.value.copy(currentStep = current - 1, errorMessage = null, successMessage = null)
+        } else {
+            _uiState.value = _uiState.value.copy(showExitConfirmationModal = true)
+        }
+    }
+
+    fun dismissExitModal() {
+        _uiState.value = _uiState.value.copy(showExitConfirmationModal = false)
+    }
+
     fun goToPreviousStep() {
         val current = _uiState.value.currentStep
         if (current > 0) {
             _uiState.value = _uiState.value.copy(currentStep = current - 1, errorMessage = null, successMessage = null)
         }
+    }
+
+    fun clearSuccessMessage() {
+        _uiState.value = _uiState.value.copy(successMessage = null)
     }
 }

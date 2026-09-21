@@ -242,7 +242,6 @@ fun BillsTabContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 18.dp, end = 18.dp, top = 12.dp, bottom = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
@@ -252,29 +251,6 @@ fun BillsTabContent(
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
                         letterSpacing = 0.3.sp
-                    )
-                }
-
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color.White)
-                        .clickable { onRefresh() }
-                        .padding(horizontal = 10.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Icon(
-                        imageVector = Lucide.RefreshCw,
-                        contentDescription = "Muat Ulang",
-                        tint = Primary,
-                        modifier = Modifier.size(12.dp)
-                    )
-                    Text(
-                        text = "Segarkan",
-                        fontSize = 11.5.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
                     )
                 }
             }

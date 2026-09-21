@@ -420,7 +420,7 @@ fun LoanApplyScreen(
     ConfirmationDialog(
         visible = showSubmitConfirmDialog,
         title = "Konfirmasi Pengajuan",
-        message = "Apakah Anda yakin ingin mengajukan pinjaman sebesar Rp ${currencyFormatter.format(uiState.jumlahPinjaman)} dengan tenor ${uiState.tenorBulan} bulan? Pastikan data Anda sudah benar.",
+        message = "Ajukan pinjaman sebesar Rp ${currencyFormatter.format(uiState.jumlahPinjaman)} dengan tenor ${uiState.tenorBulan} bulan?",
         confirmButtonText = "Ya, Ajukan",
         dismissButtonText = "Periksa Kembali",
         type = DialogType.INFO,
@@ -534,8 +534,8 @@ private fun Step1NominalTenorView(
     val maxAmount = uiState.availablePlafond.coerceAtLeast(minAmount)
     val stepAmount = 500_000.0
 
-    val candidateAmounts = listOf(1_000_000.0, 2_000_000.0, 5_000_000.0, 10_000_000.0, 20_000_000.0, 30_000_000.0, 50_000_000.0)
-    val quickAmounts = (candidateAmounts.filter { it < maxAmount && it >= minAmount } + maxAmount).distinct().sorted()
+    val quickAmounts = listOf(1_000_000.0, 5_000_000.0, 10_000_000.0, 25_000_000.0, maxAmount)
+        .filter { it <= maxAmount && it >= minAmount }.distinct().sorted()
     val tenorOptions = listOf(3, 6, 9, 12, 18, 24, 36)
     val minTenor = 3
     val maxTenor = 36
@@ -842,13 +842,6 @@ private fun Step1NominalTenorView(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     // Quick Selection Chips (Nominal)
-                    Text(
-                        text = "Akses Cepat",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = TextSecondary
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth()
@@ -1653,9 +1646,9 @@ private fun Step4SuccessReceiptView(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    NextStepRow(stepNum = "1", title = "Verifikasi Dokumen", desc = "Tim verifikasi memeriksa kelengkapan slip gaji & mutasi rekening.")
-                    NextStepRow(stepNum = "2", title = "Persetujuan Cabang", desc = "Kepala cabang menyetujui rekomendasi kredit.")
-                    NextStepRow(stepNum = "3", title = "Pencairan Dana Instan", desc = "Dana pinjaman langsung ditransfer ke rekening bank terdaftar Anda.")
+                    NextStepRow(stepNum = "1", title = "Verifikasi Dokumen", desc = "Pemeriksaan kelengkapan berkas dan data pengajuan Anda.")
+                    NextStepRow(stepNum = "2", title = "Persetujuan Pinjaman", desc = "Proses evaluasi dan persetujuan pengajuan pinjaman.")
+                    NextStepRow(stepNum = "3", title = "Pencairan Dana", desc = "Dana pinjaman langsung ditransfer ke rekening bank terdaftar Anda.")
                 }
             }
         }
@@ -1798,11 +1791,13 @@ private fun DocumentUploadBox(
                     Text(text = subtitle, fontSize = 11.5.sp, color = TextMuted)
                 }
 
-                Badge(
-                    text = if (hasFile) "Terunggah" else (if (isRequired) "Wajib" else "Opsional"),
-                    variant = if (hasFile) BadgeVariant.Success else (if (isRequired) BadgeVariant.Error else BadgeVariant.Neutral),
-                    size = BadgeSize.SM
-                )
+                if (hasFile) {
+                    Badge(
+                        text = "Terunggah",
+                        variant = BadgeVariant.Success,
+                        size = BadgeSize.SM
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(14.dp))
@@ -1828,9 +1823,9 @@ private fun DocumentUploadBox(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(if (isPdf) Error0 else Primary0),
+                                    .size(38.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(Primary),
                                 contentAlignment = Alignment.Center
                             ) {
                                 if (bitmap != null) {
@@ -1851,7 +1846,7 @@ private fun DocumentUploadBox(
                                     Icon(
                                         imageVector = Lucide.FileText,
                                         contentDescription = null,
-                                        tint = if (isPdf) Error else Primary,
+                                        tint = Color.White,
                                         modifier = Modifier.size(20.dp)
                                     )
                                 }

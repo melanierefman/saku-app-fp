@@ -162,6 +162,9 @@ fun AppNavHost(
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.KycPending.route) { inclusive = true }
                     }
+                },
+                onNavigateToNotifications = {
+                    navController.navigate(Screen.Notifications.route)
                 }
             )
         }

@@ -471,9 +471,9 @@ fun EditProfileScreen(
         else -> "Simpan Perubahan Rekening?"
     }
     val dialogMessage = when (currentTab) {
-        "DOMISILI" -> "Pastikan seluruh data alamat domisili tempat tinggal Anda sudah lengkap dan sesuai data terkini."
-        "PEKERJAAN" -> "Pastikan informasi profesi, tempat kerja, dan penghasilan bulanan sudah sesuai dengan data sebenarnya."
-        else -> "Pastikan nomor rekening dan nama pemilik rekening pencairan sudah benar dan aktif atas nama Anda."
+        "DOMISILI" -> "Pastikan data alamat domisili sudah sesuai."
+        "PEKERJAAN" -> "Pastikan informasi pekerjaan dan penghasilan sudah sesuai."
+        else -> "Pastikan data rekening bank aktif dan sesuai nama Anda."
     }
     val dialogIcon = when (currentTab) {
         "DOMISILI" -> Lucide.MapPin

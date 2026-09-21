@@ -264,7 +264,7 @@ fun ChangePasswordScreen(
     ConfirmationDialog(
         visible = showConfirmDialog,
         title = "Ganti Kata Sandi?",
-        message = "Pastikan Anda mengingat kata sandi baru ini saat masuk ke akun SAKU Anda berikutnya.",
+        message = "Simpan kata sandi baru untuk akun Anda?",
         type = DialogType.INFO,
         icon = Lucide.KeyRound,
         confirmButtonText = "Ya, Ganti",

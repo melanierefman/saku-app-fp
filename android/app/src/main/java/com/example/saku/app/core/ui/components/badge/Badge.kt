@@ -251,7 +251,7 @@ private fun getBadgeProps(variant: BadgeVariant): BadgeProps {
         BadgeVariant.Primary -> BadgeProps(
             backgroundColor = Primary0,
             textColor = Primary70,
-            borderColor = Primary20,
+            borderColor = null,
             dotColor = Primary
         )
         BadgeVariant.SolidPrimary -> BadgeProps(
@@ -263,7 +263,7 @@ private fun getBadgeProps(variant: BadgeVariant): BadgeProps {
         BadgeVariant.Neutral -> BadgeProps(
             backgroundColor = Neutral0,
             textColor = Neutral50,
-            borderColor = Neutral10,
+            borderColor = null,
             dotColor = Neutral40
         )
         BadgeVariant.SolidNeutral -> BadgeProps(
@@ -275,7 +275,7 @@ private fun getBadgeProps(variant: BadgeVariant): BadgeProps {
         BadgeVariant.Success -> BadgeProps(
             backgroundColor = Success0,
             textColor = Success70,
-            borderColor = Success20,
+            borderColor = null,
             dotColor = Success
         )
         BadgeVariant.SolidSuccess -> BadgeProps(
@@ -287,7 +287,7 @@ private fun getBadgeProps(variant: BadgeVariant): BadgeProps {
         BadgeVariant.Warning -> BadgeProps(
             backgroundColor = Warning0,
             textColor = Warning80,
-            borderColor = Warning20,
+            borderColor = null,
             dotColor = Warning
         )
         BadgeVariant.SolidWarning -> BadgeProps(
@@ -299,7 +299,7 @@ private fun getBadgeProps(variant: BadgeVariant): BadgeProps {
         BadgeVariant.Error -> BadgeProps(
             backgroundColor = Error0,
             textColor = Error70,
-            borderColor = Error20,
+            borderColor = null,
             dotColor = Error
         )
         BadgeVariant.SolidError -> BadgeProps(
@@ -311,31 +311,31 @@ private fun getBadgeProps(variant: BadgeVariant): BadgeProps {
         BadgeVariant.Info -> BadgeProps(
             backgroundColor = Info0,
             textColor = Info70,
-            borderColor = Info20,
+            borderColor = null,
             dotColor = Info
         )
         BadgeVariant.Purple -> BadgeProps(
             backgroundColor = Purple0,
             textColor = Purple70,
-            borderColor = Purple20,
+            borderColor = null,
             dotColor = Purple
         )
         BadgeVariant.Indigo -> BadgeProps(
             backgroundColor = Indigo0,
             textColor = Indigo70,
-            borderColor = Indigo20,
+            borderColor = null,
             dotColor = Indigo
         )
         BadgeVariant.Cyan -> BadgeProps(
             backgroundColor = Cyan0,
             textColor = Cyan70,
-            borderColor = Cyan20,
+            borderColor = null,
             dotColor = Cyan
         )
         BadgeVariant.Orange -> BadgeProps(
             backgroundColor = Orange0,
             textColor = Orange70,
-            borderColor = Orange20,
+            borderColor = null,
             dotColor = Orange
         )
         BadgeVariant.Outline -> BadgeProps(

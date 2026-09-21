@@ -32,14 +32,14 @@ object EnumLabelUtils {
         if (status.isNullOrBlank()) return "Dalam Proses"
         return when (status.trim().uppercase()) {
             "DIAJUKAN" -> "Diajukan"
-            "PENDING", "MENUNGGU_REVIEW" -> "Menunggu Review"
-            "SELESAI_DIREVIEW", "DISETUJUI_MARKETING" -> "Disetujui Marketing"
-            "MENUNGGU_PERSETUJUAN", "MENUNGGU_BM" -> "Menunggu Persetujuan BM"
-            "PENGAJUAN_DISETUJUI", "DISETUJUI_BM", "DISETUJUI", "APPROVED" -> "Disetujui BM"
-            "MENUNGGU_PENCAIRAN", "READY_TO_DISBURSE" -> "Siap Dicairkan"
+            "PENDING", "MENUNGGU_REVIEW", "VERIFIKASI_MARKETING" -> "Sedang Ditinjau"
+            "SELESAI_DIREVIEW", "DISETUJUI_MARKETING" -> "Menunggu Persetujuan"
+            "MENUNGGU_PERSETUJUAN", "MENUNGGU_BM" -> "Menunggu Persetujuan"
+            "PENGAJUAN_DISETUJUI", "DISETUJUI_BM", "DISETUJUI", "APPROVED" -> "Disetujui"
+            "MENUNGGU_PENCAIRAN", "READY_TO_DISBURSE" -> "Menunggu Pencairan"
             "DICAIRKAN", "DISBURSED", "SUCCESS", "BERHASIL" -> "Sudah Dicairkan"
             "PENGAJUAN_DITOLAK", "DITOLAK_BM", "DITOLAK_MARKETING", "DITOLAK", "REJECTED" -> "Ditolak"
-            "PERLU_REVISI", "DOKUMEN_DIREVISI" -> "Perlu Revisi Dokumen"
+            "PERLU_REVISI", "DOKUMEN_DIREVISI" -> "Revisi Dokumen"
             "LUNAS", "PAID" -> "Lunas"
             else -> status.replace("_", " ")
                 .lowercase()

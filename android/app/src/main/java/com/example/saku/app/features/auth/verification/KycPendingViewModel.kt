@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.saku.app.core.data.TokenManager
 import com.example.saku.app.core.data.repository.AuthRepository
 import com.example.saku.app.core.data.repository.CustomerRepository
+import com.example.saku.app.core.data.repository.NotificationRepository
 import com.example.saku.app.core.network.ApiResult
 import com.example.saku.app.core.network.dto.CustomerProfileDto
 import com.example.saku.app.core.util.ImageCompressorHelper
@@ -33,6 +34,7 @@ class KycPendingViewModel(
     private val customerRepository: CustomerRepository,
     private val authRepository: AuthRepository,
     private val tokenManager: TokenManager,
+    private val notificationRepository: NotificationRepository,
     application: Application
 ) : AndroidViewModel(application) {
 
@@ -41,6 +43,9 @@ class KycPendingViewModel(
 
     private val _profile = MutableStateFlow<CustomerProfileDto?>(null)
     val profile: StateFlow<CustomerProfileDto?> = _profile.asStateFlow()
+
+    private val _unreadNotifikasiCount = MutableStateFlow(0L)
+    val unreadNotifikasiCount: StateFlow<Long> = _unreadNotifikasiCount.asStateFlow()
 
     // Revision Upload State
     var ktpBitmap = MutableStateFlow<Bitmap?>(null)
@@ -57,6 +62,22 @@ class KycPendingViewModel(
 
     init {
         checkVerificationStatus(silent = true)
+        fetchUnreadNotificationCount()
+    }
+
+    fun fetchUnreadNotificationCount() {
+        viewModelScope.launch {
+            try {
+                when (val res = notificationRepository.getUnreadCount()) {
+                    is ApiResult.Success -> {
+                        _unreadNotifikasiCount.value = res.data.unreadCount
+                    }
+                    else -> {}
+                }
+            } catch (e: Exception) {
+                // Ignore error
+            }
+        }
     }
 
     fun setKtpPhoto(uri: Uri?, bitmap: Bitmap?) {
@@ -74,6 +95,7 @@ class KycPendingViewModel(
             if (!silent) {
                 _statusState.value = KycStatusState.Checking
             }
+            fetchUnreadNotificationCount()
 
             val result = customerRepository.getProfile()
             if (result is ApiResult.Success) {

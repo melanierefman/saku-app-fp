@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
@@ -85,6 +86,7 @@ import com.composables.icons.lucide.IdCard
 import com.composables.icons.lucide.Image as LucideImage
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Mail
+import com.composables.icons.lucide.MapPin
 import com.composables.icons.lucide.Phone
 import com.composables.icons.lucide.RefreshCw
 import com.composables.icons.lucide.RotateCw
@@ -143,9 +145,193 @@ fun RegisterScreen(
     val scrollState = rememberScrollState()
     val focusManager = LocalFocusManager.current
 
+    val context = LocalContext.current
+
     // Auto-scroll ke paling atas setiap kali langkah pendaftaran berpindah
     LaunchedEffect(uiState.currentStep) {
         scrollState.animateScrollTo(0)
+    }
+
+    // Tampilkan Toast untuk notifikasi sukses sementara
+    LaunchedEffect(uiState.successMessage) {
+        uiState.successMessage?.let { msg ->
+            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            viewModel.clearSuccessMessage()
+        }
+    }
+
+    // Pasang BackHandler agar tombol back gesture/hardware Android kembali per-langkah formulir
+    BackHandler(enabled = true) {
+        viewModel.onBackPress(onNavigateBack)
+    }
+
+    // Modal Konfirmasi Batalkan / Keluar Pendaftaran
+    if (uiState.showExitConfirmationModal) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissExitModal() },
+            shape = RoundedCornerShape(20.dp),
+            containerColor = Color.White,
+            icon = {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(Error0),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Lucide.CircleAlert,
+                        contentDescription = null,
+                        tint = Error,
+                        modifier = Modifier.size(30.dp)
+                    )
+                }
+            },
+            title = {
+                Text(
+                    text = "Batalkan Pendaftaran?",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = TextPrimary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            text = {
+                Text(
+                    text = "Data pendaftaran yang belum selesai akan dibatalkan. Apakah Anda yakin ingin keluar?",
+                    fontSize = 14.sp,
+                    color = TextSecondary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                    lineHeight = 20.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    text = "Ya, Batalkan",
+                    onClick = {
+                        viewModel.dismissExitModal()
+                        onNavigateBack()
+                    },
+                    variant = ButtonVariant.Error,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            dismissButton = {
+                Button(
+                    text = "Lanjutkan Daftar",
+                    onClick = { viewModel.dismissExitModal() },
+                    variant = ButtonVariant.Outline,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        )
+    }
+
+    // Modal Konfirmasi Data Alamat (Step 3) Sebelum Lanjut ke Dokumen KYC
+    if (uiState.showStep3ConfirmationModal) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissStep3ConfirmationModal() },
+            shape = RoundedCornerShape(20.dp),
+            containerColor = Color.White,
+            icon = {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(Primary0),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Lucide.MapPin,
+                        contentDescription = null,
+                        tint = Primary,
+                        modifier = Modifier.size(30.dp)
+                    )
+                }
+            },
+            title = {
+                Text(
+                    text = "Konfirmasi Alamat",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = TextPrimary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = "Pastikan seluruh rincian alamat Anda sudah lengkap dan benar:",
+                        fontSize = 13.sp,
+                        color = TextSecondary
+                    )
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Neutral0),
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, Border)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text(
+                                text = "Alamat e-KTP:",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp,
+                                color = Primary
+                            )
+                            Text(
+                                text = "${uiState.alamatKtp.alamatLengkap}, RT ${uiState.alamatKtp.rt}/RW ${uiState.alamatKtp.rw}\nKel. ${uiState.alamatKtp.kelurahan}, Kec. ${uiState.alamatKtp.kecamatan}\n${uiState.alamatKtp.kotaKabupaten}, ${uiState.alamatKtp.provinsi} ${uiState.alamatKtp.kodePos}",
+                                fontSize = 12.5.sp,
+                                color = TextPrimary,
+                                lineHeight = 17.sp
+                            )
+
+                            if (!uiState.sameAsKtp) {
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = Border)
+                                Text(
+                                    text = "Alamat Domisili:",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp,
+                                    color = Primary
+                                )
+                                Text(
+                                    text = "${uiState.alamatDomisili.alamatLengkap}, RT ${uiState.alamatDomisili.rt}/RW ${uiState.alamatDomisili.rw}\nKel. ${uiState.alamatDomisili.kelurahan}, Kec. ${uiState.alamatDomisili.kecamatan}\n${uiState.alamatDomisili.kotaKabupaten}, ${uiState.alamatDomisili.provinsi} ${uiState.alamatDomisili.kodePos}",
+                                    fontSize = 12.5.sp,
+                                    color = TextPrimary,
+                                    lineHeight = 17.sp
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    text = "Benar & Lanjutkan",
+                    onClick = { viewModel.submitStep3Address() },
+                    isLoading = uiState.isLoading,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            dismissButton = {
+                Button(
+                    text = "Periksa Kembali",
+                    onClick = { viewModel.dismissStep3ConfirmationModal() },
+                    enabled = !uiState.isLoading,
+                    variant = ButtonVariant.Outline,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        )
     }
 
     // Dialog Sukses Registrasi SAKU
@@ -306,11 +492,7 @@ fun RegisterScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = {
-                            if (uiState.currentStep > 0) {
-                                viewModel.goToPreviousStep()
-                            } else {
-                                onNavigateBack()
-                            }
+                            viewModel.onBackPress(onNavigateBack)
                         }
                     ) {
                         Icon(
@@ -402,10 +584,18 @@ fun RegisterScreen(
                             text = "Lanjut →",
                             onClick = {
                                 focusManager.clearFocus()
-                                viewModel.submitStep3Address()
+                                viewModel.openStep3ConfirmationModal()
                             },
                             isLoading = uiState.isLoading,
-                            enabled = uiState.alamatKtp.alamatLengkap.isNotBlank() && uiState.alamatKtp.kotaKabupaten.isNotBlank() && !uiState.isLoading,
+                            enabled = uiState.alamatKtp.provinsi.isNotBlank() &&
+                                    uiState.alamatKtp.kotaKabupaten.isNotBlank() &&
+                                    uiState.alamatKtp.kecamatan.isNotBlank() &&
+                                    uiState.alamatKtp.kelurahan.isNotBlank() &&
+                                    uiState.alamatKtp.alamatLengkap.isNotBlank() &&
+                                    uiState.alamatKtp.rt.isNotBlank() &&
+                                    uiState.alamatKtp.rw.isNotBlank() &&
+                                    uiState.alamatKtp.kodePos.isNotBlank() &&
+                                    !uiState.isLoading,
                             variant = ButtonVariant.Primary,
                             size = ButtonSize.LG,
                             fullWidth = true
@@ -496,37 +686,6 @@ fun RegisterScreen(
                         Text(
                             text = error,
                             color = Error,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                }
-            }
-
-            // Success Banner
-            uiState.successMessage?.let { success ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Success0),
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, Color(0xFF86EFAC))
-                ) {
-                    Row(
-                        modifier = Modifier.padding(14.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Lucide.CircleCheck,
-                            contentDescription = null,
-                            tint = Success,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = success,
-                            color = Success,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -749,7 +908,8 @@ private fun Step1PersonalForm(viewModel: RegisterViewModel, uiState: RegisterUiS
             leadingIcon = Lucide.IdCard,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             required = true,
-            helperText = "Pastikan 16 digit angka sesuai fisik e-KTP"
+            errorMessage = if (uiState.nik.isNotEmpty() && uiState.nik.length < 16) "NIK harus 16 digit" else null,
+            helperText = if (uiState.nik.length == 16) "✓ NIK valid" else null
         )
 
         Spacer(modifier = Modifier.height(14.dp))
@@ -760,7 +920,8 @@ private fun Step1PersonalForm(viewModel: RegisterViewModel, uiState: RegisterUiS
             label = "Nama Lengkap",
             placeholder = "Nama lengkap sesuai e-KTP",
             leadingIcon = Lucide.User,
-            required = true
+            required = true,
+            errorMessage = if (uiState.namaLengkap.isNotEmpty() && uiState.namaLengkap.trim().length < 3) "Nama lengkap minimal 3 karakter" else null
         )
 
         Spacer(modifier = Modifier.height(14.dp))
@@ -773,7 +934,11 @@ private fun Step1PersonalForm(viewModel: RegisterViewModel, uiState: RegisterUiS
             leadingIcon = Lucide.Phone,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             required = true,
-            helperText = "Nomor aktif yang dapat dihubungi"
+            errorMessage = if (uiState.noHp.isNotEmpty() && (uiState.noHp.length < 10 || (!uiState.noHp.startsWith("08") && !uiState.noHp.startsWith("+628") && !uiState.noHp.startsWith("628")))) {
+                "Nomor HP harus diawali 08"
+            } else null,
+            helperText = if (uiState.noHp.length in 10..14
+                ) "✓ Nomor handphone valid" else null
         )
     }
 }
@@ -909,33 +1074,87 @@ private fun Step2JobAndBankForm(viewModel: RegisterViewModel, uiState: RegisterU
             value = uiState.namaIbuKandung,
             onValueChange = viewModel::onNamaIbuKandungChange,
             label = "Nama Gadis Ibu Kandung",
-            placeholder = "Nama ibu kandung untuk verifikasi keamanan",
+            placeholder = "Masukkan nama ibu kandung",
             leadingIcon = Lucide.User,
             required = true
         )
     }
 }
 
-// Step 3: Alamat KTP & Domisili (Manual Input)
+// Step 3: Alamat KTP & Domisili (API Wilayah Indonesia Cascading Dropdown)
 @Composable
 private fun Step3AddressForm(viewModel: RegisterViewModel, uiState: RegisterUiState) {
     Column(modifier = Modifier.fillMaxWidth()) {
         SectionHeader(title = "Alamat Sesuai KTP")
 
-        TextField(
-            value = uiState.alamatKtp.alamatLengkap,
-            onValueChange = { viewModel.onAlamatKtpChange(uiState.alamatKtp.copy(alamatLengkap = it)) },
-            label = "Alamat Lengkap (Jalan / Gang / No)",
-            placeholder = "Contoh: Jl. Sudirman No. 45",
-            required = true
+        // 1. Provinsi
+        DropdownField(
+            options = uiState.provinces,
+            selectedOption = uiState.selectedKtpProvince,
+            onOptionSelect = { viewModel.onKtpProvinceSelected(it) },
+            label = "Provinsi",
+            placeholder = if (uiState.isLoadingWilayah) "Memuat daftar provinsi..." else "Pilih Provinsi...",
+            required = true,
+            searchable = true,
+            isLoading = uiState.isLoadingWilayah,
+            leadingIcon = Lucide.MapPin
         )
 
         Spacer(modifier = Modifier.height(14.dp))
 
+        // 2. Kota / Kabupaten
+        DropdownField(
+            options = uiState.ktpRegencies,
+            selectedOption = uiState.selectedKtpRegency,
+            onOptionSelect = { viewModel.onKtpRegencySelected(it) },
+            label = "Kota / Kabupaten",
+            placeholder = if (uiState.selectedKtpProvince == null) "Pilih provinsi terlebih dahulu" else if (uiState.isLoadingKtpRegencies) "Memuat kota/kabupaten..." else "Pilih Kota / Kabupaten...",
+            required = true,
+            searchable = true,
+            enabled = uiState.selectedKtpProvince != null,
+            isLoading = uiState.isLoadingKtpRegencies,
+            leadingIcon = Lucide.MapPin
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // 3. Kecamatan
+        DropdownField(
+            options = uiState.ktpDistricts,
+            selectedOption = uiState.selectedKtpDistrict,
+            onOptionSelect = { viewModel.onKtpDistrictSelected(it) },
+            label = "Kecamatan",
+            placeholder = if (uiState.selectedKtpRegency == null) "Pilih kota/kabupaten terlebih dahulu" else if (uiState.isLoadingKtpDistricts) "Memuat kecamatan..." else "Pilih Kecamatan...",
+            required = true,
+            searchable = true,
+            enabled = uiState.selectedKtpRegency != null,
+            isLoading = uiState.isLoadingKtpDistricts,
+            leadingIcon = Lucide.MapPin
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // 4. Kelurahan / Desa
+        DropdownField(
+            options = uiState.ktpVillages,
+            selectedOption = uiState.selectedKtpVillage,
+            onOptionSelect = { viewModel.onKtpVillageSelected(it) },
+            label = "Kelurahan / Desa",
+            placeholder = if (uiState.selectedKtpDistrict == null) "Pilih kecamatan terlebih dahulu" else if (uiState.isLoadingKtpVillages) "Memuat kelurahan/desa..." else "Pilih Kelurahan / Desa...",
+            required = true,
+            searchable = true,
+            enabled = uiState.selectedKtpDistrict != null,
+            isLoading = uiState.isLoadingKtpVillages,
+            leadingIcon = Lucide.MapPin
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // 5. RT & RW
         Row(modifier = Modifier.fillMaxWidth()) {
             TextField(
                 value = uiState.alamatKtp.rt,
-                onValueChange = { viewModel.onAlamatKtpChange(uiState.alamatKtp.copy(rt = it)) },
+                onValueChange = { viewModel.onAlamatKtpChange(uiState.alamatKtp.copy(rt = it.filter { c -> c.isDigit() }.take(3))) },
                 label = "RT",
                 placeholder = "001",
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -945,7 +1164,7 @@ private fun Step3AddressForm(viewModel: RegisterViewModel, uiState: RegisterUiSt
             Spacer(modifier = Modifier.width(12.dp))
             TextField(
                 value = uiState.alamatKtp.rw,
-                onValueChange = { viewModel.onAlamatKtpChange(uiState.alamatKtp.copy(rw = it)) },
+                onValueChange = { viewModel.onAlamatKtpChange(uiState.alamatKtp.copy(rw = it.filter { c -> c.isDigit() }.take(3))) },
                 label = "RW",
                 placeholder = "002",
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -956,53 +1175,21 @@ private fun Step3AddressForm(viewModel: RegisterViewModel, uiState: RegisterUiSt
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        Row(modifier = Modifier.fillMaxWidth()) {
-            TextField(
-                value = uiState.alamatKtp.kelurahan,
-                onValueChange = { viewModel.onAlamatKtpChange(uiState.alamatKtp.copy(kelurahan = it)) },
-                label = "Kelurahan / Desa",
-                placeholder = "Kelurahan",
-                modifier = Modifier.weight(1f),
-                required = true
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            TextField(
-                value = uiState.alamatKtp.kecamatan,
-                onValueChange = { viewModel.onAlamatKtpChange(uiState.alamatKtp.copy(kecamatan = it)) },
-                label = "Kecamatan",
-                placeholder = "Kecamatan",
-                modifier = Modifier.weight(1f),
-                required = true
-            )
-        }
+        // 6. Alamat Lengkap
+        TextField(
+            value = uiState.alamatKtp.alamatLengkap,
+            onValueChange = { viewModel.onAlamatKtpChange(uiState.alamatKtp.copy(alamatLengkap = it)) },
+            label = "Alamat Lengkap (Jalan / Gang / No)",
+            placeholder = "Contoh: Jl. Sudirman No. 45",
+            required = true
+        )
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        Row(modifier = Modifier.fillMaxWidth()) {
-            TextField(
-                value = uiState.alamatKtp.kotaKabupaten,
-                onValueChange = { viewModel.onAlamatKtpChange(uiState.alamatKtp.copy(kotaKabupaten = it)) },
-                label = "Kota / Kabupaten",
-                placeholder = "Kota / Kab",
-                modifier = Modifier.weight(1f),
-                required = true
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            TextField(
-                value = uiState.alamatKtp.provinsi,
-                onValueChange = { viewModel.onAlamatKtpChange(uiState.alamatKtp.copy(provinsi = it)) },
-                label = "Provinsi",
-                placeholder = "Provinsi",
-                modifier = Modifier.weight(1f),
-                required = true
-            )
-        }
-
-        Spacer(modifier = Modifier.height(14.dp))
-
+        // 7. Kode Pos
         TextField(
             value = uiState.alamatKtp.kodePos,
-            onValueChange = { viewModel.onAlamatKtpChange(uiState.alamatKtp.copy(kodePos = it)) },
+            onValueChange = { viewModel.onAlamatKtpChange(uiState.alamatKtp.copy(kodePos = it.filter { c -> c.isDigit() }.take(5))) },
             label = "Kode Pos",
             placeholder = "12345",
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -1020,20 +1207,74 @@ private fun Step3AddressForm(viewModel: RegisterViewModel, uiState: RegisterUiSt
 
         AnimatedVisibility(visible = !uiState.sameAsKtp) {
             Column(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-                TextField(
-                    value = uiState.alamatDomisili.alamatLengkap,
-                    onValueChange = { viewModel.onAlamatDomisiliChange(uiState.alamatDomisili.copy(alamatLengkap = it)) },
-                    label = "Alamat Domisili Lengkap",
-                    placeholder = "Jl. Domisili No. 123",
-                    required = true
+                // Domisili: 1. Provinsi
+                DropdownField(
+                    options = uiState.provinces,
+                    selectedOption = uiState.selectedDomisiliProvince,
+                    onOptionSelect = { viewModel.onDomisiliProvinceSelected(it) },
+                    label = "Provinsi Domisili",
+                    placeholder = if (uiState.isLoadingWilayah) "Memuat daftar provinsi..." else "Pilih Provinsi...",
+                    required = true,
+                    searchable = true,
+                    isLoading = uiState.isLoadingWilayah,
+                    leadingIcon = Lucide.MapPin
                 )
 
                 Spacer(modifier = Modifier.height(14.dp))
 
+                // Domisili: 2. Kota / Kabupaten
+                DropdownField(
+                    options = uiState.domisiliRegencies,
+                    selectedOption = uiState.selectedDomisiliRegency,
+                    onOptionSelect = { viewModel.onDomisiliRegencySelected(it) },
+                    label = "Kota / Kabupaten Domisili",
+                    placeholder = if (uiState.selectedDomisiliProvince == null) "Pilih provinsi terlebih dahulu" else if (uiState.isLoadingDomisiliRegencies) "Memuat kota/kabupaten..." else "Pilih Kota / Kabupaten...",
+                    required = true,
+                    searchable = true,
+                    enabled = uiState.selectedDomisiliProvince != null,
+                    isLoading = uiState.isLoadingDomisiliRegencies,
+                    leadingIcon = Lucide.MapPin
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // Domisili: 3. Kecamatan
+                DropdownField(
+                    options = uiState.domisiliDistricts,
+                    selectedOption = uiState.selectedDomisiliDistrict,
+                    onOptionSelect = { viewModel.onDomisiliDistrictSelected(it) },
+                    label = "Kecamatan Domisili",
+                    placeholder = if (uiState.selectedDomisiliRegency == null) "Pilih kota/kabupaten terlebih dahulu" else if (uiState.isLoadingDomisiliDistricts) "Memuat kecamatan..." else "Pilih Kecamatan...",
+                    required = true,
+                    searchable = true,
+                    enabled = uiState.selectedDomisiliRegency != null,
+                    isLoading = uiState.isLoadingDomisiliDistricts,
+                    leadingIcon = Lucide.MapPin
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // Domisili: 4. Kelurahan / Desa
+                DropdownField(
+                    options = uiState.domisiliVillages,
+                    selectedOption = uiState.selectedDomisiliVillage,
+                    onOptionSelect = { viewModel.onDomisiliVillageSelected(it) },
+                    label = "Kelurahan / Desa Domisili",
+                    placeholder = if (uiState.selectedDomisiliDistrict == null) "Pilih kecamatan terlebih dahulu" else if (uiState.isLoadingDomisiliVillages) "Memuat kelurahan/desa..." else "Pilih Kelurahan / Desa...",
+                    required = true,
+                    searchable = true,
+                    enabled = uiState.selectedDomisiliDistrict != null,
+                    isLoading = uiState.isLoadingDomisiliVillages,
+                    leadingIcon = Lucide.MapPin
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // Domisili: 5. RT & RW
                 Row(modifier = Modifier.fillMaxWidth()) {
                     TextField(
                         value = uiState.alamatDomisili.rt,
-                        onValueChange = { viewModel.onAlamatDomisiliChange(uiState.alamatDomisili.copy(rt = it)) },
+                        onValueChange = { viewModel.onAlamatDomisiliChange(uiState.alamatDomisili.copy(rt = it.filter { c -> c.isDigit() }.take(3))) },
                         label = "RT",
                         placeholder = "001",
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -1043,7 +1284,7 @@ private fun Step3AddressForm(viewModel: RegisterViewModel, uiState: RegisterUiSt
                     Spacer(modifier = Modifier.width(12.dp))
                     TextField(
                         value = uiState.alamatDomisili.rw,
-                        onValueChange = { viewModel.onAlamatDomisiliChange(uiState.alamatDomisili.copy(rw = it)) },
+                        onValueChange = { viewModel.onAlamatDomisiliChange(uiState.alamatDomisili.copy(rw = it.filter { c -> c.isDigit() }.take(3))) },
                         label = "RW",
                         placeholder = "002",
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -1054,53 +1295,21 @@ private fun Step3AddressForm(viewModel: RegisterViewModel, uiState: RegisterUiSt
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    TextField(
-                        value = uiState.alamatDomisili.kelurahan,
-                        onValueChange = { viewModel.onAlamatDomisiliChange(uiState.alamatDomisili.copy(kelurahan = it)) },
-                        label = "Kelurahan",
-                        placeholder = "Kelurahan",
-                        modifier = Modifier.weight(1f),
-                        required = true
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    TextField(
-                        value = uiState.alamatDomisili.kecamatan,
-                        onValueChange = { viewModel.onAlamatDomisiliChange(uiState.alamatDomisili.copy(kecamatan = it)) },
-                        label = "Kecamatan",
-                        placeholder = "Kecamatan",
-                        modifier = Modifier.weight(1f),
-                        required = true
-                    )
-                }
+                // Domisili: 6. Alamat Lengkap
+                TextField(
+                    value = uiState.alamatDomisili.alamatLengkap,
+                    onValueChange = { viewModel.onAlamatDomisiliChange(uiState.alamatDomisili.copy(alamatLengkap = it)) },
+                    label = "Alamat Domisili Lengkap",
+                    placeholder = "Jl. Domisili No. 123",
+                    required = true
+                )
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    TextField(
-                        value = uiState.alamatDomisili.kotaKabupaten,
-                        onValueChange = { viewModel.onAlamatDomisiliChange(uiState.alamatDomisili.copy(kotaKabupaten = it)) },
-                        label = "Kota / Kab",
-                        placeholder = "Kota / Kab",
-                        modifier = Modifier.weight(1f),
-                        required = true
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    TextField(
-                        value = uiState.alamatDomisili.provinsi,
-                        onValueChange = { viewModel.onAlamatDomisiliChange(uiState.alamatDomisili.copy(provinsi = it)) },
-                        label = "Provinsi",
-                        placeholder = "Provinsi",
-                        modifier = Modifier.weight(1f),
-                        required = true
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(14.dp))
-
+                // Domisili: 7. Kode Pos
                 TextField(
                     value = uiState.alamatDomisili.kodePos,
-                    onValueChange = { viewModel.onAlamatDomisiliChange(uiState.alamatDomisili.copy(kodePos = it)) },
+                    onValueChange = { viewModel.onAlamatDomisiliChange(uiState.alamatDomisili.copy(kodePos = it.filter { c -> c.isDigit() }.take(5))) },
                     label = "Kode Pos Domisili",
                     placeholder = "12345",
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -1263,11 +1472,13 @@ private fun RegisterDocumentUploadBox(
                     Text(text = subtitle, fontSize = 11.5.sp, color = TextMuted)
                 }
 
-                Badge(
-                    text = if (hasFile) "Terunggah" else (if (isRequired) "Wajib" else "Opsional"),
-                    variant = if (hasFile) BadgeVariant.Success else (if (isRequired) BadgeVariant.Error else BadgeVariant.Neutral),
-                    size = BadgeSize.SM
-                )
+                if (hasFile) {
+                    Badge(
+                        text = "Terunggah",
+                        variant = BadgeVariant.Success,
+                        size = BadgeSize.SM
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(14.dp))
@@ -1293,15 +1504,15 @@ private fun RegisterDocumentUploadBox(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(Primary0),
+                                    .size(38.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(Primary),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = icon,
                                     contentDescription = null,
-                                    tint = Primary,
+                                    tint = Color.White,
                                     modifier = Modifier.size(20.dp)
                                 )
                             }

@@ -14,13 +14,27 @@ import com.example.saku.app.core.network.dto.SendOtpResponse
 import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface AuthApiService {
+
+    @GET("auth/customer/register/check-nik")
+    suspend fun checkNik(
+        @Query("nik") nik: String,
+        @Query("customerId") customerId: String? = null
+    ): Response<ApiResponse<Boolean>>
+
+    @GET("auth/customer/register/check-phone")
+    suspend fun checkPhone(
+        @Query("phone") phone: String,
+        @Query("customerId") customerId: String? = null
+    ): Response<ApiResponse<Boolean>>
 
     @POST("auth/customer/login")
     suspend fun login(

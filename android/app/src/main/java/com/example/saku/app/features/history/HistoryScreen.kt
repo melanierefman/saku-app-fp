@@ -270,14 +270,14 @@ private fun HistoryLoanCard(
     val status = loan.statusPengajuan ?: "PENDING"
     val (badgeVariant, badgeText) = when (status.uppercase()) {
         "DICAIRKAN", "DISBURSED" -> Pair(BadgeVariant.Success, "Dicairkan")
-        "APPROVED", "DISETUJUI", "PENGAJUAN_DISETUJUI" -> Pair(BadgeVariant.Success, "Disetujui BM")
+        "APPROVED", "DISETUJUI", "PENGAJUAN_DISETUJUI" -> Pair(BadgeVariant.Success, "Disetujui")
         "MENUNGGU_PENCAIRAN" -> Pair(BadgeVariant.Success, "Menunggu Pencairan")
-        "SELESAI_DIREVIEW", "MENUNGGU_PERSETUJUAN", "DISETUJUI_MARKETING" -> Pair(BadgeVariant.Primary, "Disetujui Marketing")
-        "VERIFIKASI_MARKETING", "MENUNGGU_REVIEW" -> Pair(BadgeVariant.Primary, "Review Marketing")
+        "SELESAI_DIREVIEW", "MENUNGGU_PERSETUJUAN", "DISETUJUI_MARKETING" -> Pair(BadgeVariant.Info, "Menunggu Persetujuan")
+        "VERIFIKASI_MARKETING", "MENUNGGU_REVIEW" -> Pair(BadgeVariant.Info, "Sedang Ditinjau")
         "REJECTED", "DITOLAK", "PENGAJUAN_DITOLAK", "DITOLAK_MARKETING", "DITOLAK_BM", "REJECT", "BATAL", "CANCELLED" -> Pair(BadgeVariant.Error, "Ditolak")
-        "PAID", "LUNAS" -> Pair(BadgeVariant.Success, "Lunas")
-        "PERLU_REVISI", "REVISI" -> Pair(BadgeVariant.Warning, "Perlu Revisi")
-        else -> Pair(BadgeVariant.Primary, "Dalam Proses")
+        "PAID", "LUNAS" -> Pair(BadgeVariant.Neutral, "Lunas")
+        "PERLU_REVISI", "REVISI" -> Pair(BadgeVariant.Warning, "Revisi Dokumen")
+        else -> Pair(BadgeVariant.Info, "Dalam Proses")
     }
 
     Card(

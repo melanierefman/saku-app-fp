@@ -20,6 +20,7 @@ import com.example.saku.app.core.network.dto.SendOtpRequest
 import com.example.saku.app.core.network.dto.SendOtpResponse
 import com.example.saku.app.core.network.dto.VerifyOtpRequest
 import com.example.saku.app.core.network.dto.VerifyOtpResponse
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.flow.Flow
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -121,6 +122,7 @@ class AuthRepositoryImpl @Inject constructor(
             customerDao.clearProfile()
             loanDao.clearLoans()
             notificationDao.clearNotifications()
+            FirebaseMessaging.getInstance().deleteToken()
         } catch (_: Exception) {}
     }
 
@@ -147,6 +149,32 @@ class AuthRepositoryImpl @Inject constructor(
             }
         } catch (e: Exception) {
             ApiResult.Error(e.localizedMessage ?: "Gagal memverifikasi OTP.")
+        }
+    }
+
+    override suspend fun checkNik(nik: String, customerId: String?): ApiResult<Boolean> {
+        return try {
+            val response = authApiService.checkNik(nik, customerId)
+            if (response.isSuccessful && response.body()?.data != null) {
+                ApiResult.Success(response.body()!!.data!!, response.body()?.message)
+            } else {
+                ApiResult.Error(ApiClient.parseError(response), response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.localizedMessage ?: "Gagal memverifikasi NIK.")
+        }
+    }
+
+    override suspend fun checkPhone(phone: String, customerId: String?): ApiResult<Boolean> {
+        return try {
+            val response = authApiService.checkPhone(phone, customerId)
+            if (response.isSuccessful && response.body()?.data != null) {
+                ApiResult.Success(response.body()!!.data!!, response.body()?.message)
+            } else {
+                ApiResult.Error(ApiClient.parseError(response), response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.localizedMessage ?: "Gagal memverifikasi nomor handphone.")
         }
     }
 

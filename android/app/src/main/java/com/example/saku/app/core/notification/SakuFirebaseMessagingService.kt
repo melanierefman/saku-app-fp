@@ -144,19 +144,8 @@ class SakuFirebaseMessagingService : FirebaseMessagingService() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val largeLogo = try {
-            BitmapFactory.decodeResource(resources, R.drawable.saku_logo)
-        } catch (e: Exception) {
-            null
-        }
-
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification_saku)
-            .apply {
-                if (largeLogo != null) {
-                    setLargeIcon(largeLogo)
-                }
-            }
             .setColor(0xFFFF7A00.toInt()) // SAKU Primary Orange Accent
             .setContentTitle(title)
             .setContentText(message)

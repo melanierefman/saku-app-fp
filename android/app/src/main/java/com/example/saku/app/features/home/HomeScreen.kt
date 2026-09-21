@@ -69,6 +69,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -77,6 +78,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -201,6 +205,19 @@ fun HomeScreen(
 
     val currencyFormatter = remember {
         NumberFormat.getNumberInstance(Locale.forLanguageTag("id-ID"))
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.fetchUnreadNotificationCount()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
 
     // Refresh data saat HomeScreen aktif / tab berpindah
@@ -1097,12 +1114,12 @@ private fun TagihanPinjamanAktifCard(
                     if (activeLoan != null) {
                         val (bVariant, bText) = when (rawStatus) {
                             "DICAIRKAN", "DISBURSED" -> BadgeVariant.Success to "Dicairkan"
-                            "APPROVED", "DISETUJUI", "PENGAJUAN_DISETUJUI" -> BadgeVariant.Success to "Disetujui BM"
+                            "APPROVED", "DISETUJUI", "PENGAJUAN_DISETUJUI" -> BadgeVariant.Success to "Disetujui"
                             "MENUNGGU_PENCAIRAN" -> BadgeVariant.Success to "Menunggu Pencairan"
-                            "SELESAI_DIREVIEW", "MENUNGGU_PERSETUJUAN", "DISETUJUI_MARKETING" -> BadgeVariant.Primary to "Disetujui Marketing"
-                            "VERIFIKASI_MARKETING", "MENUNGGU_REVIEW" -> BadgeVariant.Primary to "Review Marketing"
-                            "PERLU_REVISI", "REVISI" -> BadgeVariant.Warning to "Perlu Revisi"
-                            else -> BadgeVariant.Primary to "Dalam Proses"
+                            "SELESAI_DIREVIEW", "MENUNGGU_PERSETUJUAN", "DISETUJUI_MARKETING" -> BadgeVariant.Info to "Menunggu Persetujuan"
+                            "VERIFIKASI_MARKETING", "MENUNGGU_REVIEW" -> BadgeVariant.Info to "Sedang Ditinjau"
+                            "PERLU_REVISI", "REVISI" -> BadgeVariant.Warning to "Revisi Dokumen"
+                            else -> BadgeVariant.Info to "Dalam Proses"
                         }
                         Badge(text = bText, variant = bVariant, size = BadgeSize.SM)
                     }

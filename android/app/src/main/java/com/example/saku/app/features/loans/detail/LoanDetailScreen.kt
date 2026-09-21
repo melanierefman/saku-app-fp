@@ -12,9 +12,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -86,6 +88,11 @@ import com.example.saku.app.ui.theme.Error
 import com.example.saku.app.ui.theme.Error0
 import com.example.saku.app.ui.theme.Error70
 import com.example.saku.app.ui.theme.Error80
+import com.example.saku.app.ui.theme.Info
+import com.example.saku.app.ui.theme.Info0
+import com.example.saku.app.ui.theme.Info20
+import com.example.saku.app.ui.theme.Info70
+import com.example.saku.app.ui.theme.Neutral0
 import com.example.saku.app.ui.theme.Neutral10
 import com.example.saku.app.ui.theme.Neutral20
 import com.example.saku.app.ui.theme.Primary
@@ -434,14 +441,14 @@ private fun LoanDetailTopBar(
 
             val (badgeText, badgeVariant) = when (status) {
                 "DICAIRKAN", "DISBURSED" -> "Dicairkan" to BadgeVariant.Success
-                "DISETUJUI", "APPROVED", "PENGAJUAN_DISETUJUI" -> "Disetujui BM" to BadgeVariant.Success
+                "DISETUJUI", "APPROVED", "PENGAJUAN_DISETUJUI" -> "Disetujui" to BadgeVariant.Success
                 "MENUNGGU_PENCAIRAN" -> "Menunggu Pencairan" to BadgeVariant.Success
-                "SELESAI_DIREVIEW", "MENUNGGU_PERSETUJUAN", "DISETUJUI_MARKETING" -> "Disetujui Marketing" to BadgeVariant.Primary
-                "VERIFIKASI_MARKETING", "MENUNGGU_REVIEW" -> "Review Marketing" to BadgeVariant.Primary
+                "SELESAI_DIREVIEW", "MENUNGGU_PERSETUJUAN", "DISETUJUI_MARKETING" -> "Menunggu Persetujuan" to BadgeVariant.Info
+                "VERIFIKASI_MARKETING", "MENUNGGU_REVIEW" -> "Sedang Ditinjau" to BadgeVariant.Info
                 "DITOLAK", "REJECTED", "PENGAJUAN_DITOLAK", "DITOLAK_MARKETING", "DITOLAK_BM", "REJECT", "BATAL", "CANCELLED" -> "Ditolak" to BadgeVariant.Error
-                "PAID", "LUNAS" -> "Lunas" to BadgeVariant.Success
-                "PERLU_REVISI", "REVISI" -> "Perlu Revisi" to BadgeVariant.Warning
-                else -> "Dalam Proses" to BadgeVariant.Primary
+                "PAID", "LUNAS" -> "Lunas" to BadgeVariant.Neutral
+                "PERLU_REVISI", "REVISI" -> "Revisi Dokumen" to BadgeVariant.Warning
+                else -> "Dalam Proses" to BadgeVariant.Info
             }
             Badge(text = badgeText, variant = badgeVariant, size = BadgeSize.SM)
         }
@@ -462,7 +469,7 @@ private fun LoanTrackingTimelineCard(
     val step1Passed = !isRejected && s !in listOf("DRAFT")
     val step1Current = false
 
-    // Step 2: Verifikasi Marketing & Dokumen (Centang jika Marketing sudah ACC / status lanjut ke tahap berikutnya)
+    // Step 2: Verifikasi Dokumen (Centang jika dokumen sudah terverifikasi / lanjut ke persetujuan)
     val step2Passed = !isRejected && s in listOf(
         "SELESAI_DIREVIEW", "MENUNGGU_PERSETUJUAN", "DISETUJUI_MARKETING",
         "PENGAJUAN_DISETUJUI", "APPROVED", "DISETUJUI", "MENUNGGU_PENCAIRAN",
@@ -470,7 +477,7 @@ private fun LoanTrackingTimelineCard(
     )
     val step2Current = !isRejected && s in listOf("PENDING", "SUBMITTED", "MENUNGGU_REVIEW", "VERIFIKASI_MARKETING", "MENUNGGU_DOKUMEN", "PERLU_REVISI", "REVISI")
 
-    // Step 3: Persetujuan Branch Manager (Centang jika BM sudah ACC atau dana dicairkan)
+    // Step 3: Persetujuan Pinjaman (Centang jika pengajuan sudah disetujui atau dana dicairkan)
     val step3Passed = !isRejected && s in listOf(
         "PENGAJUAN_DISETUJUI", "APPROVED", "DISETUJUI", "MENUNGGU_PENCAIRAN",
         "DICAIRKAN", "DISBURSED", "LUNAS", "PAID"
@@ -543,11 +550,11 @@ private fun LoanTrackingTimelineCard(
 
             TimelineStepItem(
                 step = 2,
-                title = "Verifikasi Marketing & Dokumen",
+                title = "Verifikasi Dokumen",
                 desc = when {
-                    step2Passed -> "Berkas dokumen telah diverifikasi & disetujui tim marketing"
-                    isRevision -> "Dokumen perlu perbaikan. Ketuk tombol di bawah untuk unggah ulang."
-                    else -> "Pemeriksaan kelengkapan berkas oleh tim operasional"
+                    step2Passed -> "Berkas dokumen telah diverifikasi dan memenuhi persyaratan"
+                    isRevision -> "Dokumen memerlukan perbaikan. Silakan unggah ulang dokumen perbaikan."
+                    else -> "Pemeriksaan kelengkapan dan keabsahan berkas pengajuan Anda"
                 },
                 isPassed = step2Passed,
                 isCurrent = step2Current,
@@ -558,8 +565,8 @@ private fun LoanTrackingTimelineCard(
 
             TimelineStepItem(
                 step = 3,
-                title = "Persetujuan Branch Manager",
-                desc = if (step3Passed) "Plafond pinjaman telah disetujui oleh Branch Manager" else "Persetujuan final plafon kredit oleh kepala cabang",
+                title = "Persetujuan Pinjaman",
+                desc = if (step3Passed) "Pengajuan pinjaman Anda telah disetujui" else "Proses analisis dan persetujuan plafon pembiayaan",
                 isPassed = step3Passed,
                 isCurrent = step3Current,
                 isLast = false
@@ -568,7 +575,7 @@ private fun LoanTrackingTimelineCard(
             TimelineStepItem(
                 step = 4,
                 title = "Pencairan Dana ke Rekening",
-                desc = if (step4Passed) "Dana pinjaman telah berhasil ditransfer ke rekening bank Anda" else "Dana pinjaman ditransfer ke rekening bank terdaftar Anda",
+                desc = if (step4Passed) "Dana pinjaman telah berhasil ditransfer ke rekening bank Anda" else "Dana pinjaman akan ditransfer ke rekening bank terdaftar Anda",
                 isPassed = step4Passed,
                 isCurrent = step4Current,
                 isLast = true
@@ -588,8 +595,15 @@ private fun TimelineStepItem(
     onRevisionClick: (() -> Unit)? = null,
     isLast: Boolean
 ) {
-    Row(modifier = Modifier.fillMaxWidth()) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxHeight()
+        ) {
             Box(
                 modifier = Modifier
                     .size(24.dp)
@@ -598,14 +612,13 @@ private fun TimelineStepItem(
                         when {
                             isPassed -> Primary
                             isRevision -> Warning0
-                            isCurrent -> Primary.copy(alpha = 0.12f)
-                            else -> Neutral20
+                            isCurrent -> Primary0
+                            else -> Neutral0
                         }
                     )
                     .then(
                         when {
                             isRevision -> Modifier.border(1.5.dp, Warning, CircleShape)
-                            isCurrent && !isPassed -> Modifier.border(1.5.dp, Primary, CircleShape)
                             else -> Modifier
                         }
                     ),
@@ -639,15 +652,19 @@ private fun TimelineStepItem(
                 Box(
                     modifier = Modifier
                         .width(2.dp)
-                        .height(if (isRevision && onRevisionClick != null) 58.dp else 34.dp)
-                        .background(if (isPassed) Primary else Neutral20)
+                        .weight(1f)
+                        .background(if (isPassed) Primary else Neutral10)
                 )
             }
         }
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        Column(modifier = Modifier.padding(bottom = if (isLast) 0.dp else 12.dp)) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(bottom = if (isLast) 0.dp else 16.dp)
+        ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -659,7 +676,7 @@ private fun TimelineStepItem(
                     color = if (isCurrent || isPassed) TextPrimary else TextMuted
                 )
             }
-            Spacer(modifier = Modifier.height(1.dp))
+            Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = desc,
                 fontSize = 11.5.sp,

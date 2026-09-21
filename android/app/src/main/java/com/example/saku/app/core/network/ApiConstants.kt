@@ -5,8 +5,8 @@ object ApiConstants {
     // Catatan: Jika menggunakan Emulator Android Studio, gunakan "http://10.0.2.2:8080/api/"
     // Catatan: Jika menggunakan Wi-Fi LAN langsung, gunakan IP laptop (contoh:
     // "http://192.168.1.25:8080/api/")
-    // const val BASE_URL = "http://localhost:8080/api/"
-    const val BASE_URL = "https://volleyball-scored-arizona-operator.trycloudflare.com/api/"
+    const val BASE_URL = "http://localhost:8080/api/"
+//    const val BASE_URL = "https://volleyball-scored-arizona-operator.trycloudflare.com/api/"
 
     // Timeout configurations (dalam detik)
     const val CONNECT_TIMEOUT = 30L

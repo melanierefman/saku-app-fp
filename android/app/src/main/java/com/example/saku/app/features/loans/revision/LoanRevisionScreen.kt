@@ -364,7 +364,7 @@ fun LoanRevisionScreen(
     ConfirmationDialog(
         visible = showConfirmDialog,
         title = "Kirim Dokumen Revisi?",
-        message = "Pastikan seluruh berkas yang Anda unggah sudah lengkap dan sesuai catatan perbaikan. Dokumen akan langsung ditinjau kembali oleh tim verifikator SAKU.",
+        message = "Pastikan berkas perbaikan sudah lengkap dan jelas sebelum dikirim.",
         confirmButtonText = "Ya, Kirim Revisi",
         dismissButtonText = "Periksa Kembali",
         type = DialogType.INFO,
@@ -420,7 +420,7 @@ fun LoanRevisionScreen(
             },
             text = {
                 Text(
-                    text = "Berkas revisi Anda telah berhasil diunggah ulang dan sedang dalam antrean review tim SAKU. Anda akan mendapatkan update notifikasi segera.",
+                    text = "Berkas revisi Anda telah berhasil diunggah dan sedang dalam proses peninjauan.",
                     color = TextSecondary,
                     fontSize = 13.5.sp,
                     lineHeight = 19.sp
@@ -562,9 +562,9 @@ private fun RevisionDocumentUploadBox(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(if (isPdf) Error0 else Primary0),
+                                    .size(38.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(Primary),
                                 contentAlignment = Alignment.Center
                             ) {
                                 if (bitmap != null) {
@@ -585,7 +585,7 @@ private fun RevisionDocumentUploadBox(
                                     Icon(
                                         imageVector = Lucide.FileText,
                                         contentDescription = null,
-                                        tint = if (isPdf) Error else Primary,
+                                        tint = Color.White,
                                         modifier = Modifier.size(20.dp)
                                     )
                                 }

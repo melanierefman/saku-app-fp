@@ -9,6 +9,8 @@ import com.example.saku.app.core.data.repository.LoanRepository
 import com.example.saku.app.core.data.repository.LoanRepositoryImpl
 import com.example.saku.app.core.data.repository.NotificationRepository
 import com.example.saku.app.core.data.repository.NotificationRepositoryImpl
+import com.example.saku.app.core.data.repository.WilayahRepository
+import com.example.saku.app.core.data.repository.WilayahRepositoryImpl
 import com.example.saku.app.core.database.AppDatabase
 import com.example.saku.app.core.network.ApiClient
 import com.example.saku.app.features.auth.forgotpassword.ForgotPasswordViewModel
@@ -35,6 +37,7 @@ val coreModule = module {
 val networkModule = module {
     single { ApiClient.getAuthApiService(androidContext()) }
     single { ApiClient.getCustomerApiService(androidContext()) }
+    single { ApiClient.getWilayahApiService() }
 }
 
 val repositoryModule = module {
@@ -42,13 +45,14 @@ val repositoryModule = module {
     single<CustomerRepository> { CustomerRepositoryImpl(get(), get(), get()) }
     single<LoanRepository> { LoanRepositoryImpl(get(), get()) }
     single<NotificationRepository> { NotificationRepositoryImpl(get(), get()) }
+    single<WilayahRepository> { WilayahRepositoryImpl(get()) }
 }
 
 val viewModelModule = module {
     viewModel { LoginViewModel(get()) }
-    viewModel { RegisterViewModel(get(), androidApplication()) }
+    viewModel { RegisterViewModel(get(), get(), androidApplication()) }
     viewModel { ForgotPasswordViewModel(get()) }
-    viewModel { KycPendingViewModel(get(), get(), get(), androidApplication()) }
+    viewModel { KycPendingViewModel(get(), get(), get(), get(), androidApplication()) }
     viewModel { HomeViewModel(get(), get(), get(), get()) }
     viewModel { LoanApplyViewModel(get(), get()) }
     viewModel { LoanDetailViewModel(get()) }

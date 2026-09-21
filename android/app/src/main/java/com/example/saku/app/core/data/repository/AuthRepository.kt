@@ -25,6 +25,8 @@ interface AuthRepository {
     suspend fun clearSession()
 
     // Registration & OTP
+    suspend fun checkNik(nik: String, customerId: String? = null): ApiResult<Boolean>
+    suspend fun checkPhone(phone: String, customerId: String? = null): ApiResult<Boolean>
     suspend fun sendOtp(email: String, purpose: String = "REGISTRATION"): ApiResult<SendOtpResponse>
     suspend fun verifyOtp(email: String, otpCode: String, purpose: String = "REGISTRATION"): ApiResult<VerifyOtpResponse>
     suspend fun registerStep1Ktp(customerId: String, ktp: MultipartBody.Part?, data: RequestBody): ApiResult<RegisterStepResponse>

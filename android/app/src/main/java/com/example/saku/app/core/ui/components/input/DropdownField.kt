@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -89,7 +90,8 @@ fun DropdownField(
     searchable: Boolean = true,
     clearable: Boolean = false,
     leadingIcon: ImageVector? = null,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    isLoading: Boolean = false
 ) {
     var isSheetOpen by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
@@ -216,7 +218,14 @@ fun DropdownField(
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (clearable && selectedOption != null && enabled) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp,
+                            color = Primary
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                    } else if (clearable && selectedOption != null && enabled) {
                         M3IconButton(
                             onClick = { onOptionSelect(null) },
                             modifier = Modifier.size(28.dp)
@@ -349,7 +358,28 @@ fun DropdownField(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Options List
-                if (filteredOptions.isEmpty()) {
+                if (isLoading && filteredOptions.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.5.dp,
+                                color = Primary
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Memuat daftar pilihan...",
+                                fontSize = 13.sp,
+                                color = TextMuted
+                            )
+                        }
+                    }
+                } else if (filteredOptions.isEmpty()) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
