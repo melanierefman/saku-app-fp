@@ -184,7 +184,7 @@ public class PengajuanPinjamanService {
             message = "Dokumen perbaikan berhasil diunggah. Pengajuan pinjaman kembali masuk ke antrean review Marketing.";
         } else {
             pengajuan.setStatusPengajuan("PENDING");
-            pengajuan.setCatatanReview("Dokumen pendukung berhasil diunggah, menunggu proses review oleh tim cabang");
+            pengajuan.setCatatanReview("Dokumen pendukung berhasil diunggah, menunggu proses verifikasi dan peninjauan berkas");
             message = "Dokumen pendukung berhasil diunggah. Pengajuan pinjaman selesai dan sedang dalam proses review.";
         }
 
@@ -194,7 +194,7 @@ public class PengajuanPinjamanService {
         // Kirim notifikasi in-app ke customer
         String notifJudul = isRevisi ? "Dokumen Revisi Pinjaman Diterima" : "Pengajuan Pinjaman Diproses";
         String notifPesan = "Pengajuan pinjaman no. " + saved.getNomorPengajuan()
-                + " sedang dalam proses review oleh tim cabang.";
+                + " sedang dalam proses verifikasi tim kami.";
         notifikasiService.createNotification(customerId, saved.getId(), "PENGAJUAN", "IN_APP", notifJudul, notifPesan);
 
         Cabang cabang = cabangRepository.findById(saved.getMstBranchId()).orElse(null);

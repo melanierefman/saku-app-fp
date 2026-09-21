@@ -14,11 +14,13 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,6 +31,20 @@ import org.springframework.web.multipart.MultipartFile;
 public class RegisterController {
 
     private final RegisterService registerService;
+
+    @GetMapping("/check-nik")
+    public ResponseEntity<ApiResponse<Boolean>> checkNik(
+            @RequestParam String nik,
+            @RequestParam(required = false) UUID customerId) {
+        return ResponseEntity.ok(ApiResponse.success(registerService.checkNik(nik, customerId)));
+    }
+
+    @GetMapping("/check-phone")
+    public ResponseEntity<ApiResponse<Boolean>> checkPhone(
+            @RequestParam String phone,
+            @RequestParam(required = false) UUID customerId) {
+        return ResponseEntity.ok(ApiResponse.success(registerService.checkPhone(phone, customerId)));
+    }
 
     // Endpoint Alur Baru (5-Step KYC & Email Only)
     /**

@@ -99,7 +99,7 @@ public class NotifikasiService {
             Notifikasi notifikasi = new Notifikasi();
             notifikasi.setId(UUID.randomUUID());
             notifikasi.setMstCustomerId(customerId);
-            notifikasi.setTrxPengajuanPinjamanId(pengajuanId != null ? pengajuanId : new UUID(0L, 0L));
+            notifikasi.setTrxPengajuanPinjamanId(pengajuanId);
             notifikasi.setType(type != null ? type : "INFO");
             notifikasi.setChannel(channel != null ? channel : "IN_APP");
             notifikasi.setJudul(judul);

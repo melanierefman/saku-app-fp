@@ -222,11 +222,16 @@ public class SuperadminDashboardService {
                 })
                 .toList();
 
+        long totalValidCustomers = allCustomers.stream()
+                .filter(c -> c.getNik() != null && !c.getNik().equalsIgnoreCase("PENDING") &&
+                        c.getPassword() != null && !c.getPassword().equalsIgnoreCase("PENDING"))
+                .count();
+
         return SuperadminDashboardStatsResponse.builder()
                 .totalPengajuan(totalPengajuan)
                 .totalNominalDiajukan(totalNominalDiajukan)
                 .totalNominalDicairkan(totalNominalDicairkan)
-                .totalCustomer((long) allCustomers.size())
+                .totalCustomer(totalValidCustomers)
                 .totalCabang((long) allCabang.size())
                 .totalKaryawan((long) allKaryawan.size())
                 .approvalRateNasional(approvalRate)

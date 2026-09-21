@@ -20,6 +20,7 @@ import com.bcafinance.backend_saku.features.customer.dto.UpdateProfileRequest;
 import com.bcafinance.backend_saku.features.customer.dto.UpdateRekeningRequest;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,6 +45,8 @@ public class CustomerProfileService {
     private final com.bcafinance.backend_saku.features.scoring.service.ScoringService scoringService;
     private final CustomerPlafondService customerPlafondService;
     private final FileStorageService fileStorageService;
+    private final com.bcafinance.backend_saku.core.repository.NotifikasiRepository notifikasiRepository;
+    private final FcmPushService fcmPushService;
 
 
     @Transactional(readOnly = true)
@@ -413,6 +416,24 @@ public class CustomerProfileService {
         customer.setUpdatedDate(LocalDateTime.now());
         customerRepository.save(customer);
         log.info("FCM token updated successfully for customer id: {}", customerId);
+
+        if (fcmToken != null && !fcmToken.isBlank() && notifikasiRepository != null && fcmPushService != null) {
+            try {
+                List<com.bcafinance.backend_saku.core.entity.Notifikasi> unreadNotifs = notifikasiRepository.findAllByMstCustomerIdAndStatus(customerId, "BELUM_DIBACA");
+                for (com.bcafinance.backend_saku.core.entity.Notifikasi n : unreadNotifs) {
+                    if ("WELCOME".equalsIgnoreCase(n.getType())) {
+                        java.util.Map<String, String> data = new java.util.HashMap<>();
+                        data.put("type", "WELCOME");
+                        data.put("notifId", n.getId().toString());
+                        data.put("targetRoute", "home");
+                        fcmPushService.sendPush(fcmToken, n.getJudul(), n.getPesan(), data);
+                        log.info("🚀 Pushed welcome notification to customer {} on login/token sync", customerId);
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Failed to push pending welcome notification on FCM sync: {}", e.getMessage());
+            }
+        }
     }
 }
 

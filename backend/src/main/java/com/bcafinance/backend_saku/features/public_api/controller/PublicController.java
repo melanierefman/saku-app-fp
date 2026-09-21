@@ -2,7 +2,6 @@ package com.bcafinance.backend_saku.features.public_api.controller;
 
 import com.bcafinance.backend_saku.core.dto.ApiResponse;
 import com.bcafinance.backend_saku.features.public_api.dto.PublicPlafondResponse;
-
 import com.bcafinance.backend_saku.features.public_api.dto.SimulasiPinjamanResponse;
 import com.bcafinance.backend_saku.features.public_api.service.PublicService;
 import java.math.BigDecimal;

@@ -501,9 +501,9 @@ public class BranchManagerPersetujuanService {
                     pengajuan.getId(),
                     "APPROVAL_BM",
                     "IN_APP",
-                    "Pinjaman Disetujui Branch Manager",
+                    "Pengajuan Pinjaman Disetujui",
                     "Selamat! Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan()
-                            + " telah disetujui oleh Branch Manager dan sedang dalam proses pencairan dana.");
+                            + " telah disetujui dan sedang dalam proses persiapan pencairan dana.");
         } else {
             notifikasiService.createNotification(
                     pengajuan.getMstCustomerId(),
@@ -512,7 +512,7 @@ public class BranchManagerPersetujuanService {
                     "IN_APP",
                     "Pengajuan Pinjaman Ditolak",
                     "Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan()
-                            + " tidak disetujui oleh Branch Manager. Catatan: " + request.getCatatan());
+                            + " belum dapat disetujui. Catatan: " + request.getCatatan());
         }
 
         if (auditLogService != null && karyawanId != null) {

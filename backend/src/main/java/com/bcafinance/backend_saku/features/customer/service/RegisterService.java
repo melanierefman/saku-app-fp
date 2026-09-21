@@ -43,6 +43,33 @@ public class RegisterService {
     private final ScoringService scoringService;
     private final OtpService otpService;
     private final PasswordEncoder passwordEncoder;
+
+    public boolean checkNik(String nik, UUID customerId) {
+        if (nik == null || !nik.matches("^[0-9]{16}$")) {
+            throw new BussinessRuleException("NIK harus terdiri dari 16 digit angka");
+        }
+        boolean exists = (customerId != null)
+                ? customerRepository.existsByNikAndIdNot(nik, customerId)
+                : customerRepository.existsByNik(nik);
+        if (exists) {
+            throw new BussinessRuleException("NIK sudah terdaftar pada akun SAKU lain");
+        }
+        return true;
+    }
+
+    public boolean checkPhone(String phone, UUID customerId) {
+        String clean = phone != null ? phone.replace("+", "").trim() : "";
+        if (!clean.matches("^(08|628)[0-9]{8,12}$")) {
+            throw new BussinessRuleException("Nomor handphone tidak valid (wajib diawali 08)");
+        }
+        boolean exists = (customerId != null)
+                ? customerRepository.existsByNoHpAndIdNot(phone, customerId)
+                : customerRepository.existsByNoHp(phone);
+        if (exists) {
+            throw new BussinessRuleException("Nomor handphone sudah terdaftar pada akun SAKU lain");
+        }
+        return true;
+    }
     private final FileStorageService fileStorageService;
 
     // Alur Registrasi Baru (5-Step KYC & Email Only)
@@ -269,8 +296,24 @@ public class RegisterService {
     public RegisterStepResponse registerStep2(UUID customerId, RegisterStep2Request req) {
         Customer customer = getCustomerOrThrow(customerId);
 
-        if (customerRepository.existsByNikAndIdNot(req.nik(), customerId))
-            throw new BussinessRuleException("NIK sudah terdaftar");
+        if (req.nik() == null || !req.nik().matches("^[0-9]{16}$")) {
+            throw new BussinessRuleException("NIK harus terdiri dari 16 digit angka");
+        }
+        if (customerRepository.existsByNikAndIdNot(req.nik(), customerId)) {
+            throw new BussinessRuleException("NIK sudah terdaftar pada akun SAKU lain");
+        }
+        if (req.namaLengkap() == null || req.namaLengkap().trim().length() < 3) {
+            throw new BussinessRuleException("Nama lengkap minimal 3 karakter");
+        }
+        if (req.noRekening() == null || !req.noRekening().matches("^[0-9]{8,20}$")) {
+            throw new BussinessRuleException("Nomor rekening harus berupa 8-20 digit angka");
+        }
+        if (req.pendapatan() == null || req.pendapatan().compareTo(java.math.BigDecimal.valueOf(1000000)) < 0) {
+            throw new BussinessRuleException("Penghasilan bulanan minimal Rp 1.000.000");
+        }
+        if (req.totalCicilanLainnya() != null && req.totalCicilanLainnya().compareTo(req.pendapatan()) > 0) {
+            throw new BussinessRuleException("Total cicilan lain tidak boleh melebihi pendapatan bulanan");
+        }
 
         customer.setNik(req.nik());
         customer.setNama(req.namaLengkap());

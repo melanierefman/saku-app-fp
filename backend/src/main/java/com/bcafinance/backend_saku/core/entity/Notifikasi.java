@@ -58,7 +58,6 @@ public class Notifikasi {
     @Column(name = "mst_customer_id", nullable = false)
     private UUID mstCustomerId;
 
-    @NotNull
-    @Column(name = "trx_pengajuan_pinjaman_id", nullable = false)
+    @Column(name = "trx_pengajuan_pinjaman_id")
     private UUID trxPengajuanPinjamanId;
 }

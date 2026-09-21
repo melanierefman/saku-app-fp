@@ -219,11 +219,11 @@ public class ScoringService {
             ringkasanAnalisis = "Hasil scoring konsisten. Customer memenuhi seluruh kriteria kelayakan sistem.";
         }
 
-        String keputusanSistem = "TIDAK LAYAK (REJECTED)";
+        String keputusanSistem = "TIDAK LAYAK";
         if (skor >= 75) {
-            keputusanSistem = "LAYAK (APPROVED)";
+            keputusanSistem = "LAYAK";
         } else if (skor >= 60) {
-            keputusanSistem = "PERLU REVIEW (REVIEW)";
+            keputusanSistem = "PERLU REVIEW";
         }
 
         ScoringBreakdown breakdown = ScoringBreakdown.builder()

@@ -404,9 +404,9 @@ public class MarketingReviewService {
                     pengajuan.getId(),
                     "REVIEW_MARKETING",
                     "IN_APP",
-                    "Review Pinjaman Disetujui",
+                    "Verifikasi Dokumen Disetujui",
                     "Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan()
-                            + " telah disetujui pada tahap review Marketing dan diteruskan ke Branch Manager.");
+                            + " telah lolos verifikasi dokumen dan sedang menunggu persetujuan final pinjaman.");
         } else if ("DITOLAK".equals(hasilReview)) {
             notifikasiService.createNotification(
                     pengajuan.getMstCustomerId(),
@@ -415,14 +415,14 @@ public class MarketingReviewService {
                     "IN_APP",
                     "Pengajuan Pinjaman Ditolak",
                     "Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan()
-                            + " tidak disetujui pada tahap review Marketing. Catatan: " + request.getCatatan());
+                            + " belum dapat disetujui pada tahap verifikasi dokumen. Catatan: " + request.getCatatan());
         } else if ("PERLU_REVISI".equals(hasilReview)) {
             notifikasiService.createNotification(
                     pengajuan.getMstCustomerId(),
                     pengajuan.getId(),
                     "REVIEW_MARKETING",
                     "IN_APP",
-                    "Perlu Revisi Dokumen Pinjaman",
+                    "Perlu Perbaikan Dokumen Pinjaman",
                     "Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan()
                             + " memerlukan perbaikan dokumen. Catatan: " + request.getCatatan());
         }
