@@ -255,6 +255,18 @@ fun HomeScreen(
         }
     }
 
+    val handleAjukanClick: () -> Unit = {
+        if (inProgressLoans.isNotEmpty()) {
+            // Arahkan ke layar Simulasi Pinjaman agar nasabah tetap bisa mengecek estimasi cicilan
+            onNavigateToLoanSimulation()
+        } else if (availablePlafond >= 500_000.0) {
+            onNavigateToApplyLoan()
+        } else {
+            // Jika plafond belum mencukupi, arahkan juga ke simulasi pinjaman
+            onNavigateToLoanSimulation()
+        }
+    }
+
     val navItems =
         listOf(
             BottomNavItem(route = "home", title = "Beranda", icon = Lucide.House),
@@ -271,15 +283,7 @@ fun HomeScreen(
                 currentRoute = currentNavRoute,
                 onItemClick = { item ->
                     if (item.route == "apply") {
-                        if (availablePlafond >= 500_000.0) {
-                            onNavigateToApplyLoan()
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "Plafond Anda belum mencukupi untuk mengajukan pinjaman baru (Rp 0)",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
+                        handleAjukanClick()
                     } else {
                         viewModel.setNavRoute(item.route)
                     }
@@ -339,7 +343,7 @@ fun HomeScreen(
                         hasDisbursedLoan = hasDisbursedLoan,
                         currencyFormatter = currencyFormatter,
                         onToggleVisibility = viewModel::toggleBalanceVisibility,
-                        onAjukanClick = onNavigateToApplyLoan,
+                        onAjukanClick = handleAjukanClick,
                         onBayarClick = {
                             val active = activeLoans.firstOrNull()
                             if (active != null) {
@@ -368,7 +372,7 @@ fun HomeScreen(
                         totalPlafond = totalPlafond,
                         usedPlafond = usedPlafond,
                         currencyFormatter = currencyFormatter,
-                        onAjukanClick = onNavigateToApplyLoan,
+                        onAjukanClick = handleAjukanClick,
                         onSimulasiClick = onNavigateToLoanSimulation,
                         onPayClick = { loan ->
                             selectedLoanForPayment = loan
@@ -385,7 +389,7 @@ fun HomeScreen(
                         myLoans = myLoans,
                         customerProfile = customerProfile,
                         currencyFormatter = currencyFormatter,
-                        isAjukanEnabled = availablePlafond >= 500_000.0,
+                        isAjukanEnabled = availablePlafond >= 500_000.0 && inProgressLoans.isEmpty(),
                         onPayClick = { loan, angsuran ->
                             selectedLoanForPayment = loan
                             selectedAngsuranForPayment = angsuran
@@ -394,7 +398,7 @@ fun HomeScreen(
                         onDetailClick = { loan ->
                             loan.id?.let { onNavigateToLoanDetail(it) }
                         },
-                        onAjukanClick = onNavigateToApplyLoan,
+                        onAjukanClick = handleAjukanClick,
                         onRefresh = viewModel::fetchDashboardData,
                     )
                 }
@@ -404,8 +408,8 @@ fun HomeScreen(
                         selectedFilter = selectedHistoryFilter,
                         onFilterSelect = viewModel::setHistoryFilter,
                         currencyFormatter = currencyFormatter,
-                        isAjukanEnabled = availablePlafond >= 500_000.0,
-                        onAjukanClick = onNavigateToApplyLoan,
+                        isAjukanEnabled = availablePlafond >= 500_000.0 && inProgressLoans.isEmpty(),
+                        onAjukanClick = handleAjukanClick,
                         onDetailClick = { loan ->
                             loan.id?.let { onNavigateToLoanDetail(it) }
                         },
@@ -458,7 +462,7 @@ fun HomeScreen(
     // Credit Score Detail Dialog
     if (showCreditScoreDialog) {
         CreditScoreDetailDialog(
-            skorKredit = customerProfile?.skorKredit ?: 750,
+            skorKredit = customerProfile?.skorKredit ?: 81,
             tierName = customerProfile?.tierPlafond ?: "Tier Reguler",
             onDismiss = { showCreditScoreDialog = false },
             onPanduanUpgradeClick = {
@@ -865,7 +869,7 @@ private fun PlafondMeshHeroCard(
                     }
                 }
 
-                // Sub-limit dark container (Total Plafond, Plafond Terpakai / Sedang Proses, Bunga Mulai)
+                // Sub-limit dark container (Total Plafond, Plafond Terpakai, Bunga)
                 // DIHIDE KETIKA DI-SCROLL KE BAWAH (Persis OVO di Gambar 2)
                 AnimatedVisibility(
                     visible = !isScrolled,
@@ -880,7 +884,7 @@ private fun PlafondMeshHeroCard(
                                 .clip(RoundedCornerShape(12.dp))
                                 .background(Color.Black.copy(alpha = 0.35f))
                                 .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
-                            .padding(horizontal = 14.dp, vertical = 9.dp),
+                                .padding(horizontal = 14.dp, vertical = 9.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
@@ -895,14 +899,8 @@ private fun PlafondMeshHeroCard(
                                     .background(Color.White.copy(alpha = 0.22f))
                             )
 
-                            val usedLabel = when {
-                                hasInProcessLoan && !hasDisbursedLoan -> "Sedang Proses"
-                                hasInProcessLoan && hasDisbursedLoan -> "Terpakai & Proses"
-                                else -> "Plafond Terpakai"
-                            }
-
                             SubLimitMetricItem(
-                                label = usedLabel,
+                                label = "Plafond Terpakai",
                                 value = if (isBalanceVisible) "Rp ${currencyFormatter.format(usedPlafond)}" else "Rp ••••••"
                             )
 
@@ -917,9 +915,10 @@ private fun PlafondMeshHeroCard(
                                 label = "Bunga",
                                 value = if (sukuBunga != null && sukuBunga > 0) {
                                     val pct = if (sukuBunga <= 1.0) sukuBunga * 100 else sukuBunga
-                                    if (pct % 1.0 == 0.0) "${pct.toLong()}% / bln" else "$pct% / bln"
+                                    val formatted = if (pct % 1.0 == 0.0) "${pct.toLong()}%" else "${pct.toString().replace('.', ',')}%"
+                                    "$formatted / bln"
                                 } else {
-                                    "4% / bln"
+                                    "1,25% / bln"
                                 }
                             )
                         }
@@ -1935,11 +1934,37 @@ private fun formatNotificationTime(rawDate: String?): String {
 // Dialog: Credit Score Detail
 @Composable
 private fun CreditScoreDetailDialog(
-    skorKredit: Int = 750,
+    skorKredit: Int = 81,
     tierName: String = "Tier Reguler",
     onDismiss: () -> Unit,
     onPanduanUpgradeClick: () -> Unit
 ) {
+    val tierVariant = when {
+        tierName.contains("Platinum", ignoreCase = true) -> BadgeVariant.Primary
+        tierName.contains("Prioritas", ignoreCase = true) -> BadgeVariant.Success
+        tierName.contains("Reguler", ignoreCase = true) -> BadgeVariant.Warning
+        tierName.contains("Starter", ignoreCase = true) -> BadgeVariant.Neutral
+        else -> BadgeVariant.Neutral
+    }
+
+    val scoreBadgeText = when {
+        skorKredit >= 75 -> "Sangat Baik"
+        skorKredit >= 60 -> "Cukup Baik"
+        else -> "Perlu Peningkatan"
+    }
+
+    val scoreBadgeVariant = when {
+        skorKredit >= 75 -> BadgeVariant.Success
+        skorKredit >= 60 -> BadgeVariant.Warning
+        else -> BadgeVariant.Error
+    }
+
+    val scoreDesc = when {
+        skorKredit >= 75 -> "Kolektibilitas lancar. Anda memenuhi kualifikasi untuk proses pencairan instan."
+        skorKredit >= 60 -> "Kolektibilitas baik. Anda memenuhi syarat pinjaman dengan verifikasi berkas standar."
+        else -> "Tingkatkan skor Anda dengan melengkapi data profil dan pembayaran cicilan tepat waktu."
+    }
+
     Dialog(onDismissRequest = onDismiss) {
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -2014,19 +2039,19 @@ private fun CreditScoreDetailDialog(
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Badge(
-                            text = if (skorKredit >= 700) "Sangat Baik" else "Cukup Baik",
-                            variant = BadgeVariant.Success,
+                            text = scoreBadgeText,
+                            variant = scoreBadgeVariant,
                             size = BadgeSize.SM
                         )
                         Badge(
                             text = tierName,
-                            variant = BadgeVariant.Warning,
+                            variant = tierVariant,
                             size = BadgeSize.SM
                         )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Kolektibilitas lancar. Anda memenuhi kualifikasi untuk proses pencairan instan.",
+                        text = scoreDesc,
                         fontSize = 11.5.sp,
                         color = TextSecondary,
                         textAlign = TextAlign.Center,

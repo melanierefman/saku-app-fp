@@ -542,6 +542,11 @@ private fun Step1NominalTenorView(
     val tujuanOptions = listOf("Modal Usaha", "Renovasi Rumah", "Pendidikan", "Keperluan Medis", "Elektronik", "Lainnya")
 
     val totalBunga = (uiState.bungaBulanan * uiState.tenorBulan).toLong()
+    val formattedBunga = if (uiState.sukuBungaPersen % 1.0 == 0.0) {
+        "${uiState.sukuBungaPersen.toLong()}%"
+    } else {
+        "${uiState.sukuBungaPersen.toString().replace('.', ',')}%"
+    }
 
     var amountInputText by remember(uiState.jumlahPinjaman) {
         mutableStateOf(if (uiState.jumlahPinjaman > 0) currencyFormatter.format(uiState.jumlahPinjaman.toLong()) else "")
@@ -678,7 +683,7 @@ private fun Step1NominalTenorView(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Suku bunga ${String.format(Locale.US, "%.1f", uiState.sukuBungaPersen)}% per bulan",
+                            text = "Suku bunga $formattedBunga per bulan",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             color = Color.White.copy(alpha = 0.92f)
@@ -1103,7 +1108,7 @@ private fun Step1NominalTenorView(
                         )
 
                         BreakdownRow(
-                            label = "Total Estimasi Bunga:",
+                            label = "Total Estimasi Bunga ($formattedBunga/bln):",
                             value = "Rp ${currencyFormatter.format(totalBunga)}"
                         )
 
@@ -1353,11 +1358,17 @@ private fun Step3SummarySubmitView(
                         color = TextPrimary
                     )
 
+                    val formattedBunga = if (uiState.sukuBungaPersen % 1.0 == 0.0) {
+                        "${uiState.sukuBungaPersen.toLong()}%"
+                    } else {
+                        "${uiState.sukuBungaPersen.toString().replace('.', ',')}%"
+                    }
+
                     CostBreakdownRow(label = "Status", value = "Siap Diajukan", isBadge = true)
                     CostBreakdownRow(label = "Nominal Pinjaman", value = "Rp ${currencyFormatter.format(uiState.jumlahPinjaman)}")
                     CostBreakdownRow(label = "Tenor", value = "${uiState.tenorBulan} Bulan")
                     CostBreakdownRow(label = "Tujuan Penggunaan", value = uiState.effectiveTujuan)
-                    CostBreakdownRow(label = "Suku Bunga", value = "${uiState.sukuBungaPersen}% flat / bulan")
+                    CostBreakdownRow(label = "Suku Bunga", value = "$formattedBunga flat / bulan")
                     CostBreakdownRow(label = "Biaya Administrasi", value = "Rp ${currencyFormatter.format(uiState.biayaAdmin)}")
 
                     HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Border)

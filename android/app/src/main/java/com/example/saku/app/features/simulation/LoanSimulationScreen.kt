@@ -1,5 +1,6 @@
 package com.example.saku.app.features.simulation
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -97,10 +98,19 @@ fun LoanSimulationScreen(
     viewModel: HomeViewModel = koinViewModel()
 ) {
     val customerProfile by viewModel.customerProfile.collectAsState()
+    val myLoans by viewModel.myLoans.collectAsState()
     val simAmount by viewModel.simAmount.collectAsState()
     val simTenorMonths by viewModel.simTenorMonths.collectAsState()
     val simulasiResult by viewModel.simulasiResult.collectAsState()
+    val context = androidx.compose.ui.platform.LocalContext.current
     val currencyFormatter = remember { NumberFormat.getNumberInstance(Locale.forLanguageTag("id-ID")) }
+
+    val hasInProcessLoan = remember(myLoans) {
+        myLoans.any {
+            val s = (it.statusPengajuan ?: "").uppercase()
+            s !in listOf("DITOLAK", "PENGAJUAN_DITOLAK", "REJECTED", "DITOLAK_MARKETING", "DITOLAK_BM", "REJECT", "BATAL", "CANCELLED", "PAID", "LUNAS", "DICAIRKAN", "DISBURSED")
+        }
+    }
 
     val minPlafond = 500_000.0
     val maxPlafond = (customerProfile?.availablePlafond ?: customerProfile?.totalPlafond ?: 50_000_000.0)
@@ -115,10 +125,15 @@ fun LoanSimulationScreen(
     }
 
     val profileBunga = customerProfile?.sukuBunga
-    val defaultBunga = if (profileBunga != null && profileBunga > 0) profileBunga else (simulasiResult?.sukuBungaPersen ?: 5.0)
+    val defaultBunga = if (profileBunga != null && profileBunga > 0) profileBunga else (simulasiResult?.sukuBungaPersen ?: 1.25)
     val sukuBunga = if (defaultBunga <= 1.0 && defaultBunga > 0.0) defaultBunga * 100 else defaultBunga
+    val formattedBunga = if (sukuBunga % 1.0 == 0.0) {
+        "${sukuBunga.toLong()}%"
+    } else {
+        "${sukuBunga.toString().replace('.', ',')}%"
+    }
     val biayaAdmin = customerProfile?.biayaAdmin ?: (simulasiResult?.biayaAdmin ?: 250_000.0)
-    val isApplyEnabled = (customerProfile?.availablePlafond ?: 50_000_000.0) >= minPlafond
+    val isApplyEnabled = (customerProfile?.availablePlafond ?: 50_000_000.0) >= minPlafond && !hasInProcessLoan
 
     // Perhitungan Cicilan Bulanan, Total Bunga & Total Pengembalian (Konsisten & Presisi)
     val pokokBulanan = if (simTenorMonths > 0) simAmount / simTenorMonths else 0.0
@@ -189,10 +204,14 @@ fun LoanSimulationScreen(
                     letterSpacing = (-0.5).sp
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                val formattedBunga = if (sukuBunga % 1.0 == 0.0) {
+                    "${sukuBunga.toLong()}%"
+                } else {
+                    "${sukuBunga.toString().replace('.', ',')}%"
+                }
 
                 Text(
-                    text = "Suku bunga ${String.format(Locale.US, "%.1f", sukuBunga)}% per bulan",
+                    text = "Suku bunga $formattedBunga per bulan",
                     fontSize = 12.5.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color.White.copy(alpha = 0.92f)
@@ -461,7 +480,7 @@ fun LoanSimulationScreen(
                         )
 
                         BreakdownRow(
-                            label = "Total Estimasi Bunga:",
+                            label = "Total Estimasi Bunga ($formattedBunga/bln):",
                             value = "Rp ${currencyFormatter.format(totalBunga)}"
                         )
 
@@ -561,15 +580,31 @@ fun LoanSimulationScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // --- 4. APPLY NOW CTA BUTTON ---
+            val buttonText = when {
+                hasInProcessLoan -> "Sedang Ada Pengajuan Berjalan"
+                !isApplyEnabled -> "Plafond Belum Tersedia"
+                else -> "Ajukan Sekarang"
+            }
+
             Button(
-                text = if (isApplyEnabled) "Ajukan Sekarang" else "Plafond Belum Tersedia",
+                text = buttonText,
                 onClick = {
-                    if (isAgreedToTerms && isApplyEnabled) {
+                    if (hasInProcessLoan) {
+                        val inProg = myLoans.firstOrNull {
+                            val s = (it.statusPengajuan ?: "").uppercase()
+                            s !in listOf("DITOLAK", "PENGAJUAN_DITOLAK", "REJECTED", "DITOLAK_MARKETING", "DITOLAK_BM", "REJECT", "BATAL", "CANCELLED", "PAID", "LUNAS", "DICAIRKAN", "DISBURSED")
+                        }
+                        Toast.makeText(
+                            context,
+                            "Anda memiliki pengajuan (${inProg?.nomorPengajuan ?: "berjalan"}) yang sedang diproses review.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    } else if (isAgreedToTerms && isApplyEnabled) {
                         onNavigateToApplyLoan(simAmount, simTenorMonths)
                     }
                 },
-                enabled = isApplyEnabled && isAgreedToTerms,
-                variant = ButtonVariant.Primary,
+                enabled = isAgreedToTerms,
+                variant = if (hasInProcessLoan) ButtonVariant.Outline else ButtonVariant.Primary,
                 size = ButtonSize.LG,
                 fullWidth = true
             )

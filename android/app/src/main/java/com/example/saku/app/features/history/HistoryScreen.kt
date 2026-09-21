@@ -370,7 +370,8 @@ private fun HistoryLoanCard(
                 }
             }
 
-            if (!loan.catatanReview.isNullOrBlank()) {
+            val isRevisionStatus = loan.statusPengajuan?.uppercase() in listOf("PERLU_REVISI", "REVISI", "REVISI_DOKUMEN", "BUTUH_REVISI")
+            if (isRevisionStatus && !loan.catatanReview.isNullOrBlank()) {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = "Catatan: ${loan.catatanReview}",

@@ -36,24 +36,36 @@ class CustomerRepositoryImpl @Inject constructor(
             val response = customerApiService.getProfile()
             if (response.isSuccessful && response.body()?.data != null) {
                 val profileDto = response.body()!!.data!!
-                // Save to Room Database
-                customerDao.insertProfile(CustomerProfileEntity.fromDto(profileDto))
+                // Save to Room Database safely
+                try {
+                    customerDao.insertProfile(CustomerProfileEntity.fromDto(profileDto))
+                } catch (dbEx: Exception) {
+                    // ignore DB caching error so API response is not blocked
+                }
                 ApiResult.Success(profileDto, response.body()?.message)
             } else {
                 // Try offline cache from Room
-                val cached = customerDao.getProfile()
-                if (cached != null) {
-                    ApiResult.Success(cached.toDto(), "Menampilkan data tersimpan")
-                } else {
+                try {
+                    val cached = customerDao.getProfile()
+                    if (cached != null) {
+                        ApiResult.Success(cached.toDto(), "Menampilkan data tersimpan")
+                    } else {
+                        ApiResult.Error(ApiClient.parseError(response), response.code())
+                    }
+                } catch (dbEx: Exception) {
                     ApiResult.Error(ApiClient.parseError(response), response.code())
                 }
             }
         } catch (e: Exception) {
             // Offline fallback from Room Database
-            val cached = customerDao.getProfile()
-            if (cached != null) {
-                ApiResult.Success(cached.toDto(), "Offline mode - data profil lokal")
-            } else {
+            try {
+                val cached = customerDao.getProfile()
+                if (cached != null) {
+                    ApiResult.Success(cached.toDto(), "Offline mode - data profil lokal")
+                } else {
+                    ApiResult.Error(e.localizedMessage ?: "Gagal memuat profil nasabah")
+                }
+            } catch (dbEx: Exception) {
                 ApiResult.Error(e.localizedMessage ?: "Gagal memuat profil nasabah")
             }
         }

@@ -276,24 +276,6 @@ fun LoginScreen(
                 }
             )
 
-            // UI Sandbox Dev Launcher (Optional debug menu)
-            if (onNavigateToSandbox != null) {
-                Spacer(modifier = Modifier.height(32.dp))
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { onNavigateToSandbox() }
-                        .padding(horizontal = 8.dp, vertical = 6.dp)
-                ) {
-                    Text(
-                        text = "🛠️ Buka UI Component Sandbox",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = TextMuted
-                    )
-                }
-            }
-
             Spacer(modifier = Modifier.height(24.dp))
         }
     }

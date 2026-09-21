@@ -192,9 +192,11 @@ fun LoanDetailScreen(
                         )
                     }
 
-                    // 2. Review Note Alert (if any)
-                    loan.catatanReview?.takeIf { it.isNotBlank() }?.let { note ->
-                        item {
+                    // 2. Review Note Alert (only shown when loan needs revision)
+                    val isRevisionStatus = rawStatus.uppercase() in listOf("PERLU_REVISI", "REVISI", "REVISI_DOKUMEN", "BUTUH_REVISI")
+                    if (isRevisionStatus) {
+                        loan.catatanReview?.takeIf { it.isNotBlank() }?.let { note ->
+                            item {
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(16.dp),
@@ -236,6 +238,7 @@ fun LoanDetailScreen(
                                 }
                             }
                         }
+                    }
                     }
 
                     // 3. Loan Financial Specifications Card
@@ -283,8 +286,13 @@ fun LoanDetailScreen(
                                 DetailRow(label = "Tenor Pinjaman", value = "${loan.tenorBulan ?: 0} Bulan")
                                 val rawBunga = loan.bunga ?: 1.5
                                 val displayBunga = if (rawBunga <= 1.0 && rawBunga > 0.0) rawBunga * 100 else rawBunga
-                                DetailRow(label = "Suku Bunga", value = "$displayBunga% flat / bulan")
+                                val formattedBunga = if (displayBunga % 1.0 == 0.0) "${displayBunga.toLong()}%" else "${displayBunga.toString().replace('.', ',')}%"
+                                DetailRow(label = "Suku Bunga", value = "$formattedBunga flat / bulan")
                                 DetailRow(label = "Biaya Administrasi", value = "Rp ${currencyFormatter.format(loan.biayaAdmin ?: 0.0)}")
+                                val totalBungaVal = (loan.jumlahPinjaman ?: 0.0) * (displayBunga / 100.0) * (loan.tenorBulan ?: 0)
+                                DetailRow(label = "Total Estimasi Bunga ($formattedBunga)", value = "Rp ${currencyFormatter.format(totalBungaVal)}")
+                                val totalPengembalianVal = (loan.jumlahPinjaman ?: 0.0) + totalBungaVal + (loan.biayaAdmin ?: 0.0)
+                                DetailRow(label = "Total Pengembalian", value = "Rp ${currencyFormatter.format(totalPengembalianVal)}")
                                 DetailRow(label = "Tujuan Pinjaman", value = loan.tujuanPinjaman ?: "-")
                                 DetailRow(label = "Cabang Pengelola", value = loan.namaCabang ?: "PT SAKU Pusat")
 
