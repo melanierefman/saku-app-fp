@@ -433,12 +433,17 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
 
   getKeputusanSistemLabel(): string {
     const d = this.detail();
+    const raw = (d?.keputusanSistem || d?.statusScoring || '').toUpperCase();
     const skor = this.getSkor();
-    const status = (d?.statusScoring || '').toUpperCase();
-    if (d?.keputusanSistem) return d.keputusanSistem;
-    if (status === 'APPROVED' || skor >= 75) return 'LAYAK (APPROVED)';
-    if (status === 'REVIEW' || (skor >= 60 && skor < 75)) return 'PERLU REVIEW (REVIEW)';
-    return 'TIDAK LAYAK (REJECTED)';
+
+    if (raw.includes('LAYAK') && !raw.includes('TIDAK')) return 'Layak';
+    if (raw.includes('TIDAK') || raw.includes('REJECT')) return 'Tidak Layak';
+    if (raw.includes('REVIEW')) return 'Perlu Review';
+    if (raw.includes('APPROV') || raw.includes('SETUJU')) return 'Layak';
+
+    if (skor >= 75) return 'Layak';
+    if (skor >= 60) return 'Perlu Review';
+    return 'Tidak Layak';
   }
 
   getRingkasanAnalisis(): string {
@@ -600,10 +605,10 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
   getMarketingStatusLabel(status?: string | null): string {
     const s = (status || '').toUpperCase();
     if (s.includes('SETUJU') || s.includes('APPROV') || s.includes('SELESAI') || s.includes('LOLOS')) {
-      return 'Direkomendasikan (Disetujui)';
+      return 'Direkomendasikan';
     }
     if (s.includes('TOLAK') || s.includes('REJECT')) {
-      return 'Tidak Direkomendasikan (Ditolak)';
+      return 'Tidak Direkomendasikan';
     }
     if (s.includes('REVISI')) {
       return 'Perlu Revisi';
@@ -614,15 +619,15 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
   getMarketingStatusBadgeClass(status?: string | null): string {
     const s = (status || '').toUpperCase();
     if (s.includes('SETUJU') || s.includes('APPROV') || s.includes('SELESAI') || s.includes('LOLOS')) {
-      return 'bg-success-0 text-success-70 border border-success-20';
+      return 'bg-success-0 text-success-70';
     }
     if (s.includes('TOLAK') || s.includes('REJECT')) {
-      return 'bg-error-0 text-error-70 border border-error-20';
+      return 'bg-error-0 text-error-70';
     }
     if (s.includes('REVISI')) {
-      return 'bg-warning-0 text-warning-80 border border-warning-20';
+      return 'bg-warning-0 text-warning-80';
     }
-    return 'bg-neutral-10 text-neutral-70 border border-neutral-20';
+    return 'bg-neutral-0 text-neutral-50';
   }
 
   formatDateTime(dateStr?: string | null): string {

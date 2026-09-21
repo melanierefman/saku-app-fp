@@ -112,7 +112,7 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
   }
 
   readonly reviewStatusOptions: DropdownOption[] = [
-    { value: 'DISETUJUI', label: 'Disetujui (Lolos Review)' },
+    { value: 'DISETUJUI', label: 'Disetujui' },
     { value: 'PERLU_REVISI', label: 'Perlu Revisi Dokumen' },
     { value: 'DITOLAK', label: 'Tolak Pengajuan' },
   ];
@@ -496,12 +496,17 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
 
   getKeputusanSistemLabel(): string {
     const d = this.detail();
+    const raw = (d?.keputusanSistem || d?.statusScoring || '').toUpperCase();
     const skor = this.getSkor();
-    const status = (d?.statusScoring || '').toUpperCase();
-    if (d?.keputusanSistem) return d.keputusanSistem;
-    if (status === 'APPROVED' || skor >= 75) return 'LAYAK (APPROVED)';
-    if (status === 'REVIEW' || (skor >= 60 && skor < 75)) return 'PERLU REVIEW (REVIEW)';
-    return 'TIDAK LAYAK (REJECTED)';
+
+    if (raw.includes('LAYAK') && !raw.includes('TIDAK')) return 'Layak';
+    if (raw.includes('TIDAK') || raw.includes('REJECT')) return 'Tidak Layak';
+    if (raw.includes('REVIEW')) return 'Perlu Review';
+    if (raw.includes('APPROV') || raw.includes('SETUJU')) return 'Layak';
+
+    if (skor >= 75) return 'Layak';
+    if (skor >= 60) return 'Perlu Review';
+    return 'Tidak Layak';
   }
 
   isAmbigu(): boolean {
