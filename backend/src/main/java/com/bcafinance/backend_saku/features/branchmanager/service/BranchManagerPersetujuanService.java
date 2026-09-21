@@ -360,6 +360,8 @@ public class BranchManagerPersetujuanService {
                 .dbrPercentage(analysis != null ? analysis.getDbrPercentage() : null)
                 .plafonNama(analysis != null ? analysis.getMatchedPlafondNama() : null)
                 .plafonMaksimal(analysis != null ? analysis.getMatchedPlafondMaksimal() : null)
+                .estimasiPlafondDisetujui(analysis != null ? analysis.getEstimasiPlafondDisetujui() : null)
+                .totalPlafond(analysis != null ? analysis.getEstimasiPlafondDisetujui() : null)
                 .notesAmbigu(analysis != null ? analysis.getIndikatorAmbigu() : List.of())
                 .ringkasanScoring(analysis != null ? analysis.getRingkasanAnalisis() : null)
                 .isAmbigu(analysis != null ? analysis.getIsAmbigu() : false)

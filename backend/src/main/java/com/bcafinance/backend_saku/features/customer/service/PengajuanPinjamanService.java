@@ -31,6 +31,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -63,6 +64,8 @@ public class PengajuanPinjamanService {
 
         ScoringCustomer scoring = scoringRepository.findFirstByMstCustomerIdOrderByCreatedDateDesc(customerId)
                 .orElseThrow(() -> new BussinessRuleException("Data scoring customer belum tersedia"));
+
+        validateNoActiveInProgressApplication(customerId);
 
         Plafond plafond = resolvePlafond(scoring);
 
@@ -286,6 +289,31 @@ public class PengajuanPinjamanService {
             throw new BussinessRuleException(
                     "Jumlah pinjaman (Rp " + CustomerPlafondService.formatRupiah(jumlahPinjaman)
                             + ") melebihi sisa plafon yang tersedia (Rp " + CustomerPlafondService.formatRupiah(availableLimit) + ")");
+        }
+    }
+
+    private void validateNoActiveInProgressApplication(UUID customerId) {
+        Set<String> terminalStatuses = Set.of(
+                "DICAIRKAN", "DISBURSED",
+                "LUNAS", "PAID",
+                "PENGAJUAN_DITOLAK", "DITOLAK", "REJECTED", "DITOLAK_MARKETING", "DITOLAK_BM",
+                "BATAL", "CANCELLED"
+        );
+
+        Optional<PengajuanPinjaman> inProgressLoan = pengajuanRepository
+                .findAllByMstCustomerIdOrderByCreatedDateDesc(customerId)
+                .stream()
+                .filter(p -> {
+                    String status = p.getStatusPengajuan() != null ? p.getStatusPengajuan().toUpperCase() : "";
+                    return !terminalStatuses.contains(status);
+                })
+                .findFirst();
+
+        if (inProgressLoan.isPresent()) {
+            PengajuanPinjaman p = inProgressLoan.get();
+            throw new BussinessRuleException(
+                    "Anda memiliki pengajuan pinjaman (" + p.getNomorPengajuan()
+                            + ") yang sedang dalam proses review. Silakan selesaikan pengajuan tersebut atau pantau statusnya di menu Riwayat.");
         }
     }
 

@@ -8,6 +8,7 @@ import com.bcafinance.backend_saku.core.repository.AngsuranRepository;
 import com.bcafinance.backend_saku.core.repository.PengajuanPinjamanRepository;
 import com.bcafinance.backend_saku.core.repository.PlafondRepository;
 import com.bcafinance.backend_saku.core.repository.ScoringCustomerRepository;
+import com.bcafinance.backend_saku.features.scoring.service.PlafondCalculator;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
@@ -151,21 +152,14 @@ public class CustomerPlafondService {
         }
 
         int skor = scoring.getSkor() != null ? scoring.getSkor() : 0;
-        int percentage = skor >= 75 ? 100 : (skor >= 60 ? 70 : 50);
+        BigDecimal pendapatan = scoring.getPenghasilanBulanan() != null ? scoring.getPenghasilanBulanan() : BigDecimal.ZERO;
+        BigDecimal cicilan = scoring.getTotalCicilanLainBulanan() != null ? scoring.getTotalCicilanLainBulanan() : BigDecimal.ZERO;
+        int tenure = scoring.getLamaBekerjaBulan() != null ? scoring.getLamaBekerjaBulan() : 0;
 
-        if (plafond.getPlafondMaksimal() != null) {
-            return plafond.getPlafondMaksimal()
-                    .multiply(BigDecimal.valueOf(percentage).movePointLeft(2))
-                    .setScale(2, RoundingMode.HALF_UP);
-        } else if (plafond.getMaxPlafond() != null) {
-            return plafond.getMaxPlafond()
-                    .multiply(BigDecimal.valueOf(percentage).movePointLeft(2))
-                    .setScale(2, RoundingMode.HALF_UP);
-        } else if (plafond.getMinPlafond() != null) {
-            return plafond.getMinPlafond();
-        }
+        PlafondCalculator.PersonalizedPlafondResult result = PlafondCalculator.calculate(
+                plafond, skor, pendapatan, cicilan, tenure);
 
-        return BigDecimal.valueOf(50_000_000);
+        return result.finalApprovedPlafond();
     }
 
     /**

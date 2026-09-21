@@ -5,7 +5,10 @@ import com.bcafinance.backend_saku.features.scoring.dto.ScoringBreakdown;
 import com.bcafinance.backend_saku.core.entity.Plafond;
 import com.bcafinance.backend_saku.core.entity.ScoringCustomer;
 import com.bcafinance.backend_saku.core.repository.PlafondRepository;
+import com.bcafinance.backend_saku.core.repository.ScoringCustomerRepository;
 import com.bcafinance.backend_saku.features.customer.service.CustomerPlafondService;
+import jakarta.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
@@ -23,6 +26,7 @@ public class ScoringService {
 
     private final PlafondRepository plafondRepository;
     private final CustomerPlafondService customerPlafondService;
+    private final ScoringCustomerRepository scoringCustomerRepository;
 
     public ScoringResult calculateScore(
             BigDecimal totalCicilanLainnya,
@@ -37,6 +41,41 @@ public class ScoringService {
                 + (scoreStatusPekerjaan(statusPekerjaan) * 0.15);
 
         return new ScoringResult(skorAkhir, mapSkorToKeputusan(skorAkhir));
+    }
+
+    public record ScoringSyncSummary(
+            int totalProcessed,
+            int totalUpdated,
+            String message
+    ) {}
+
+    @Transactional
+    public ScoringSyncSummary recalculateAllScoring() {
+        List<ScoringCustomer> allScoring = scoringCustomerRepository.findAll();
+        int updated = 0;
+        for (ScoringCustomer scoring : allScoring) {
+            BigDecimal pendapatan = scoring.getPenghasilanBulanan() != null ? scoring.getPenghasilanBulanan() : BigDecimal.ZERO;
+            BigDecimal totalCicilan = scoring.getTotalCicilanLainBulanan() != null ? scoring.getTotalCicilanLainBulanan() : BigDecimal.ZERO;
+            int lamaKerja = scoring.getLamaBekerjaBulan() != null ? scoring.getLamaBekerjaBulan() : 0;
+            String statusKerja = scoring.getStatusPekerjaan();
+
+            ScoringResult result = calculateScore(totalCicilan, pendapatan, lamaKerja, statusKerja);
+            int newScore = (int) Math.round(result.score());
+
+            scoring.setSkor(newScore);
+            scoring.setStatusScoring(result.decision());
+
+            if (customerPlafondService != null) {
+                Plafond matchedPlafond = customerPlafondService.resolveCustomerPlafond(scoring);
+                if (matchedPlafond != null) {
+                    scoring.setMstPlafondId(matchedPlafond.getId());
+                }
+            }
+            scoring.setUpdatedDate(LocalDateTime.now());
+            scoringCustomerRepository.save(scoring);
+            updated++;
+        }
+        return new ScoringSyncSummary(allScoring.size(), updated, "Berhasil menyinkronkan " + updated + " data scoring customer.");
     }
 
     public ScoringAnalysisResponse analyzeScoring(ScoringCustomer scoring) {
@@ -93,131 +132,27 @@ public class ScoringService {
             matchedPlafondId = p.getId();
             matchedPlafondNama = p.getNama();
             matchedMinPendapatan = p.getMinPendapatan();
-            matchedPlafondMaksimal = p.getPlafondMaksimal();
+            matchedPlafondMaksimal = p.getMaxPlafond() != null ? p.getMaxPlafond() : p.getPlafondMaksimal();
 
-            int percentage = skor >= 75 ? 100 : (skor >= 60 ? 70 : 50);
-            if (matchedPlafondMaksimal != null) {
-                estimasiPlafondDisetujui = matchedPlafondMaksimal
-                        .multiply(BigDecimal.valueOf(percentage).movePointLeft(2))
-                        .setScale(2, RoundingMode.HALF_UP);
-            } else if (p.getMinPlafond() != null) {
-                estimasiPlafondDisetujui = p.getMinPlafond();
-            }
+            PlafondCalculator.PersonalizedPlafondResult res = PlafondCalculator.calculate(
+                    p, skor, pendapatan, totalCicilan,
+                    scoring.getLamaBekerjaBulan() != null ? scoring.getLamaBekerjaBulan() : 0);
+            estimasiPlafondDisetujui = res.finalApprovedPlafond();
         }
 
 
-        // 3. Deteksi Kondisi Ambigu / Anomali Scoring (untuk Marketing & BM)
+        // 3. Rekomendasi & Ringkasan Penilaian Sistem
         List<String> indikatorAmbigu = new ArrayList<>();
         boolean isAmbigu = false;
 
         String rekomendasiAksi = "PERTAHANKAN_TIER";
         UUID rekomendasiTierId = matchedPlafondId;
         String rekomendasiTierNama = matchedPlafondNama;
-        BigDecimal rekomendasiBunga = matchedPlafondOpt.map(Plafond::getBunga).orElse(BigDecimal.valueOf(5.0));
+        BigDecimal rekomendasiBunga = matchedPlafondOpt.map(Plafond::getBunga).orElse(BigDecimal.valueOf(1.25));
         BigDecimal rekomendasiBiayaAdmin = matchedPlafondOpt.map(Plafond::getBiayaAdmin).orElse(BigDecimal.valueOf(250_000));
-        String rekomendasiAlasan = "Data keuangan dan skor kredit konsisten.";
+        String rekomendasiAlasan = "Data keuangan dan skor kredit telah dianalisis secara deterministik dengan Safe Capacity Cap.";
 
-        // a. Cek apakah ada Plafond yang tier skornya cocok dengan skor customer tetapi pendapatannya di bawah syarat
-        Optional<Plafond> tierBySkorOpt = activePlafonds.stream()
-                .filter(p -> p.getMinSkor() != null && p.getMaxSkor() != null &&
-                        skor >= p.getMinSkor() && skor <= p.getMaxSkor())
-                .findFirst();
-
-        Plafond tierByIncome = matchedPlafondOpt.orElse(null);
-
-        if (tierBySkorOpt.isPresent()) {
-            Plafond pTier = tierBySkorOpt.get();
-            if (pTier.getMinPendapatan() != null && pendapatan.compareTo(pTier.getMinPendapatan()) < 0) {
-                isAmbigu = true;
-                BigDecimal minPendapatanTier = pTier.getMinPendapatan();
-                BigDecimal threshold80 = minPendapatanTier.multiply(BigDecimal.valueOf(0.80));
-
-                Plafond targetTier = tierByIncome != null ? tierByIncome : pTier;
-                rekomendasiTierId = targetTier.getId();
-                rekomendasiTierNama = targetTier.getNama();
-                rekomendasiBunga = targetTier.getBunga();
-                rekomendasiBiayaAdmin = targetTier.getBiayaAdmin();
-
-                if (pendapatan.compareTo(threshold80) < 0) {
-                    // Kasus < 80%: Gap besar -> Sistem tetapkan tier sesuai pendapatan, beritahu BM
-                    rekomendasiAksi = "SARAN_PENURUNAN_TIER";
-                    rekomendasiAlasan = String.format(
-                            "Skor kredit (%d) masuk range %s, namun sistem menetapkan %s karena pendapatan riil (Rp %s) di bawah 80%% syarat minimum %s (Rp %s).",
-                            skor, pTier.getNama(), targetTier.getNama(), formatRupiah(pendapatan), pTier.getNama(), formatRupiah(minPendapatanTier));
-
-                    indikatorAmbigu.add(String.format(
-                            "Skor kredit (%d) masuk range %s, namun sistem menetapkan %s karena pendapatan riil (Rp %s) di bawah 80%% syarat minimum %s (Rp %s).",
-                            skor, pTier.getNama(), targetTier.getNama(), formatRupiah(pendapatan), pTier.getNama(), formatRupiah(minPendapatanTier)));
-                } else {
-                    // Kasus 80% - 99%: Masih dalam zona toleransi -> BM dapat mempertahankan tier jika DBR terbukti sehat
-                    rekomendasiAksi = "PERTAHANKAN_TIER";
-                    rekomendasiAlasan = String.format(
-                            "Pendapatan riil (Rp %s) mendekati batas syarat %s (Rp %s, toleransi >= 80%%). BM dapat mempertahankan tier jika DBR terbukti sehat (< 30%%).",
-                            formatRupiah(pendapatan), pTier.getNama(), formatRupiah(minPendapatanTier));
-
-                    indikatorAmbigu.add(String.format(
-                            "Pendapatan bulanan (Rp %s) sedikit di bawah syarat %s (Rp %s), namun masih dalam batas toleransi (>= 80%%). Pertimbangkan DBR dan stabilitas kerja nasabah.",
-                            formatRupiah(pendapatan), pTier.getNama(), formatRupiah(minPendapatanTier)));
-                }
-            } else {
-                // Pendapatan memenuhi syarat tier skor
-                rekomendasiTierId = pTier.getId();
-                rekomendasiTierNama = pTier.getNama();
-                rekomendasiBunga = pTier.getBunga();
-                rekomendasiBiayaAdmin = pTier.getBiayaAdmin();
-            }
-        }
-
-        // b. Cek apakah customer tidak memenuhi plafond manapun berdasarkan pendapatan
-        if (matchedPlafondOpt.isEmpty() && !activePlafonds.isEmpty()) {
-            isAmbigu = true;
-            indikatorAmbigu.add(String.format(
-                    "Pendapatan bulanan (Rp %s) belum memenuhi batas minimum pendapatan dari seluruh produk plafond aktif.",
-                    formatRupiah(pendapatan)));
-        } else if (matchedPlafondOpt.isPresent() && tierBySkorOpt.isEmpty()) {
-            Plafond p = matchedPlafondOpt.get();
-            if (p.getMinSkor() != null && skor < p.getMinSkor()) {
-                isAmbigu = true;
-                indikatorAmbigu.add(String.format(
-                        "Pendapatan memenuhi syarat tier %s, namun skor kredit (%d) berada di bawah standar minimum skor tier ini (%d).",
-                        p.getNama(), skor, p.getMinSkor()));
-            }
-        }
-
-        // c. Cek DBR tinggi (di atas 40%)
-        if (dbr.compareTo(BigDecimal.valueOf(0.40)) > 0) {
-            isAmbigu = true;
-            if (dbr.compareTo(BigDecimal.valueOf(0.50)) > 0 && "PERTAHANKAN_TIER".equals(rekomendasiAksi)) {
-                rekomendasiAksi = "SARAN_PENURUNAN_TIER";
-                rekomendasiAlasan = "Rasio beban cicilan (DBR) sangat tinggi (> 50%). Disarankan mitigasi risiko dengan penyesuaian tier atau pembatasan plafon.";
-            }
-            indikatorAmbigu.add(String.format(
-                    "Debt Burden Ratio (DBR) tergolong tinggi yaitu %.1f%% (cicilan bulanan Rp %s dari pendapatan Rp %s).",
-                    dbrPercentage, formatRupiah(totalCicilan), formatRupiah(pendapatan)));
-        }
-
-        // d. Cek status scoring REVIEW (zona abu-abu skor 60 - 74)
-        if ("REVIEW".equalsIgnoreCase(statusScoring) || (skor >= 60 && skor < 75)) {
-            isAmbigu = true;
-            indikatorAmbigu.add(String.format(
-                    "Skor kredit (%d) berada dalam kategori REVIEW (60 - 74), membutuhkan verifikasi manual oleh Marketing/BM.",
-                    skor));
-        }
-
-        // e. Cek masa kerja & status pekerjaan
-        if (scoring.getLamaBekerjaBulan() != null && scoring.getLamaBekerjaBulan() < 12) {
-            isAmbigu = true;
-            indikatorAmbigu.add(String.format(
-                    "Masa kerja baru berjalan %d bulan (< 1 tahun), memiliki potensi risiko stabilitas penghasilan.",
-                    scoring.getLamaBekerjaBulan()));
-        }
-
-        String ringkasanAnalisis;
-        if (isAmbigu) {
-            ringkasanAnalisis = "Sistem mendeteksi adanya faktor anomali/ambigu antara skor kredit, pendapatan riil, atau rasio cicilan. Disarankan BM meninjau rekomendasi tindakan sistem.";
-        } else {
-            ringkasanAnalisis = "Hasil scoring konsisten. Customer memenuhi seluruh kriteria kelayakan sistem.";
-        }
+        String ringkasanAnalisis = "Hasil scoring konsisten dan deterministik. Plafon dihitung secara personalisasi proporsional.";
 
         String keputusanSistem = "TIDAK LAYAK";
         if (skor >= 75) {
@@ -336,6 +271,15 @@ public class ScoringService {
 
 
 
+
+    public PlafondCalculator.PersonalizedPlafondResult calculatePersonalizedPlafond(
+            Plafond plafond,
+            int skor,
+            BigDecimal pendapatan,
+            BigDecimal totalCicilanLain,
+            Integer lamaBekerjaBulan) {
+        return PlafondCalculator.calculate(plafond, skor, pendapatan, totalCicilanLain, lamaBekerjaBulan);
+    }
 
     private String mapSkorToKeputusan(double skor) {
         if (skor >= 75)

@@ -315,6 +315,7 @@ public class MarketingReviewService {
                 .plafonNama(analysis != null ? analysis.getMatchedPlafondNama() : null)
                 .plafonMaksimal(analysis != null ? analysis.getMatchedPlafondMaksimal() : null)
                 .estimasiPlafondDisetujui(analysis != null ? analysis.getEstimasiPlafondDisetujui() : null)
+                .totalPlafond(analysis != null ? analysis.getEstimasiPlafondDisetujui() : null)
                 .isAmbigu(analysis != null ? analysis.getIsAmbigu() : false)
                 .notesAmbigu(analysis != null ? analysis.getIndikatorAmbigu() : List.of())
                 .ringkasanAnalisis(analysis != null ? analysis.getRingkasanAnalisis() : null)
