@@ -153,17 +153,66 @@ jobs:
             # Ensure uploads directory exists for persistent storage
             mkdir -p uploads
 
-            # Sync Nginx configuration if provided
+            # Sync Nginx configuration & Auto-SSL for saku.morpkhai.web.id
             if [ -f nginx/saku.conf ]; then
-              echo ">>> Syncing Nginx configuration for saku.morpkhai.web.id..."
-              sudo mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled /etc/nginx/conf.d || true
-              sudo cp nginx/saku.conf /etc/nginx/sites-available/saku 2>/dev/null || sudo cp nginx/saku.conf /etc/nginx/conf.d/saku.conf 2>/dev/null || true
-              sudo ln -sf /etc/nginx/sites-available/saku /etc/nginx/sites-enabled/ 2>/dev/null || true
-              if sudo nginx -t 2>/dev/null; then
-                echo ">>> Reloading Nginx..."
-                sudo systemctl reload nginx 2>/dev/null || sudo service nginx reload 2>/dev/null || true
+              echo ">>> Configuring Nginx & Auto-SSL for saku.morpkhai.web.id..."
+              sudo mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled /etc/nginx/conf.d /var/www/certbot || true
+
+              # Ensure certbot is installed
+              if ! command -v certbot >/dev/null 2>&1; then
+                echo ">>> Installing certbot..."
+                sudo apt-get update && sudo apt-get install -y certbot || true
+              fi
+
+              # 1. If SSL cert does not exist yet, bootstrap HTTP port 80 first
+              if [ ! -f /etc/letsencrypt/live/saku.morpkhai.web.id/fullchain.pem ]; then
+                echo ">>> SSL cert not found. Bootstrapping HTTP port 80..."
+                sudo tee /etc/nginx/sites-available/saku > /dev/null << 'EOF'
+server {
+    listen 80;
+    listen [::]:80;
+    server_name saku.morpkhai.web.id;
+    client_max_body_size 25M;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+        default_type text/plain;
+        try_files $uri =404;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+EOF
+                sudo ln -sf /etc/nginx/sites-available/saku /etc/nginx/sites-enabled/ 2>/dev/null || true
+                sudo cp /etc/nginx/sites-available/saku /etc/nginx/conf.d/saku.conf 2>/dev/null || true
+                if sudo nginx -t; then
+                  sudo systemctl reload nginx 2>/dev/null || sudo service nginx reload 2>/dev/null || sudo systemctl restart nginx 2>/dev/null || true
+                  echo ">>> Bootstrap HTTP port 80 active."
+                fi
+
+                echo ">>> Requesting Let's Encrypt SSL certificate via Certbot..."
+                sudo certbot certonly --webroot -w /var/www/certbot -d saku.morpkhai.web.id --non-interactive --agree-tos --register-unsafely-without-email || true
+              fi
+
+              # 2. If SSL cert now exists, apply full HTTPS configuration
+              if [ -f /etc/letsencrypt/live/saku.morpkhai.web.id/fullchain.pem ]; then
+                echo ">>> Applying full HTTPS Nginx configuration..."
+                sudo cp nginx/saku.conf /etc/nginx/sites-available/saku
+                sudo cp nginx/saku.conf /etc/nginx/conf.d/saku.conf 2>/dev/null || true
+                sudo ln -sf /etc/nginx/sites-available/saku /etc/nginx/sites-enabled/ 2>/dev/null || true
+                if sudo nginx -t; then
+                  sudo systemctl reload nginx 2>/dev/null || sudo service nginx reload 2>/dev/null || sudo systemctl restart nginx 2>/dev/null || true
+                  echo ">>> Nginx HTTPS successfully reloaded!"
+                fi
               else
-                echo ">>> NOTICE: Nginx syntax check pending (SSL certificate may need generation on server)."
+                echo ">>> WARNING: SSL certificate generation pending. Bootstrap HTTP configuration remains active."
               fi
             fi
 
