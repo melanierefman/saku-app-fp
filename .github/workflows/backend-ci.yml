@@ -158,11 +158,16 @@ jobs:
               echo ">>> Configuring Nginx & Auto-SSL for saku.morpkhai.web.id..."
               sudo mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled /etc/nginx/conf.d /var/www/certbot || true
 
-              # Ensure certbot is installed
-              if ! command -v certbot >/dev/null 2>&1; then
-                echo ">>> Installing certbot..."
-                sudo apt-get update && sudo apt-get install -y certbot || true
+              # Ensure nginx and certbot are installed on server
+              if ! command -v nginx >/dev/null 2>&1 || ! command -v certbot >/dev/null 2>&1; then
+                echo ">>> Installing nginx and certbot..."
+                sudo apt-get update && sudo apt-get install -y nginx certbot || true
+                sudo systemctl enable nginx || true
+                sudo systemctl start nginx || true
               fi
+
+              # Remove default Nginx site to avoid port 80 conflicts
+              sudo rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
 
               # 1. If SSL cert does not exist yet, bootstrap HTTP port 80 first
               if [ ! -f /etc/letsencrypt/live/saku.morpkhai.web.id/fullchain.pem ]; then
@@ -172,7 +177,7 @@ jobs:
                   sudo cp nginx/saku-bootstrap.conf /etc/nginx/conf.d/saku.conf 2>/dev/null || true
                   sudo ln -sf /etc/nginx/sites-available/saku /etc/nginx/sites-enabled/ 2>/dev/null || true
                   if sudo nginx -t; then
-                    sudo systemctl reload nginx 2>/dev/null || sudo service nginx reload 2>/dev/null || sudo systemctl restart nginx 2>/dev/null || true
+                    sudo systemctl restart nginx 2>/dev/null || sudo service nginx restart 2>/dev/null || true
                     echo ">>> Bootstrap HTTP port 80 active."
                   fi
                 fi
