@@ -69,6 +69,8 @@ public class BranchManagerPengajuanDetailResponse {
     private Double dbrPercentage;
     private String plafonNama;
     private BigDecimal plafonMaksimal;
+    private BigDecimal estimasiPlafondDisetujui;
+    private BigDecimal totalPlafond;
     private List<String> notesAmbigu;
     private String ringkasanScoring;
     private Boolean isAmbigu;

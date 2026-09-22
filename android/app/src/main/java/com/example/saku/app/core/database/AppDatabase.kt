@@ -17,7 +17,7 @@ import com.example.saku.app.core.database.entity.NotificationEntity
         LoanApplicationEntity::class,
         NotificationEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

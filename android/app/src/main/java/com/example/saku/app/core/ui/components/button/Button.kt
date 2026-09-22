@@ -1,14 +1,10 @@
 package com.example.saku.app.core.ui.components
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -19,7 +15,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -29,30 +24,18 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.composables.icons.lucide.Lucide
 import com.example.saku.app.ui.theme.Border
 import com.example.saku.app.ui.theme.Error
-import com.example.saku.app.ui.theme.Error60
-import com.example.saku.app.ui.theme.Error70
-import com.example.saku.app.ui.theme.Neutral0
 import com.example.saku.app.ui.theme.Neutral10
 import com.example.saku.app.ui.theme.Neutral20
 import com.example.saku.app.ui.theme.Neutral40
 import com.example.saku.app.ui.theme.Neutral50
-import com.example.saku.app.ui.theme.Neutral60
-import com.example.saku.app.ui.theme.Neutral70
 import com.example.saku.app.ui.theme.Primary
 import com.example.saku.app.ui.theme.Primary0
-import com.example.saku.app.ui.theme.Primary10
 import com.example.saku.app.ui.theme.Primary20
 import com.example.saku.app.ui.theme.Primary60
-import com.example.saku.app.ui.theme.Primary70
 import com.example.saku.app.ui.theme.Success
-import com.example.saku.app.ui.theme.Success60
-import com.example.saku.app.ui.theme.Success70
 import com.example.saku.app.ui.theme.Warning
-import com.example.saku.app.ui.theme.Warning60
-import com.example.saku.app.ui.theme.Warning70
 
 enum class ButtonVariant {
     Primary,

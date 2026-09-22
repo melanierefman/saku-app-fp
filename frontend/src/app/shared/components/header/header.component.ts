@@ -2,8 +2,6 @@ import { Component, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import {
-  LucideBell,
-  LucideCircleHelp,
   LucideChevronDown,
   LucideUserRound,
   LucideLogOut,
@@ -20,8 +18,6 @@ import { ModalComponent } from '../modal/modal.component';
     CommonModule,
     RouterLink,
     ModalComponent,
-    LucideBell,
-    LucideCircleHelp,
     LucideChevronDown,
     LucideUserRound,
     LucideLogOut,

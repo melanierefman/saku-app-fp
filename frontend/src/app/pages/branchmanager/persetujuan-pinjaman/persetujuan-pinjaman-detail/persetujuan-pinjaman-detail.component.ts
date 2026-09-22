@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   signal,
   inject,
   ChangeDetectorRef,
@@ -10,6 +11,7 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import {
   DropdownComponent,
   DropdownOption,
@@ -24,6 +26,7 @@ import {
   DokumenPinjamanItem,
   ReviewMarketingHistoryItem,
   PersetujuanHistoryItem,
+  RealTimeService,
 } from '../../../../core';
 import {
   LucideFileText,
@@ -75,13 +78,15 @@ import { formatDate as formatDateHelper } from '../../../../shared/utils/date.ut
   templateUrl: './persetujuan-pinjaman-detail.component.html',
   styleUrl: './persetujuan-pinjaman-detail.component.css',
 })
-export class PersetujuanPinjamanDetailComponent implements OnInit {
+export class PersetujuanPinjamanDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private bmService = inject(BranchManagerApprovalService);
+  private realtimeService = inject(RealTimeService);
   private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
   private platformId = inject(PLATFORM_ID);
+  private destroy$ = new Subject<void>();
 
   goBack(): void {
     this.router.navigate(['/persetujuan-pinjaman']);
@@ -94,6 +99,7 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
   isConfirmModalOpen = signal<boolean>(false);
   pengajuanId = signal<string>('');
   photoError = signal<boolean>(false);
+  cacheBuster = signal<number>(Date.now());
 
   // Form Signals
   selectedKeputusan = signal<string>('');
@@ -160,12 +166,44 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
     return this.presetReasons[k] || [];
   }
 
+  private lastActionTimestamp = 0;
+
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       const id = this.route.snapshot.paramMap.get('id');
       if (id) {
         this.pengajuanId.set(id);
         this.loadDetail(id);
+
+        this.realtimeService.events$
+          .pipe(takeUntil(this.destroy$))
+          .subscribe((event) => {
+            // Abaikan event yang dipancarkan oleh hasil keputusan BM sendiri atau dalam masa cooldown
+            if (event.eventType === 'LOAN_READY_FOR_DISBURSEMENT' || event.eventType === 'LOAN_REJECTED_BY_BM') {
+              return;
+            }
+            if (Date.now() - this.lastActionTimestamp < 3500) {
+              return;
+            }
+
+            const loanId = (this.pengajuanId() || '').toLowerCase();
+            const refId = (event.referenceId || '').toLowerCase();
+            const noPengajuan = (this.detail()?.nomorPengajuan || '').toLowerCase();
+            const evtNoPengajuan = (event.nomorPengajuan || '').toLowerCase();
+
+            const isMatch =
+              (!!refId && refId === loanId) ||
+              (!!evtNoPengajuan && !!noPengajuan && evtNoPengajuan === noPengajuan);
+
+            if (isMatch) {
+              this.toastService.info(
+                event.message || 'Terdapat pembaruan data untuk pengajuan ini. Data diperbarui otomatis.'
+              );
+              this.photoError.set(false);
+              this.cacheBuster.set(Date.now());
+              this.loadDetail(this.pengajuanId());
+            }
+          });
       } else {
         this.toastService.error('ID Pengajuan Pinjaman tidak valid');
         this.router.navigate(['/persetujuan-pinjaman']);
@@ -173,8 +211,16 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
     }
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadDetail(id: string): void {
     this.isLoading.set(true);
+    this.photoError.set(false);
+    this.cacheBuster.set(Date.now());
+
     this.bmService.getDetail(id).subscribe({
       next: (res) => {
         this.detail.set(res);
@@ -263,8 +309,11 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
     };
 
     this.isSubmitting.set(true);
+    this.lastActionTimestamp = Date.now();
+
     this.bmService.persetujuan(id, payload).subscribe({
       next: () => {
+        this.lastActionTimestamp = Date.now();
         this.isSubmitting.set(false);
         this.isConfirmModalOpen.set(false);
         this.toastService.success('Keputusan persetujuan pinjaman berhasil disimpan');
@@ -389,30 +438,34 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
   }
 
   getPlafonMaksimal(): number {
-    return this.detail()?.plafonMaksimal ?? 0;
+    const d = this.detail();
+    return d?.estimasiPlafondDisetujui ?? d?.totalPlafond ?? d?.plafonMaksimal ?? 0;
   }
 
   getPlafonNama(): string {
     return this.detail()?.plafonNama || 'Tier Standar';
   }
 
-  getDbrPercentage(): number {
+  getDbrPercentage(): string {
     const d = this.detail();
+    let num = 0;
     const val = d?.dbrPercentage ?? d?.dbr;
     if (val !== undefined && val !== null && !isNaN(Number(val)) && Number(val) > 0) {
-      const num = Number(val);
-      return num <= 1 ? parseFloat((num * 100).toFixed(1)) : parseFloat(num.toFixed(1));
+      const raw = Number(val);
+      num = raw <= 1 ? raw * 100 : raw;
+    } else {
+      const cicilan = this.getCicilanBerjalan();
+      const pendapatan = this.getPendapatanBulanan();
+      if (pendapatan > 0 && cicilan > 0) {
+        num = (cicilan / pendapatan) * 100;
+      }
     }
-    const cicilan = this.getCicilanBerjalan();
-    const pendapatan = this.getPendapatanBulanan();
-    if (pendapatan > 0 && cicilan > 0) {
-      return parseFloat(((cicilan / pendapatan) * 100).toFixed(1));
-    }
-    return 0;
+    return num % 1 === 0 ? num.toFixed(0) : num.toFixed(1).replace('.', ',');
   }
 
   getDbrColorClass(): string {
-    const dbr = this.getDbrPercentage();
+    const pctStr = this.getDbrPercentage().replace(',', '.');
+    const dbr = parseFloat(pctStr) || 0;
     if (dbr <= 30) return 'text-success-60';
     if (dbr <= 40) return 'text-warning-60';
     return 'text-error-60';
@@ -427,18 +480,41 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
     return d?.penghasilanBulananScoring ?? d?.penghasilanBulanan ?? d?.pendapatan ?? 0;
   }
 
+  getDbrFormulaDetail(): string {
+    const cicilan = this.getCicilanBerjalan();
+    const pendapatan = this.getPendapatanBulanan();
+    if (pendapatan > 0) {
+      return `${this.formatCurrency(cicilan)} / ${this.formatCurrency(pendapatan)}`;
+    }
+    return '';
+  }
+
+  getDbrStatusLabel(): string {
+    const pctStr = this.getDbrPercentage().replace(',', '.');
+    const dbr = parseFloat(pctStr) || 0;
+    if (dbr <= 30) return 'Kondisi Finansial Sehat';
+    if (dbr <= 40) return 'Kondisi Finansial Wajar';
+    if (dbr <= 50) return 'Perlu Diwaspadai';
+    return 'Beban Utang Tinggi';
+  }
+
   getLamaBekerja(): number {
     return this.detail()?.lamaBekerjaBulan ?? 0;
   }
 
   getKeputusanSistemLabel(): string {
     const d = this.detail();
+    const raw = (d?.keputusanSistem || d?.statusScoring || '').toUpperCase();
     const skor = this.getSkor();
-    const status = (d?.statusScoring || '').toUpperCase();
-    if (d?.keputusanSistem) return d.keputusanSistem;
-    if (status === 'APPROVED' || skor >= 75) return 'LAYAK (APPROVED)';
-    if (status === 'REVIEW' || (skor >= 60 && skor < 75)) return 'PERLU REVIEW (REVIEW)';
-    return 'TIDAK LAYAK (REJECTED)';
+
+    if (raw.includes('LAYAK') && !raw.includes('TIDAK')) return 'Layak';
+    if (raw.includes('TIDAK') || raw.includes('REJECT')) return 'Tidak Layak';
+    if (raw.includes('REVIEW')) return 'Perlu Review';
+    if (raw.includes('APPROV') || raw.includes('SETUJU')) return 'Layak';
+
+    if (skor >= 75) return 'Layak';
+    if (skor >= 60) return 'Perlu Review';
+    return 'Tidak Layak';
   }
 
   getRingkasanAnalisis(): string {
@@ -567,11 +643,21 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
   }
 
   getReviewMarketingHistory(): ReviewMarketingHistoryItem[] {
-    return this.detail()?.reviewMarketingHistory || [];
+    const list = this.detail()?.reviewMarketingHistory || [];
+    return [...list].sort((a, b) => {
+      const timeA = new Date(a.tanggalReview || '').getTime() || 0;
+      const timeB = new Date(b.tanggalReview || '').getTime() || 0;
+      return timeA - timeB;
+    });
   }
 
   getPersetujuanHistory(): PersetujuanHistoryItem[] {
-    return this.detail()?.persetujuanHistory || [];
+    const list = this.detail()?.persetujuanHistory || [];
+    return [...list].sort((a, b) => {
+      const timeA = new Date(a.tanggalPersetujuan || '').getTime() || 0;
+      const timeB = new Date(b.tanggalPersetujuan || '').getTime() || 0;
+      return timeA - timeB;
+    });
   }
 
   formatCurrency(val: number | null | undefined): string {
@@ -595,6 +681,34 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
 
   isBMRejected(): boolean {
     return this.getStatusDisplayLabel() === 'Ditolak BM';
+  }
+
+  getMarketingStatusLabel(status?: string | null): string {
+    const s = (status || '').toUpperCase();
+    if (s.includes('SETUJU') || s.includes('APPROV') || s.includes('SELESAI') || s.includes('LOLOS')) {
+      return 'Direkomendasikan';
+    }
+    if (s.includes('TOLAK') || s.includes('REJECT')) {
+      return 'Tidak Direkomendasikan';
+    }
+    if (s.includes('REVISI')) {
+      return 'Perlu Revisi';
+    }
+    return status ? status.replace(/_/g, ' ') : 'Belum Direview';
+  }
+
+  getMarketingStatusBadgeClass(status?: string | null): string {
+    const s = (status || '').toUpperCase();
+    if (s.includes('SETUJU') || s.includes('APPROV') || s.includes('SELESAI') || s.includes('LOLOS')) {
+      return 'bg-success-0 text-success-70';
+    }
+    if (s.includes('TOLAK') || s.includes('REJECT')) {
+      return 'bg-error-0 text-error-70';
+    }
+    if (s.includes('REVISI')) {
+      return 'bg-warning-0 text-warning-80';
+    }
+    return 'bg-neutral-0 text-neutral-50';
   }
 
   formatDateTime(dateStr?: string | null): string {

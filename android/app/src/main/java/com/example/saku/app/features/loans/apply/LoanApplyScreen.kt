@@ -6,10 +6,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.ImageDecoder
 import android.net.Uri
-import android.os.Build
-import android.provider.MediaStore
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -58,12 +55,10 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -72,11 +67,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -84,7 +77,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusEvent
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
@@ -109,7 +101,6 @@ import com.composables.icons.lucide.CircleCheck
 import com.composables.icons.lucide.Copy
 import com.composables.icons.lucide.FileCheck
 import com.composables.icons.lucide.FileText
-import com.composables.icons.lucide.Image as ImageIcon
 import com.composables.icons.lucide.Info
 import com.composables.icons.lucide.Landmark
 import com.composables.icons.lucide.Lucide
@@ -125,7 +116,6 @@ import com.example.saku.app.core.ui.components.BadgeVariant
 import com.example.saku.app.core.ui.components.Button
 import com.example.saku.app.core.ui.components.ButtonSize
 import com.example.saku.app.core.ui.components.ButtonVariant
-import com.example.saku.app.core.ui.components.CameraCaptureMode
 import com.example.saku.app.core.ui.components.ConfirmationDialog
 import com.example.saku.app.core.ui.components.DialogType
 import com.example.saku.app.core.ui.components.TextField
@@ -137,7 +127,6 @@ import com.example.saku.app.ui.theme.Error0
 import com.example.saku.app.ui.theme.Error20
 import com.example.saku.app.ui.theme.Error70
 import com.example.saku.app.ui.theme.Neutral0
-import com.example.saku.app.ui.theme.Neutral10
 import com.example.saku.app.ui.theme.Neutral20
 import com.example.saku.app.ui.theme.OverusedGrotesk
 import com.example.saku.app.ui.theme.Primary
@@ -154,13 +143,14 @@ import com.example.saku.app.ui.theme.TextSecondary
 import com.example.saku.app.ui.theme.Warning
 import com.example.saku.app.ui.theme.Warning0
 import com.example.saku.app.ui.theme.Warning20
-import com.example.saku.app.ui.theme.Warning70
 import com.example.saku.app.ui.theme.Warning80
 import java.text.NumberFormat
 
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -420,7 +410,7 @@ fun LoanApplyScreen(
     ConfirmationDialog(
         visible = showSubmitConfirmDialog,
         title = "Konfirmasi Pengajuan",
-        message = "Apakah Anda yakin ingin mengajukan pinjaman sebesar Rp ${currencyFormatter.format(uiState.jumlahPinjaman)} dengan tenor ${uiState.tenorBulan} bulan? Pastikan data Anda sudah benar.",
+        message = "Ajukan pinjaman sebesar Rp ${currencyFormatter.format(uiState.jumlahPinjaman)} dengan tenor ${uiState.tenorBulan} bulan?",
         confirmButtonText = "Ya, Ajukan",
         dismissButtonText = "Periksa Kembali",
         type = DialogType.INFO,
@@ -534,14 +524,19 @@ private fun Step1NominalTenorView(
     val maxAmount = uiState.availablePlafond.coerceAtLeast(minAmount)
     val stepAmount = 500_000.0
 
-    val candidateAmounts = listOf(1_000_000.0, 2_000_000.0, 5_000_000.0, 10_000_000.0, 20_000_000.0, 30_000_000.0, 50_000_000.0)
-    val quickAmounts = (candidateAmounts.filter { it < maxAmount && it >= minAmount } + maxAmount).distinct().sorted()
+    val quickAmounts = listOf(1_000_000.0, 5_000_000.0, 10_000_000.0, 25_000_000.0, maxAmount)
+        .filter { it <= maxAmount && it >= minAmount }.distinct().sorted()
     val tenorOptions = listOf(3, 6, 9, 12, 18, 24, 36)
     val minTenor = 3
     val maxTenor = 36
     val tujuanOptions = listOf("Modal Usaha", "Renovasi Rumah", "Pendidikan", "Keperluan Medis", "Elektronik", "Lainnya")
 
     val totalBunga = (uiState.bungaBulanan * uiState.tenorBulan).toLong()
+    val formattedBunga = if (uiState.sukuBungaPersen % 1.0 == 0.0) {
+        "${uiState.sukuBungaPersen.toLong()}%"
+    } else {
+        "${uiState.sukuBungaPersen.toString().replace('.', ',')}%"
+    }
 
     var amountInputText by remember(uiState.jumlahPinjaman) {
         mutableStateOf(if (uiState.jumlahPinjaman > 0) currencyFormatter.format(uiState.jumlahPinjaman.toLong()) else "")
@@ -678,7 +673,7 @@ private fun Step1NominalTenorView(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Suku bunga ${String.format(Locale.US, "%.1f", uiState.sukuBungaPersen)}% per bulan",
+                            text = "Suku bunga $formattedBunga per bulan",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             color = Color.White.copy(alpha = 0.92f)
@@ -842,13 +837,6 @@ private fun Step1NominalTenorView(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     // Quick Selection Chips (Nominal)
-                    Text(
-                        text = "Akses Cepat",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = TextSecondary
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth()
@@ -1110,7 +1098,17 @@ private fun Step1NominalTenorView(
                         )
 
                         BreakdownRow(
-                            label = "Total Estimasi Bunga:",
+                            label = "Nominal Pinjaman:",
+                            value = "Rp ${currencyFormatter.format(uiState.jumlahPinjaman)}"
+                        )
+
+                        BreakdownRow(
+                            label = "Tenor Pinjaman:",
+                            value = "${uiState.tenorBulan} Bulan"
+                        )
+
+                        BreakdownRow(
+                            label = "Total Estimasi Bunga ($formattedBunga/bln):",
                             value = "Rp ${currencyFormatter.format(totalBunga)}"
                         )
 
@@ -1203,9 +1201,9 @@ private fun BreakdownRow(
 private fun CostBreakdownRow(
     label: String,
     value: String,
+    isHighlight: Boolean = false,
     isBold: Boolean = false,
-    isBadge: Boolean = false,
-    isHighlight: Boolean = false
+    isBadge: Boolean = false
 ) {
     Row(
         modifier = Modifier
@@ -1216,16 +1214,16 @@ private fun CostBreakdownRow(
     ) {
         Text(
             text = label,
-            fontSize = if (isHighlight) 13.sp else 12.5.sp,
+            fontSize = if (isHighlight) 13.5.sp else 12.5.sp,
             color = if (isHighlight || isBold) TextPrimary else TextSecondary,
-            fontWeight = if (isHighlight || isBold) FontWeight.Bold else FontWeight.Medium
+            fontWeight = if (isHighlight || isBold) FontWeight.SemiBold else FontWeight.Normal
         )
         if (isBadge) {
             Badge(text = value, variant = BadgeVariant.Success, size = BadgeSize.SM)
         } else {
             Text(
                 text = value,
-                fontSize = if (isHighlight) 14.sp else 12.5.sp,
+                fontSize = if (isHighlight) 14.5.sp else 12.5.sp,
                 fontWeight = if (isHighlight || isBold) FontWeight.Bold else FontWeight.SemiBold,
                 color = if (isHighlight) Primary else TextPrimary
             )
@@ -1360,23 +1358,45 @@ private fun Step3SummarySubmitView(
                         color = TextPrimary
                     )
 
+                    val formattedBunga = if (uiState.sukuBungaPersen % 1.0 == 0.0) {
+                        "${uiState.sukuBungaPersen.toLong()}%"
+                    } else {
+                        "${uiState.sukuBungaPersen.toString().replace('.', ',')}%"
+                    }
+
                     CostBreakdownRow(label = "Status", value = "Siap Diajukan", isBadge = true)
-                    CostBreakdownRow(label = "Nominal Pinjaman", value = "Rp ${currencyFormatter.format(uiState.jumlahPinjaman)}")
-                    CostBreakdownRow(label = "Tenor", value = "${uiState.tenorBulan} Bulan")
                     CostBreakdownRow(label = "Tujuan Penggunaan", value = uiState.effectiveTujuan)
-                    CostBreakdownRow(label = "Suku Bunga", value = "${uiState.sukuBungaPersen}% flat / bulan")
-                    CostBreakdownRow(label = "Biaya Administrasi", value = "Rp ${currencyFormatter.format(uiState.biayaAdmin)}")
+//                    CostBreakdownRow(label = "Suku Bunga", value = "$formattedBunga flat / bulan")
 
                     HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Border)
 
+                    val totalBunga = (uiState.bungaBulanan * uiState.tenorBulan).toLong()
+
                     CostBreakdownRow(
-                        label = "Estimasi Cicilan per Bulan",
-                        value = "Rp ${currencyFormatter.format(uiState.estimasiCicilanBulanan)}",
+                        label = "Cicilan Bulanan (Estimasi):",
+                        value = "Rp ${currencyFormatter.format(uiState.estimasiCicilanBulanan)} / bln",
                         isHighlight = true
                     )
                     CostBreakdownRow(
-                        label = "Total Estimasi Pengembalian",
-                        value = "Rp ${currencyFormatter.format(uiState.totalPengembalian)}"
+                        label = "Nominal Pinjaman:",
+                        value = "Rp ${currencyFormatter.format(uiState.jumlahPinjaman)}"
+                    )
+                    CostBreakdownRow(
+                        label = "Tenor Pinjaman:",
+                        value = "${uiState.tenorBulan} Bulan"
+                    )
+                    CostBreakdownRow(
+                        label = "Total Estimasi Bunga ($formattedBunga/bln):",
+                        value = "Rp ${currencyFormatter.format(totalBunga)}"
+                    )
+                    CostBreakdownRow(
+                        label = "Biaya Administrasi:",
+                        value = "Rp ${currencyFormatter.format(uiState.biayaAdmin)}"
+                    )
+                    CostBreakdownRow(
+                        label = "Total Pengembalian:",
+                        value = "Rp ${currencyFormatter.format(uiState.totalPengembalian)}",
+                        isBold = true
                     )
                 }
             }
@@ -1653,9 +1673,9 @@ private fun Step4SuccessReceiptView(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    NextStepRow(stepNum = "1", title = "Verifikasi Dokumen", desc = "Tim verifikasi memeriksa kelengkapan slip gaji & mutasi rekening.")
-                    NextStepRow(stepNum = "2", title = "Persetujuan Cabang", desc = "Kepala cabang menyetujui rekomendasi kredit.")
-                    NextStepRow(stepNum = "3", title = "Pencairan Dana Instan", desc = "Dana pinjaman langsung ditransfer ke rekening bank terdaftar Anda.")
+                    NextStepRow(stepNum = "1", title = "Verifikasi Dokumen", desc = "Pemeriksaan kelengkapan berkas dan data pengajuan Anda.")
+                    NextStepRow(stepNum = "2", title = "Persetujuan Pinjaman", desc = "Proses evaluasi dan persetujuan pengajuan pinjaman.")
+                    NextStepRow(stepNum = "3", title = "Pencairan Dana", desc = "Dana pinjaman langsung ditransfer ke rekening bank terdaftar Anda.")
                 }
             }
         }
@@ -1687,39 +1707,6 @@ private fun Step4SuccessReceiptView(
 }
 
 // Helper Components
-@Composable
-private fun CostBreakdownRow(
-    label: String,
-    value: String,
-    isHighlight: Boolean = false,
-    isBadge: Boolean = false
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            fontSize = if (isHighlight) 13.sp else 12.5.sp,
-            fontWeight = if (isHighlight) FontWeight.SemiBold else FontWeight.Normal,
-            color = if (isHighlight) TextPrimary else TextMuted
-        )
-        if (isBadge) {
-            Badge(text = value, variant = BadgeVariant.Warning, size = BadgeSize.SM)
-        } else {
-            Text(
-                text = value,
-                fontSize = if (isHighlight) 14.sp else 13.sp,
-                fontWeight = if (isHighlight) FontWeight.Bold else FontWeight.SemiBold,
-                color = TextPrimary
-            )
-        }
-    }
-}
-
 private fun getFileNameFromUri(context: Context, uri: Uri?): String {
     if (uri == null) return ""
     return try {
@@ -1798,11 +1785,13 @@ private fun DocumentUploadBox(
                     Text(text = subtitle, fontSize = 11.5.sp, color = TextMuted)
                 }
 
-                Badge(
-                    text = if (hasFile) "Terunggah" else (if (isRequired) "Wajib" else "Opsional"),
-                    variant = if (hasFile) BadgeVariant.Success else (if (isRequired) BadgeVariant.Error else BadgeVariant.Neutral),
-                    size = BadgeSize.SM
-                )
+                if (hasFile) {
+                    Badge(
+                        text = "Terunggah",
+                        variant = BadgeVariant.Success,
+                        size = BadgeSize.SM
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(14.dp))
@@ -1828,9 +1817,9 @@ private fun DocumentUploadBox(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(if (isPdf) Error0 else Primary0),
+                                    .size(38.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(Primary),
                                 contentAlignment = Alignment.Center
                             ) {
                                 if (bitmap != null) {
@@ -1851,7 +1840,7 @@ private fun DocumentUploadBox(
                                     Icon(
                                         imageVector = Lucide.FileText,
                                         contentDescription = null,
-                                        tint = if (isPdf) Error else Primary,
+                                        tint = Color.White,
                                         modifier = Modifier.size(20.dp)
                                     )
                                 }

@@ -128,6 +128,8 @@ export interface BranchManagerPengajuanDetailResponse {
   keputusanSistem?: string;
   plafonNama?: string;
   plafonMaksimal?: number;
+  estimasiPlafondDisetujui?: number;
+  totalPlafond?: number;
   dbrPercentage?: number;
   dbr?: number;
   isAmbigu?: boolean;

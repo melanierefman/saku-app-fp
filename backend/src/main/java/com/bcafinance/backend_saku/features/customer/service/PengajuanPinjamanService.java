@@ -27,10 +27,13 @@ import jakarta.transaction.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import com.bcafinance.backend_saku.core.realtime.RealTimeEmitterService;
+import com.bcafinance.backend_saku.core.realtime.RealTimeEventDto;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -51,6 +54,7 @@ public class PengajuanPinjamanService {
     private final FileStorageService fileStorageService;
     private final NotifikasiService notifikasiService;
     private final CustomerPlafondService customerPlafondService;
+    private final RealTimeEmitterService realTimeEmitterService;
 
     @Transactional
     public PengajuanStepResponse step1(UUID customerId, PengajuanPinjamanRequest request) {
@@ -63,6 +67,8 @@ public class PengajuanPinjamanService {
 
         ScoringCustomer scoring = scoringRepository.findFirstByMstCustomerIdOrderByCreatedDateDesc(customerId)
                 .orElseThrow(() -> new BussinessRuleException("Data scoring customer belum tersedia"));
+
+        validateNoActiveInProgressApplication(customerId);
 
         Plafond plafond = resolvePlafond(scoring);
 
@@ -184,7 +190,7 @@ public class PengajuanPinjamanService {
             message = "Dokumen perbaikan berhasil diunggah. Pengajuan pinjaman kembali masuk ke antrean review Marketing.";
         } else {
             pengajuan.setStatusPengajuan("PENDING");
-            pengajuan.setCatatanReview("Dokumen pendukung berhasil diunggah, menunggu proses review oleh tim cabang");
+            pengajuan.setCatatanReview("Dokumen pendukung berhasil diunggah, menunggu proses verifikasi dan peninjauan berkas");
             message = "Dokumen pendukung berhasil diunggah. Pengajuan pinjaman selesai dan sedang dalam proses review.";
         }
 
@@ -194,8 +200,27 @@ public class PengajuanPinjamanService {
         // Kirim notifikasi in-app ke customer
         String notifJudul = isRevisi ? "Dokumen Revisi Pinjaman Diterima" : "Pengajuan Pinjaman Diproses";
         String notifPesan = "Pengajuan pinjaman no. " + saved.getNomorPengajuan()
-                + " sedang dalam proses review oleh tim cabang.";
+                + " sedang dalam proses verifikasi tim kami.";
         notifikasiService.createNotification(customerId, saved.getId(), "PENGAJUAN", "IN_APP", notifJudul, notifPesan);
+
+        if (realTimeEmitterService != null) {
+            String eventType = isRevisi ? "LOAN_REVISED" : "LOAN_SUBMITTED";
+            String eventTitle = isRevisi ? "Revisi Berkas Pinjaman" : "Pengajuan Pinjaman Baru";
+            String eventMsg = isRevisi
+                    ? "Nasabah " + customer.getNama() + " telah mengunggah perbaikan berkas untuk pinjaman no. " + saved.getNomorPengajuan()
+                    : "Pengajuan pinjaman baru no. " + saved.getNomorPengajuan() + " dari nasabah " + customer.getNama() + " menunggu review.";
+
+            realTimeEmitterService.broadcast(RealTimeEventDto.builder()
+                    .eventType(eventType)
+                    .referenceId(saved.getId().toString())
+                    .customerName(customer.getNama())
+                    .nomorPengajuan(saved.getNomorPengajuan())
+                    .title(eventTitle)
+                    .message(eventMsg)
+                    .targetRoles(List.of("ROLE_MARKETING", "ROLE_SUPERADMIN"))
+                    .timestamp(LocalDateTime.now())
+                    .build());
+        }
 
         Cabang cabang = cabangRepository.findById(saved.getMstBranchId()).orElse(null);
         PengajuanPinjamanResponse detail = toResponse(saved, customer.getNama(), cabang, allUploadedDocs);
@@ -286,6 +311,31 @@ public class PengajuanPinjamanService {
             throw new BussinessRuleException(
                     "Jumlah pinjaman (Rp " + CustomerPlafondService.formatRupiah(jumlahPinjaman)
                             + ") melebihi sisa plafon yang tersedia (Rp " + CustomerPlafondService.formatRupiah(availableLimit) + ")");
+        }
+    }
+
+    private void validateNoActiveInProgressApplication(UUID customerId) {
+        Set<String> terminalStatuses = Set.of(
+                "DICAIRKAN", "DISBURSED",
+                "LUNAS", "PAID",
+                "PENGAJUAN_DITOLAK", "DITOLAK", "REJECTED", "DITOLAK_MARKETING", "DITOLAK_BM",
+                "BATAL", "CANCELLED"
+        );
+
+        Optional<PengajuanPinjaman> inProgressLoan = pengajuanRepository
+                .findAllByMstCustomerIdOrderByCreatedDateDesc(customerId)
+                .stream()
+                .filter(p -> {
+                    String status = p.getStatusPengajuan() != null ? p.getStatusPengajuan().toUpperCase() : "";
+                    return !terminalStatuses.contains(status);
+                })
+                .findFirst();
+
+        if (inProgressLoan.isPresent()) {
+            PengajuanPinjaman p = inProgressLoan.get();
+            throw new BussinessRuleException(
+                    "Anda memiliki pengajuan pinjaman (" + p.getNomorPengajuan()
+                            + ") yang sedang dalam proses review. Silakan selesaikan pengajuan tersebut atau pantau statusnya di menu Riwayat.");
         }
     }
 

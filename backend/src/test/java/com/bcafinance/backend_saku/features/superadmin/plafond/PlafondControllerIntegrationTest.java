@@ -142,31 +142,4 @@ class PlafondControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.statusCode").value(200));
     }
-
-    @Test
-    @DisplayName("POST /api/superadmin/plafond/calculate - should calculate approved amount")
-    void calculate_ShouldReturnCalculation() throws Exception {
-        PlafondCalculationRequest request = new PlafondCalculationRequest();
-        request.setPendapatan(new BigDecimal("7000000.00"));
-        request.setSkorAkhir(85.0);
-
-        PlafondCalculationResponse response = new PlafondCalculationResponse(
-                testPlafondId,
-                "Plafond Gold",
-                "APPROVED",
-                100,
-                new BigDecimal("20000000.00"),
-                new BigDecimal("20000000.00")
-        );
-
-        when(plafondService.calculateApprovedAmount(any(BigDecimal.class), eq(85.0)))
-                .thenReturn(response);
-
-        mockMvc.perform(post("/api/superadmin/plafond/calculate")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.keputusan").value("APPROVED"))
-                .andExpect(jsonPath("$.data.persentaseApproval").value(100));
-    }
 }

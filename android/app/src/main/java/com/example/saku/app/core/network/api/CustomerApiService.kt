@@ -4,6 +4,7 @@ import com.example.saku.app.core.network.ApiResponse
 import com.example.saku.app.core.network.dto.AngsuranItemDto
 import com.example.saku.app.core.network.dto.ChangePasswordRequestDto
 import com.example.saku.app.core.network.dto.CustomerProfileDto
+import com.example.saku.app.core.network.dto.FcmTokenRequestDto
 import com.example.saku.app.core.network.dto.LoanApplicationItemDto
 import com.example.saku.app.core.network.dto.NotifikasiItemDto
 import com.example.saku.app.core.network.dto.PengajuanPinjamanRequestDto
@@ -13,7 +14,6 @@ import com.example.saku.app.core.network.dto.SimulasiPinjamanResponseDto
 import com.example.saku.app.core.network.dto.UnreadNotifikasiCountDto
 import com.example.saku.app.core.network.dto.UpdateDomisiliRequestDto
 import com.example.saku.app.core.network.dto.UpdatePekerjaanRequestDto
-import com.example.saku.app.core.network.dto.UpdateProfileRequestDto
 import com.example.saku.app.core.network.dto.UpdateRekeningRequestDto
 import okhttp3.MultipartBody
 import retrofit2.Response
@@ -28,40 +28,41 @@ import retrofit2.http.Query
 
 interface CustomerApiService {
 
-    // Profil Nasabah
+    // Mengambil profil data nasabah login
     @GET("customer/profile")
     suspend fun getProfile(): Response<ApiResponse<CustomerProfileDto>>
 
-    @PUT("customer/profile")
-    suspend fun updateProfile(
-        @Body request: UpdateProfileRequestDto
-    ): Response<ApiResponse<CustomerProfileDto>>
-
+    // Memperbarui informasi rekening bank nasabah
     @PUT("customer/profile/rekening")
     suspend fun updateRekening(
         @Body request: UpdateRekeningRequestDto
     ): Response<ApiResponse<CustomerProfileDto>>
 
+    // Memperbarui alamat domisili nasabah
     @PUT("customer/profile/domisili")
     suspend fun updateDomisili(
         @Body request: UpdateDomisiliRequestDto
     ): Response<ApiResponse<CustomerProfileDto>>
 
+    // Memperbarui data pekerjaan dan penghasilan nasabah
     @PUT("customer/profile/pekerjaan")
     suspend fun updatePekerjaan(
         @Body request: UpdatePekerjaanRequestDto
     ): Response<ApiResponse<CustomerProfileDto>>
 
+    // Mengubah kata sandi akun nasabah
     @PUT("customer/profile/change-password")
     suspend fun changePassword(
         @Body request: ChangePasswordRequestDto
     ): Response<ApiResponse<String>>
 
+    // Memperbarui token FCM perangkat nasabah
     @PUT("customer/profile/fcm-token")
     suspend fun updateFcmToken(
-        @Body request: com.example.saku.app.core.network.dto.FcmTokenRequestDto
+        @Body request: FcmTokenRequestDto
     ): Response<ApiResponse<String>>
 
+    // Mengunggah pembaruan dokumen KYC KTP dan Selfie
     @Multipart
     @POST("customer/profile/kyc-documents")
     suspend fun updateKycDocuments(
@@ -69,21 +70,23 @@ interface CustomerApiService {
         @Part selfie: MultipartBody.Part? = null
     ): Response<ApiResponse<CustomerProfileDto>>
 
-
-    // Pengajuan Pinjaman
+    // Mengambil riwayat seluruh pengajuan pinjaman nasabah
     @GET("customer/pengajuan-pinjaman/my")
     suspend fun getMyLoans(): Response<ApiResponse<List<LoanApplicationItemDto>>>
 
+    // Mengambil detail pengajuan pinjaman berdasarkan ID
     @GET("customer/pengajuan-pinjaman/{id}")
     suspend fun getLoanById(
         @Path("id") id: String
     ): Response<ApiResponse<LoanApplicationItemDto>>
 
+    // Pengajuan pinjaman langkah 1: Formulir pinjaman dan cabang
     @POST("customer/pengajuan-pinjaman/step1")
     suspend fun submitLoanStep1(
         @Body request: PengajuanPinjamanRequestDto
     ): Response<ApiResponse<PengajuanStepResponseDto>>
 
+    // Pengajuan pinjaman langkah 2: Unggah dokumen persyaratan
     @Multipart
     @POST("customer/pengajuan-pinjaman/step2/{pengajuanId}")
     suspend fun submitLoanStep2(
@@ -93,39 +96,37 @@ interface CustomerApiService {
         @Part npwp: MultipartBody.Part? = null
     ): Response<ApiResponse<PengajuanStepResponseDto>>
 
+    // Mengambil jadwal simulasi / rincian angsuran pinjaman
     @GET("customer/pengajuan-pinjaman/{pengajuanId}/angsuran")
     suspend fun getJadwalAngsuran(
         @Path("pengajuanId") pengajuanId: String
     ): Response<ApiResponse<List<AngsuranItemDto>>>
 
-
-    // Notifikasi Nasabah
+    // Mengambil daftar notifikasi nasabah
     @GET("customer/notifikasi")
     suspend fun getNotifications(
         @Query("status") status: String? = null
     ): Response<ApiResponse<List<NotifikasiItemDto>>>
 
+    // Mengambil jumlah notifikasi yang belum dibaca
     @GET("customer/notifikasi/unread-count")
     suspend fun getUnreadCount(): Response<ApiResponse<UnreadNotifikasiCountDto>>
 
-    @GET("customer/notifikasi/{id}")
-    suspend fun getNotificationDetail(
-        @Path("id") id: String
-    ): Response<ApiResponse<NotifikasiItemDto>>
-
+    // Menandai satu notifikasi telah dibaca
     @PUT("customer/notifikasi/{id}/read")
     suspend fun markNotificationRead(
         @Path("id") id: String
     ): Response<ApiResponse<NotifikasiItemDto>>
 
+    // Menandai semua notifikasi telah dibaca
     @PUT("customer/notifikasi/read-all")
     suspend fun markAllNotificationsRead(): Response<ApiResponse<String>>
 
-
-    // Public Simulation & Plafond
+    // Mengambil daftar tier plafond publik
     @GET("public/plafond")
     suspend fun getPublicPlafonds(): Response<ApiResponse<List<PublicPlafondDto>>>
 
+    // Menghitung estimasi simulasi pinjaman publik
     @GET("public/simulasi")
     suspend fun hitungSimulasi(
         @Query("jumlahPinjaman") jumlahPinjaman: Double,

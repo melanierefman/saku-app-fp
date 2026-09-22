@@ -25,8 +25,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.composables.icons.lucide.Inbox
 import com.composables.icons.lucide.Lucide
-import com.example.saku.app.ui.theme.Neutral0
-import com.example.saku.app.ui.theme.Neutral40
 import com.example.saku.app.ui.theme.Primary
 import com.example.saku.app.ui.theme.Primary0
 import com.example.saku.app.ui.theme.TextPrimary

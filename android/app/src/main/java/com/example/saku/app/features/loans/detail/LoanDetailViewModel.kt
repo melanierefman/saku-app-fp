@@ -1,12 +1,8 @@
 package com.example.saku.app.features.loans.detail
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.saku.app.core.data.repository.LoanRepository
-import com.example.saku.app.core.data.repository.LoanRepositoryImpl
-import com.example.saku.app.core.network.ApiClient
 import com.example.saku.app.core.network.ApiResult
 import com.example.saku.app.core.network.dto.AngsuranItemDto
 import com.example.saku.app.core.network.dto.LoanApplicationItemDto

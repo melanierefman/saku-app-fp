@@ -10,19 +10,16 @@ import com.bcafinance.backend_saku.core.repository.CustomerRepository;
 import com.bcafinance.backend_saku.core.repository.DokumenCustomerRepository;
 import com.bcafinance.backend_saku.core.repository.ScoringCustomerRepository;
 import com.bcafinance.backend_saku.core.repository.VerifikasiCustomerRepository;
+import com.bcafinance.backend_saku.core.realtime.RealTimeEmitterService;
+import com.bcafinance.backend_saku.core.realtime.RealTimeEventDto;
 import com.bcafinance.backend_saku.core.storage.FileStorageService;
-import com.bcafinance.backend_saku.features.auth.dto.VerifyOtpRequest;
-import com.bcafinance.backend_saku.features.auth.service.OtpService;
 import com.bcafinance.backend_saku.features.customer.dto.RegisterStep1KtpRequest;
-import com.bcafinance.backend_saku.features.customer.dto.RegisterStep1Request;
 import com.bcafinance.backend_saku.features.customer.dto.RegisterStep2PersonalRequest;
-import com.bcafinance.backend_saku.features.customer.dto.RegisterStep2Request;
-import com.bcafinance.backend_saku.features.customer.dto.RegisterStep3Request;
 import com.bcafinance.backend_saku.features.customer.dto.RegisterStep5CompleteRequest;
 import com.bcafinance.backend_saku.features.customer.dto.RegisterStepResponse;
-import com.bcafinance.backend_saku.features.scoring.service.ScoringService;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -39,34 +36,60 @@ public class RegisterService {
     private final DokumenCustomerRepository dokumenRepository;
     private final ScoringCustomerRepository scoringRepository;
     private final VerifikasiCustomerRepository verifikasiRepository;
-    private final com.bcafinance.backend_saku.core.repository.PlafondRepository plafondRepository;
-    private final ScoringService scoringService;
-    private final OtpService otpService;
     private final PasswordEncoder passwordEncoder;
     private final FileStorageService fileStorageService;
+    private final RealTimeEmitterService realTimeEmitterService;
 
-    // Alur Registrasi Baru (5-Step KYC & Email Only)
-    /**
-     * Step 1: Scan e-KTP & Konfirmasi Data OCR
-     */
+    // Validasi ketersediaan NIK customer
+    public boolean checkNik(String nik, UUID customerId) {
+        if (nik == null || !nik.matches("^[0-9]{16}$")) {
+            throw new BussinessRuleException("NIK harus terdiri dari 16 digit angka");
+        }
+        boolean exists = (customerId != null)
+                ? customerRepository.existsByNikAndIdNot(nik, customerId)
+                : customerRepository.existsByNik(nik);
+        if (exists) {
+            throw new BussinessRuleException("NIK sudah terdaftar pada akun SAKU lain");
+        }
+        return true;
+    }
+
+    // Validasi ketersediaan nomor telepon customer
+    public boolean checkPhone(String phone, UUID customerId) {
+        String clean = phone != null ? phone.replace("+", "").trim() : "";
+        if (!clean.matches("^(08|628)[0-9]{8,12}$")) {
+            throw new BussinessRuleException("Nomor handphone tidak valid (wajib diawali 08)");
+        }
+        boolean exists = (customerId != null)
+                ? customerRepository.existsByNoHpAndIdNot(phone, customerId)
+                : customerRepository.existsByNoHp(phone);
+        if (exists) {
+            throw new BussinessRuleException("Nomor handphone sudah terdaftar pada akun SAKU lain");
+        }
+        return true;
+    }
+
+    // Step 1 KYC: Simpan data e-KTP hasil scan OCR dan upload foto dokumen
     @Transactional
     public RegisterStepResponse registerStep1Ktp(UUID customerId, MultipartFile ktpFile, RegisterStep1KtpRequest req) {
         Customer customer = getCustomerOrThrow(customerId);
 
-        if (customerRepository.existsByNikAndIdNot(req.nik(), customerId)) {
-            throw new BussinessRuleException("NIK sudah terdaftar dalam sistem");
+        if (req != null) {
+            if (req.nik() != null && !req.nik().isBlank() && customerRepository.existsByNikAndIdNot(req.nik(), customerId)) {
+                throw new BussinessRuleException("NIK sudah terdaftar dalam sistem");
+            }
+
+            if (req.nik() != null && !req.nik().isBlank()) customer.setNik(req.nik());
+            if (req.namaLengkap() != null && !req.namaLengkap().isBlank()) customer.setNama(req.namaLengkap());
+            customer.setUpdatedDate(LocalDateTime.now());
+            customerRepository.save(customer);
+
+            if (req.alamatKtp() != null) {
+                alamatRepository.deleteByCustomer_IdAndJenisAlamat(customerId, "KTP");
+                alamatRepository.save(toEntity(req.alamatKtp(), "KTP", customer));
+            }
         }
 
-        customer.setNik(req.nik());
-        customer.setNama(req.namaLengkap());
-        customer.setUpdatedDate(LocalDateTime.now());
-        customerRepository.save(customer);
-
-        // Simpan / update alamat KTP
-        alamatRepository.deleteByCustomer_IdAndJenisAlamat(customerId, "KTP");
-        alamatRepository.save(toEntity(req.alamatKtp(), "KTP", customer));
-
-        // Simpan dokumen foto e-KTP jika diunggah
         if (ktpFile != null && !ktpFile.isEmpty()) {
             String ktpUrl = fileStorageService.store(ktpFile, "ktp/" + customerId);
             Optional<DokumenCustomer> existingKtpOpt = dokumenRepository.findByCustomer_IdAndDocType(customerId, "KTP");
@@ -79,9 +102,7 @@ public class RegisterService {
         return new RegisterStepResponse(customerId, 1, "Data e-KTP berhasil disimpan, lanjut ke data pribadi");
     }
 
-    /**
-     * Step 2: Data Pribadi, Pekerjaan & Rekening Bank
-     */
+    // Step 2 KYC: Simpan data pribadi, pekerjaan, finansial, dan rekening bank
     @Transactional
     public RegisterStepResponse registerStep2Personal(UUID customerId, RegisterStep2PersonalRequest req) {
         Customer customer = getCustomerOrThrow(customerId);
@@ -98,7 +119,6 @@ public class RegisterService {
         customer.setUpdatedDate(LocalDateTime.now());
         customerRepository.save(customer);
 
-        // Simpan Alamat Domisili
         alamatRepository.deleteByCustomer_IdAndJenisAlamat(customerId, "DOMISILI");
         Optional<AlamatCustomer> ktpAlamatOpt = alamatRepository.findByCustomer_IdAndJenisAlamat(customerId, "KTP");
         if (Boolean.TRUE.equals(req.sameAsKtp()) || req.alamatDomisili() == null) {
@@ -126,7 +146,6 @@ public class RegisterService {
             alamatRepository.save(toEntity(req.alamatDomisili(), "DOMISILI", customer));
         }
 
-        // Simpan data finansial & pekerjaan untuk scoring (Akan dihitung saat verifikasi Backoffice)
         scoringRepository.deleteByMstCustomerId(customer.getId());
 
         ScoringCustomer scoring = new ScoringCustomer();
@@ -148,9 +167,7 @@ public class RegisterService {
         return new RegisterStepResponse(customerId, 2, "Data pribadi & pekerjaan tersimpan, lanjut ke verifikasi wajah");
     }
 
-    /**
-     * Step 3: Verifikasi Wajah (Liveness Selfie)
-     */
+    // Step 3 KYC: Simpan dan verifikasi foto selfie wajah nasabah
     @Transactional
     public RegisterStepResponse registerStep3Liveness(UUID customerId, MultipartFile selfieFile) {
         Customer customer = getCustomerOrThrow(customerId);
@@ -172,18 +189,14 @@ public class RegisterService {
         return new RegisterStepResponse(customerId, 3, "Verifikasi wajah berhasil, lanjut ke Syarat & Ketentuan");
     }
 
-    /**
-     * Step 4: Syarat & Ketentuan
-     */
+    // Step 4 KYC: Konfirmasi persetujuan syarat dan ketentuan SAKU
     @Transactional
     public RegisterStepResponse registerStep4Tnc(UUID customerId) {
         getCustomerOrThrow(customerId);
         return new RegisterStepResponse(customerId, 4, "Syarat & Ketentuan disetujui, lanjut ke pembuatan password");
     }
 
-    /**
-     * Step 5: Buat Kredensial Password (Final Step — Email Only)
-     */
+    // Step 5 KYC: Pembuatan password akun dan finalisasi pendaftaran nasabah
     @Transactional
     public RegisterStepResponse registerStep5Complete(UUID customerId, RegisterStep5CompleteRequest req) {
         Customer customer = getCustomerOrThrow(customerId);
@@ -196,189 +209,37 @@ public class RegisterService {
             throw new BussinessRuleException("Password minimal 8 karakter");
         }
 
-        // Email digunakan sebagai username utama akun nasabah
         customer.setUsername(customer.getEmail());
         customer.setPassword(passwordEncoder.encode(req.password()));
-        customer.setStatus(false); // Menunggu verifikasi Backoffice
+        customer.setStatus(false);
         customer.setUpdatedDate(LocalDateTime.now());
         customerRepository.save(customer);
 
-        // Hapus catatan verifikasi lama jika pernah revisi
         verifikasiRepository.deleteByMstCustomerId(customerId);
+
+        if (realTimeEmitterService != null) {
+            realTimeEmitterService.broadcast(RealTimeEventDto.builder()
+                    .eventType("KYC_SUBMITTED")
+                    .referenceId(customer.getId().toString())
+                    .customerName(customer.getNama())
+                    .title("Pendaftaran Nasabah Baru")
+                    .message("Nasabah baru " + customer.getNama() + " telah menyelesaikan registrasi dan menunggu verifikasi KYC.")
+                    .targetRoles(List.of("ROLE_BACKOFFICE", "ROLE_SUPERADMIN"))
+                    .timestamp(LocalDateTime.now())
+                    .build());
+        }
 
         return new RegisterStepResponse(customerId, 5,
                 "Pendaftaran berhasil! Akun Anda sedang dalam proses verifikasi Backoffice");
     }
 
-    // Alur Registrasi Legacy (Backward Compatibility)
-    @Transactional
-    public RegisterStepResponse registerStep1(RegisterStep1Request req) {
-        if (!req.password().equals(req.confirmPassword()))
-            throw new BussinessRuleException("Password dan konfirmasi password tidak sama");
-
-        Optional<Customer> existingCustOpt = customerRepository.findByEmail(req.email());
-        Customer customer;
-        if (existingCustOpt.isPresent()) {
-            Customer existing = existingCustOpt.get();
-            if (!"PENDING".equals(existing.getPassword())) {
-                throw new BussinessRuleException("Email sudah terdaftar");
-            }
-            if (customerRepository.existsByUsername(req.username()) && !req.username().equals(existing.getUsername())) {
-                throw new BussinessRuleException("Username sudah terdaftar");
-            }
-            if (customerRepository.existsByNoHp(req.noHp()) && !req.noHp().equals(existing.getNoHp())) {
-                throw new BussinessRuleException("No HP sudah terdaftar");
-            }
-            customer = existing;
-        } else {
-            if (customerRepository.existsByEmail(req.email()))
-                throw new BussinessRuleException("Email sudah terdaftar");
-            if (customerRepository.existsByUsername(req.username()))
-                throw new BussinessRuleException("Username sudah terdaftar");
-            if (customerRepository.existsByNoHp(req.noHp()))
-                throw new BussinessRuleException("No HP sudah terdaftar");
-
-            customer = new Customer();
-            customer.setId(UUID.randomUUID());
-        }
-
-        if (req.otpCode() != null && !req.otpCode().isBlank()) {
-            otpService.verifyOtp(new VerifyOtpRequest(req.email(), req.otpCode(), "REGISTRATION"));
-        }
-
-        customer.setNik("PENDING");
-        customer.setNama(req.username());
-        customer.setEmail(req.email());
-        customer.setUsername(req.username());
-        customer.setPassword(passwordEncoder.encode(req.password()));
-        customer.setNoHp(req.noHp());
-        customer.setNamaRekening("PENDING");
-        customer.setNamaBank("PENDING");
-        customer.setNoRekening("PENDING");
-        customer.setStatus(false);
-        if (customer.getCreatedDate() == null) {
-            customer.setCreatedDate(LocalDateTime.now());
-        }
-        customer.setUpdatedDate(LocalDateTime.now());
-        customerRepository.save(customer);
-
-        return new RegisterStepResponse(customer.getId(), 1, "Akun berhasil dibuat, lanjut ke data diri");
-    }
-
-    @Transactional
-    public RegisterStepResponse registerStep2(UUID customerId, RegisterStep2Request req) {
-        Customer customer = getCustomerOrThrow(customerId);
-
-        if (customerRepository.existsByNikAndIdNot(req.nik(), customerId))
-            throw new BussinessRuleException("NIK sudah terdaftar");
-
-        customer.setNik(req.nik());
-        customer.setNama(req.namaLengkap());
-        customer.setNamaBank(req.namaBank());
-        customer.setNoRekening(req.noRekening());
-        customer.setNamaRekening(req.namaRekening());
-        customer.setUpdatedDate(LocalDateTime.now());
-        customerRepository.save(customer);
-
-        scoringRepository.deleteByMstCustomerId(customer.getId());
-
-        ScoringCustomer scoring = new ScoringCustomer();
-        scoring.setId(UUID.randomUUID());
-        scoring.setPenghasilanBulanan(req.pendapatan());
-        scoring.setStatusPekerjaan(req.statusPekerjaan());
-        scoring.setLamaBekerjaBulan(req.lamaBekerjaBulan());
-        scoring.setTotalCicilanLainBulanan(req.totalCicilanLainnya());
-        scoring.setMstCustomerId(customer.getId());
-        scoring.setPekerjaan(req.pekerjaan());
-        scoring.setTempatKerja(req.tempatKerja());
-        ScoringService.ScoringResult result = scoringService.calculateScore(
-                req.totalCicilanLainnya(),
-                req.pendapatan(),
-                req.lamaBekerjaBulan(),
-                req.statusPekerjaan());
-        int calculatedScore = (int) Math.round(result.score());
-        scoring.setSkor(calculatedScore);
-        scoring.setStatusScoring(result.decision());
-
-        if (plafondRepository != null) {
-            var activePlafonds = plafondRepository.findAllByStatusTrue();
-            activePlafonds.stream()
-                    .filter(p -> p.getMinSkor() != null && p.getMaxSkor() != null
-                            && calculatedScore >= p.getMinSkor() && calculatedScore <= p.getMaxSkor())
-                    .findFirst()
-                    .ifPresent(p -> scoring.setMstPlafondId(p.getId()));
-        }
-
-        scoring.setCreatedDate(LocalDateTime.now());
-        scoring.setUpdatedDate(LocalDateTime.now());
-        scoringRepository.save(scoring);
-
-        return new RegisterStepResponse(customerId, 2, "Data diri & keuangan tersimpan, lanjut ke alamat");
-    }
-
-    @Transactional
-    public RegisterStepResponse registerStep3(UUID customerId, RegisterStep3Request req) {
-        Customer customer = getCustomerOrThrow(customerId);
-
-        alamatRepository.deleteByCustomer_Id(customerId);
-
-        alamatRepository.save(toEntity(req.alamatKtp(), "KTP", customer));
-        alamatRepository.save(toEntity(req.alamatDomisili(), "DOMISILI", customer));
-
-        return new RegisterStepResponse(customerId, 3, "Alamat tersimpan, lanjut ke verifikasi identitas");
-    }
-
-    @Transactional
-    public RegisterStepResponse registerStep4(UUID customerId, MultipartFile ktp, MultipartFile selfie) {
-        Customer customer = getCustomerOrThrow(customerId);
-
-        Optional<DokumenCustomer> existingKtpOpt = dokumenRepository.findByCustomer_IdAndDocType(customerId, "KTP");
-        Optional<DokumenCustomer> existingSelfieOpt = dokumenRepository.findByCustomer_IdAndDocType(customerId, "SELFIE");
-
-        boolean hasKtp = ktp != null && !ktp.isEmpty();
-        boolean hasSelfie = selfie != null && !selfie.isEmpty();
-
-        if (existingKtpOpt.isEmpty() && !hasKtp) {
-            throw new BussinessRuleException("Dokumen KTP wajib diunggah");
-        }
-        if (existingSelfieOpt.isEmpty() && !hasSelfie) {
-            throw new BussinessRuleException("Dokumen Selfie wajib diunggah");
-        }
-        if (!hasKtp && !hasSelfie) {
-            throw new BussinessRuleException("Silakan pilih minimal satu dokumen untuk diunggah");
-        }
-
-        if (hasKtp) {
-            String ktpUrl = fileStorageService.store(ktp, "ktp/" + customerId);
-            DokumenCustomer docKtp = existingKtpOpt.orElseGet(() -> buildDokumen("KTP", ktpUrl, customer));
-            docKtp.setFileUrl(ktpUrl);
-            docKtp.setUpdatedDate(LocalDateTime.now());
-            dokumenRepository.save(docKtp);
-        }
-
-        if (hasSelfie) {
-            String selfieUrl = fileStorageService.store(selfie, "selfie/" + customerId);
-            DokumenCustomer docSelfie = existingSelfieOpt.orElseGet(() -> buildDokumen("SELFIE", selfieUrl, customer));
-            docSelfie.setFileUrl(selfieUrl);
-            docSelfie.setUpdatedDate(LocalDateTime.now());
-            dokumenRepository.save(docSelfie);
-        }
-
-        verifikasiRepository.deleteByMstCustomerId(customerId);
-
-        customer.setUpdatedDate(LocalDateTime.now());
-        customerRepository.save(customer);
-
-        return new RegisterStepResponse(customerId, 4,
-                "Dokumen berhasil diunggah, registrasi selesai — menunggu verifikasi Backoffice");
-    }
-
-    // Helper Methods
+    // Ambil entitas customer berdasarkan ID atau lempar exception
     private Customer getCustomerOrThrow(UUID id) {
         return customerRepository.findById(id)
                 .orElseThrow(() -> new BussinessRuleException("Customer tidak ditemukan"));
     }
 
+    // Konversi DTO alamat customer ke entitas AlamatCustomer
     private AlamatCustomer toEntity(com.bcafinance.backend_saku.features.customer.dto.AlamatCustomer dto,
             String jenis, Customer customer) {
         if (dto == null) return null;
@@ -399,6 +260,7 @@ public class RegisterService {
         return a;
     }
 
+    // Buat entitas DokumenCustomer baru
     private DokumenCustomer buildDokumen(String type, String url, Customer customer) {
         DokumenCustomer d = new DokumenCustomer();
         d.setId(UUID.randomUUID());

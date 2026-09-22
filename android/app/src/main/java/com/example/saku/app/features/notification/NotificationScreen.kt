@@ -24,7 +24,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -33,10 +32,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -67,6 +64,8 @@ import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary
 import com.example.saku.app.ui.theme.TextSecondary
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -263,11 +262,8 @@ fun NotificationScreen(
                             onClick = {
                                 notif.id?.let { viewModel.markNotificationAsRead(it) }
                                 val loanId = notif.pengajuanPinjamanId
-                                val type = notif.type?.uppercase() ?: ""
                                 if (!loanId.isNullOrBlank()) {
                                     onNavigateToLoanDetail(loanId)
-                                } else if (type.contains("KYC") || type.contains("VERIFIKASI")) {
-                                    onNavigateToKycPending()
                                 }
                             }
                         )
@@ -304,8 +300,6 @@ private fun NotificationPageCard(
 ) {
     val isRead = item.isNotificationRead
     val hasLoanLink = !item.pengajuanPinjamanId.isNullOrBlank()
-    val isKyc = item.type?.contains("KYC", ignoreCase = true) == true || item.type?.contains("VERIFIKASI", ignoreCase = true) == true
-    val hasActionLink = hasLoanLink || isKyc
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -329,18 +323,20 @@ private fun NotificationPageCard(
                 modifier = Modifier
                     .size(38.dp)
                     .clip(CircleShape)
-                    .background(if (isRead) Color(0xFFF3F4F6) else Primary0),
+                    .background(Primary0),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = when (item.type?.uppercase()) {
-                        "APPROVAL", "PENCAIRAN" -> Lucide.CircleCheck
-                        "INFO" -> Lucide.Info
-                        else -> Lucide.Bell
+                    imageVector = when {
+                        item.type?.contains("KYC", ignoreCase = true) == true || item.type?.contains("VERIFIKASI", ignoreCase = true) == true -> Lucide.CircleCheck
+                        item.type?.contains("PENGAJUAN", ignoreCase = true) == true -> Lucide.Clock
+                        item.type?.contains("PEMBAYARAN", ignoreCase = true) == true -> Lucide.CircleCheck
+                        item.type?.contains("WELCOME", ignoreCase = true) == true -> Lucide.CircleCheck
+                        else -> Lucide.Info
                     },
                     contentDescription = null,
-                    tint = if (isRead) TextMuted else Primary,
-                    modifier = Modifier.size(18.dp)
+                    tint = Primary,
+                    modifier = Modifier.size(20.dp)
                 )
             }
 
@@ -353,13 +349,15 @@ private fun NotificationPageCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = item.judul ?: "Pemberitahuan SAKU",
+                        text = item.judul ?: "Pemberitahuan",
                         fontSize = 13.5.sp,
                         fontWeight = if (isRead) FontWeight.SemiBold else FontWeight.Bold,
-                        color = TextPrimary
+                        color = TextPrimary,
+                        modifier = Modifier.weight(1f)
                     )
 
                     if (!isRead) {
+                        Spacer(modifier = Modifier.width(6.dp))
                         Box(
                             modifier = Modifier
                                 .size(7.dp)
@@ -371,10 +369,10 @@ private fun NotificationPageCard(
 
                 Spacer(modifier = Modifier.height(3.dp))
                 Text(
-                    text = item.pesan ?: "-",
+                    text = item.pesan ?: "",
                     fontSize = 12.sp,
                     color = TextSecondary,
-                    lineHeight = 16.sp
+                    lineHeight = 17.sp
                 )
 
                 Spacer(modifier = Modifier.height(6.dp))
@@ -400,13 +398,13 @@ private fun NotificationPageCard(
                         )
                     }
 
-                    if (hasActionLink) {
+                    if (hasLoanLink) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(2.dp)
                         ) {
                             Text(
-                                text = if (hasLoanLink) "Lihat Detail" else "Lihat Status",
+                                text = "Lihat Detail",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = Primary

@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -45,14 +44,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.composables.icons.lucide.Bell
 import com.composables.icons.lucide.Briefcase
-import com.composables.icons.lucide.Calculator
 import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.CreditCard
 import com.composables.icons.lucide.Headphones
 import com.composables.icons.lucide.IdCard
-import com.composables.icons.lucide.Info
 import com.composables.icons.lucide.KeyRound
 import com.composables.icons.lucide.LogOut
 import com.composables.icons.lucide.Lucide
@@ -557,4 +553,3 @@ private fun ProfileMenuRow(
         )
     }
 }
-

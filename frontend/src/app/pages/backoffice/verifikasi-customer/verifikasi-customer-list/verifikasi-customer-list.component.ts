@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   signal,
   inject,
   ChangeDetectorRef,
@@ -9,6 +10,7 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import {
   TableComponent,
   TableColumn,
@@ -25,6 +27,7 @@ import {
 import {
   VerifikasiCustomerService,
   VerifikasiCustomerItem,
+  RealTimeService,
 } from '../../../../core';
 import {
   LucideSearch,
@@ -53,13 +56,15 @@ import {
   templateUrl: './verifikasi-customer-list.component.html',
   styleUrl: './verifikasi-customer-list.component.css',
 })
-export class VerifikasiCustomerListComponent implements OnInit {
+export class VerifikasiCustomerListComponent implements OnInit, OnDestroy {
   private verifikasiService = inject(VerifikasiCustomerService);
+  private realtimeService = inject(RealTimeService);
   private toastService = inject(ToastService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
+  private destroy$ = new Subject<void>();
 
   // Table Configuration
   readonly columns: TableColumn[] = [
@@ -115,6 +120,15 @@ export class VerifikasiCustomerListComponent implements OnInit {
         this.currentPage.set(1);
         this.loadData();
       });
+
+      this.realtimeService.kycUpdates$
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((event) => {
+          this.toastService.info(
+            event.message || 'Terdapat data KYC nasabah baru/revisi.'
+          );
+          this.loadData();
+        });
     }
   }
 
@@ -366,5 +380,10 @@ export class VerifikasiCustomerListComponent implements OnInit {
     } catch {
       return dateStr;
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

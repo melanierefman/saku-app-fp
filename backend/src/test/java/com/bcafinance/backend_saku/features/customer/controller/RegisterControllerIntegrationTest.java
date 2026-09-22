@@ -3,7 +3,6 @@ package com.bcafinance.backend_saku.features.customer.controller;
 import com.bcafinance.backend_saku.core.exception.GlobalExceptionHandler;
 import com.bcafinance.backend_saku.features.customer.dto.AlamatCustomer;
 import com.bcafinance.backend_saku.features.customer.dto.RegisterStep1KtpRequest;
-import com.bcafinance.backend_saku.features.customer.dto.RegisterStep1Request;
 import com.bcafinance.backend_saku.features.customer.dto.RegisterStep2PersonalRequest;
 import com.bcafinance.backend_saku.features.customer.dto.RegisterStep5CompleteRequest;
 import com.bcafinance.backend_saku.features.customer.dto.RegisterStepResponse;
@@ -113,34 +112,5 @@ class RegisterControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.statusCode").value(200))
                 .andExpect(jsonPath("$.data.step").value(5));
-    }
-
-    @Test
-    @DisplayName("POST /step1 (Legacy): Berhasil mendaftarkan step 1 legacy")
-    void testRegisterStep1LegacySuccess() throws Exception {
-        UUID customerId = UUID.randomUUID();
-        RegisterStepResponse mockResponse = new RegisterStepResponse(
-                customerId,
-                1,
-                "Registrasi tahap 1 berhasil."
-        );
-
-        when(registerService.registerStep1(any(RegisterStep1Request.class))).thenReturn(mockResponse);
-
-        RegisterStep1Request req = new RegisterStep1Request(
-                "customer@example.com",
-                "testuser",
-                "081234567890",
-                "password123",
-                "password123"
-        );
-
-        mockMvc.perform(post("/api/auth/customer/register/step1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.statusCode").value(200))
-                .andExpect(jsonPath("$.data.customerId").value(customerId.toString()))
-                .andExpect(jsonPath("$.data.step").value(1));
     }
 }

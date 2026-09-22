@@ -8,25 +8,6 @@
 
   <!-- Right Header Actions Area -->
   <div class="flex items-center gap-2 sm:gap-3">
-    <!-- Notification Bell Icon Button -->
-    <button type="button"
-      class="p-2 rounded-xl text-neutral-60 hover:text-neutral-90 hover:bg-neutral-0/80 transition-colors relative cursor-pointer"
-      title="Notifikasi" aria-label="Notifikasi">
-      <svg lucideBell [size]="20" class="w-5 h-5"></svg>
-      <!-- Red unread dot indicator -->
-      <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full ring-2 ring-white"></span>
-    </button>
-
-    <!-- Help / FAQ Question Icon Button -->
-    <button type="button"
-      class="p-2 rounded-xl text-neutral-60 hover:text-neutral-90 hover:bg-neutral-0/80 transition-colors cursor-pointer"
-      title="Bantuan & Dukungan" aria-label="Bantuan">
-      <svg lucideCircleHelp [size]="20" class="w-5 h-5"></svg>
-    </button>
-
-    <!-- Vertical Separator Divider -->
-    <div class="h-7 w-[1px] bg-neutral-20 mx-1"></div>
-
     <!-- User Profile Dropdown Trigger -->
     <div class="relative">
       <button type="button" (click)="toggleUserDropdown()"

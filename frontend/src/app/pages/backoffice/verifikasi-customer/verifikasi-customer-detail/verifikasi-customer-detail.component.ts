@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   signal,
   inject,
   ChangeDetectorRef,
@@ -10,6 +11,7 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import {
   DropdownComponent,
   DropdownOption,
@@ -22,6 +24,7 @@ import {
   VerifikasiCustomerService,
   VerifikasiCustomerDetail,
   VerifikasiCustomerRequest,
+  RealTimeService,
 } from '../../../../core';
 import {
   LucideExternalLink,
@@ -36,7 +39,6 @@ import {
   LucideCheckCircle2,
   LucideXCircle,
   LucideAlertTriangle,
-  LucideRotateCcw,
 } from '@lucide/angular';
 import { environment } from '../../../../../environments/environment';
 import { formatDate as formatDateHelper } from '../../../../shared/utils/date.util';
@@ -64,18 +66,19 @@ import { formatDate as formatDateHelper } from '../../../../shared/utils/date.ut
     LucideCheckCircle2,
     LucideXCircle,
     LucideAlertTriangle,
-    LucideRotateCcw,
   ],
   templateUrl: './verifikasi-customer-detail.component.html',
   styleUrl: './verifikasi-customer-detail.component.css',
 })
-export class VerifikasiCustomerDetailComponent implements OnInit {
+export class VerifikasiCustomerDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private verifikasiService = inject(VerifikasiCustomerService);
+  private realtimeService = inject(RealTimeService);
   private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
   private platformId = inject(PLATFORM_ID);
+  private destroy$ = new Subject<void>();
 
   goBack(): void {
     this.router.navigate(['/verifikasi-customer']);
@@ -87,8 +90,6 @@ export class VerifikasiCustomerDetailComponent implements OnInit {
   isLoading = signal<boolean>(true);
   isSubmitting = signal<boolean>(false);
   isConfirmModalOpen = signal<boolean>(false);
-  isSuccessModalOpen = signal<boolean>(false);
-  lastSubmittedStatus = signal<string>('');
 
   // Form Signals
   selectedStatusVerifikasi = signal<string>('');
@@ -103,11 +104,12 @@ export class VerifikasiCustomerDetailComponent implements OnInit {
   // Fallback photo error signals
   selfieError = signal<boolean>(false);
   ktpError = signal<boolean>(false);
+  cacheBuster = signal<number>(Date.now());
 
   readonly statusVerifikasiOptions: DropdownOption[] = [
-    { value: 'APPROVED', label: 'Disetujui (APPROVED)' },
-    { value: 'PERLU_REVISI', label: 'Perlu Revisi (PERLU_REVISI)' },
-    { value: 'REJECTED', label: 'Ditolak (REJECTED)' },
+    { value: 'APPROVED', label: 'Disetujui' },
+    { value: 'PERLU_REVISI', label: 'Perlu Revisi' },
+    { value: 'REJECTED', label: 'Ditolak' },
   ];
 
   readonly presetReasons: Record<string, DropdownOption[]> = {
@@ -137,32 +139,42 @@ export class VerifikasiCustomerDetailComponent implements OnInit {
       },
       {
         value:
-          'Data NIK atau Nama Lengkap yang diinput tidak sesuai dengan fisik e-KTP. Mohon unggah ulang foto e-KTP yang valid.',
-        label: 'Data Input Tidak Sesuai Fisik e-KTP',
+          'Wajah pada foto selfie liveness tidak sesuai / berbeda orang dengan foto fisik e-KTP. Mohon unggah ulang foto selfie wajah Anda sendiri.',
+        label: 'Wajah Selfie Berbeda dengan Foto e-KTP',
       },
       {
         value:
           'Dokumen foto bukan fisik e-KTP asli (fotokopi / foto dari layar monitor). Mohon unggah foto fisik e-KTP asli.',
         label: 'Bukan Fisik e-KTP Asli (Fotokopi / Layar)',
       },
+      {
+        value:
+          'Data NIK atau Nama Lengkap yang diinput tidak sesuai dengan fisik e-KTP. Mohon unggah ulang foto e-KTP yang valid.',
+        label: 'Data Input Tidak Sesuai Fisik e-KTP',
+      },
       { value: 'LAINNYA', label: 'Lainnya (Tulis catatan khusus)...' },
     ],
     REJECTED: [
       {
-        value: 'Dokumen e-KTP terindikasi palsu / manipulasi digital.',
-        label: 'Dokumen Terindikasi Manipulasi / Palsu',
+        value: 'Identitas nasabah terindikasi pemalsuan, manipulasi digital, atau terdaftar dalam daftar hitam (blacklist).',
+        label: 'Identitas Terindikasi Pemalsuan / Fraud / Blacklist',
       },
       {
         value:
-          'Wajah pada foto selfie liveness tidak sesuai / berbeda orang dengan foto fisik e-KTP.',
-        label: 'Wajah Selfie Berbeda dengan Foto e-KTP',
+          'Usia nasabah tidak memenuhi kriteria dan regulasi layanan SAKU (kurang dari 21 tahun atau lebih dari 60 tahun).',
+        label: 'Usia Tidak Memenuhi Kriteria (< 21 atau > 60 Tahun)',
       },
       {
         value:
-          'Data pendaftaran nasabah tidak memenuhi kriteria dan regulasi verifikasi identitas SAKU.',
-        label: 'Tidak Memenuhi Kriteria Verifikasi SAKU',
+          'Domisili tempat tinggal atau wilayah kerja nasabah berada di luar jangkauan operasional layanan SAKU.',
+        label: 'Wilayah Domisili di Luar Jangkauan Layanan',
       },
-      { value: 'LAINNYA', label: 'Lainnya (Tulis catatan khusus)...' },
+      {
+        value:
+          'Profil nasabah tidak memenuhi standar kelayakan kredit dan kriteria risiko SAKU.',
+        label: 'Tidak Memenuhi Standar Kelayakan Kredit SAKU',
+      },
+      { value: 'LAINNYA', label: 'Lainnya (Tulis catatan internal)...' },
     ],
   };
 
@@ -170,6 +182,8 @@ export class VerifikasiCustomerDetailComponent implements OnInit {
     const s = this.selectedStatusVerifikasi();
     return this.presetReasons[s] || [];
   }
+
+  private lastActionTimestamp = 0;
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -184,21 +198,52 @@ export class VerifikasiCustomerDetailComponent implements OnInit {
           this.router.navigate(['/verifikasi-customer']);
         }
       });
+
+      this.realtimeService.kycUpdates$
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((event) => {
+          // Abaikan jika dalam masa cooldown setelah submit verifikasi sendiri
+          if (Date.now() - this.lastActionTimestamp < 3500) {
+            return;
+          }
+
+          const currentId = (this.customerId() || '').toLowerCase();
+          const refId = (event.referenceId || '').toLowerCase();
+          const isMatch = !!refId && (refId === currentId || currentId.includes(refId) || refId.includes(currentId));
+
+          if (isMatch) {
+            this.toastService.info(
+              event.message || 'Nasabah telah mengunggah revisi dokumen identitas. Data diperbarui otomatis.'
+            );
+            this.ktpError.set(false);
+            this.selfieError.set(false);
+            this.cacheBuster.set(Date.now());
+            this.loadDetail(this.customerId());
+          }
+        });
     }
   }
 
   loadDetail(id: string): void {
     this.isLoading.set(true);
+    this.ktpError.set(false);
+    this.selfieError.set(false);
+    this.cacheBuster.set(Date.now());
+
     this.verifikasiService.getDetail(id).subscribe({
       next: (res) => {
         if (res) {
           this.detail.set(res);
-          // Pre-populate if already verified
+          // Pre-populate if already verified, or reset if pending/revised
           if (res.statusVerifikasi && res.statusVerifikasi !== 'PENDING') {
             this.selectedStatusVerifikasi.set(res.statusVerifikasi);
-          }
-          if (res.catatanVerifikasi) {
-            this.catatanVerifikasi.set(res.catatanVerifikasi);
+            if (res.catatanVerifikasi) {
+              this.catatanVerifikasi.set(res.catatanVerifikasi);
+            }
+          } else {
+            this.selectedStatusVerifikasi.set('');
+            this.selectedKategoriAlasan.set('');
+            this.catatanVerifikasi.set('');
           }
         } else {
           this.toastService.error('Data verifikasi customer tidak ditemukan');
@@ -281,13 +326,13 @@ export class VerifikasiCustomerDetailComponent implements OnInit {
     };
 
     this.isSubmitting.set(true);
+    this.lastActionTimestamp = Date.now();
 
     this.verifikasiService.verifikasi(id, payload).subscribe({
       next: () => {
+        this.lastActionTimestamp = Date.now();
         this.isSubmitting.set(false);
         this.isConfirmModalOpen.set(false);
-        this.lastSubmittedStatus.set(status);
-        this.isSuccessModalOpen.set(true);
         this.toastService.success(
           `Keputusan verifikasi berhasil disimpan: ${this.getStatusDisplayLabel(status)}`
         );
@@ -302,15 +347,6 @@ export class VerifikasiCustomerDetailComponent implements OnInit {
         this.cdr.detectChanges();
       },
     });
-  }
-
-  closeSuccessModal(): void {
-    this.isSuccessModalOpen.set(false);
-  }
-
-  navigateToList(): void {
-    this.isSuccessModalOpen.set(false);
-    this.router.navigate(['/verifikasi-customer']);
   }
 
   // Image Preview Helpers
@@ -358,12 +394,15 @@ export class VerifikasiCustomerDetailComponent implements OnInit {
 
   openInNewTab(path?: string | null): void {
     if (!path) return;
-    const url = this.verifikasiService.getFileUrl(path);
+    const url = this.getFotoUrl(path);
     window.open(url, '_blank', 'noopener,noreferrer');
   }
 
   getFotoUrl(path?: string | null): string {
-    return this.verifikasiService.getFileUrl(path);
+    const rawUrl = this.verifikasiService.getFileUrl(path);
+    if (!rawUrl) return '';
+    const sep = rawUrl.includes('?') ? '&' : '?';
+    return `${rawUrl}${sep}_t=${this.cacheBuster()}`;
   }
 
   isPending(): boolean {
@@ -378,13 +417,13 @@ export class VerifikasiCustomerDetailComponent implements OnInit {
       case 'APPROVED':
       case 'DISETUJUI':
       case 'VERIFIED':
-        return 'Disetujui (APPROVED)';
+        return 'Disetujui';
       case 'REJECTED':
       case 'DITOLAK':
-        return 'Ditolak (REJECTED)';
+        return 'Ditolak';
       case 'PERLU_REVISI':
       case 'REVISI':
-        return 'Perlu Revisi (PERLU_REVISI)';
+        return 'Perlu Revisi';
       case 'PENDING':
       default:
         return 'Menunggu Verifikasi';
@@ -452,18 +491,18 @@ export class VerifikasiCustomerDetailComponent implements OnInit {
   }
 
   isVerifikasiApproved(): boolean {
-    const label = this.getStatusDisplayLabel();
-    return label === 'Disetujui (APPROVED)';
+    const s = (this.detail()?.statusVerifikasi || '').toUpperCase();
+    return s === 'APPROVED' || s === 'DISETUJUI' || s === 'VERIFIED';
   }
 
   isVerifikasiRejected(): boolean {
-    const label = this.getStatusDisplayLabel();
-    return label === 'Ditolak (REJECTED)';
+    const s = (this.detail()?.statusVerifikasi || '').toUpperCase();
+    return s === 'REJECTED' || s === 'DITOLAK';
   }
 
   isVerifikasiRevision(): boolean {
-    const label = this.getStatusDisplayLabel();
-    return label === 'Perlu Revisi (PERLU_REVISI)';
+    const s = (this.detail()?.statusVerifikasi || '').toUpperCase();
+    return s === 'PERLU_REVISI' || s === 'REVISI';
   }
 
   formatDateTime(dateStr?: string | null): string {
@@ -481,5 +520,10 @@ export class VerifikasiCustomerDetailComponent implements OnInit {
     } catch {
       return String(dateStr);
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

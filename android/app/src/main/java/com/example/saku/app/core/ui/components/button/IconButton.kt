@@ -30,7 +30,6 @@ import com.example.saku.app.ui.theme.Border
 import com.example.saku.app.ui.theme.Error
 import com.example.saku.app.ui.theme.Neutral10
 import com.example.saku.app.ui.theme.Neutral20
-import com.example.saku.app.ui.theme.Neutral40
 import com.example.saku.app.ui.theme.Neutral50
 import com.example.saku.app.ui.theme.Primary
 import com.example.saku.app.ui.theme.Primary0

@@ -19,61 +19,85 @@ class LoanRepositoryImpl @Inject constructor(
     private val loanDao: LoanDao
 ) : LoanRepository {
 
+    // Mengambil riwayat daftar pinjaman nasabah dengan caching Room DB
     override suspend fun getMyLoans(): ApiResult<List<LoanApplicationItemDto>> {
         return try {
             val response = customerApiService.getMyLoans()
             if (response.isSuccessful && response.body()?.data != null) {
                 val list = response.body()!!.data ?: emptyList()
-                // Cache into Room Database
                 if (list.isNotEmpty()) {
-                    loanDao.insertLoans(list.map { LoanApplicationEntity.fromDto(it) })
+                    try {
+                        loanDao.insertLoans(list.map { LoanApplicationEntity.fromDto(it) })
+                    } catch (dbEx: Exception) {
+                        // Abaikan kegagalan cache lokal
+                    }
                 }
                 ApiResult.Success(list, response.body()?.message)
             } else {
-                // Offline fallback from Room
-                val cached = loanDao.getAllLoans()
-                if (cached.isNotEmpty()) {
-                    ApiResult.Success(cached.map { it.toDto() }, "Menampilkan data pinjaman tersimpan")
-                } else {
+                try {
+                    val cached = loanDao.getAllLoans()
+                    if (cached.isNotEmpty()) {
+                        ApiResult.Success(cached.map { it.toDto() }, "Menampilkan data pinjaman tersimpan")
+                    } else {
+                        ApiResult.Error(ApiClient.parseError(response), response.code())
+                    }
+                } catch (dbEx: Exception) {
                     ApiResult.Error(ApiClient.parseError(response), response.code())
                 }
             }
         } catch (e: Exception) {
-            // Offline fallback from Room
-            val cached = loanDao.getAllLoans()
-            if (cached.isNotEmpty()) {
-                ApiResult.Success(cached.map { it.toDto() }, "Offline mode - data pinjaman lokal")
-            } else {
+            try {
+                val cached = loanDao.getAllLoans()
+                if (cached.isNotEmpty()) {
+                    ApiResult.Success(cached.map { it.toDto() }, "Offline mode - data pinjaman lokal")
+                } else {
+                    ApiResult.Error(e.localizedMessage ?: "Gagal memuat daftar pinjaman")
+                }
+            } catch (dbEx: Exception) {
                 ApiResult.Error(e.localizedMessage ?: "Gagal memuat daftar pinjaman")
             }
         }
     }
 
+    // Mengambil rincian pengajuan pinjaman berdasarkan ID dengan offline fallback
     override suspend fun getLoanById(id: String): ApiResult<LoanApplicationItemDto> {
         return try {
             val response = customerApiService.getLoanById(id)
             if (response.isSuccessful && response.body()?.data != null) {
                 val loan = response.body()!!.data!!
-                loanDao.insertLoan(LoanApplicationEntity.fromDto(loan))
+                try {
+                    loanDao.insertLoan(LoanApplicationEntity.fromDto(loan))
+                } catch (dbEx: Exception) {
+                    // Abaikan kegagalan cache lokal
+                }
                 ApiResult.Success(loan, response.body()?.message)
             } else {
-                val cached = loanDao.getLoanById(id)
-                if (cached != null) {
-                    ApiResult.Success(cached.toDto(), "Menampilkan detail pinjaman tersimpan")
-                } else {
+                try {
+                    val cached = loanDao.getLoanById(id)
+                    if (cached != null) {
+                        ApiResult.Success(cached.toDto(), "Menampilkan data pinjaman tersimpan")
+                    } else {
+                        ApiResult.Error(ApiClient.parseError(response), response.code())
+                    }
+                } catch (dbEx: Exception) {
                     ApiResult.Error(ApiClient.parseError(response), response.code())
                 }
             }
         } catch (e: Exception) {
-            val cached = loanDao.getLoanById(id)
-            if (cached != null) {
-                ApiResult.Success(cached.toDto(), "Offline mode - data detail lokal")
-            } else {
-                ApiResult.Error(e.localizedMessage ?: "Gagal memuat detail pinjaman")
+            try {
+                val cached = loanDao.getLoanById(id)
+                if (cached != null) {
+                    ApiResult.Success(cached.toDto(), "Offline mode - data pinjaman lokal")
+                } else {
+                    ApiResult.Error(e.localizedMessage ?: "Gagal memuat data pinjaman")
+                }
+            } catch (dbEx: Exception) {
+                ApiResult.Error(e.localizedMessage ?: "Gagal memuat data pinjaman")
             }
         }
     }
 
+    // Mengirim pengajuan formulir pinjaman langkah 1
     override suspend fun submitLoanStep1(request: PengajuanPinjamanRequestDto): ApiResult<PengajuanStepResponseDto> {
         return try {
             val response = customerApiService.submitLoanStep1(request)
@@ -91,6 +115,7 @@ class LoanRepositoryImpl @Inject constructor(
         }
     }
 
+    // Mengunggah dokumen persyaratan pinjaman langkah 2
     override suspend fun submitLoanStep2(
         pengajuanId: String,
         slipGaji: MultipartBody.Part?,
@@ -113,6 +138,7 @@ class LoanRepositoryImpl @Inject constructor(
         }
     }
 
+    // Mengambil jadwal daftar angsuran pinjaman nasabah
     override suspend fun getJadwalAngsuran(pengajuanId: String): ApiResult<List<AngsuranItemDto>> {
         return try {
             val response = customerApiService.getJadwalAngsuran(pengajuanId)

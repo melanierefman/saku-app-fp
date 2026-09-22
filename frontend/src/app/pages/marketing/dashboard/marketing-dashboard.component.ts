@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   signal,
   inject,
   ChangeDetectorRef,
@@ -9,13 +10,14 @@ import {
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { forkJoin, of, map, catchError } from 'rxjs';
+import { forkJoin, of, map, catchError, Subject, takeUntil } from 'rxjs';
 import {
   MarketingDashboardService,
   MarketingDashboardStats,
   DailyTrendItem,
   MarketingLoanService,
   MarketingPengajuanItemResponse,
+  RealTimeService,
 } from '../../../core';
 import {
   BadgeComponent,
@@ -60,13 +62,15 @@ import {
   templateUrl: './marketing-dashboard.component.html',
   styleUrl: './marketing-dashboard.component.css',
 })
-export class MarketingDashboardComponent implements OnInit {
+export class MarketingDashboardComponent implements OnInit, OnDestroy {
   private dashboardService = inject(MarketingDashboardService);
   private loanService = inject(MarketingLoanService);
+  private realtimeService = inject(RealTimeService);
   private toastService = inject(ToastService);
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
+  private destroy$ = new Subject<void>();
 
   // Loading signals
   isLoadingStats = signal<boolean>(true);
@@ -136,6 +140,12 @@ export class MarketingDashboardComponent implements OnInit {
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.loadAllData();
+
+      this.realtimeService.loanMarketingUpdates$
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => {
+          this.loadAllData();
+        });
     }
   }
 
@@ -355,5 +365,10 @@ export class MarketingDashboardComponent implements OnInit {
     } else {
       this.router.navigate(['/pengajuan-pinjaman']);
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

@@ -240,6 +240,7 @@ export interface MarketingPengajuanDetailResponse {
   rekomendasiPlafond?: string;
   plafonMaksimal?: number;
   estimasiPlafondDisetujui?: number;
+  totalPlafond?: number;
   isAmbigu?: boolean;
   notesAmbigu?: string[];
   ringkasanAnalisis?: string;

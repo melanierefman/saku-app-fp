@@ -74,28 +74,6 @@ data class UnreadNotifikasiCountDto(
     @SerializedName("unreadCount") val unreadCount: Long = 0L
 )
 
-// PROFILE UPDATE REQUEST DTOs
-data class UpdateProfileRequestDto(
-    @SerializedName("noHp") val noHp: String? = null,
-    @SerializedName("namaBank") val namaBank: String? = null,
-    @SerializedName("noRekening") val noRekening: String? = null,
-    @SerializedName("namaRekening") val namaRekening: String? = null,
-    @SerializedName("domisiliAlamatLengkap") val domisiliAlamatLengkap: String? = null,
-    @SerializedName("domisiliRt") val domisiliRt: String? = null,
-    @SerializedName("domisiliRw") val domisiliRw: String? = null,
-    @SerializedName("domisiliKelurahan") val domisiliKelurahan: String? = null,
-    @SerializedName("domisiliKecamatan") val domisiliKecamatan: String? = null,
-    @SerializedName("domisiliKotaKabupaten") val domisiliKotaKabupaten: String? = null,
-    @SerializedName("domisiliProvinsi") val domisiliProvinsi: String? = null,
-    @SerializedName("domisiliKodePos") val domisiliKodePos: String? = null,
-    @SerializedName("pekerjaan") val pekerjaan: String? = null,
-    @SerializedName("tempatKerja") val tempatKerja: String? = null,
-    @SerializedName("statusPekerjaan") val statusPekerjaan: String? = null,
-    @SerializedName("penghasilanBulanan") val penghasilanBulanan: Double? = null,
-    @SerializedName("lamaBekerjaBulan") val lamaBekerjaBulan: Int? = null,
-    @SerializedName("totalCicilanLainBulanan") val totalCicilanLainBulanan: Double? = null
-)
-
 data class UpdateRekeningRequestDto(
     @SerializedName("namaBank") val namaBank: String,
     @SerializedName("noRekening") val noRekening: String,

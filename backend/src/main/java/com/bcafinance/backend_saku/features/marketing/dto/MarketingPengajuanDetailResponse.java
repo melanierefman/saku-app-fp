@@ -67,6 +67,7 @@ public class MarketingPengajuanDetailResponse {
     private String plafonNama;
     private BigDecimal plafonMaksimal;
     private BigDecimal estimasiPlafondDisetujui;
+    private BigDecimal totalPlafond;
     private Boolean isAmbigu;
     private List<String> notesAmbigu;
     private String ringkasanAnalisis;

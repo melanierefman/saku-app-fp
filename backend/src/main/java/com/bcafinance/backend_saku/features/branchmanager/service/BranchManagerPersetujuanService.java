@@ -50,6 +50,8 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import com.bcafinance.backend_saku.core.dto.PageResponse;
+import com.bcafinance.backend_saku.core.realtime.RealTimeEmitterService;
+import com.bcafinance.backend_saku.core.realtime.RealTimeEventDto;
 
 @Service
 @RequiredArgsConstructor
@@ -69,6 +71,7 @@ public class BranchManagerPersetujuanService {
     private final ScoringService scoringService;
     private final com.bcafinance.backend_saku.features.customer.service.NotifikasiService notifikasiService;
     private final com.bcafinance.backend_saku.features.superadmin.auditlog.service.AuditLogService auditLogService;
+    private final RealTimeEmitterService realTimeEmitterService;
 
     public PageResponse<BranchManagerPengajuanItemResponse> findAllPaginated(int page, int size, String search, String statusFilter, UUID karyawanId) {
         List<BranchManagerPengajuanItemResponse> all = findAll(statusFilter, karyawanId);
@@ -110,15 +113,20 @@ public class BranchManagerPersetujuanService {
                 .filter(p -> {
 
                     // Hanya tampilkan pengajuan yang sudah selesai direview oleh marketing atau
-                    // sudah diproses oleh BM
+                    // sudah diproses oleh BM (disetujui / dicairkan / ditolak)
                     String status = p.getStatusPengajuan() != null ? p.getStatusPengajuan() : "";
-                    boolean isReviewedByMarketing = "SELESAI_DIREVIEW".equalsIgnoreCase(status)
-                            || "PENGAJUAN_DISETUJUI".equalsIgnoreCase(status);
+                    boolean isReviewedOrApproved = "SELESAI_DIREVIEW".equalsIgnoreCase(status)
+                            || "PENGAJUAN_DISETUJUI".equalsIgnoreCase(status)
+                            || "MENUNGGU_PENCAIRAN".equalsIgnoreCase(status)
+                            || "DICAIRKAN".equalsIgnoreCase(status)
+                            || "PENCAIRAN_SELESAI".equalsIgnoreCase(status)
+                            || "LUNAS".equalsIgnoreCase(status)
+                            || "APPROVED".equalsIgnoreCase(status);
                     boolean isRejectedWithBMReview = "PENGAJUAN_DITOLAK".equalsIgnoreCase(status)
                             && persetujuanRepository.findFirstByTrxPengajuanPinjamanIdOrderByCreatedDateDesc(p.getId())
                                     .isPresent();
 
-                    return isReviewedByMarketing || isRejectedWithBMReview;
+                    return isReviewedOrApproved || isRejectedWithBMReview;
                 })
                 .map(p -> {
                     Customer customer = customerRepository.findById(p.getMstCustomerId()).orElse(null);
@@ -355,6 +363,8 @@ public class BranchManagerPersetujuanService {
                 .dbrPercentage(analysis != null ? analysis.getDbrPercentage() : null)
                 .plafonNama(analysis != null ? analysis.getMatchedPlafondNama() : null)
                 .plafonMaksimal(analysis != null ? analysis.getMatchedPlafondMaksimal() : null)
+                .estimasiPlafondDisetujui(analysis != null ? analysis.getEstimasiPlafondDisetujui() : null)
+                .totalPlafond(analysis != null ? analysis.getEstimasiPlafondDisetujui() : null)
                 .notesAmbigu(analysis != null ? analysis.getIndikatorAmbigu() : List.of())
                 .ringkasanScoring(analysis != null ? analysis.getRingkasanAnalisis() : null)
                 .isAmbigu(analysis != null ? analysis.getIsAmbigu() : false)
@@ -496,9 +506,9 @@ public class BranchManagerPersetujuanService {
                     pengajuan.getId(),
                     "APPROVAL_BM",
                     "IN_APP",
-                    "Pinjaman Disetujui Branch Manager",
+                    "Pengajuan Pinjaman Disetujui",
                     "Selamat! Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan()
-                            + " telah disetujui oleh Branch Manager dan sedang dalam proses pencairan dana.");
+                            + " telah disetujui dan sedang dalam proses persiapan pencairan dana.");
         } else {
             notifikasiService.createNotification(
                     pengajuan.getMstCustomerId(),
@@ -507,7 +517,7 @@ public class BranchManagerPersetujuanService {
                     "IN_APP",
                     "Pengajuan Pinjaman Ditolak",
                     "Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan()
-                            + " tidak disetujui oleh Branch Manager. Catatan: " + request.getCatatan());
+                            + " belum dapat disetujui. Catatan: " + request.getCatatan());
         }
 
         if (auditLogService != null && karyawanId != null) {
@@ -515,6 +525,33 @@ public class BranchManagerPersetujuanService {
             String desc = "Branch Manager " + karyawan.getNama() + " memproses persetujuan pengajuan no. "
                     + pengajuan.getNomorPengajuan() + " (" + act + ")";
             auditLogService.recordLog(karyawanId, act, "PENGAJUAN", desc);
+        }
+
+        if (realTimeEmitterService != null) {
+            boolean isApproved = "DISETUJUI".equals(hasilPersetujuan);
+            String eventType = isApproved ? "LOAN_READY_FOR_DISBURSEMENT" : "LOAN_REJECTED_BY_BM";
+            String title = isApproved ? "Pinjaman Siap Dicairkan" : "Persetujuan Pinjaman Ditolak";
+            String msg = isApproved
+                    ? "Pinjaman no. " + pengajuan.getNomorPengajuan() + " telah disetujui Branch Manager dan siap dicairkan oleh Backoffice."
+                    : "Pinjaman no. " + pengajuan.getNomorPengajuan() + " ditolak oleh Branch Manager.";
+
+            List<String> targetRoles = isApproved
+                    ? List.of("ROLE_BACKOFFICE", "ROLE_MARKETING", "ROLE_SUPERADMIN")
+                    : List.of("ROLE_MARKETING", "ROLE_SUPERADMIN");
+
+            String customerName = customerRepository.findById(pengajuan.getMstCustomerId())
+                    .map(Customer::getNama).orElse("Nasabah");
+
+            realTimeEmitterService.broadcast(RealTimeEventDto.builder()
+                    .eventType(eventType)
+                    .referenceId(pengajuanId.toString())
+                    .nomorPengajuan(pengajuan.getNomorPengajuan())
+                    .customerName(customerName)
+                    .title(title)
+                    .message(msg)
+                    .targetRoles(targetRoles)
+                    .timestamp(LocalDateTime.now())
+                    .build());
         }
 
         return PersetujuanPinjamanResponse.builder()
@@ -532,7 +569,12 @@ public class BranchManagerPersetujuanService {
     }
 
     private String mapStatusTampilanBM(String rawStatus, Optional<Persetujuan> latestApproval) {
-        if ("PENGAJUAN_DISETUJUI".equalsIgnoreCase(rawStatus) || "APPROVED".equalsIgnoreCase(rawStatus)) {
+        if ("PENGAJUAN_DISETUJUI".equalsIgnoreCase(rawStatus)
+                || "APPROVED".equalsIgnoreCase(rawStatus)
+                || "MENUNGGU_PENCAIRAN".equalsIgnoreCase(rawStatus)
+                || "DICAIRKAN".equalsIgnoreCase(rawStatus)
+                || "PENCAIRAN_SELESAI".equalsIgnoreCase(rawStatus)
+                || "LUNAS".equalsIgnoreCase(rawStatus)) {
             return "PENGAJUAN_DISETUJUI";
         }
         if ("PENGAJUAN_DITOLAK".equalsIgnoreCase(rawStatus) || "DITOLAK".equalsIgnoreCase(rawStatus)) {

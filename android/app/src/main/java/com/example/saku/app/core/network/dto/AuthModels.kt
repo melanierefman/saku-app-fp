@@ -118,32 +118,3 @@ data class RegisterStepResponse(
     @SerializedName("step") val step: Int? = null,
     @SerializedName("message") val message: String? = null
 )
-
-// Legacy (4-step) DTOs
-data class RegisterStep1Request(
-    @SerializedName("email") val email: String,
-    @SerializedName("username") val username: String,
-    @SerializedName("noHp") val noHp: String,
-    @SerializedName("password") val password: String,
-    @SerializedName("confirmPassword") val confirmPassword: String,
-    @SerializedName("otpCode") val otpCode: String? = null
-)
-
-data class RegisterStep2Request(
-    @SerializedName("nik") val nik: String,
-    @SerializedName("namaLengkap") val namaLengkap: String,
-    @SerializedName("namaRekening") val namaRekening: String,
-    @SerializedName("namaBank") val namaBank: String,
-    @SerializedName("noRekening") val noRekening: String,
-    @SerializedName("pekerjaan") val pekerjaan: String,
-    @SerializedName("tempatKerja") val tempatKerja: String,
-    @SerializedName("statusPekerjaan") val statusPekerjaan: String,
-    @SerializedName("pendapatan") val pendapatan: Double,
-    @SerializedName("lamaBekerjaBulan") val lamaBekerjaBulan: Int,
-    @SerializedName("totalCicilanLainnya") val totalCicilanLainnya: Double = 0.0
-)
-
-data class RegisterStep3Request(
-    @SerializedName("alamatKtp") val alamatKtp: AlamatCustomerDto,
-    @SerializedName("alamatDomisili") val alamatDomisili: AlamatCustomerDto
-)

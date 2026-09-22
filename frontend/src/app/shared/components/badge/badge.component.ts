@@ -94,49 +94,49 @@ export class BadgeComponent {
     // Variants (Soft/Tint vs Solid vs Outline)
     switch (this.variant) {
       case 'primary':
-        classes.push('bg-primary-0 text-primary-70 border border-primary-20');
+        classes.push('bg-primary-0 text-primary-70');
         break;
       case 'solid-primary':
         classes.push('bg-primary text-white shadow-xs');
         break;
       case 'neutral':
-        classes.push('bg-neutral-0 text-neutral-50 border border-neutral-10');
+        classes.push('bg-neutral-0 text-neutral-50');
         break;
       case 'solid-neutral':
         classes.push('bg-neutral-50 text-white shadow-xs');
         break;
       case 'success':
-        classes.push('bg-success-0 text-success-70 border border-success-20');
+        classes.push('bg-success-0 text-success-70');
         break;
       case 'solid-success':
         classes.push('bg-success text-white shadow-xs');
         break;
       case 'warning':
-        classes.push('bg-warning-0 text-warning-80 border border-warning-20');
+        classes.push('bg-warning-0 text-warning-80');
         break;
       case 'solid-warning':
         classes.push('bg-warning text-white shadow-xs');
         break;
       case 'error':
-        classes.push('bg-error-0 text-error-70 border border-error-20');
+        classes.push('bg-error-0 text-error-70');
         break;
       case 'solid-error':
         classes.push('bg-error text-white shadow-xs');
         break;
       case 'purple':
-        classes.push('bg-purple-50 text-purple-700 border border-purple-200');
+        classes.push('bg-purple-50 text-purple-700');
         break;
       case 'indigo':
-        classes.push('bg-indigo-50 text-indigo-700 border border-indigo-200');
+        classes.push('bg-indigo-50 text-indigo-700');
         break;
       case 'info':
-        classes.push('bg-blue-50 text-blue-700 border border-blue-200');
+        classes.push('bg-blue-50 text-blue-700');
         break;
       case 'cyan':
-        classes.push('bg-cyan-50 text-cyan-700 border border-cyan-200');
+        classes.push('bg-cyan-50 text-cyan-700');
         break;
       case 'orange':
-        classes.push('bg-orange-50 text-orange-700 border border-orange-200');
+        classes.push('bg-orange-50 text-orange-700');
         break;
       case 'outline':
         classes.push('bg-white text-neutral-50 border border-neutral-200');

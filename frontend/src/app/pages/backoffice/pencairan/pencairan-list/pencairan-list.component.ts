@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   signal,
   inject,
   ChangeDetectorRef,
@@ -9,6 +10,7 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import {
   TableComponent,
   TableColumn,
@@ -27,6 +29,7 @@ import {
   PencairanService,
   PencairanItem,
   PencairanRequest,
+  RealTimeService,
 } from '../../../../core';
 import {
   LucideSearch,
@@ -56,13 +59,15 @@ import {
   templateUrl: './pencairan-list.component.html',
   styleUrl: './pencairan-list.component.css',
 })
-export class PencairanListComponent implements OnInit {
+export class PencairanListComponent implements OnInit, OnDestroy {
   private pencairanService = inject(PencairanService);
+  private realtimeService = inject(RealTimeService);
   private toastService = inject(ToastService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
+  private destroy$ = new Subject<void>();
 
   // Table Configuration
   readonly columns: TableColumn[] = [
@@ -124,6 +129,15 @@ export class PencairanListComponent implements OnInit {
         this.currentPage.set(1);
         this.loadData();
       });
+
+      this.realtimeService.loanPencairanUpdates$
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((event) => {
+          this.toastService.info(
+            event.message || 'Terdapat pinjaman baru yang siap dicairkan.'
+          );
+          this.loadData();
+        });
     }
   }
 
@@ -407,5 +421,10 @@ export class PencairanListComponent implements OnInit {
     if (!no) return '-';
     if (no.toUpperCase()) return no;
     return `${no}`;
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

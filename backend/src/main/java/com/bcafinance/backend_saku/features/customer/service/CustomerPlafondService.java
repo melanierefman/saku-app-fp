@@ -8,6 +8,7 @@ import com.bcafinance.backend_saku.core.repository.AngsuranRepository;
 import com.bcafinance.backend_saku.core.repository.PengajuanPinjamanRepository;
 import com.bcafinance.backend_saku.core.repository.PlafondRepository;
 import com.bcafinance.backend_saku.core.repository.ScoringCustomerRepository;
+import com.bcafinance.backend_saku.features.scoring.service.PlafondCalculator;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
@@ -43,10 +44,7 @@ public class CustomerPlafondService {
         }
     }
 
-    /**
-     * Menghitung ringkasan plafond nasabah secara real-time:
-     * Available Plafond = max(0, Total Plafond - Used Plafond)
-     */
+    // Menghitung ringkasan batas limit dan pemakaian plafond nasabah
     public CustomerPlafondSummary calculatePlafondSummary(UUID customerId) {
         if (customerId == null) {
             return new CustomerPlafondSummary(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, "Reguler", BigDecimal.valueOf(5.0), BigDecimal.valueOf(250_000));
@@ -83,6 +81,7 @@ public class CustomerPlafondService {
         );
     }
 
+    // Menentukan tier master plafond yang cocok berdasarkan skor kredit dan kapasitas gaji
     public Plafond resolveCustomerPlafond(ScoringCustomer scoring) {
         if (scoring == null) {
             return null;
@@ -141,6 +140,7 @@ public class CustomerPlafondService {
         return resolved;
     }
 
+    // Menghitung besaran nominal total plafond yang disetujui dari kalkulator tier
     private BigDecimal resolveTotalPlafondFromPlafond(ScoringCustomer scoring, Plafond plafond) {
         if (scoring == null) {
             return BigDecimal.ZERO;
@@ -151,26 +151,17 @@ public class CustomerPlafondService {
         }
 
         int skor = scoring.getSkor() != null ? scoring.getSkor() : 0;
-        int percentage = skor >= 75 ? 100 : (skor >= 60 ? 70 : 50);
+        BigDecimal pendapatan = scoring.getPenghasilanBulanan() != null ? scoring.getPenghasilanBulanan() : BigDecimal.ZERO;
+        BigDecimal cicilan = scoring.getTotalCicilanLainBulanan() != null ? scoring.getTotalCicilanLainBulanan() : BigDecimal.ZERO;
+        int tenure = scoring.getLamaBekerjaBulan() != null ? scoring.getLamaBekerjaBulan() : 0;
 
-        if (plafond.getPlafondMaksimal() != null) {
-            return plafond.getPlafondMaksimal()
-                    .multiply(BigDecimal.valueOf(percentage).movePointLeft(2))
-                    .setScale(2, RoundingMode.HALF_UP);
-        } else if (plafond.getMaxPlafond() != null) {
-            return plafond.getMaxPlafond()
-                    .multiply(BigDecimal.valueOf(percentage).movePointLeft(2))
-                    .setScale(2, RoundingMode.HALF_UP);
-        } else if (plafond.getMinPlafond() != null) {
-            return plafond.getMinPlafond();
-        }
+        PlafondCalculator.PersonalizedPlafondResult result = PlafondCalculator.calculate(
+                plafond, skor, pendapatan, cicilan, tenure);
 
-        return BigDecimal.valueOf(50_000_000);
+        return result.finalApprovedPlafond();
     }
 
-    /**
-     * Menentukan Total Plafond maksimal yang disetujui berdasarkan scoring nasabah
-     */
+    // Menentukan Total Plafond maksimal yang disetujui berdasarkan scoring nasabah
     public BigDecimal resolveTotalPlafond(ScoringCustomer scoring) {
         if (scoring == null) {
             return BigDecimal.ZERO;
@@ -179,9 +170,7 @@ public class CustomerPlafondService {
         return resolveTotalPlafondFromPlafond(scoring, plafond);
     }
 
-    /**
-     * Menghitung total pokok pinjaman yang sedang terpakai / terikat (Outstanding Principal)
-     */
+    // Menghitung total pokok pinjaman yang sedang terpakai atau terikat
     public BigDecimal calculateUsedPlafond(UUID customerId) {
         List<PengajuanPinjaman> loans = pengajuanRepository.findAllByMstCustomerIdOrderByCreatedDateDesc(customerId);
         BigDecimal totalUsed = BigDecimal.ZERO;
@@ -209,7 +198,6 @@ public class CustomerPlafondService {
                 totalUsed = totalUsed.add(outstandingPrincipal);
             } else {
                 // Pinjaman dalam pipeline (MENUNGGU_DOKUMEN, PENDING, SELESAI_DIREVIEW, PENGAJUAN_DISETUJUI, PERLU_REVISI, dll.)
-                // Mereservasi limit sebesar pokok pinjaman
                 if (p.getJumlahPinjaman() != null) {
                     totalUsed = totalUsed.add(p.getJumlahPinjaman());
                 }
@@ -219,9 +207,7 @@ public class CustomerPlafondService {
         return totalUsed.setScale(2, RoundingMode.HALF_UP);
     }
 
-    /**
-     * Menghitung sisa pokok untuk pinjaman aktif berdasarkan jadwal angsuran yang lunas
-     */
+    // Menghitung sisa pokok pinjaman aktif berdasarkan jadwal angsuran yang telah terbayar
     public BigDecimal calculateOutstandingPrincipalForLoan(PengajuanPinjaman p) {
         if (p.getJumlahPinjaman() == null || p.getJumlahPinjaman().compareTo(BigDecimal.ZERO) <= 0) {
             return BigDecimal.ZERO;
@@ -250,6 +236,7 @@ public class CustomerPlafondService {
         return sisaPokok.compareTo(BigDecimal.ZERO) > 0 ? sisaPokok : BigDecimal.ZERO;
     }
 
+    // Memformat nilai desimal ke string format mata uang Rupiah
     public static String formatRupiah(BigDecimal amount) {
         if (amount == null) {
             return "0";

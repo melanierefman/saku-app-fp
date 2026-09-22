@@ -61,8 +61,10 @@ class CustomerPlafondServiceTest {
 
         ScoringCustomer scoring = new ScoringCustomer();
         scoring.setMstCustomerId(customerId);
-        scoring.setMstPlafondId(plafondId);
-        scoring.setSkor(80); // >= 75 gives 100% limit
+        scoring.setSkor(100);
+        scoring.setPenghasilanBulanan(BigDecimal.valueOf(25_000_000));
+        scoring.setLamaBekerjaBulan(48);
+        scoring.setTotalCicilanLainBulanan(BigDecimal.ZERO);
 
         Plafond plafond = new Plafond();
         plafond.setId(plafondId);
@@ -70,6 +72,8 @@ class CustomerPlafondServiceTest {
         plafond.setMinSkor(70);
         plafond.setMaxSkor(100);
         plafond.setMinPendapatan(BigDecimal.valueOf(5_000_000));
+        plafond.setMinPlafond(BigDecimal.valueOf(10_000_000));
+        plafond.setMaxPlafond(BigDecimal.valueOf(50_000_000));
         plafond.setPlafondMaksimal(BigDecimal.valueOf(50_000_000));
         plafond.setStatus(true);
 

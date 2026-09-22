@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, timeout, map, catchError, of } from 'rxjs';
+import { Observable, map, catchError, of } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { ApiResponse } from '../../models/auth/auth.models';
 import { PageResponse } from '../../models/superadmin/karyawan.model';
@@ -19,8 +19,10 @@ import {
 export class MarketingLoanService {
   private http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/marketing/pengajuan-pinjaman`;
+  private scoreCache = new Map<string, number>();
+  private statusScoringCache = new Map<string, string>();
 
-  // 1. Get Paginated List
+  // Mengambil daftar pengajuan pinjaman marketing secara terpaginasi
   findAllPaginated(params?: {
     page?: number;
     size?: number;
@@ -58,28 +60,12 @@ export class MarketingLoanService {
       );
   }
 
-  // 2. Get All List (Unpaginated)
-  findAll(status?: string): Observable<MarketingPengajuanItemResponse[]> {
-    let httpParams = new HttpParams();
-    if (status) httpParams = httpParams.set('status', status);
-
-    return this.http
-      .get<ApiResponse<MarketingPengajuanItemResponse[]> | any>(`${this.baseUrl}/all`, {
-        params: httpParams,
-      })
-      .pipe(
-        map((res: any) => this.normalizeList(res)),
-        catchError(() => of([]))
-      );
-  }
-
-  private scoreCache = new Map<string, number>();
-  private statusScoringCache = new Map<string, string>();
-
+  // Mengambil skor kredit dari memori cache lokal
   getScoreFromCache(id: string): number | undefined {
     return this.scoreCache.get(id);
   }
 
+  // Menyimpan skor kredit dan status scoring ke cache lokal
   cacheScore(id: string, score: number, statusScoring?: string): void {
     if (id && score !== undefined && score !== null && !isNaN(score)) {
       this.scoreCache.set(id, score);
@@ -87,7 +73,7 @@ export class MarketingLoanService {
     }
   }
 
-  // 3. Get Detail By ID
+  // Mengambil rincian pengajuan pinjaman berdasarkan ID
   getDetail(id: string): Observable<MarketingPengajuanDetailResponse | null> {
     return this.http
       .get<ApiResponse<MarketingPengajuanDetailResponse> | any>(`${this.baseUrl}/${id}`)
@@ -114,7 +100,7 @@ export class MarketingLoanService {
       );
   }
 
-  // 4. Submit Review Decision (PUT /api/marketing/pengajuan-pinjaman/{id})
+  // Mengirim keputusan review marketing (DISETUJUI / DITOLAK)
   review(
     id: string,
     payload: ReviewPengajuanRequest
@@ -125,11 +111,7 @@ export class MarketingLoanService {
     );
   }
 
-  private normalizeList(res: any): MarketingPengajuanItemResponse[] {
-    const rawList = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
-    return rawList.map((item: any) => this.normalizeItem(item));
-  }
-
+  // Menstandarkan struktur objek data pengajuan pinjaman marketing
   private normalizeItem(item: any): MarketingPengajuanItemResponse {
     const id = item.id || item.pengajuanId || '';
     const cachedScore = id ? this.scoreCache.get(id) : undefined;
@@ -170,6 +152,7 @@ export class MarketingLoanService {
     };
   }
 
+  // Mem-parsing respons paginasi dari server
   private parseResponse(
     res: any,
     defaultSize: number

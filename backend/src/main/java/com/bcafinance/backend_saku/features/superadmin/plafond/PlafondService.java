@@ -3,9 +3,9 @@ package com.bcafinance.backend_saku.features.superadmin.plafond;
 import com.bcafinance.backend_saku.core.entity.Plafond;
 import com.bcafinance.backend_saku.core.exception.BussinessRuleException;
 import com.bcafinance.backend_saku.core.repository.PlafondRepository;
+import com.bcafinance.backend_saku.features.scoring.service.PlafondCalculator;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -90,29 +90,17 @@ public class PlafondService {
                             "Data master plafond aktif belum tersedia di sistem"));
         }
 
-        int percentage = mapScoreToPercentage(skorAkhir);
-        if (percentage == 0) {
-            percentage = 50;
-        }
+        PlafondCalculator.PersonalizedPlafondResult calcResult = PlafondCalculator.calculate(
+                plafond, skorInt, income, BigDecimal.ZERO, 24);
+        int percentage = (int) Math.round(calcResult.totalWeight() * 100);
         String decision = skorAkhir >= 75 ? "APPROVED" : skorAkhir >= 60 ? "REVIEW" : "REJECTED";
-        BigDecimal approvedAmount = plafond.getPlafondMaksimal() != null
-                ? plafond.getPlafondMaksimal()
-                        .multiply(BigDecimal.valueOf(percentage).movePointLeft(2))
-                        .setScale(2, RoundingMode.HALF_UP)
-                : (plafond.getMinPlafond() != null ? plafond.getMinPlafond() : BigDecimal.valueOf(1_000_000));
+        BigDecimal approvedAmount = calcResult.finalApprovedPlafond();
+
+        BigDecimal maxPlafond = plafond.getMaxPlafond() != null ? plafond.getMaxPlafond() : plafond.getPlafondMaksimal();
 
         return new PlafondCalculationResponse(
                 plafond.getId(), plafond.getNama(), decision, percentage,
-                plafond.getPlafondMaksimal(), approvedAmount);
-    }
-
-
-    private int mapScoreToPercentage(double score) {
-        if (score >= 75)
-            return 100;
-        if (score >= 60)
-            return 70;
-        return 0;
+                maxPlafond, approvedAmount);
     }
 
     private void applyRequest(Plafond plafond, PlafondRequest request) {

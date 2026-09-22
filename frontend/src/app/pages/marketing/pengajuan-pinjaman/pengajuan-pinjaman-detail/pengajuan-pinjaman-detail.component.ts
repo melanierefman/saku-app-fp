@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   signal,
   inject,
   ChangeDetectorRef,
@@ -10,6 +11,7 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import {
   DropdownComponent,
   DropdownOption,
@@ -23,6 +25,7 @@ import {
   ReviewPengajuanRequest,
   DokumenPinjamanItem,
   ReviewHistoryItem,
+  RealTimeService,
 } from '../../../../core';
 import {
   LucideFileText,
@@ -32,7 +35,6 @@ import {
   LucideShieldCheck,
   LucideClipboardCheck,
   LucideClock,
-  LucideAlertCircle,
   LucideInfo,
   LucideSend,
   LucideBriefcase,
@@ -69,7 +71,6 @@ export interface DisplayDocItem {
     LucideShieldCheck,
     LucideClipboardCheck,
     LucideClock,
-    LucideAlertCircle,
     LucideInfo,
     LucideSend,
     LucideBriefcase,
@@ -81,13 +82,15 @@ export interface DisplayDocItem {
   templateUrl: './pengajuan-pinjaman-detail.component.html',
   styleUrl: './pengajuan-pinjaman-detail.component.css',
 })
-export class PengajuanPinjamanDetailComponent implements OnInit {
+export class PengajuanPinjamanDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private marketingService = inject(MarketingLoanService);
+  private realtimeService = inject(RealTimeService);
   private toastService = inject(ToastService);
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
+  private destroy$ = new Subject<void>();
 
   goBack(): void {
     this.router.navigate(['/pengajuan-pinjaman']);
@@ -106,13 +109,14 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
 
   // Photo error fallback handling
   photoError = signal<boolean>(false);
+  cacheBuster = signal<number>(Date.now());
 
   onPhotoError(): void {
     this.photoError.set(true);
   }
 
   readonly reviewStatusOptions: DropdownOption[] = [
-    { value: 'DISETUJUI', label: 'Disetujui (Lolos Review)' },
+    { value: 'DISETUJUI', label: 'Disetujui' },
     { value: 'PERLU_REVISI', label: 'Perlu Revisi Dokumen' },
     { value: 'DITOLAK', label: 'Tolak Pengajuan' },
   ];
@@ -182,15 +186,61 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
     return this.presetReasons[s] || [];
   }
 
+  private lastActionTimestamp = 0;
+
   ngOnInit(): void {
     this.pengajuanId = this.route.snapshot.paramMap.get('id') || '';
     if (isPlatformBrowser(this.platformId) && this.pengajuanId) {
       this.loadDetail();
+
+      this.realtimeService.events$
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((event) => {
+          // Abaikan event dari hasil review sendiri atau jika baru saja melakukan aksi lokal
+          if (event.eventType === 'LOAN_REVIEWED' || event.eventType === 'LOAN_READY_FOR_BM') {
+            return;
+          }
+          if (Date.now() - this.lastActionTimestamp < 3500) {
+            return;
+          }
+
+          const loanId = (this.pengajuanId || '').toLowerCase();
+          const refId = (event.referenceId || '').toLowerCase();
+          const noPengajuan = (this.detail()?.nomorPengajuan || '').toLowerCase();
+          const evtNoPengajuan = (event.nomorPengajuan || '').toLowerCase();
+          const custId = (this.detail()?.customerId || '').toLowerCase();
+
+          const isMatch =
+            (!!refId && (refId === loanId || refId === custId)) ||
+            (!!evtNoPengajuan && !!noPengajuan && evtNoPengajuan === noPengajuan);
+
+          if (isMatch) {
+            this.toastService.info(
+              event.message || 'Terdapat pembaruan data/berkas nasabah untuk pengajuan ini. Data diperbarui otomatis.'
+            );
+            this.photoError.set(false);
+            this.cacheBuster.set(Date.now());
+            if (event.eventType === 'LOAN_REVISED' || event.eventType === 'LOAN_SUBMITTED' || event.eventType === 'KYC_REVISED') {
+              this.selectedReviewStatus.set('');
+              this.selectedKategoriAlasan.set('');
+              this.catatanReview.set('');
+            }
+            this.loadDetail();
+          }
+        });
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadDetail(): void {
     this.isLoading.set(true);
+    this.photoError.set(false);
+    this.cacheBuster.set(Date.now());
+
     this.marketingService.getDetail(this.pengajuanId).subscribe({
       next: (res) => {
         this.detail.set(res);
@@ -276,9 +326,11 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
     };
 
     this.isSubmitting.set(true);
+    this.lastActionTimestamp = Date.now();
 
     this.marketingService.review(this.pengajuanId, payload).subscribe({
       next: () => {
+        this.lastActionTimestamp = Date.now();
         this.isSubmitting.set(false);
         this.isConfirmModalOpen.set(false);
         this.toastService.success(
@@ -345,12 +397,14 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
 
   getStatusPekerjaanLabel(): string {
     const d = this.detail();
-    const s = d?.statusPekerjaan || d?.scoringStatusPekerjaan || 'KARYAWAN_TETAP';
+    const s = (d?.statusPekerjaan || d?.scoringStatusPekerjaan || '').toUpperCase();
     if (s === 'KARYAWAN_TETAP') return 'Karyawan Tetap';
     if (s === 'KARYAWAN_KONTRAK') return 'Karyawan Kontrak';
-    if (s === 'WIRASWASTA') return 'Wiraswasta';
+    if (s === 'WIRASWASTA' || s === 'WIRAUSAHA' || s === 'PENGUSAHA') return 'Wiraswasta';
     if (s === 'PROFESIONAL') return 'Profesional';
-    return s;
+    if (s === 'PNS' || s === 'PNS_BUMN' || s === 'PEGAWAI_NEGERI') return 'PNS / Pegawai BUMN';
+    if (s === 'IBU_RUMAH_TANGGA') return 'Ibu Rumah Tangga';
+    return s ? s.replace(/_/g, ' ') : '-';
   }
 
   getPendapatanBulanan(): number {
@@ -460,28 +514,47 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
   getPlafonMaksimal(): number {
     const d = this.detail();
     return (
-      d?.plafonMaksimal ??
       d?.estimasiPlafondDisetujui ??
+      d?.totalPlafond ??
+      d?.plafonMaksimal ??
       15000000
     );
   }
 
   getDbrPercentage(): string {
     const d = this.detail();
+    let num = 0;
     if (d?.dbrPercentage !== undefined && d?.dbrPercentage !== null && !isNaN(Number(d.dbrPercentage)) && Number(d.dbrPercentage) > 0) {
-      return Number(d.dbrPercentage).toFixed(1).replace('.', ',');
+      num = Number(d.dbrPercentage);
+    } else if (d?.dbr !== undefined && d?.dbr !== null && !isNaN(Number(d.dbr)) && Number(d.dbr) > 0) {
+      const raw = Number(d.dbr);
+      num = raw <= 1 ? raw * 100 : raw;
+    } else {
+      const cicilan = this.getCicilanBerjalan();
+      const pendapatan = this.getPendapatanBulanan();
+      if (pendapatan > 0 && cicilan > 0) {
+        num = (cicilan / pendapatan) * 100;
+      }
     }
-    if (d?.dbr !== undefined && d?.dbr !== null && !isNaN(Number(d.dbr)) && Number(d.dbr) > 0) {
-      const num = Number(d.dbr);
-      const pct = num <= 1 ? num * 100 : num;
-      return pct.toFixed(1).replace('.', ',');
-    }
+    return num % 1 === 0 ? num.toFixed(0) : num.toFixed(1).replace('.', ',');
+  }
+
+  getDbrFormulaDetail(): string {
     const cicilan = this.getCicilanBerjalan();
     const pendapatan = this.getPendapatanBulanan();
-    if (pendapatan > 0 && cicilan > 0) {
-      return ((cicilan / pendapatan) * 100).toFixed(1).replace('.', ',');
+    if (pendapatan > 0) {
+      return `${this.formatCurrency(cicilan)} / ${this.formatCurrency(pendapatan)}`;
     }
-    return '0,0';
+    return '';
+  }
+
+  getDbrStatusLabel(): string {
+    const pctStr = this.getDbrPercentage().replace(',', '.');
+    const num = parseFloat(pctStr) || 0;
+    if (num <= 30) return 'Kondisi Finansial Sehat';
+    if (num <= 40) return 'Kondisi Finansial Wajar';
+    if (num <= 50) return 'Perlu Diwaspadai';
+    return 'Beban Utang Tinggi';
   }
 
   getDbrColorClass(): string {
@@ -494,12 +567,17 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
 
   getKeputusanSistemLabel(): string {
     const d = this.detail();
+    const raw = (d?.keputusanSistem || d?.statusScoring || '').toUpperCase();
     const skor = this.getSkor();
-    const status = (d?.statusScoring || '').toUpperCase();
-    if (d?.keputusanSistem) return d.keputusanSistem;
-    if (status === 'APPROVED' || skor >= 75) return 'LAYAK (APPROVED)';
-    if (status === 'REVIEW' || (skor >= 60 && skor < 75)) return 'PERLU REVIEW (REVIEW)';
-    return 'TIDAK LAYAK (REJECTED)';
+
+    if (raw.includes('LAYAK') && !raw.includes('TIDAK')) return 'Layak';
+    if (raw.includes('TIDAK') || raw.includes('REJECT')) return 'Tidak Layak';
+    if (raw.includes('REVIEW')) return 'Perlu Review';
+    if (raw.includes('APPROV') || raw.includes('SETUJU')) return 'Layak';
+
+    if (skor >= 75) return 'Layak';
+    if (skor >= 60) return 'Perlu Review';
+    return 'Tidak Layak';
   }
 
   isAmbigu(): boolean {
@@ -571,7 +649,11 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
   getReviewHistory(): ReviewHistoryItem[] {
     const d = this.detail();
     if (d?.reviewHistory && Array.isArray(d.reviewHistory) && d.reviewHistory.length > 0) {
-      return d.reviewHistory;
+      return [...d.reviewHistory].sort((a, b) => {
+        const timeA = new Date(a.tanggalReview || a.tanggal || a.createdDate || '').getTime() || 0;
+        const timeB = new Date(b.tanggalReview || b.tanggal || b.createdDate || '').getTime() || 0;
+        return timeA - timeB;
+      });
     }
     return [];
   }
@@ -607,7 +689,9 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
     if (!cleanPath.startsWith('uploads/')) {
       cleanPath = `uploads/${cleanPath}`;
     }
-    return `${baseHost}/${cleanPath}`;
+    const resolvedUrl = `${baseHost}/${cleanPath}`;
+    const sep = resolvedUrl.includes('?') ? '&' : '?';
+    return `${resolvedUrl}${sep}_t=${this.cacheBuster()}`;
   }
 
   getFotoSelfieUrl(): string {

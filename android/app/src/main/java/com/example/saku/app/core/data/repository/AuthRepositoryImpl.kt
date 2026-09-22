@@ -20,6 +20,7 @@ import com.example.saku.app.core.network.dto.SendOtpRequest
 import com.example.saku.app.core.network.dto.SendOtpResponse
 import com.example.saku.app.core.network.dto.VerifyOtpRequest
 import com.example.saku.app.core.network.dto.VerifyOtpResponse
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.flow.Flow
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -38,6 +39,7 @@ class AuthRepositoryImpl @Inject constructor(
     override val userSession: Flow<UserSession?> = tokenManager.userSessionFlow
     override val isLoggedIn: Flow<Boolean> = tokenManager.isLoggedInFlow
 
+    // Melakukan login dengan username/email dan password serta menyimpan token
     override suspend fun login(usernameOrEmail: String, password: String): ApiResult<AuthResponse> {
         return try {
             val response = authApiService.login(LoginRequest(usernameOrEmail, password))
@@ -72,6 +74,7 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    // Mengajukan reset password menggunakan email atau nomor HP
     override suspend fun forgotPassword(emailOrPhone: String): ApiResult<SendOtpResponse> {
         return try {
             val response = authApiService.forgotPassword(ForgotPasswordRequest(emailOrPhone))
@@ -85,6 +88,7 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    // Mengonfirmasi perubahan password baru
     override suspend fun resetPassword(request: ResetPasswordRequest): ApiResult<String> {
         return try {
             val response = authApiService.resetPassword(request)
@@ -98,6 +102,7 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    // Melakukan logout dan membersihkan session lokal
     override suspend fun logout(): ApiResult<Unit> {
         return try {
             try {
@@ -111,19 +116,23 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    // Membersihkan session lokal tanpa memanggil API logout
     override suspend fun clearSession() {
         clearLocalData()
     }
 
+    // Menghapus data token, cache DAO Room, dan token FCM lokal
     private suspend fun clearLocalData() {
         tokenManager.clearSession()
         try {
             customerDao.clearProfile()
             loanDao.clearLoans()
             notificationDao.clearNotifications()
+            FirebaseMessaging.getInstance().deleteToken()
         } catch (_: Exception) {}
     }
 
+    // Mengirim kode OTP ke email
     override suspend fun sendOtp(email: String, purpose: String): ApiResult<SendOtpResponse> {
         return try {
             val response = authApiService.sendOtp(SendOtpRequest(email, purpose))
@@ -137,6 +146,7 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    // Memvalidasi kode OTP yang dimasukkan
     override suspend fun verifyOtp(email: String, otpCode: String, purpose: String): ApiResult<VerifyOtpResponse> {
         return try {
             val response = authApiService.verifyOtp(VerifyOtpRequest(email, otpCode, purpose))
@@ -150,6 +160,35 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    // Memeriksa apakah NIK sudah terdaftar
+    override suspend fun checkNik(nik: String, customerId: String?): ApiResult<Boolean> {
+        return try {
+            val response = authApiService.checkNik(nik, customerId)
+            if (response.isSuccessful && response.body()?.data != null) {
+                ApiResult.Success(response.body()!!.data!!, response.body()?.message)
+            } else {
+                ApiResult.Error(ApiClient.parseError(response), response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.localizedMessage ?: "Gagal memverifikasi NIK.")
+        }
+    }
+
+    // Memeriksa apakah nomor HP sudah terdaftar
+    override suspend fun checkPhone(phone: String, customerId: String?): ApiResult<Boolean> {
+        return try {
+            val response = authApiService.checkPhone(phone, customerId)
+            if (response.isSuccessful && response.body()?.data != null) {
+                ApiResult.Success(response.body()!!.data!!, response.body()?.message)
+            } else {
+                ApiResult.Error(ApiClient.parseError(response), response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.localizedMessage ?: "Gagal memverifikasi nomor handphone.")
+        }
+    }
+
+    // Mengunggah dokumen KTP untuk registrasi step 1
     override suspend fun registerStep1Ktp(
         customerId: String,
         ktp: MultipartBody.Part?,
@@ -167,6 +206,7 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    // Menyimpan data KTP berformat JSON untuk registrasi step 1
     override suspend fun registerStep1KtpJson(
         customerId: String,
         request: RegisterStep1KtpRequestDto
@@ -183,6 +223,7 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    // Menyimpan data pribadi dan pekerjaan untuk registrasi step 2
     override suspend fun registerStep2Personal(
         customerId: String,
         request: RegisterStep2PersonalRequestDto
@@ -199,6 +240,7 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    // Mengunggah rekaman/foto liveness untuk registrasi step 3
     override suspend fun registerStep3Liveness(
         customerId: String,
         selfie: MultipartBody.Part
@@ -215,23 +257,7 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun registerStep4(
-        customerId: String,
-        ktp: MultipartBody.Part?,
-        selfie: MultipartBody.Part?
-    ): ApiResult<RegisterStepResponse> {
-        return try {
-            val response = authApiService.registerStep4(customerId, ktp, selfie)
-            if (response.isSuccessful && response.body()?.data != null) {
-                ApiResult.Success(response.body()!!.data!!, response.body()?.message)
-            } else {
-                ApiResult.Error(ApiClient.parseError(response), response.code())
-            }
-        } catch (e: Exception) {
-            ApiResult.Error(e.localizedMessage ?: "Gagal mengunggah dokumen pendaftaran.")
-        }
-    }
-
+    // Menyetujui syarat dan ketentuan untuk registrasi step 4
     override suspend fun registerStep4Tnc(customerId: String): ApiResult<RegisterStepResponse> {
         return try {
             val response = authApiService.registerStep4Tnc(customerId)
@@ -245,6 +271,7 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    // Menyelesaikan pembuatan akun customer untuk registrasi step 5
     override suspend fun registerStep5Complete(
         customerId: String,
         request: RegisterStep5CompleteRequest

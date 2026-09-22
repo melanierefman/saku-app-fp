@@ -1,9 +1,7 @@
 package com.example.saku.app.features.home
 
-import coil.compose.AsyncImage
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.CircularProgressIndicator
-import com.example.saku.app.core.network.dto.CustomerProfileDto
 import com.example.saku.app.core.network.dto.NotifikasiItemDto
 import com.example.saku.app.core.network.dto.SimulasiPinjamanResponseDto
 import com.example.saku.app.features.history.HistoryScreen
@@ -15,12 +13,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,7 +24,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -45,14 +40,11 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.TrendingUp
-import androidx.compose.material.icons.rounded.AccountBalanceWallet
 import androidx.compose.material.icons.rounded.Calculate
-import androidx.compose.material.icons.rounded.CreditCard
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -61,28 +53,26 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
@@ -100,33 +90,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.saku.app.ui.theme.OverusedGrotesk
 import androidx.compose.ui.window.Dialog
-import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
-import com.composables.icons.lucide.Award
 import com.composables.icons.lucide.Bell
-import com.composables.icons.lucide.Calculator
 import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.CircleCheck
-import com.composables.icons.lucide.Clock
-import com.composables.icons.lucide.CreditCard
-import com.composables.icons.lucide.DollarSign
 import com.composables.icons.lucide.Eye
 import com.composables.icons.lucide.EyeOff
-import com.composables.icons.lucide.FileText
 import com.composables.icons.lucide.House
 import com.composables.icons.lucide.Info
-import com.composables.icons.lucide.Landmark
 import com.composables.icons.lucide.LogOut
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Palette
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Receipt
-import com.composables.icons.lucide.ShieldCheck
-import com.composables.icons.lucide.Sparkles
 import com.composables.icons.lucide.TrendingUp
 import com.composables.icons.lucide.User
 import com.composables.icons.lucide.Wallet
-import com.composables.icons.lucide.Zap
 import com.example.saku.app.R
 import com.example.saku.app.core.network.dto.AngsuranItemDto
 import com.example.saku.app.core.network.dto.LoanApplicationItemDto
@@ -146,16 +124,8 @@ import com.example.saku.app.ui.theme.Error
 import com.example.saku.app.ui.theme.Neutral20
 import com.example.saku.app.ui.theme.Primary
 import com.example.saku.app.ui.theme.Primary0
-import com.example.saku.app.ui.theme.Primary20
-import com.example.saku.app.ui.theme.Primary40
-import com.example.saku.app.ui.theme.Primary60
-import com.example.saku.app.ui.theme.Primary70
-import com.example.saku.app.ui.theme.Primary80
 import com.example.saku.app.ui.theme.SAKUAppTheme
 import com.example.saku.app.ui.theme.Success
-import com.example.saku.app.ui.theme.Success0
-import com.example.saku.app.ui.theme.Success20
-import com.example.saku.app.ui.theme.Success70
 import com.example.saku.app.ui.theme.Surface
 import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary
@@ -165,9 +135,10 @@ import java.util.Locale
 
 import com.example.saku.app.features.loans.payment.PaymentInfoBottomSheet
 
-import androidx.compose.foundation.layout.statusBarsPadding
 import com.example.saku.app.ui.theme.Neutral
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -201,6 +172,19 @@ fun HomeScreen(
 
     val currencyFormatter = remember {
         NumberFormat.getNumberInstance(Locale.forLanguageTag("id-ID"))
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.fetchUnreadNotificationCount()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
 
     // Refresh data saat HomeScreen aktif / tab berpindah
@@ -238,6 +222,18 @@ fun HomeScreen(
         }
     }
 
+    val handleAjukanClick: () -> Unit = {
+        if (inProgressLoans.isNotEmpty()) {
+            // Arahkan ke layar Simulasi Pinjaman agar nasabah tetap bisa mengecek estimasi cicilan
+            onNavigateToLoanSimulation()
+        } else if (availablePlafond >= 500_000.0) {
+            onNavigateToApplyLoan()
+        } else {
+            // Jika plafond belum mencukupi, arahkan juga ke simulasi pinjaman
+            onNavigateToLoanSimulation()
+        }
+    }
+
     val navItems =
         listOf(
             BottomNavItem(route = "home", title = "Beranda", icon = Lucide.House),
@@ -254,15 +250,7 @@ fun HomeScreen(
                 currentRoute = currentNavRoute,
                 onItemClick = { item ->
                     if (item.route == "apply") {
-                        if (availablePlafond >= 500_000.0) {
-                            onNavigateToApplyLoan()
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "Plafond Anda belum mencukupi untuk mengajukan pinjaman baru (Rp 0)",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
+                        handleAjukanClick()
                     } else {
                         viewModel.setNavRoute(item.route)
                     }
@@ -322,7 +310,7 @@ fun HomeScreen(
                         hasDisbursedLoan = hasDisbursedLoan,
                         currencyFormatter = currencyFormatter,
                         onToggleVisibility = viewModel::toggleBalanceVisibility,
-                        onAjukanClick = onNavigateToApplyLoan,
+                        onAjukanClick = handleAjukanClick,
                         onBayarClick = {
                             val active = activeLoans.firstOrNull()
                             if (active != null) {
@@ -351,7 +339,7 @@ fun HomeScreen(
                         totalPlafond = totalPlafond,
                         usedPlafond = usedPlafond,
                         currencyFormatter = currencyFormatter,
-                        onAjukanClick = onNavigateToApplyLoan,
+                        onAjukanClick = handleAjukanClick,
                         onSimulasiClick = onNavigateToLoanSimulation,
                         onPayClick = { loan ->
                             selectedLoanForPayment = loan
@@ -368,7 +356,7 @@ fun HomeScreen(
                         myLoans = myLoans,
                         customerProfile = customerProfile,
                         currencyFormatter = currencyFormatter,
-                        isAjukanEnabled = availablePlafond >= 500_000.0,
+                        isAjukanEnabled = availablePlafond >= 500_000.0 && inProgressLoans.isEmpty(),
                         onPayClick = { loan, angsuran ->
                             selectedLoanForPayment = loan
                             selectedAngsuranForPayment = angsuran
@@ -377,7 +365,7 @@ fun HomeScreen(
                         onDetailClick = { loan ->
                             loan.id?.let { onNavigateToLoanDetail(it) }
                         },
-                        onAjukanClick = onNavigateToApplyLoan,
+                        onAjukanClick = handleAjukanClick,
                         onRefresh = viewModel::fetchDashboardData,
                     )
                 }
@@ -387,8 +375,8 @@ fun HomeScreen(
                         selectedFilter = selectedHistoryFilter,
                         onFilterSelect = viewModel::setHistoryFilter,
                         currencyFormatter = currencyFormatter,
-                        isAjukanEnabled = availablePlafond >= 500_000.0,
-                        onAjukanClick = onNavigateToApplyLoan,
+                        isAjukanEnabled = availablePlafond >= 500_000.0 && inProgressLoans.isEmpty(),
+                        onAjukanClick = handleAjukanClick,
                         onDetailClick = { loan ->
                             loan.id?.let { onNavigateToLoanDetail(it) }
                         },
@@ -441,7 +429,7 @@ fun HomeScreen(
     // Credit Score Detail Dialog
     if (showCreditScoreDialog) {
         CreditScoreDetailDialog(
-            skorKredit = customerProfile?.skorKredit ?: 750,
+            skorKredit = customerProfile?.skorKredit ?: 81,
             tierName = customerProfile?.tierPlafond ?: "Tier Reguler",
             onDismiss = { showCreditScoreDialog = false },
             onPanduanUpgradeClick = {
@@ -465,7 +453,6 @@ fun HomeScreen(
         )
     }
 }
-
 
 // Beranda Tab Content
 @Composable
@@ -848,7 +835,7 @@ private fun PlafondMeshHeroCard(
                     }
                 }
 
-                // Sub-limit dark container (Total Plafond, Plafond Terpakai / Sedang Proses, Bunga Mulai)
+                // Sub-limit dark container (Total Plafond, Plafond Terpakai, Bunga)
                 // DIHIDE KETIKA DI-SCROLL KE BAWAH (Persis OVO di Gambar 2)
                 AnimatedVisibility(
                     visible = !isScrolled,
@@ -863,7 +850,7 @@ private fun PlafondMeshHeroCard(
                                 .clip(RoundedCornerShape(12.dp))
                                 .background(Color.Black.copy(alpha = 0.35f))
                                 .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
-                            .padding(horizontal = 14.dp, vertical = 9.dp),
+                                .padding(horizontal = 14.dp, vertical = 9.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
@@ -878,14 +865,8 @@ private fun PlafondMeshHeroCard(
                                     .background(Color.White.copy(alpha = 0.22f))
                             )
 
-                            val usedLabel = when {
-                                hasInProcessLoan && !hasDisbursedLoan -> "Sedang Proses"
-                                hasInProcessLoan && hasDisbursedLoan -> "Terpakai & Proses"
-                                else -> "Plafond Terpakai"
-                            }
-
                             SubLimitMetricItem(
-                                label = usedLabel,
+                                label = "Plafond Terpakai",
                                 value = if (isBalanceVisible) "Rp ${currencyFormatter.format(usedPlafond)}" else "Rp ••••••"
                             )
 
@@ -900,9 +881,10 @@ private fun PlafondMeshHeroCard(
                                 label = "Bunga",
                                 value = if (sukuBunga != null && sukuBunga > 0) {
                                     val pct = if (sukuBunga <= 1.0) sukuBunga * 100 else sukuBunga
-                                    if (pct % 1.0 == 0.0) "${pct.toLong()}% / bln" else "$pct% / bln"
+                                    val formatted = if (pct % 1.0 == 0.0) "${pct.toLong()}%" else "${pct.toString().replace('.', ',')}%"
+                                    "$formatted / bln"
                                 } else {
-                                    "4% / bln"
+                                    "1,25% / bln"
                                 }
                             )
                         }
@@ -1096,13 +1078,13 @@ private fun TagihanPinjamanAktifCard(
                     )
                     if (activeLoan != null) {
                         val (bVariant, bText) = when (rawStatus) {
-                            "DICAIRKAN", "DISBURSED" -> BadgeVariant.Success to "Dicairkan"
-                            "APPROVED", "DISETUJUI", "PENGAJUAN_DISETUJUI" -> BadgeVariant.Success to "Disetujui BM"
+                            "DICAIRKAN", "DISBURSED" -> BadgeVariant.Primary to "Dicairkan"
+                            "APPROVED", "DISETUJUI", "PENGAJUAN_DISETUJUI" -> BadgeVariant.Success to "Disetujui"
                             "MENUNGGU_PENCAIRAN" -> BadgeVariant.Success to "Menunggu Pencairan"
-                            "SELESAI_DIREVIEW", "MENUNGGU_PERSETUJUAN", "DISETUJUI_MARKETING" -> BadgeVariant.Primary to "Disetujui Marketing"
-                            "VERIFIKASI_MARKETING", "MENUNGGU_REVIEW" -> BadgeVariant.Primary to "Review Marketing"
-                            "PERLU_REVISI", "REVISI" -> BadgeVariant.Warning to "Perlu Revisi"
-                            else -> BadgeVariant.Primary to "Dalam Proses"
+                            "SELESAI_DIREVIEW", "MENUNGGU_PERSETUJUAN", "DISETUJUI_MARKETING" -> BadgeVariant.Info to "Menunggu Persetujuan"
+                            "VERIFIKASI_MARKETING", "MENUNGGU_REVIEW" -> BadgeVariant.Info to "Sedang Ditinjau"
+                            "PERLU_REVISI", "REVISI" -> BadgeVariant.Warning to "Revisi Dokumen"
+                            else -> BadgeVariant.Info to "Dalam Proses"
                         }
                         Badge(text = bText, variant = bVariant, size = BadgeSize.SM)
                     }
@@ -1918,11 +1900,37 @@ private fun formatNotificationTime(rawDate: String?): String {
 // Dialog: Credit Score Detail
 @Composable
 private fun CreditScoreDetailDialog(
-    skorKredit: Int = 750,
+    skorKredit: Int = 81,
     tierName: String = "Tier Reguler",
     onDismiss: () -> Unit,
     onPanduanUpgradeClick: () -> Unit
 ) {
+    val tierVariant = when {
+        tierName.contains("Platinum", ignoreCase = true) -> BadgeVariant.Primary
+        tierName.contains("Prioritas", ignoreCase = true) -> BadgeVariant.Success
+        tierName.contains("Reguler", ignoreCase = true) -> BadgeVariant.Warning
+        tierName.contains("Starter", ignoreCase = true) -> BadgeVariant.Neutral
+        else -> BadgeVariant.Neutral
+    }
+
+    val scoreBadgeText = when {
+        skorKredit >= 75 -> "Sangat Baik"
+        skorKredit >= 60 -> "Cukup Baik"
+        else -> "Perlu Peningkatan"
+    }
+
+    val scoreBadgeVariant = when {
+        skorKredit >= 75 -> BadgeVariant.Success
+        skorKredit >= 60 -> BadgeVariant.Warning
+        else -> BadgeVariant.Error
+    }
+
+    val scoreDesc = when {
+        skorKredit >= 75 -> "Kolektibilitas lancar. Anda memenuhi kualifikasi untuk proses pencairan instan."
+        skorKredit >= 60 -> "Kolektibilitas baik. Anda memenuhi syarat pinjaman dengan verifikasi berkas standar."
+        else -> "Tingkatkan skor Anda dengan melengkapi data profil dan pembayaran cicilan tepat waktu."
+    }
+
     Dialog(onDismissRequest = onDismiss) {
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -1997,19 +2005,19 @@ private fun CreditScoreDetailDialog(
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Badge(
-                            text = if (skorKredit >= 700) "Sangat Baik" else "Cukup Baik",
-                            variant = BadgeVariant.Success,
+                            text = scoreBadgeText,
+                            variant = scoreBadgeVariant,
                             size = BadgeSize.SM
                         )
                         Badge(
                             text = tierName,
-                            variant = BadgeVariant.Warning,
+                            variant = tierVariant,
                             size = BadgeSize.SM
                         )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Kolektibilitas lancar. Anda memenuhi kualifikasi untuk proses pencairan instan.",
+                        text = scoreDesc,
                         fontSize = 11.5.sp,
                         color = TextSecondary,
                         textAlign = TextAlign.Center,

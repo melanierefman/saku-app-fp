@@ -28,10 +28,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,7 +41,6 @@ import androidx.compose.ui.unit.sp
 import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.CircleCheck
 import com.composables.icons.lucide.KeyRound
-import com.composables.icons.lucide.Lock
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.ShieldCheck
 import com.example.saku.app.core.ui.components.Button
@@ -56,7 +53,6 @@ import com.example.saku.app.features.home.HomeViewModel
 import com.example.saku.app.ui.theme.Background
 import com.example.saku.app.ui.theme.Border
 import com.example.saku.app.ui.theme.Error
-import com.example.saku.app.ui.theme.Neutral10
 import com.example.saku.app.ui.theme.Primary
 import com.example.saku.app.ui.theme.Primary0
 import com.example.saku.app.ui.theme.Success
@@ -65,6 +61,8 @@ import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary
 import org.koin.androidx.compose.koinViewModel
 import com.example.saku.app.ui.theme.TextSecondary
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -264,7 +262,7 @@ fun ChangePasswordScreen(
     ConfirmationDialog(
         visible = showConfirmDialog,
         title = "Ganti Kata Sandi?",
-        message = "Pastikan Anda mengingat kata sandi baru ini saat masuk ke akun SAKU Anda berikutnya.",
+        message = "Simpan kata sandi baru untuk akun Anda?",
         type = DialogType.INFO,
         icon = Lucide.KeyRound,
         confirmButtonText = "Ya, Ganti",

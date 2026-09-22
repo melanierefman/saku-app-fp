@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   signal,
   inject,
   ChangeDetectorRef,
@@ -9,7 +10,7 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
-import { forkJoin, of, map, catchError, switchMap, Observable } from 'rxjs';
+import { forkJoin, of, map, catchError, switchMap, Observable, Subject, takeUntil } from 'rxjs';
 import {
   TableComponent,
   TableColumn,
@@ -26,6 +27,7 @@ import {
 import {
   BranchManagerApprovalService,
   BranchManagerPengajuanItemResponse,
+  RealTimeService,
 } from '../../../../core';
 import {
   LucideSearch,
@@ -54,13 +56,15 @@ import {
   templateUrl: './persetujuan-pinjaman-list.component.html',
   styleUrl: './persetujuan-pinjaman-list.component.css',
 })
-export class PersetujuanPinjamanListComponent implements OnInit {
+export class PersetujuanPinjamanListComponent implements OnInit, OnDestroy {
   private bmService = inject(BranchManagerApprovalService);
+  private realtimeService = inject(RealTimeService);
   private toastService = inject(ToastService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
+  private destroy$ = new Subject<void>();
 
   // Table Configuration
   readonly columns: TableColumn[] = [
@@ -124,6 +128,15 @@ export class PersetujuanPinjamanListComponent implements OnInit {
         this.currentPage.set(1);
         this.loadData();
       });
+
+      this.realtimeService.loanBmUpdates$
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((event) => {
+          this.toastService.info(
+            event.message || 'Terdapat pengajuan pinjaman yang menunggu persetujuan Anda.'
+          );
+          this.loadData();
+        });
     }
   }
 
@@ -492,5 +505,10 @@ export class PersetujuanPinjamanListComponent implements OnInit {
     if (score >= 60) return 'Sedang';
     if (score > 0) return 'Rendah';
     return 'Belum Dinilai';
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

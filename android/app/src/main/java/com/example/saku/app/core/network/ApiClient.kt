@@ -50,6 +50,34 @@ object ApiClient {
         return getRetrofit(context).create(com.example.saku.app.core.network.api.CustomerApiService::class.java)
     }
 
+    fun getWilayahApiService(): com.example.saku.app.core.network.api.WilayahApiService {
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+        val client = OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                val request = chain.request().newBuilder()
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                    .header("Accept", "application/json")
+                    .build()
+                chain.proceed(request)
+            }
+            .addInterceptor(loggingInterceptor)
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(15, TimeUnit.SECONDS)
+            .followRedirects(true)
+            .followSslRedirects(true)
+            .build()
+
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://wilayah.id/api/")
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .build()
+
+        return retrofit.create(com.example.saku.app.core.network.api.WilayahApiService::class.java)
+    }
+
     /**
      * Helper to parse error body when API returns HTTP 4xx/5xx
      */

@@ -1,6 +1,5 @@
 package com.example.saku.app.core.ui.components
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,6 +20,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -30,11 +30,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,7 +50,6 @@ import com.composables.icons.lucide.Search
 import com.composables.icons.lucide.X
 import com.example.saku.app.ui.theme.Border
 import com.example.saku.app.ui.theme.Error
-import com.example.saku.app.ui.theme.Neutral0
 import com.example.saku.app.ui.theme.Neutral10
 import com.example.saku.app.ui.theme.Neutral40
 import com.example.saku.app.ui.theme.Neutral60
@@ -64,6 +61,8 @@ import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary
 import com.example.saku.app.ui.theme.TextSecondary
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 data class DropdownOption(
     val value: String,
@@ -89,7 +88,8 @@ fun DropdownField(
     searchable: Boolean = true,
     clearable: Boolean = false,
     leadingIcon: ImageVector? = null,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    isLoading: Boolean = false
 ) {
     var isSheetOpen by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
@@ -216,7 +216,14 @@ fun DropdownField(
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (clearable && selectedOption != null && enabled) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp,
+                            color = Primary
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                    } else if (clearable && selectedOption != null && enabled) {
                         M3IconButton(
                             onClick = { onOptionSelect(null) },
                             modifier = Modifier.size(28.dp)
@@ -349,7 +356,28 @@ fun DropdownField(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Options List
-                if (filteredOptions.isEmpty()) {
+                if (isLoading && filteredOptions.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.5.dp,
+                                color = Primary
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Memuat daftar pilihan...",
+                                fontSize = 13.sp,
+                                color = TextMuted
+                            )
+                        }
+                    }
+                } else if (filteredOptions.isEmpty()) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()

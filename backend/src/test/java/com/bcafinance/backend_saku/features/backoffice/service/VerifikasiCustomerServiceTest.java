@@ -62,6 +62,12 @@ class VerifikasiCustomerServiceTest {
     @Mock
     private com.bcafinance.backend_saku.features.customer.service.NotifikasiService notifikasiService;
 
+    @Mock
+    private com.bcafinance.backend_saku.core.repository.KaryawanRepository karyawanRepository;
+
+    @Mock
+    private com.bcafinance.backend_saku.core.repository.PlafondRepository plafondRepository;
+
     @InjectMocks
     private VerifikasiCustomerService verifikasiCustomerService;
 

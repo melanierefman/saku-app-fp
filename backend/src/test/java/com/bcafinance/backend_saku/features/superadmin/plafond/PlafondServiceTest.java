@@ -163,7 +163,7 @@ class PlafondServiceTest {
     }
 
     @Test
-    @DisplayName("calculateApprovedAmount - should return APPROVED and 100% for score >= 75")
+    @DisplayName("calculateApprovedAmount - should return APPROVED and calculated WSM percentage for score >= 75")
     void calculateApprovedAmount_Score75_ShouldReturnApproved100Percent() {
         when(plafondRepository.findAllByStatusTrue()).thenReturn(List.of(testPlafond));
 
@@ -171,12 +171,12 @@ class PlafondServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getKeputusan()).isEqualTo("APPROVED");
-        assertThat(result.getPersentaseApproval()).isEqualTo(100);
-        assertThat(result.getApprovedAmount()).isEqualByComparingTo(new BigDecimal("20000000.00"));
+        assertThat(result.getPersentaseApproval()).isEqualTo(79);
+        assertThat(result.getApprovedAmount()).isEqualByComparingTo(new BigDecimal("16000000.00"));
     }
 
     @Test
-    @DisplayName("calculateApprovedAmount - should return REVIEW and 70% for score >= 60 and < 75")
+    @DisplayName("calculateApprovedAmount - should return REVIEW and calculated WSM percentage for score >= 60 and < 75")
     void calculateApprovedAmount_Score65_ShouldReturnReview70Percent() {
         when(plafondRepository.findAllByStatusTrue()).thenReturn(List.of(testPlafond));
 
@@ -184,12 +184,12 @@ class PlafondServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getKeputusan()).isEqualTo("REVIEW");
-        assertThat(result.getPersentaseApproval()).isEqualTo(70);
-        assertThat(result.getApprovedAmount()).isEqualByComparingTo(new BigDecimal("14000000.00"));
+        assertThat(result.getPersentaseApproval()).isEqualTo(54);
+        assertThat(result.getApprovedAmount()).isEqualByComparingTo(new BigDecimal("11500000.00"));
     }
 
     @Test
-    @DisplayName("calculateApprovedAmount - should return REJECTED and fallback percentage 50% for score < 60")
+    @DisplayName("calculateApprovedAmount - should return REJECTED and calculated WSM percentage for score < 60")
     void calculateApprovedAmount_Score50_ShouldReturnRejected50Percent() {
         when(plafondRepository.findAllByStatusTrue()).thenReturn(List.of());
         when(plafondRepository.findTopByMinPendapatanLessThanEqualAndStatusTrueOrderByMinPendapatanDesc(new BigDecimal("7000000.00")))
@@ -199,8 +199,8 @@ class PlafondServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getKeputusan()).isEqualTo("REJECTED");
-        assertThat(result.getPersentaseApproval()).isEqualTo(50);
-        assertThat(result.getApprovedAmount()).isEqualByComparingTo(new BigDecimal("10000000.00"));
+        assertThat(result.getPersentaseApproval()).isEqualTo(48);
+        assertThat(result.getApprovedAmount()).isEqualByComparingTo(new BigDecimal("10500000.00"));
     }
 
     @Test

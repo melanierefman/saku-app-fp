@@ -39,9 +39,12 @@ public class VerifikasiCustomerService {
     private final AlamatCustomerRepository alamatRepository;
     private final DokumenCustomerRepository dokumenRepository;
     private final PlafondService plafondService;
+    private final com.bcafinance.backend_saku.core.repository.KaryawanRepository karyawanRepository;
+    private final com.bcafinance.backend_saku.core.repository.PlafondRepository plafondRepository;
     private final com.bcafinance.backend_saku.features.scoring.service.ScoringService scoringService;
     private final com.bcafinance.backend_saku.features.superadmin.auditlog.service.AuditLogService auditLogService;
     private final com.bcafinance.backend_saku.features.customer.service.NotifikasiService notifikasiService;
+    private final com.bcafinance.backend_saku.core.repository.NotifikasiRepository notifikasiRepository;
 
     public PageResponse<VerifikasiCustomerItemResponse> findAllPaginated(int page, int size, String search, String statusFilter) {
         List<VerifikasiCustomerItemResponse> all = findAll(statusFilter);
@@ -64,6 +67,7 @@ public class VerifikasiCustomerService {
         List<Customer> customers = customerRepository.findAllByOrderByCreatedDateDesc();
 
         return customers.stream()
+                .filter(this::isRegistrationCompleted)
                 .map(customer -> {
                     Optional<VerifikasiCustomer> latestVerification = verifikasiRepository
                             .findFirstByMstCustomerIdOrderByCreatedDateDesc(customer.getId());
@@ -95,6 +99,7 @@ public class VerifikasiCustomerService {
 
     public List<PendingCustomerResponse> findPending() {
         return customerRepository.findAllByOrderByCreatedDateDesc().stream()
+                .filter(this::isRegistrationCompleted)
                 .filter(customer -> {
                     Optional<VerifikasiCustomer> latestVerification = verifikasiRepository
                             .findFirstByMstCustomerIdOrderByCreatedDateDesc(customer.getId());
@@ -119,6 +124,19 @@ public class VerifikasiCustomerService {
                             .build();
                 })
                 .toList();
+    }
+
+    private boolean isRegistrationCompleted(Customer customer) {
+        if (customer == null) return false;
+        if ("PENDING".equalsIgnoreCase(customer.getNik()) ||
+            "PENDING".equalsIgnoreCase(customer.getPassword()) ||
+            "PENDING".equalsIgnoreCase(customer.getNama()) ||
+            "PENDING".equalsIgnoreCase(customer.getNoHp()) ||
+            customer.getNik() == null || customer.getNik().isBlank() ||
+            customer.getPassword() == null || customer.getPassword().isBlank()) {
+            return false;
+        }
+        return true;
     }
 
     public VerifikasiCustomerDetailResponse getDetail(UUID customerId) {
@@ -209,6 +227,9 @@ public class VerifikasiCustomerService {
             plafondId = calculation.getPlafondId();
             approvedAmount = calculation.getApprovedAmount();
             keputusan = calculation.getKeputusan();
+            if (plafondId != null && !plafondRepository.existsById(plafondId)) {
+                plafondId = null;
+            }
             scoring.setMstPlafondId(plafondId);
             customer.setStatus(true);
 
@@ -233,6 +254,15 @@ public class VerifikasiCustomerService {
         customer.setUpdatedDate(LocalDateTime.now());
         customerRepository.save(customer);
 
+        UUID effectiveKaryawanId = karyawanId;
+        if (effectiveKaryawanId == null || !karyawanRepository.existsById(effectiveKaryawanId)) {
+            effectiveKaryawanId = karyawanRepository.findAll().stream()
+                    .filter(k -> Boolean.TRUE.equals(k.getStatus()))
+                    .map(com.bcafinance.backend_saku.core.entity.Karyawan::getId)
+                    .findFirst()
+                    .orElse(karyawanId);
+        }
+
         VerifikasiCustomer verification = new VerifikasiCustomer();
         verification.setId(UUID.randomUUID());
         verification.setStatusVerifikasi(status);
@@ -240,24 +270,27 @@ public class VerifikasiCustomerService {
         verification.setCreatedDate(LocalDateTime.now());
         verification.setUpdatedDate(LocalDateTime.now());
         verification.setMstCustomerId(customerId);
-        verification.setMstKaryawanId(karyawanId);
+        verification.setMstKaryawanId(effectiveKaryawanId);
         verifikasiRepository.save(verification);
 
-        if (auditLogService != null && karyawanId != null) {
+        if (auditLogService != null && effectiveKaryawanId != null) {
             String desc = "Backoffice memverifikasi KYC customer " + customer.getNama() + " (" + customer.getEmail()
                     + ") dengan status: " + status;
-            auditLogService.recordLog(karyawanId, "VERIFIKASI_KYC", "CUSTOMER", desc);
+            auditLogService.recordLog(effectiveKaryawanId, "VERIFIKASI_KYC", "CUSTOMER", desc);
         }
 
         if (notifikasiService != null) {
             if ("APPROVED".equalsIgnoreCase(status)) {
+                if (notifikasiRepository != null) {
+                    notifikasiRepository.deleteByMstCustomerIdAndTrxPengajuanPinjamanIdIsNull(customerId);
+                }
                 notifikasiService.createNotification(
                         customerId,
                         null,
-                        "KYC",
+                        "WELCOME",
                         "IN_APP",
-                        "Verifikasi Akun Berhasil",
-                        "Selamat! Akun Anda telah berhasil diverifikasi dan limit kredit Anda telah aktif."
+                        "Selamat Datang di SAKU! 🎉",
+                        "Akun Anda telah aktif dan terverifikasi. Nikmati kemudahan pengajuan pinjaman cepat dan aman bersama SAKU."
                 );
             } else if ("PERLU_REVISI".equalsIgnoreCase(status)) {
                 String catatan = (request.getCatatanVerifikasi() != null && !request.getCatatanVerifikasi().isBlank())
@@ -272,16 +305,13 @@ public class VerifikasiCustomerService {
                         "Dokumen verifikasi akun Anda perlu diperbaiki. Catatan: " + catatan
                 );
             } else if ("REJECTED".equalsIgnoreCase(status)) {
-                String catatan = (request.getCatatanVerifikasi() != null && !request.getCatatanVerifikasi().isBlank())
-                        ? request.getCatatanVerifikasi()
-                        : "Tidak memenuhi kriteria kelayakan.";
                 notifikasiService.createNotification(
                         customerId,
                         null,
                         "KYC",
                         "IN_APP",
                         "Verifikasi Akun Belum Berhasil",
-                        "Mohon maaf, pengajuan verifikasi akun Anda belum dapat disetujui. Alasan: " + catatan
+                        "Mohon maaf, pengajuan pendaftaran akun Anda saat ini belum memenuhi kriteria kelayakan layanan SAKU."
                 );
             }
         }

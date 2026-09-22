@@ -17,5 +17,10 @@ public interface NotifikasiRepository extends JpaRepository<Notifikasi, UUID> {
     long countByMstCustomerIdAndStatus(UUID mstCustomerId, String status);
 
     List<Notifikasi> findAllByMstCustomerIdAndStatus(UUID mstCustomerId, String status);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
+    @org.springframework.data.jpa.repository.Query("DELETE FROM Notifikasi n WHERE n.mstCustomerId = :mstCustomerId AND n.trxPengajuanPinjamanId IS NULL")
+    void deleteByMstCustomerIdAndTrxPengajuanPinjamanIdIsNull(UUID mstCustomerId);
 }
 

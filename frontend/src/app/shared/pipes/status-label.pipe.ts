@@ -62,6 +62,53 @@ export class StatusLabelPipe implements PipeTransform {
       case 'UNVERIFIED':
         return 'Belum Verifikasi';
 
+      // Status Pekerjaan / Kepegawaian
+      case 'KARYAWAN_TETAP':
+        return 'Karyawan Tetap';
+      case 'KARYAWAN_KONTRAK':
+        return 'Karyawan Kontrak';
+      case 'WIRASWASTA':
+      case 'WIRAUSAHA':
+      case 'PENGUSAHA':
+        return 'Wiraswasta';
+      case 'PROFESIONAL':
+        return 'Profesional';
+      case 'PNS':
+      case 'PNS_BUMN':
+      case 'PEGAWAI_NEGERI':
+        return 'PNS / Pegawai BUMN';
+      case 'IBU_RUMAH_TANGGA':
+        return 'Ibu Rumah Tangga';
+      case 'LAINNYA':
+        return 'Lainnya';
+
+      // Tipe Dokumen
+      case 'SLIP_GAJI':
+        return 'Slip Gaji';
+      case 'REKENING_KORAN':
+        return 'Rekening Koran';
+      case 'NPWP':
+        return 'NPWP';
+      case 'KTP':
+        return 'Foto e-KTP';
+      case 'SELFIE':
+        return 'Foto Selfie';
+
+      // Scoring & Rekomendasi
+      case 'LAYAK':
+      case 'APPROVED_SCORING':
+        return 'Layak';
+      case 'REVIEW':
+      case 'PERLU_REVIEW':
+        return 'Perlu Review';
+      case 'TIDAK_LAYAK':
+      case 'REJECTED_SCORING':
+        return 'Tidak Layak';
+      case 'DIREKOMENDASIKAN':
+        return 'Direkomendasikan';
+      case 'TIDAK_DIREKOMENDASIKAN':
+        return 'Tidak Direkomendasikan';
+
       // Master & General Statuses
       case 'AKTIF':
       case 'ACTIVE':

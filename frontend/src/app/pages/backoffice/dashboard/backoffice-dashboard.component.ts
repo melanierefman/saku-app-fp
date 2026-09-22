@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   signal,
   inject,
   ChangeDetectorRef,
@@ -9,6 +10,7 @@ import {
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import {
   BackofficeDashboardService,
   BackofficeDashboardStats,
@@ -17,6 +19,7 @@ import {
   VerifikasiCustomerItem,
   BackOfficePencairanService,
   PencairanItem,
+  RealTimeService,
 } from '../../../core';
 import {
   BadgeComponent,
@@ -70,14 +73,16 @@ export interface BankItemDisplay {
   templateUrl: './backoffice-dashboard.component.html',
   styleUrl: './backoffice-dashboard.component.css',
 })
-export class BackofficeDashboardComponent implements OnInit {
+export class BackofficeDashboardComponent implements OnInit, OnDestroy {
   private dashboardService = inject(BackofficeDashboardService);
   private kycService = inject(BackOfficeVerifikasiCustomerService);
   private pencairanService = inject(BackOfficePencairanService);
+  private realtimeService = inject(RealTimeService);
   private toastService = inject(ToastService);
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
+  private destroy$ = new Subject<void>();
 
   // Loading signals
   isLoadingStats = signal<boolean>(true);
@@ -145,6 +150,19 @@ export class BackofficeDashboardComponent implements OnInit {
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.loadAllData();
+
+      this.realtimeService.events$
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((event) => {
+          if (
+            event.eventType === 'KYC_SUBMITTED' ||
+            event.eventType === 'KYC_REVISED' ||
+            event.eventType === 'LOAN_READY_FOR_DISBURSEMENT' ||
+            event.eventType === 'LOAN_DISBURSED'
+          ) {
+            this.loadAllData();
+          }
+        });
     }
   }
 
@@ -365,5 +383,10 @@ export class BackofficeDashboardComponent implements OnInit {
       default:
         return 'Menunggu Pencairan';
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }
