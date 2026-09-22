@@ -43,8 +43,8 @@ public class PengajuanPinjaman {
     private String tujuanPinjaman;
 
     @NotNull
-    @Digits(integer = 1, fraction = 2)
-    @Column(name = "bunga", nullable = false, precision = 3, scale = 2)
+    @Digits(integer = 2, fraction = 4)
+    @Column(name = "bunga", nullable = false, precision = 6, scale = 4)
     private BigDecimal bunga;
 
     @NotNull

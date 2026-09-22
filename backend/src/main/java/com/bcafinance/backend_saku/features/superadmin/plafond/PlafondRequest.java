@@ -53,7 +53,7 @@ public class PlafondRequest {
 
     @NotNull
     @DecimalMin("0")
-    @Digits(integer = 1, fraction = 2)
+    @Digits(integer = 2, fraction = 4)
     private BigDecimal bunga;
 
     @NotNull
