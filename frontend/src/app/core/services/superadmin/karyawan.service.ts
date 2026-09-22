@@ -19,13 +19,8 @@ export class KaryawanService extends BaseApiService<
 > {
   protected endpoint = 'karyawan';
 
-  // GET Paginated
+  // Mengambil daftar karyawan terpaginasi beserta filter
   getKaryawanPage(params?: KaryawanQueryParams): Observable<PageResponse<Karyawan>> {
     return this.getPaginated(params);
-  }
-
-  // GET All Unpaginated
-  getAllKaryawan(): Observable<Karyawan[]> {
-    return this.getAllUnpaginated();
   }
 }

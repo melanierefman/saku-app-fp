@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   signal,
   inject,
   ChangeDetectorRef,
@@ -10,6 +11,7 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import {
   DropdownComponent,
   DropdownOption,
@@ -24,6 +26,7 @@ import {
   DokumenPinjamanItem,
   ReviewMarketingHistoryItem,
   PersetujuanHistoryItem,
+  RealTimeService,
 } from '../../../../core';
 import {
   LucideFileText,
@@ -75,13 +78,15 @@ import { formatDate as formatDateHelper } from '../../../../shared/utils/date.ut
   templateUrl: './persetujuan-pinjaman-detail.component.html',
   styleUrl: './persetujuan-pinjaman-detail.component.css',
 })
-export class PersetujuanPinjamanDetailComponent implements OnInit {
+export class PersetujuanPinjamanDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private bmService = inject(BranchManagerApprovalService);
+  private realtimeService = inject(RealTimeService);
   private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
   private platformId = inject(PLATFORM_ID);
+  private destroy$ = new Subject<void>();
 
   goBack(): void {
     this.router.navigate(['/persetujuan-pinjaman']);
@@ -94,6 +99,7 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
   isConfirmModalOpen = signal<boolean>(false);
   pengajuanId = signal<string>('');
   photoError = signal<boolean>(false);
+  cacheBuster = signal<number>(Date.now());
 
   // Form Signals
   selectedKeputusan = signal<string>('');
@@ -160,12 +166,44 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
     return this.presetReasons[k] || [];
   }
 
+  private lastActionTimestamp = 0;
+
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       const id = this.route.snapshot.paramMap.get('id');
       if (id) {
         this.pengajuanId.set(id);
         this.loadDetail(id);
+
+        this.realtimeService.events$
+          .pipe(takeUntil(this.destroy$))
+          .subscribe((event) => {
+            // Abaikan event yang dipancarkan oleh hasil keputusan BM sendiri atau dalam masa cooldown
+            if (event.eventType === 'LOAN_READY_FOR_DISBURSEMENT' || event.eventType === 'LOAN_REJECTED_BY_BM') {
+              return;
+            }
+            if (Date.now() - this.lastActionTimestamp < 3500) {
+              return;
+            }
+
+            const loanId = (this.pengajuanId() || '').toLowerCase();
+            const refId = (event.referenceId || '').toLowerCase();
+            const noPengajuan = (this.detail()?.nomorPengajuan || '').toLowerCase();
+            const evtNoPengajuan = (event.nomorPengajuan || '').toLowerCase();
+
+            const isMatch =
+              (!!refId && refId === loanId) ||
+              (!!evtNoPengajuan && !!noPengajuan && evtNoPengajuan === noPengajuan);
+
+            if (isMatch) {
+              this.toastService.info(
+                event.message || 'Terdapat pembaruan data untuk pengajuan ini. Data diperbarui otomatis.'
+              );
+              this.photoError.set(false);
+              this.cacheBuster.set(Date.now());
+              this.loadDetail(this.pengajuanId());
+            }
+          });
       } else {
         this.toastService.error('ID Pengajuan Pinjaman tidak valid');
         this.router.navigate(['/persetujuan-pinjaman']);
@@ -173,8 +211,16 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
     }
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadDetail(id: string): void {
     this.isLoading.set(true);
+    this.photoError.set(false);
+    this.cacheBuster.set(Date.now());
+
     this.bmService.getDetail(id).subscribe({
       next: (res) => {
         this.detail.set(res);
@@ -263,8 +309,11 @@ export class PersetujuanPinjamanDetailComponent implements OnInit {
     };
 
     this.isSubmitting.set(true);
+    this.lastActionTimestamp = Date.now();
+
     this.bmService.persetujuan(id, payload).subscribe({
       next: () => {
+        this.lastActionTimestamp = Date.now();
         this.isSubmitting.set(false);
         this.isConfirmModalOpen.set(false);
         this.toastService.success('Keputusan persetujuan pinjaman berhasil disimpan');

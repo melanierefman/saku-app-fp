@@ -17,8 +17,10 @@ import {
 export class BranchManagerApprovalService {
   private http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/branch-manager/persetujuan`;
+  private scoreCache = new Map<string, number>();
+  private statusScoringCache = new Map<string, string>();
 
-  // 1. Get Paginated List
+  // Mengambil daftar pengajuan pinjaman untuk persetujuan BM secara terpaginasi
   findAllPaginated(params?: {
     page?: number;
     size?: number;
@@ -57,28 +59,12 @@ export class BranchManagerApprovalService {
       );
   }
 
-  // 2. Get All List (Unpaginated)
-  findAll(status?: string): Observable<BranchManagerPengajuanItemResponse[]> {
-    let httpParams = new HttpParams();
-    if (status) httpParams = httpParams.set('status', status);
-
-    return this.http
-      .get<ApiResponse<BranchManagerPengajuanItemResponse[]> | any>(`${this.baseUrl}/all`, {
-        params: httpParams,
-      })
-      .pipe(
-        map((res: any) => this.normalizeList(res)),
-        catchError(() => of([]))
-      );
-  }
-
-  private scoreCache = new Map<string, number>();
-  private statusScoringCache = new Map<string, string>();
-
+  // Mengambil skor kredit dari memori cache lokal
   getScoreFromCache(id: string): number | undefined {
     return this.scoreCache.get(id);
   }
 
+  // Menyimpan skor kredit dan status scoring ke cache lokal
   cacheScore(id: string, score: number, statusScoring?: string): void {
     if (id && score !== undefined && score !== null && !isNaN(score)) {
       this.scoreCache.set(id, score);
@@ -86,7 +72,7 @@ export class BranchManagerApprovalService {
     }
   }
 
-  // 3. Get Detail By ID
+  // Mengambil detail pengajuan pinjaman untuk persetujuan BM
   getDetail(id: string): Observable<BranchManagerPengajuanDetailResponse | null> {
     return this.http
       .get<ApiResponse<BranchManagerPengajuanDetailResponse> | any>(`${this.baseUrl}/${id}`)
@@ -113,7 +99,7 @@ export class BranchManagerApprovalService {
       );
   }
 
-  // 4. Submit BM Decision (PUT /api/branch-manager-approval/{id})
+  // Mengirim keputusan persetujuan Branch Manager (DISETUJUI / DITOLAK)
   persetujuan(
     id: string,
     payload: PersetujuanPinjamanRequest
@@ -124,11 +110,7 @@ export class BranchManagerApprovalService {
     );
   }
 
-  private normalizeList(res: any): BranchManagerPengajuanItemResponse[] {
-    const rawList = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
-    return rawList.map((item: any) => this.normalizeItem(item));
-  }
-
+  // Menstandarkan struktur objek data persetujuan pengajuan pinjaman BM
   private normalizeItem(item: any): BranchManagerPengajuanItemResponse {
     const id = item.pengajuanId || item.id || '';
     const cachedScore = id ? this.scoreCache.get(id) : undefined;
@@ -186,6 +168,7 @@ export class BranchManagerApprovalService {
     };
   }
 
+  // Mem-parsing respons paginasi dari server
   private parseResponse(
     res: any,
     defaultPageSize: number

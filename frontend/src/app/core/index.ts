@@ -37,6 +37,7 @@ export * from './services/backoffice/back-office-pencairan.service';
 export * from './services/backoffice/backoffice-dashboard.service';
 export * from './services/superadmin/audit-log.service';
 export * from './services/superadmin/superadmin-dashboard.service';
+export * from './services/realtime.service';
 
 // Store
 export * from './store/auth.store';

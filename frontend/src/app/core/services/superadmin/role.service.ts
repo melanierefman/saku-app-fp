@@ -1,12 +1,11 @@
 import { Injectable } from '@angular/core';
-import { Observable, map, catchError, of, timeout } from 'rxjs';
+import { Observable, map, catchError } from 'rxjs';
 import { BaseApiService } from '../base-api.service';
 import {
   Role,
   RoleRequest,
   RoleDetailResponse,
   AssignPermissionsRequest,
-  Permission,
 } from '../../models/superadmin/role.model';
 import { ApiResponse } from '../../models/auth/auth.models';
 
@@ -16,7 +15,7 @@ import { ApiResponse } from '../../models/auth/auth.models';
 export class RoleService extends BaseApiService<Role, RoleRequest, RoleRequest> {
   protected endpoint = 'master/role';
 
-  // Assign Permissions to Role (PUT /api/master/role/{id}/permissions)
+  // Menugaskan daftar permissions ke peran (role) tertentu
   assignPermissions(
     id: string,
     permissionIds: string[]
@@ -48,27 +47,5 @@ export class RoleService extends BaseApiService<Role, RoleRequest, RoleRequest> 
             );
         })
       );
-  }
-
-  // Get Available Permissions Catalog (Full API)
-  getAvailablePermissions(): Observable<Permission[]> {
-    const permUrl = `${this.baseUrl.replace(/\/+$/, '')}/master/permission`;
-    const altPermUrl = `${this.baseUrl.replace(/\/+$/, '')}/permission`;
-
-    return this.http.get<ApiResponse<Permission[]> | Permission[]>(permUrl).pipe(
-      map((res: any) => {
-        const data = res?.data || res;
-        return Array.isArray(data) ? data : [];
-      }),
-      catchError(() => {
-        return this.http.get<ApiResponse<Permission[]> | Permission[]>(altPermUrl).pipe(
-          map((res: any) => {
-            const data = res?.data || res;
-            return Array.isArray(data) ? data : [];
-          }),
-          catchError(() => of([]))
-        );
-      })
-    );
   }
 }

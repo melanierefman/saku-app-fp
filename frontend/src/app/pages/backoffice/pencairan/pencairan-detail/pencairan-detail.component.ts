@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   signal,
   inject,
   ChangeDetectorRef,
@@ -10,6 +11,7 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import {
   ModalComponent,
   ToastService,
@@ -20,6 +22,7 @@ import {
   PencairanDetail,
   AngsuranItem,
   PencairanRequest,
+  RealTimeService,
 } from '../../../../core';
 import {
   LucideExternalLink,
@@ -63,13 +66,15 @@ import { formatDate as formatDateHelper } from '../../../../shared/utils/date.ut
   templateUrl: './pencairan-detail.component.html',
   styleUrl: './pencairan-detail.component.css',
 })
-export class PencairanDetailComponent implements OnInit {
+export class PencairanDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private pencairanService = inject(PencairanService);
+  private realtimeService = inject(RealTimeService);
   private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
   private platformId = inject(PLATFORM_ID);
+  private destroy$ = new Subject<void>();
 
   goBack(): void {
     this.router.navigate(['/pencairan']);
@@ -94,6 +99,9 @@ export class PencairanDetailComponent implements OnInit {
   // Photo error fallbacks
   selfieError = signal<boolean>(false);
   ktpError = signal<boolean>(false);
+  cacheBuster = signal<number>(Date.now());
+
+  private lastActionTimestamp = 0;
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -102,6 +110,34 @@ export class PencairanDetailComponent implements OnInit {
         if (id) {
           this.pengajuanId.set(id);
           this.loadDetail(id);
+
+          this.realtimeService.events$
+            .pipe(takeUntil(this.destroy$))
+            .subscribe((event) => {
+              // Abaikan jika dalam masa cooldown setelah submit lokal pencairan sendiri
+              if (Date.now() - this.lastActionTimestamp < 3500) {
+                return;
+              }
+
+              const loanId = (this.pengajuanId() || '').toLowerCase();
+              const refId = (event.referenceId || '').toLowerCase();
+              const noPengajuan = (this.detail()?.nomorPengajuan || '').toLowerCase();
+              const evtNoPengajuan = (event.nomorPengajuan || '').toLowerCase();
+
+              const isMatch =
+                (!!refId && refId === loanId) ||
+                (!!evtNoPengajuan && !!noPengajuan && evtNoPengajuan === noPengajuan);
+
+              if (isMatch) {
+                this.toastService.info(
+                  event.message || 'Terdapat pembaruan data untuk pencairan ini. Data diperbarui otomatis.'
+                );
+                this.selfieError.set(false);
+                this.ktpError.set(false);
+                this.cacheBuster.set(Date.now());
+                this.loadDetail(this.pengajuanId());
+              }
+            });
         } else {
           this.isLoading.set(false);
           this.toastService.error('ID Pengajuan tidak valid');
@@ -111,8 +147,17 @@ export class PencairanDetailComponent implements OnInit {
     }
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadDetail(id: string): void {
     this.isLoading.set(true);
+    this.selfieError.set(false);
+    this.ktpError.set(false);
+    this.cacheBuster.set(Date.now());
+
     this.pencairanService.getDetail(id).subscribe({
       next: (res) => {
         if (res) {
@@ -182,9 +227,11 @@ export class PencairanDetailComponent implements OnInit {
     };
 
     this.isSubmitting.set(true);
+    this.lastActionTimestamp = Date.now();
 
     this.pencairanService.cairkan(id, payload).subscribe({
       next: (res) => {
+        this.lastActionTimestamp = Date.now();
         this.isSubmitting.set(false);
         this.isConfirmModalOpen.set(false);
         this.toastService.success('Dana pinjaman berhasil dicairkan ke rekening customer!');

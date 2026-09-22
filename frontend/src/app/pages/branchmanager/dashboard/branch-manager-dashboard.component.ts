@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   signal,
   inject,
   ChangeDetectorRef,
@@ -9,13 +10,14 @@ import {
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { forkJoin, of, map, catchError } from 'rxjs';
+import { forkJoin, of, map, catchError, Subject, takeUntil } from 'rxjs';
 import {
   BranchManagerDashboardService,
   BranchManagerDashboardStats,
   MonthlyTrendItem,
   BranchManagerApprovalService,
   BranchManagerPengajuanItemResponse,
+  RealTimeService,
 } from '../../../core';
 import {
   BadgeComponent,
@@ -71,13 +73,15 @@ export interface TenorItemDisplay {
   templateUrl: './branch-manager-dashboard.component.html',
   styleUrl: './branch-manager-dashboard.component.css',
 })
-export class BranchManagerDashboardComponent implements OnInit {
+export class BranchManagerDashboardComponent implements OnInit, OnDestroy {
   private dashboardService = inject(BranchManagerDashboardService);
   private approvalService = inject(BranchManagerApprovalService);
+  private realtimeService = inject(RealTimeService);
   private toastService = inject(ToastService);
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
+  private destroy$ = new Subject<void>();
 
   // Loading signals
   isLoadingStats = signal<boolean>(true);
@@ -140,6 +144,12 @@ export class BranchManagerDashboardComponent implements OnInit {
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.loadAllData();
+
+      this.realtimeService.loanBmUpdates$
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => {
+          this.loadAllData();
+        });
     }
   }
 
@@ -372,5 +382,10 @@ export class BranchManagerDashboardComponent implements OnInit {
       return 'Ditolak BM';
     }
     return 'Menunggu Persetujuan BM';
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

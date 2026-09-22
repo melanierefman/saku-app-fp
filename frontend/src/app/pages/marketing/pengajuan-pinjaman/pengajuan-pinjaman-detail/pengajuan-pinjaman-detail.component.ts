@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   signal,
   inject,
   ChangeDetectorRef,
@@ -10,6 +11,7 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import {
   DropdownComponent,
   DropdownOption,
@@ -23,6 +25,7 @@ import {
   ReviewPengajuanRequest,
   DokumenPinjamanItem,
   ReviewHistoryItem,
+  RealTimeService,
 } from '../../../../core';
 import {
   LucideFileText,
@@ -79,13 +82,15 @@ export interface DisplayDocItem {
   templateUrl: './pengajuan-pinjaman-detail.component.html',
   styleUrl: './pengajuan-pinjaman-detail.component.css',
 })
-export class PengajuanPinjamanDetailComponent implements OnInit {
+export class PengajuanPinjamanDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private marketingService = inject(MarketingLoanService);
+  private realtimeService = inject(RealTimeService);
   private toastService = inject(ToastService);
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
+  private destroy$ = new Subject<void>();
 
   goBack(): void {
     this.router.navigate(['/pengajuan-pinjaman']);
@@ -104,6 +109,7 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
 
   // Photo error fallback handling
   photoError = signal<boolean>(false);
+  cacheBuster = signal<number>(Date.now());
 
   onPhotoError(): void {
     this.photoError.set(true);
@@ -180,15 +186,61 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
     return this.presetReasons[s] || [];
   }
 
+  private lastActionTimestamp = 0;
+
   ngOnInit(): void {
     this.pengajuanId = this.route.snapshot.paramMap.get('id') || '';
     if (isPlatformBrowser(this.platformId) && this.pengajuanId) {
       this.loadDetail();
+
+      this.realtimeService.events$
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((event) => {
+          // Abaikan event dari hasil review sendiri atau jika baru saja melakukan aksi lokal
+          if (event.eventType === 'LOAN_REVIEWED' || event.eventType === 'LOAN_READY_FOR_BM') {
+            return;
+          }
+          if (Date.now() - this.lastActionTimestamp < 3500) {
+            return;
+          }
+
+          const loanId = (this.pengajuanId || '').toLowerCase();
+          const refId = (event.referenceId || '').toLowerCase();
+          const noPengajuan = (this.detail()?.nomorPengajuan || '').toLowerCase();
+          const evtNoPengajuan = (event.nomorPengajuan || '').toLowerCase();
+          const custId = (this.detail()?.customerId || '').toLowerCase();
+
+          const isMatch =
+            (!!refId && (refId === loanId || refId === custId)) ||
+            (!!evtNoPengajuan && !!noPengajuan && evtNoPengajuan === noPengajuan);
+
+          if (isMatch) {
+            this.toastService.info(
+              event.message || 'Terdapat pembaruan data/berkas nasabah untuk pengajuan ini. Data diperbarui otomatis.'
+            );
+            this.photoError.set(false);
+            this.cacheBuster.set(Date.now());
+            if (event.eventType === 'LOAN_REVISED' || event.eventType === 'LOAN_SUBMITTED' || event.eventType === 'KYC_REVISED') {
+              this.selectedReviewStatus.set('');
+              this.selectedKategoriAlasan.set('');
+              this.catatanReview.set('');
+            }
+            this.loadDetail();
+          }
+        });
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadDetail(): void {
     this.isLoading.set(true);
+    this.photoError.set(false);
+    this.cacheBuster.set(Date.now());
+
     this.marketingService.getDetail(this.pengajuanId).subscribe({
       next: (res) => {
         this.detail.set(res);
@@ -274,9 +326,11 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
     };
 
     this.isSubmitting.set(true);
+    this.lastActionTimestamp = Date.now();
 
     this.marketingService.review(this.pengajuanId, payload).subscribe({
       next: () => {
+        this.lastActionTimestamp = Date.now();
         this.isSubmitting.set(false);
         this.isConfirmModalOpen.set(false);
         this.toastService.success(
@@ -635,7 +689,9 @@ export class PengajuanPinjamanDetailComponent implements OnInit {
     if (!cleanPath.startsWith('uploads/')) {
       cleanPath = `uploads/${cleanPath}`;
     }
-    return `${baseHost}/${cleanPath}`;
+    const resolvedUrl = `${baseHost}/${cleanPath}`;
+    const sep = resolvedUrl.includes('?') ? '&' : '?';
+    return `${resolvedUrl}${sep}_t=${this.cacheBuster()}`;
   }
 
   getFotoSelfieUrl(): string {

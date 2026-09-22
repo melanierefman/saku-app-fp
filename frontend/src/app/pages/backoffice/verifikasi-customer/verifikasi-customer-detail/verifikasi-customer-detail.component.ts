@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   signal,
   inject,
   ChangeDetectorRef,
@@ -10,6 +11,7 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import {
   DropdownComponent,
   DropdownOption,
@@ -22,6 +24,7 @@ import {
   VerifikasiCustomerService,
   VerifikasiCustomerDetail,
   VerifikasiCustomerRequest,
+  RealTimeService,
 } from '../../../../core';
 import {
   LucideExternalLink,
@@ -67,13 +70,15 @@ import { formatDate as formatDateHelper } from '../../../../shared/utils/date.ut
   templateUrl: './verifikasi-customer-detail.component.html',
   styleUrl: './verifikasi-customer-detail.component.css',
 })
-export class VerifikasiCustomerDetailComponent implements OnInit {
+export class VerifikasiCustomerDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private verifikasiService = inject(VerifikasiCustomerService);
+  private realtimeService = inject(RealTimeService);
   private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
   private platformId = inject(PLATFORM_ID);
+  private destroy$ = new Subject<void>();
 
   goBack(): void {
     this.router.navigate(['/verifikasi-customer']);
@@ -99,6 +104,7 @@ export class VerifikasiCustomerDetailComponent implements OnInit {
   // Fallback photo error signals
   selfieError = signal<boolean>(false);
   ktpError = signal<boolean>(false);
+  cacheBuster = signal<number>(Date.now());
 
   readonly statusVerifikasiOptions: DropdownOption[] = [
     { value: 'APPROVED', label: 'Disetujui' },
@@ -177,6 +183,8 @@ export class VerifikasiCustomerDetailComponent implements OnInit {
     return this.presetReasons[s] || [];
   }
 
+  private lastActionTimestamp = 0;
+
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.route.paramMap.subscribe((params) => {
@@ -190,21 +198,52 @@ export class VerifikasiCustomerDetailComponent implements OnInit {
           this.router.navigate(['/verifikasi-customer']);
         }
       });
+
+      this.realtimeService.kycUpdates$
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((event) => {
+          // Abaikan jika dalam masa cooldown setelah submit verifikasi sendiri
+          if (Date.now() - this.lastActionTimestamp < 3500) {
+            return;
+          }
+
+          const currentId = (this.customerId() || '').toLowerCase();
+          const refId = (event.referenceId || '').toLowerCase();
+          const isMatch = !!refId && (refId === currentId || currentId.includes(refId) || refId.includes(currentId));
+
+          if (isMatch) {
+            this.toastService.info(
+              event.message || 'Nasabah telah mengunggah revisi dokumen identitas. Data diperbarui otomatis.'
+            );
+            this.ktpError.set(false);
+            this.selfieError.set(false);
+            this.cacheBuster.set(Date.now());
+            this.loadDetail(this.customerId());
+          }
+        });
     }
   }
 
   loadDetail(id: string): void {
     this.isLoading.set(true);
+    this.ktpError.set(false);
+    this.selfieError.set(false);
+    this.cacheBuster.set(Date.now());
+
     this.verifikasiService.getDetail(id).subscribe({
       next: (res) => {
         if (res) {
           this.detail.set(res);
-          // Pre-populate if already verified
+          // Pre-populate if already verified, or reset if pending/revised
           if (res.statusVerifikasi && res.statusVerifikasi !== 'PENDING') {
             this.selectedStatusVerifikasi.set(res.statusVerifikasi);
-          }
-          if (res.catatanVerifikasi) {
-            this.catatanVerifikasi.set(res.catatanVerifikasi);
+            if (res.catatanVerifikasi) {
+              this.catatanVerifikasi.set(res.catatanVerifikasi);
+            }
+          } else {
+            this.selectedStatusVerifikasi.set('');
+            this.selectedKategoriAlasan.set('');
+            this.catatanVerifikasi.set('');
           }
         } else {
           this.toastService.error('Data verifikasi customer tidak ditemukan');
@@ -287,9 +326,11 @@ export class VerifikasiCustomerDetailComponent implements OnInit {
     };
 
     this.isSubmitting.set(true);
+    this.lastActionTimestamp = Date.now();
 
     this.verifikasiService.verifikasi(id, payload).subscribe({
       next: () => {
+        this.lastActionTimestamp = Date.now();
         this.isSubmitting.set(false);
         this.isConfirmModalOpen.set(false);
         this.toastService.success(
@@ -353,12 +394,15 @@ export class VerifikasiCustomerDetailComponent implements OnInit {
 
   openInNewTab(path?: string | null): void {
     if (!path) return;
-    const url = this.verifikasiService.getFileUrl(path);
+    const url = this.getFotoUrl(path);
     window.open(url, '_blank', 'noopener,noreferrer');
   }
 
   getFotoUrl(path?: string | null): string {
-    return this.verifikasiService.getFileUrl(path);
+    const rawUrl = this.verifikasiService.getFileUrl(path);
+    if (!rawUrl) return '';
+    const sep = rawUrl.includes('?') ? '&' : '?';
+    return `${rawUrl}${sep}_t=${this.cacheBuster()}`;
   }
 
   isPending(): boolean {
@@ -476,5 +520,10 @@ export class VerifikasiCustomerDetailComponent implements OnInit {
     } catch {
       return String(dateStr);
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }
