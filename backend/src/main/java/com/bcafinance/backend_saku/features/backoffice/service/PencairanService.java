@@ -51,6 +51,8 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import com.bcafinance.backend_saku.core.dto.PageResponse;
+import com.bcafinance.backend_saku.core.realtime.RealTimeEmitterService;
+import com.bcafinance.backend_saku.core.realtime.RealTimeEventDto;
 
 @Service
 @RequiredArgsConstructor
@@ -69,6 +71,7 @@ public class PencairanService {
     private final PersetujuanRepository persetujuanRepository;
     private final com.bcafinance.backend_saku.features.customer.service.NotifikasiService notifikasiService;
     private final com.bcafinance.backend_saku.features.superadmin.auditlog.service.AuditLogService auditLogService;
+    private final RealTimeEmitterService realTimeEmitterService;
 
     public PageResponse<PencairanItemResponse> findAllPaginated(int page, int size, String search, String statusFilter) {
         List<PencairanItemResponse> all = findAll(statusFilter);
@@ -416,6 +419,19 @@ public class PencairanService {
                     + pengajuan.getNomorPengajuan() + " sebesar Rp " + jumlahPencairan + " ke rekening "
                     + customer.getNamaBank();
             auditLogService.recordLog(karyawanId, "PENCAIRAN", "PENCAIRAN", desc);
+        }
+
+        if (realTimeEmitterService != null) {
+            realTimeEmitterService.broadcast(RealTimeEventDto.builder()
+                    .eventType("LOAN_DISBURSED")
+                    .referenceId(pengajuanId.toString())
+                    .nomorPengajuan(pengajuan.getNomorPengajuan())
+                    .customerName(customer.getNama())
+                    .title("Dana Pinjaman Dicairkan")
+                    .message("Pinjaman no. " + pengajuan.getNomorPengajuan() + " (" + customer.getNama() + ") telah berhasil dicairkan oleh Backoffice.")
+                    .targetRoles(List.of("ROLE_MARKETING", "ROLE_BRANCHMANAGER", "ROLE_SUPERADMIN"))
+                    .timestamp(LocalDateTime.now())
+                    .build());
         }
 
         return PencairanResponse.builder()

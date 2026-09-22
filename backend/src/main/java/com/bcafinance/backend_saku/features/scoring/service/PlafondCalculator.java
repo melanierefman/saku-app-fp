@@ -6,14 +6,7 @@ import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.Locale;
 
-/**
- * Engine Kalkulasi Plafon Personalisasi SAKU (Solusi Aman Keuangan Untukmu)
- * Mengintegrasikan 4 metode:
- * 1. Weighted Sum Model (WSM) untuk pembobotan kriteria
- * 2. Min-Max Normalization untuk faktor posisi skor di dalam tier
- * 3. Linear Mapping & Clamping untuk penentuan limit nominal riil
- * 4. Debt Service Ratio (DSR / Prudential Lending) untuk Safe Capacity Cap
- */
+// Engine kalkulasi plafon personalisasi SAKU menggunakan WSM, normalisasi skor, dan rasio DBR
 public class PlafondCalculator {
 
     public record PersonalizedPlafondResult(

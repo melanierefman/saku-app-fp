@@ -27,6 +27,8 @@ import jakarta.transaction.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import com.bcafinance.backend_saku.core.realtime.RealTimeEmitterService;
+import com.bcafinance.backend_saku.core.realtime.RealTimeEventDto;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -52,6 +54,7 @@ public class PengajuanPinjamanService {
     private final FileStorageService fileStorageService;
     private final NotifikasiService notifikasiService;
     private final CustomerPlafondService customerPlafondService;
+    private final RealTimeEmitterService realTimeEmitterService;
 
     @Transactional
     public PengajuanStepResponse step1(UUID customerId, PengajuanPinjamanRequest request) {
@@ -199,6 +202,25 @@ public class PengajuanPinjamanService {
         String notifPesan = "Pengajuan pinjaman no. " + saved.getNomorPengajuan()
                 + " sedang dalam proses verifikasi tim kami.";
         notifikasiService.createNotification(customerId, saved.getId(), "PENGAJUAN", "IN_APP", notifJudul, notifPesan);
+
+        if (realTimeEmitterService != null) {
+            String eventType = isRevisi ? "LOAN_REVISED" : "LOAN_SUBMITTED";
+            String eventTitle = isRevisi ? "Revisi Berkas Pinjaman" : "Pengajuan Pinjaman Baru";
+            String eventMsg = isRevisi
+                    ? "Nasabah " + customer.getNama() + " telah mengunggah perbaikan berkas untuk pinjaman no. " + saved.getNomorPengajuan()
+                    : "Pengajuan pinjaman baru no. " + saved.getNomorPengajuan() + " dari nasabah " + customer.getNama() + " menunggu review.";
+
+            realTimeEmitterService.broadcast(RealTimeEventDto.builder()
+                    .eventType(eventType)
+                    .referenceId(saved.getId().toString())
+                    .customerName(customer.getNama())
+                    .nomorPengajuan(saved.getNomorPengajuan())
+                    .title(eventTitle)
+                    .message(eventMsg)
+                    .targetRoles(List.of("ROLE_MARKETING", "ROLE_SUPERADMIN"))
+                    .timestamp(LocalDateTime.now())
+                    .build());
+        }
 
         Cabang cabang = cabangRepository.findById(saved.getMstBranchId()).orElse(null);
         PengajuanPinjamanResponse detail = toResponse(saved, customer.getNama(), cabang, allUploadedDocs);

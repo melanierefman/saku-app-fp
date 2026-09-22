@@ -49,15 +49,20 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         throws ServletException, IOException {
 
                 String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+                String token = null;
 
-                if (header == null || !header.startsWith(PREFIX)) {
+                if (header != null && header.startsWith(PREFIX)) {
+                        token = header.substring(PREFIX.length());
+                } else if (request.getParameter("token") != null && !request.getParameter("token").isBlank()) {
+                        token = request.getParameter("token");
+                }
+
+                if (token == null) {
                         chain.doFilter(request, response);
                         return;
                 }
 
                 try {
-                        String token = header.substring(PREFIX.length());
-
                         Claims claims = jwtService.parse(token);
 
                         String username = claims.getSubject();

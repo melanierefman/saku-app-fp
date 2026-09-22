@@ -44,6 +44,8 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import com.bcafinance.backend_saku.core.dto.PageResponse;
+import com.bcafinance.backend_saku.core.realtime.RealTimeEmitterService;
+import com.bcafinance.backend_saku.core.realtime.RealTimeEventDto;
 
 @Service
 @RequiredArgsConstructor
@@ -62,6 +64,7 @@ public class MarketingReviewService {
     private final ScoringService scoringService;
     private final com.bcafinance.backend_saku.features.customer.service.NotifikasiService notifikasiService;
     private final com.bcafinance.backend_saku.features.superadmin.auditlog.service.AuditLogService auditLogService;
+    private final RealTimeEmitterService realTimeEmitterService;
 
     public PageResponse<MarketingPengajuanItemResponse> findAllPaginated(int page, int size, String search, String statusFilter, UUID karyawanId) {
         List<MarketingPengajuanItemResponse> all = findAll(statusFilter, karyawanId);
@@ -432,6 +435,33 @@ public class MarketingReviewService {
             String desc = "Marketing " + karyawan.getNama() + " mereview pengajuan no. " + pengajuan.getNomorPengajuan()
                     + " dengan hasil: " + hasilReview;
             auditLogService.recordLog(karyawanId, "REVIEW", "PENGAJUAN", desc);
+        }
+
+        if (realTimeEmitterService != null) {
+            boolean isApproved = "DISETUJUI".equals(hasilReview);
+            String eventType = isApproved ? "LOAN_READY_FOR_BM" : "LOAN_REVIEWED";
+            String title = isApproved ? "Persetujuan Pinjaman Baru" : "Hasil Review Dokumen Pinjaman";
+            String msg = isApproved
+                    ? "Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan() + " telah lolos review Marketing dan menunggu persetujuan Anda."
+                    : "Pengajuan pinjaman no. " + pengajuan.getNomorPengajuan() + " telah direview dengan status: " + hasilReview;
+
+            List<String> targetRoles = isApproved
+                    ? List.of("ROLE_BRANCHMANAGER", "ROLE_SUPERADMIN")
+                    : List.of("ROLE_MARKETING", "ROLE_SUPERADMIN");
+
+            String customerName = customerRepository.findById(pengajuan.getMstCustomerId())
+                    .map(Customer::getNama).orElse("Nasabah");
+
+            realTimeEmitterService.broadcast(RealTimeEventDto.builder()
+                    .eventType(eventType)
+                    .referenceId(pengajuanId.toString())
+                    .nomorPengajuan(pengajuan.getNomorPengajuan())
+                    .customerName(customerName)
+                    .title(title)
+                    .message(msg)
+                    .targetRoles(targetRoles)
+                    .timestamp(LocalDateTime.now())
+                    .build());
         }
 
         return ReviewPengajuanResponse.builder()

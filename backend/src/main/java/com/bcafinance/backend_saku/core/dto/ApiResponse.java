@@ -1,6 +1,7 @@
 package com.bcafinance.backend_saku.core.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,12 +10,18 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class ApiResponse<T> {
+
+    @Schema(description = "Kode status HTTP respons", example = "200")
     private Integer statusCode;
+
+    @Schema(description = "Pesan keterangan respons", example = "Success")
     private String message;
 
+    @Schema(description = "Data payload respons")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private T data;
 
+    @Schema(description = "Keterangan rincian error jika ada")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Object errors;
 

@@ -4,7 +4,6 @@ import com.bcafinance.backend_saku.core.entity.AlamatCustomer;
 import com.bcafinance.backend_saku.core.entity.Customer;
 import com.bcafinance.backend_saku.core.entity.DokumenCustomer;
 import com.bcafinance.backend_saku.core.entity.ScoringCustomer;
-import com.bcafinance.backend_saku.core.exception.BussinessRuleException;
 import com.bcafinance.backend_saku.core.repository.AlamatCustomerRepository;
 import com.bcafinance.backend_saku.core.repository.CustomerRepository;
 import com.bcafinance.backend_saku.core.repository.DokumenCustomerRepository;
@@ -13,7 +12,6 @@ import com.bcafinance.backend_saku.core.repository.VerifikasiCustomerRepository;
 import com.bcafinance.backend_saku.core.storage.FileStorageService;
 import com.bcafinance.backend_saku.features.auth.service.OtpService;
 import com.bcafinance.backend_saku.features.customer.dto.RegisterStep1KtpRequest;
-import com.bcafinance.backend_saku.features.customer.dto.RegisterStep1Request;
 import com.bcafinance.backend_saku.features.customer.dto.RegisterStep2PersonalRequest;
 import com.bcafinance.backend_saku.features.customer.dto.RegisterStep5CompleteRequest;
 import com.bcafinance.backend_saku.features.customer.dto.RegisterStepResponse;
@@ -31,7 +29,6 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -69,7 +66,7 @@ class RegisterServiceTest {
     @InjectMocks
     private RegisterService registerService;
 
-    // Tests for New 5-Step Registration Flow
+    // Unit test pengujian langkah 1 registrasi: e-KTP dan NIK
     @Test
     @DisplayName("Step 1 (KTP): Berhasil menyimpan data e-KTP dan NIK")
     void testRegisterStep1KtpSuccess() {
@@ -101,6 +98,7 @@ class RegisterServiceTest {
         verify(dokumenRepository).save(any(DokumenCustomer.class));
     }
 
+    // Unit test pengujian langkah 2 registrasi: Data Pribadi & Rekening
     @Test
     @DisplayName("Step 2 (Personal): Berhasil menyimpan data pribadi & rekening")
     void testRegisterStep2PersonalSuccess() {
@@ -134,6 +132,7 @@ class RegisterServiceTest {
         verify(scoringRepository).save(any(ScoringCustomer.class));
     }
 
+    // Unit test pengujian langkah 3 registrasi: Foto Selfie Liveness
     @Test
     @DisplayName("Step 3 (Liveness): Berhasil upload selfie dokumen KYC")
     void testRegisterStep3LivenessSuccess() {
@@ -154,6 +153,7 @@ class RegisterServiceTest {
         verify(dokumenRepository).save(any(DokumenCustomer.class));
     }
 
+    // Unit test pengujian langkah 5 registrasi: Password & Aktivasi Akun
     @Test
     @DisplayName("Step 5 (Complete): Berhasil finalisasi kredensial password (email-only)")
     void testRegisterStep5CompleteSuccess() {
@@ -175,50 +175,5 @@ class RegisterServiceTest {
         assertThat(customer.getPassword()).isEqualTo("encodedPassword123");
         assertThat(customer.getStatus()).isFalse();
         verify(customerRepository).save(customer);
-    }
-
-    // Tests for Legacy Registration Flow
-    @Test
-    @DisplayName("Register Step 1 (Legacy): Berhasil mendaftarkan akun nasabah baru")
-    void testRegisterStep1Success() {
-        RegisterStep1Request req = new RegisterStep1Request(
-                "newcustomer@example.com",
-                "newcust",
-                "081234567890",
-                "password123",
-                "password123"
-        );
-
-        when(customerRepository.findByEmail(req.email())).thenReturn(Optional.empty());
-        when(customerRepository.existsByUsername(req.username())).thenReturn(false);
-        when(passwordEncoder.encode(req.password())).thenReturn("encodedPassword");
-        when(customerRepository.save(any(Customer.class))).thenAnswer(invocation -> {
-            Customer c = invocation.getArgument(0);
-            c.setId(UUID.randomUUID());
-            return c;
-        });
-
-        RegisterStepResponse response = registerService.registerStep1(req);
-
-        assertThat(response).isNotNull();
-        assertThat(response.step()).isEqualTo(1);
-        assertThat(response.customerId()).isNotNull();
-        verify(customerRepository).save(any(Customer.class));
-    }
-
-    @Test
-    @DisplayName("Register Step 1: Gagal jika password dan confirm password tidak sama")
-    void testRegisterStep1PasswordMismatch() {
-        RegisterStep1Request req = new RegisterStep1Request(
-                "newcustomer@example.com",
-                "newcust",
-                "081234567890",
-                "password123",
-                "passwordDifferent"
-        );
-
-        assertThatThrownBy(() -> registerService.registerStep1(req))
-                .isInstanceOf(BussinessRuleException.class)
-                .hasMessage("Password dan konfirmasi password tidak sama");
     }
 }

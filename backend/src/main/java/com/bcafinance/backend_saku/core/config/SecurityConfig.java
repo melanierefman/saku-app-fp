@@ -47,7 +47,8 @@ public class SecurityConfig {
                                 // untuk RBAC
                                 .authorizeHttpRequests(request -> request
                                                 .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
-                                                .requestMatchers("/api/auth/**", "/api/public/**", "/uploads/**", "/files/**", "/api/files/**").permitAll()
+                                                .requestMatchers("/api/auth/**", "/api/public/**", "/uploads/**", "/files/**", "/api/files/**",
+                                                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/docs", "/docs/**", "/scalar", "/scalar/**").permitAll()
                                                 .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
                                                 .requestMatchers("/api/marketing/**").hasRole("MARKETING")
                                                 .requestMatchers("/api/branch-manager/**", "/api/bm/**",

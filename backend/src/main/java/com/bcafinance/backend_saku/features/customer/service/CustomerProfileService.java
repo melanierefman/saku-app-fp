@@ -4,32 +4,35 @@ import com.bcafinance.backend_saku.core.dto.AlamatDetailResponse;
 import com.bcafinance.backend_saku.core.entity.AlamatCustomer;
 import com.bcafinance.backend_saku.core.entity.Customer;
 import com.bcafinance.backend_saku.core.entity.DokumenCustomer;
+import com.bcafinance.backend_saku.core.entity.Plafond;
 import com.bcafinance.backend_saku.core.entity.ScoringCustomer;
 import com.bcafinance.backend_saku.core.entity.VerifikasiCustomer;
 import com.bcafinance.backend_saku.core.exception.BussinessRuleException;
 import com.bcafinance.backend_saku.core.repository.AlamatCustomerRepository;
 import com.bcafinance.backend_saku.core.repository.CustomerRepository;
 import com.bcafinance.backend_saku.core.repository.DokumenCustomerRepository;
+import com.bcafinance.backend_saku.core.realtime.RealTimeEmitterService;
+import com.bcafinance.backend_saku.core.realtime.RealTimeEventDto;
 import com.bcafinance.backend_saku.core.repository.ScoringCustomerRepository;
 import com.bcafinance.backend_saku.core.repository.VerifikasiCustomerRepository;
+import com.bcafinance.backend_saku.core.storage.FileStorageService;
 import com.bcafinance.backend_saku.features.customer.dto.ChangePasswordRequest;
 import com.bcafinance.backend_saku.features.customer.dto.CustomerProfileResponse;
 import com.bcafinance.backend_saku.features.customer.dto.UpdateDomisiliRequest;
 import com.bcafinance.backend_saku.features.customer.dto.UpdatePekerjaanRequest;
-import com.bcafinance.backend_saku.features.customer.dto.UpdateProfileRequest;
 import com.bcafinance.backend_saku.features.customer.dto.UpdateRekeningRequest;
+import com.bcafinance.backend_saku.features.scoring.service.ScoringService;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import com.bcafinance.backend_saku.core.storage.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
@@ -42,21 +45,20 @@ public class CustomerProfileService {
     private final ScoringCustomerRepository scoringRepository;
     private final VerifikasiCustomerRepository verifikasiRepository;
     private final PasswordEncoder passwordEncoder;
-    private final com.bcafinance.backend_saku.features.scoring.service.ScoringService scoringService;
+    private final ScoringService scoringService;
     private final CustomerPlafondService customerPlafondService;
     private final FileStorageService fileStorageService;
-    private final com.bcafinance.backend_saku.core.repository.NotifikasiRepository notifikasiRepository;
-    private final FcmPushService fcmPushService;
+    private final RealTimeEmitterService realTimeEmitterService;
 
-
+    // Ambil data profil nasabah lengkap dengan alamat, dokumen, dan plafond
     @Transactional(readOnly = true)
     public CustomerProfileResponse getProfile(UUID customerId) {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new BussinessRuleException("Customer tidak ditemukan"));
-
         return buildProfileResponse(customer);
     }
 
+    // Perbarui nomor rekening bank pencairan customer
     @Transactional
     public CustomerProfileResponse updateRekening(UUID customerId, UpdateRekeningRequest request) {
         Customer customer = customerRepository.findById(customerId)
@@ -69,10 +71,10 @@ public class CustomerProfileService {
 
         Customer saved = customerRepository.save(customer);
         log.info("Updated bank account for customer {}", customerId);
-
         return buildProfileResponse(saved);
     }
 
+    // Perbarui alamat domisili customer
     @Transactional
     public CustomerProfileResponse updateDomisili(UUID customerId, UpdateDomisiliRequest request) {
         Customer customer = customerRepository.findById(customerId)
@@ -100,10 +102,10 @@ public class CustomerProfileService {
 
         alamatRepository.save(domisili);
         log.info("Updated domisili address for customer {}", customerId);
-
         return buildProfileResponse(customer);
     }
 
+    // Perbarui informasi pekerjaan nasabah dan kalkulasi ulang skor kredit
     @Transactional
     public CustomerProfileResponse updatePekerjaan(UUID customerId, UpdatePekerjaanRequest request) {
         Customer customer = customerRepository.findById(customerId)
@@ -129,88 +131,10 @@ public class CustomerProfileService {
 
         recalculateAndSaveScoring(customer, scoring);
         log.info("Updated employment info and recalculated score for customer {}", customerId);
-
         return buildProfileResponse(customer);
     }
 
-    @Transactional
-    public CustomerProfileResponse updateProfile(UUID customerId, UpdateProfileRequest request) {
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new BussinessRuleException("Customer tidak ditemukan"));
-
-        boolean customerUpdated = false;
-        if (request.getNoHp() != null && !request.getNoHp().isBlank()) {
-            customer.setNoHp(request.getNoHp().trim());
-            customerUpdated = true;
-        }
-        if (request.getNamaBank() != null && !request.getNamaBank().isBlank()) {
-            customer.setNamaBank(request.getNamaBank().trim());
-            customerUpdated = true;
-        }
-        if (request.getNoRekening() != null && !request.getNoRekening().isBlank()) {
-            customer.setNoRekening(request.getNoRekening().trim());
-            customerUpdated = true;
-        }
-        if (request.getNamaRekening() != null && !request.getNamaRekening().isBlank()) {
-            customer.setNamaRekening(request.getNamaRekening().trim());
-            customerUpdated = true;
-        }
-        if (customerUpdated) {
-            customer.setUpdatedDate(LocalDateTime.now());
-            customer = customerRepository.save(customer);
-        }
-
-        final Customer finalCustomer = customer;
-
-        // Update Domisili jika ada
-        if (request.getDomisiliAlamatLengkap() != null && !request.getDomisiliAlamatLengkap().isBlank()) {
-            Optional<AlamatCustomer> domisiliOpt = alamatRepository.findByCustomer_IdAndJenisAlamat(customerId, "DOMISILI");
-            AlamatCustomer domisili = domisiliOpt.orElseGet(() -> {
-                AlamatCustomer a = new AlamatCustomer();
-                a.setId(UUID.randomUUID());
-                a.setCustomer(finalCustomer);
-                a.setJenisAlamat("DOMISILI");
-                a.setCreatedDate(LocalDateTime.now());
-                return a;
-            });
-
-            domisili.setAlamatLengkap(request.getDomisiliAlamatLengkap().trim());
-            if (request.getDomisiliRt() != null) domisili.setRt(request.getDomisiliRt().trim());
-            if (request.getDomisiliRw() != null) domisili.setRw(request.getDomisiliRw().trim());
-            if (request.getDomisiliKelurahan() != null) domisili.setKelurahan(request.getDomisiliKelurahan().trim());
-            if (request.getDomisiliKecamatan() != null) domisili.setKecamatan(request.getDomisiliKecamatan().trim());
-            if (request.getDomisiliKotaKabupaten() != null) domisili.setKotaKabupaten(request.getDomisiliKotaKabupaten().trim());
-            if (request.getDomisiliProvinsi() != null) domisili.setProvinsi(request.getDomisiliProvinsi().trim());
-            if (request.getDomisiliKodePos() != null) domisili.setKodePos(request.getDomisiliKodePos().trim());
-            domisili.setUpdatedDate(LocalDateTime.now());
-            alamatRepository.save(domisili);
-        }
-
-        // Update Pekerjaan jika ada
-        if (request.getPekerjaan() != null && !request.getPekerjaan().isBlank()) {
-            Optional<ScoringCustomer> scoringOpt = scoringRepository.findFirstByMstCustomerIdOrderByCreatedDateDesc(customerId);
-            ScoringCustomer scoring = scoringOpt.orElseGet(() -> {
-                ScoringCustomer s = new ScoringCustomer();
-                s.setId(UUID.randomUUID());
-                s.setMstCustomerId(customerId);
-                s.setCreatedDate(LocalDateTime.now());
-                return s;
-            });
-
-            scoring.setPekerjaan(request.getPekerjaan().trim());
-            if (request.getTempatKerja() != null) scoring.setTempatKerja(request.getTempatKerja().trim());
-            if (request.getStatusPekerjaan() != null) scoring.setStatusPekerjaan(request.getStatusPekerjaan().trim());
-            if (request.getPenghasilanBulanan() != null) scoring.setPenghasilanBulanan(request.getPenghasilanBulanan());
-            if (request.getLamaBekerjaBulan() != null) scoring.setLamaBekerjaBulan(request.getLamaBekerjaBulan());
-            if (request.getTotalCicilanLainBulanan() != null) scoring.setTotalCicilanLainBulanan(request.getTotalCicilanLainBulanan());
-
-            recalculateAndSaveScoring(customer, scoring);
-        }
-
-        return buildProfileResponse(customer);
-    }
-
-
+    // Ubah password akun nasabah dengan validasi password lama
     @Transactional
     public void changePassword(UUID customerId, ChangePasswordRequest request) {
         Customer customer = customerRepository.findById(customerId)
@@ -231,15 +155,15 @@ public class CustomerProfileService {
         customer.setPassword(passwordEncoder.encode(request.getNewPassword()));
         customer.setUpdatedDate(LocalDateTime.now());
         customerRepository.save(customer);
-
         log.info("Password changed successfully for customer {}", customerId);
     }
 
+    // Upload ulang dokumen KYC (KTP & Selfie) untuk verifikasi ulang
     @Transactional
     public CustomerProfileResponse updateKycDocuments(
             UUID customerId,
-            org.springframework.web.multipart.MultipartFile ktpFile,
-            org.springframework.web.multipart.MultipartFile selfieFile) {
+            MultipartFile ktpFile,
+            MultipartFile selfieFile) {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new BussinessRuleException("Customer tidak ditemukan"));
 
@@ -282,16 +206,40 @@ public class CustomerProfileService {
             dokumenCustomerRepository.save(docSelfie);
         }
 
-        // Reset status verifikasi ke PENDING agar Backoffice memeriksa ulang dokumen revisi
         verifikasiRepository.deleteByMstCustomerId(customerId);
         customer.setStatus(false);
         customer.setUpdatedDate(LocalDateTime.now());
         customerRepository.save(customer);
 
         log.info("Customer {} re-uploaded KYC documents for revision", customerId);
+
+        if (realTimeEmitterService != null) {
+            realTimeEmitterService.broadcast(RealTimeEventDto.builder()
+                    .eventType("KYC_REVISED")
+                    .referenceId(customerId.toString())
+                    .customerName(customer.getNama())
+                    .title("Revisi Dokumen KYC")
+                    .message("Nasabah " + customer.getNama() + " telah mengunggah revisi dokumen identitas.")
+                    .targetRoles(List.of("ROLE_BACKOFFICE", "ROLE_SUPERADMIN"))
+                    .timestamp(LocalDateTime.now())
+                    .build());
+        }
+
         return buildProfileResponse(customer);
     }
 
+    // Perbarui token FCM customer untuk push notification
+    @Transactional
+    public void updateFcmToken(UUID customerId, String fcmToken) {
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new BussinessRuleException("Customer tidak ditemukan"));
+        customer.setFcmToken(fcmToken);
+        customer.setUpdatedDate(LocalDateTime.now());
+        customerRepository.save(customer);
+        log.info("FCM token updated successfully for customer id: {}", customerId);
+    }
+
+    // Susun DTO response data profil nasabah
     private CustomerProfileResponse buildProfileResponse(Customer customer) {
         UUID customerId = customer.getId();
 
@@ -347,6 +295,7 @@ public class CustomerProfileService {
                 .build();
     }
 
+    // Tentukan status verifikasi KYC customer
     private String determineStatusVerifikasi(Customer customer, Optional<VerifikasiCustomer> verifikasiOpt) {
         if (Boolean.TRUE.equals(customer.getStatus())) {
             return "TERVERIFIKASI";
@@ -357,6 +306,7 @@ public class CustomerProfileService {
         return "MENUNGGU_VERIFIKASI";
     }
 
+    // Pemetaan entitas alamat ke format DTO respons
     private AlamatDetailResponse mapAlamat(AlamatCustomer alamat) {
         if (alamat == null) return null;
 
@@ -386,6 +336,7 @@ public class CustomerProfileService {
                 .build();
     }
 
+    // Hitung ulang skor kredit dan simpan hasil scoring
     private ScoringCustomer recalculateAndSaveScoring(Customer customer, ScoringCustomer scoring) {
         BigDecimal pendapatan = scoring.getPenghasilanBulanan() != null ? scoring.getPenghasilanBulanan() : BigDecimal.ZERO;
         BigDecimal cicilan = scoring.getTotalCicilanLainBulanan() != null ? scoring.getTotalCicilanLainBulanan() : BigDecimal.ZERO;
@@ -393,12 +344,12 @@ public class CustomerProfileService {
         String statusPekerjaan = scoring.getStatusPekerjaan() != null ? scoring.getStatusPekerjaan() : "KARYAWAN_TETAP";
 
         if (pendapatan.compareTo(BigDecimal.ZERO) > 0) {
-            com.bcafinance.backend_saku.features.scoring.service.ScoringService.ScoringResult res =
+            ScoringService.ScoringResult res =
                     scoringService.calculateScore(cicilan, pendapatan, lamaBekerja, statusPekerjaan);
             scoring.setSkor((int) Math.round(res.score()));
             scoring.setStatusScoring(res.decision());
 
-            com.bcafinance.backend_saku.core.entity.Plafond p = customerPlafondService.resolveCustomerPlafond(scoring);
+            Plafond p = customerPlafondService.resolveCustomerPlafond(scoring);
             if (p != null) {
                 scoring.setMstPlafondId(p.getId());
             }
@@ -407,33 +358,4 @@ public class CustomerProfileService {
         scoring.setUpdatedDate(LocalDateTime.now());
         return scoringRepository.save(scoring);
     }
-
-    @Transactional
-    public void updateFcmToken(UUID customerId, String fcmToken) {
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new BussinessRuleException("Customer tidak ditemukan"));
-        customer.setFcmToken(fcmToken);
-        customer.setUpdatedDate(LocalDateTime.now());
-        customerRepository.save(customer);
-        log.info("FCM token updated successfully for customer id: {}", customerId);
-
-        if (fcmToken != null && !fcmToken.isBlank() && notifikasiRepository != null && fcmPushService != null) {
-            try {
-                List<com.bcafinance.backend_saku.core.entity.Notifikasi> unreadNotifs = notifikasiRepository.findAllByMstCustomerIdAndStatus(customerId, "BELUM_DIBACA");
-                for (com.bcafinance.backend_saku.core.entity.Notifikasi n : unreadNotifs) {
-                    if ("WELCOME".equalsIgnoreCase(n.getType())) {
-                        java.util.Map<String, String> data = new java.util.HashMap<>();
-                        data.put("type", "WELCOME");
-                        data.put("notifId", n.getId().toString());
-                        data.put("targetRoute", "home");
-                        fcmPushService.sendPush(fcmToken, n.getJudul(), n.getPesan(), data);
-                        log.info("🚀 Pushed welcome notification to customer {} on login/token sync", customerId);
-                    }
-                }
-            } catch (Exception e) {
-                log.warn("Failed to push pending welcome notification on FCM sync: {}", e.getMessage());
-            }
-        }
-    }
 }
-

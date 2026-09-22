@@ -50,6 +50,8 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import com.bcafinance.backend_saku.core.dto.PageResponse;
+import com.bcafinance.backend_saku.core.realtime.RealTimeEmitterService;
+import com.bcafinance.backend_saku.core.realtime.RealTimeEventDto;
 
 @Service
 @RequiredArgsConstructor
@@ -69,6 +71,7 @@ public class BranchManagerPersetujuanService {
     private final ScoringService scoringService;
     private final com.bcafinance.backend_saku.features.customer.service.NotifikasiService notifikasiService;
     private final com.bcafinance.backend_saku.features.superadmin.auditlog.service.AuditLogService auditLogService;
+    private final RealTimeEmitterService realTimeEmitterService;
 
     public PageResponse<BranchManagerPengajuanItemResponse> findAllPaginated(int page, int size, String search, String statusFilter, UUID karyawanId) {
         List<BranchManagerPengajuanItemResponse> all = findAll(statusFilter, karyawanId);
@@ -522,6 +525,33 @@ public class BranchManagerPersetujuanService {
             String desc = "Branch Manager " + karyawan.getNama() + " memproses persetujuan pengajuan no. "
                     + pengajuan.getNomorPengajuan() + " (" + act + ")";
             auditLogService.recordLog(karyawanId, act, "PENGAJUAN", desc);
+        }
+
+        if (realTimeEmitterService != null) {
+            boolean isApproved = "DISETUJUI".equals(hasilPersetujuan);
+            String eventType = isApproved ? "LOAN_READY_FOR_DISBURSEMENT" : "LOAN_REJECTED_BY_BM";
+            String title = isApproved ? "Pinjaman Siap Dicairkan" : "Persetujuan Pinjaman Ditolak";
+            String msg = isApproved
+                    ? "Pinjaman no. " + pengajuan.getNomorPengajuan() + " telah disetujui Branch Manager dan siap dicairkan oleh Backoffice."
+                    : "Pinjaman no. " + pengajuan.getNomorPengajuan() + " ditolak oleh Branch Manager.";
+
+            List<String> targetRoles = isApproved
+                    ? List.of("ROLE_BACKOFFICE", "ROLE_MARKETING", "ROLE_SUPERADMIN")
+                    : List.of("ROLE_MARKETING", "ROLE_SUPERADMIN");
+
+            String customerName = customerRepository.findById(pengajuan.getMstCustomerId())
+                    .map(Customer::getNama).orElse("Nasabah");
+
+            realTimeEmitterService.broadcast(RealTimeEventDto.builder()
+                    .eventType(eventType)
+                    .referenceId(pengajuanId.toString())
+                    .nomorPengajuan(pengajuan.getNomorPengajuan())
+                    .customerName(customerName)
+                    .title(title)
+                    .message(msg)
+                    .targetRoles(targetRoles)
+                    .timestamp(LocalDateTime.now())
+                    .build());
         }
 
         return PersetujuanPinjamanResponse.builder()
