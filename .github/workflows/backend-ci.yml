@@ -121,14 +121,6 @@ jobs:
             echo ">>> FIREBASE_SERVICE_ACCOUNT_JSON secret not provided."
           fi
 
-      - name: Generate Dummy Upload Files for Seeder (CI Runner)
-        working-directory: ./backend
-        run: |
-          if [ -f database/generate-dummy-files.js ]; then
-            echo ">>> Pre-generating dummy upload files..."
-            node database/generate-dummy-files.js || true
-          fi
-
       - name: Transfer Backend Files to Server via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -136,7 +128,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
-          source: "backend/pom.xml,backend/Dockerfile,backend/docker-compose.yml,backend/.dockerignore,backend/.env*,backend/src/**,backend/nginx/**,backend/database/**,backend/uploads/**"
+          source: "backend/pom.xml,backend/Dockerfile,backend/docker-compose.yml,backend/.dockerignore,backend/.env*,backend/src/**,backend/nginx/**,backend/database/**"
           target: "~/backend"
           strip_components: 1
 
@@ -158,14 +150,17 @@ jobs:
               cp .env.example .env
             fi
 
-            # Ensure uploads directory exists for persistent storage
-            mkdir -p uploads
+            # Ensure uploads directory exists with proper permissions
+            sudo mkdir -p uploads
+            sudo chown -R $USER:$USER uploads 2>/dev/null || true
+            sudo chmod -R 777 uploads 2>/dev/null || true
 
             # Generate dummy files on server if node is available
             if command -v node >/dev/null 2>&1 && [ -f database/generate-dummy-files.js ]; then
               echo ">>> Ensuring dummy upload files on server..."
               node database/generate-dummy-files.js || true
             fi
+
 
 
             # Sync Nginx configuration & Auto-SSL for saku.morpkhai.web.id
