@@ -128,7 +128,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
-          source: "backend/pom.xml,backend/Dockerfile,backend/docker-compose.yml,backend/.dockerignore,backend/.env*,backend/src/**"
+          source: "backend/pom.xml,backend/Dockerfile,backend/docker-compose.yml,backend/.dockerignore,backend/.env*,backend/src/**,backend/nginx/**"
           target: "~/backend"
           strip_components: 1
 
@@ -152,6 +152,19 @@ jobs:
 
             # Ensure uploads directory exists for persistent storage
             mkdir -p uploads
+
+            # Sync Nginx configuration if provided
+            if [ -f nginx/saku.conf ]; then
+              echo ">>> Syncing Nginx configuration for saku.morpkhai.web.id..."
+              sudo cp nginx/saku.conf /etc/nginx/sites-available/saku
+              sudo ln -sf /etc/nginx/sites-available/saku /etc/nginx/sites-enabled/
+              if sudo nginx -t; then
+                echo ">>> Reloading Nginx..."
+                sudo systemctl reload nginx || sudo service nginx reload || true
+              else
+                echo ">>> WARNING: Nginx syntax test failed. Check SSL certificates if not yet generated."
+              fi
+            fi
 
             echo ">>> Building and deploying Docker containers..."
             docker compose up -d --build
