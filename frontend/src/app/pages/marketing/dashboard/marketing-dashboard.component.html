@@ -22,29 +22,7 @@
   <!-- Skeleton Loading State -->
   @if (isLoadingStats()) {
   <div class="flex flex-col gap-6">
-    <!-- Skeleton Container 1 (3 Cards in 1 Row) -->
-    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col gap-5">
-      <div class="flex flex-col gap-2.5">
-        <app-skeleton variant="text" width="w-56" height="h-5"></app-skeleton>
-        <app-skeleton variant="text" width="w-72" height="h-3.5"></app-skeleton>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        @for (i of [1,2,3]; track i) {
-        <div class="p-3.5 rounded-xl border border-[#E5E7EB] flex items-center justify-between gap-3">
-          <div class="flex items-center gap-3">
-            <app-skeleton variant="rect" width="w-9" height="h-9" rounded="xl"></app-skeleton>
-            <div class="flex flex-col gap-2">
-              <app-skeleton variant="text" width="w-24" height="h-4"></app-skeleton>
-              <app-skeleton variant="text" width="w-20" height="h-3"></app-skeleton>
-            </div>
-          </div>
-          <app-skeleton variant="text" width="w-12" height="h-6"></app-skeleton>
-        </div>
-        }
-      </div>
-    </div>
-
-    <!-- Skeleton Container 2 (3 Cards in 1 Row) -->
+    <!-- Skeleton Container (3 Cards in 1 Row) -->
     <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col gap-5">
       <div class="flex flex-col gap-2.5">
         <app-skeleton variant="text" width="w-56" height="h-5"></app-skeleton>
@@ -86,90 +64,10 @@
   </div>
   } @else {
 
-  <!-- B. OVERVIEW STATISTIK MARKETING (FULL-WIDTH 1 BARIS KESAMPING PER KELOMPOK) -->
+  <!-- B. OVERVIEW STATISTIK MARKETING -->
   <div class="space-y-6">
 
-    <!-- KELOMPOK 1: STATUS ANTREAN & PEMROSESAN (1 BARIS KESAMPING / 3 KOLOM) -->
-    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
-      <!-- Header -->
-      <div class="space-y-0.5">
-        <h2 class="text-base font-semibold text-neutral-90 tracking-tight flex items-center gap-2">
-          <svg lucideActivity [size]="18" class="w-4.5 h-4.5 text-primary"></svg>
-          <span>Status Antrean & Pemrosesan</span>
-        </h2>
-        <p class="text-xs text-neutral-40">
-          Distribusi berkas dalam tahapan verifikasi awal dan perbaikan dokumen nasabah
-        </p>
-      </div>
-
-      <!-- Inner 3 Cards (1 Baris Kesamping) -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <!-- 1. Menunggu Review (Highlight Priority Card) -->
-        <div (click)="navigateToList('MENUNGGU_REVIEW')"
-          class="p-3.5 rounded-xl border border-primary-30 bg-primary-0/20 hover:border-primary hover:bg-primary-0/30 transition-all flex items-center justify-between gap-2.5 group cursor-pointer">
-          <div class="flex items-center gap-2.5 min-w-0">
-            <div
-              class="w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
-              <svg lucideClock [size]="18" class="w-4.5 h-4.5"></svg>
-            </div>
-            <div class="min-w-0 truncate">
-              <p class="text-xs font-semibold text-neutral-90 truncate">Menunggu Review</p>
-              <p class="text-[11px] text-neutral-40 truncate">Perlu Tindakan</p>
-            </div>
-          </div>
-          <div class="text-right shrink-0">
-            <div class="text-lg font-bold text-neutral-90 tracking-tight">
-              {{ stats()?.menungguReview ?? 0 }}
-            </div>
-            <p class="text-[11px] text-neutral-40">Berkas</p>
-          </div>
-        </div>
-
-        <!-- 2. Total Pengajuan Cabang -->
-        <div (click)="navigateToList()"
-          class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-primary-30 hover:bg-neutral-0/40 transition-all flex items-center justify-between gap-2.5 group cursor-pointer">
-          <div class="flex items-center gap-2.5 min-w-0">
-            <div
-              class="w-9 h-9 rounded-xl bg-primary-0/60 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-              <svg lucideFileText [size]="18" class="w-4.5 h-4.5"></svg>
-            </div>
-            <div class="min-w-0 truncate">
-              <p class="text-xs font-semibold text-neutral-90 truncate">Total Pengajuan</p>
-              <p class="text-[11px] text-neutral-40 truncate">Semua berkas masuk</p>
-            </div>
-          </div>
-          <div class="text-right shrink-0">
-            <div class="text-lg font-bold text-neutral-90 tracking-tight">
-              {{ stats()?.totalPengajuan ?? 0 }}
-            </div>
-            <p class="text-[11px] text-neutral-40">Berkas</p>
-          </div>
-        </div>
-
-        <!-- 3. Perlu Revisi Dokumen -->
-        <div (click)="navigateToList('PERLU_REVISI')"
-          class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-warning-20 hover:bg-warning-0/20 transition-all flex items-center justify-between gap-2.5 group cursor-pointer">
-          <div class="flex items-center gap-2.5 min-w-0">
-            <div
-              class="w-9 h-9 rounded-xl bg-warning-0 text-warning-80 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-              <svg lucideAlertCircle [size]="18" class="w-4.5 h-4.5"></svg>
-            </div>
-            <div class="min-w-0 truncate">
-              <p class="text-xs font-semibold text-neutral-90 truncate">Perlu Revisi</p>
-              <p class="text-[11px] text-neutral-40 truncate">Perbaikan nasabah</p>
-            </div>
-          </div>
-          <div class="text-right shrink-0">
-            <div class="text-lg font-bold text-neutral-90 tracking-tight">
-              {{ stats()?.perluRevisi ?? 0 }}
-            </div>
-            <p class="text-[11px] text-neutral-40">Berkas</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- KELOMPOK 2: KINERJA & KEPUTUSAN REVIEW (1 BARIS KESAMPING / 3 KOLOM) -->
+    <!-- KINERJA & KEPUTUSAN REVIEW (1 BARIS KESAMPING / 3 KOLOM) -->
     <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
       <!-- Header -->
       <div class="space-y-0.5">

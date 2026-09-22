@@ -21,29 +21,7 @@
   <!-- Skeleton Loading State -->
   @if (isLoadingStats()) {
   <div class="flex flex-col gap-6">
-    <!-- Skeleton Container 1 (4 Cards in 1 Row) -->
-    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col gap-5">
-      <div class="flex flex-col gap-2.5">
-        <app-skeleton variant="text" width="w-56" height="h-5"></app-skeleton>
-        <app-skeleton variant="text" width="w-72" height="h-3.5"></app-skeleton>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        @for (i of [1,2,3,4]; track i) {
-        <div class="p-3.5 rounded-xl border border-[#E5E7EB] flex items-center justify-between gap-3">
-          <div class="flex items-center gap-3">
-            <app-skeleton variant="rect" width="w-9" height="h-9" rounded="xl"></app-skeleton>
-            <div class="flex flex-col gap-2">
-              <app-skeleton variant="text" width="w-24" height="h-4"></app-skeleton>
-              <app-skeleton variant="text" width="w-20" height="h-3"></app-skeleton>
-            </div>
-          </div>
-          <app-skeleton variant="text" width="w-12" height="h-6"></app-skeleton>
-        </div>
-        }
-      </div>
-    </div>
-
-    <!-- Skeleton Container 2 (3 Cards in 1 Row) -->
+    <!-- Skeleton Container (3 Cards in 1 Row) -->
     <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col gap-5">
       <div class="flex flex-col gap-2.5">
         <app-skeleton variant="text" width="w-56" height="h-5"></app-skeleton>
@@ -85,114 +63,10 @@
   </div>
   } @else {
 
-  <!-- B. OVERVIEW STATISTIK CABANG (FULL-WIDTH 1 BARIS KESAMPING PER KELOMPOK) -->
+  <!-- B. OVERVIEW STATISTIK CABANG -->
   <div class="space-y-6">
 
-    <!-- KELOMPOK 1: AKTIVITAS & KEPUTUSAN CABANG (1 BARIS KESAMPING / 4 KOLOM) -->
-    <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
-      <!-- Header -->
-      <div class="space-y-0.5">
-        <h2 class="text-base font-semibold text-neutral-90 tracking-tight flex items-center gap-2">
-          <svg lucideActivity [size]="18" class="w-4.5 h-4.5 text-primary"></svg>
-          <span>Aktivitas & Keputusan Cabang</span>
-        </h2>
-        <p class="text-xs text-neutral-40">
-          Status antrean berkas menunggu tindakan dan rekam keputusan persetujuan BM
-        </p>
-      </div>
-
-      <!-- Inner 4 Cards (1 Baris Kesamping) -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- 1. Menunggu Persetujuan (Prioritas Tindakan) -->
-        <div (click)="navigateToList('MENUNGGU_PERSETUJUAN')"
-          class="p-3.5 rounded-xl border border-primary-30 bg-primary-0/20 hover:border-primary hover:bg-primary-0/30 transition-all flex items-center justify-between gap-2.5 group cursor-pointer">
-          <div class="flex items-center gap-2.5 min-w-0">
-            <div
-              class="w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
-              <svg lucideClock [size]="18" class="w-4.5 h-4.5"></svg>
-            </div>
-            <div class="min-w-0 truncate">
-              <p class="text-xs font-semibold text-neutral-90 truncate">Menunggu Persetujuan</p>
-              <p class="text-[11px] text-neutral-40 truncate">Perlu Tindakan</p>
-            </div>
-          </div>
-          <div class="text-right shrink-0">
-            <div class="text-lg font-bold text-neutral-90 tracking-tight">
-              {{ stats()?.menungguPersetujuan ?? 0 }}
-            </div>
-            <p class="text-[11px] text-neutral-40">Berkas</p>
-          </div>
-        </div>
-
-        <!-- 2. Approval Rate Cabang -->
-        <div (click)="navigateToList()"
-          class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-warning-20 hover:bg-warning-0/20 transition-all flex items-center justify-between gap-2.5 group cursor-pointer">
-          <div class="flex items-center gap-2.5 min-w-0">
-            <div
-              class="w-9 h-9 rounded-xl bg-warning-0 text-warning-80 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-              <svg lucideTrendingUp [size]="18" class="w-4.5 h-4.5"></svg>
-            </div>
-            <div class="min-w-0 truncate">
-              <p class="text-xs font-semibold text-neutral-90 truncate">Approval Rate</p>
-              <p class="text-[11px] text-neutral-40 truncate">Persetujuan BM</p>
-            </div>
-          </div>
-          <div class="text-right shrink-0">
-            <div class="text-lg font-bold text-neutral-90 tracking-tight">
-              {{ (stats()?.approvalRateBM ?? 0) | number:'1.0-1' }}%
-            </div>
-            <div class="w-14 bg-neutral-10 rounded-full h-1 mt-1 overflow-hidden ml-auto">
-              <div class="bg-warning h-1 rounded-full transition-all duration-500"
-                [style.width.%]="stats()?.approvalRateBM || 0"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 3. Disetujui BM -->
-        <div (click)="navigateToList('DISETUJUI')"
-          class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-success-20 hover:bg-success-0/20 transition-all flex items-center justify-between gap-2.5 group cursor-pointer">
-          <div class="flex items-center gap-2.5 min-w-0">
-            <div
-              class="w-9 h-9 rounded-xl bg-success-0 text-success-70 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-              <svg lucideCheckCircle2 [size]="18" class="w-4.5 h-4.5"></svg>
-            </div>
-            <div class="min-w-0 truncate">
-              <p class="text-xs font-semibold text-neutral-90 truncate">Disetujui Cabang</p>
-              <p class="text-[11px] text-neutral-40 truncate">Lolos verifikasi BM</p>
-            </div>
-          </div>
-          <div class="text-right shrink-0">
-            <div class="text-lg font-bold text-neutral-90 tracking-tight">
-              {{ stats()?.disetujuiBM ?? 0 }}
-            </div>
-            <p class="text-[11px] text-neutral-40">Berkas</p>
-          </div>
-        </div>
-
-        <!-- 4. Ditolak BM -->
-        <div (click)="navigateToList('DITOLAK')"
-          class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-error-20 hover:bg-error-0/20 transition-all flex items-center justify-between gap-2.5 group cursor-pointer">
-          <div class="flex items-center gap-2.5 min-w-0">
-            <div
-              class="w-9 h-9 rounded-xl bg-error-0 text-error-70 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-              <svg lucideXCircle [size]="18" class="w-4.5 h-4.5"></svg>
-            </div>
-            <div class="min-w-0 truncate">
-              <p class="text-xs font-semibold text-neutral-90 truncate">Ditolak Cabang</p>
-              <p class="text-[11px] text-neutral-40 truncate">Tidak penuhi syarat</p>
-            </div>
-          </div>
-          <div class="text-right shrink-0">
-            <div class="text-lg font-bold text-neutral-90 tracking-tight">
-              {{ stats()?.ditolakBM ?? 0 }}
-            </div>
-            <p class="text-[11px] text-neutral-40">Berkas</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- KELOMPOK 2: REALISASI FINANSIAL CABANG (1 BARIS KESAMPING / 3 KOLOM) -->
+    <!-- REALISASI FINANSIAL CABANG (1 BARIS KESAMPING / 3 KOLOM) -->
     <div class="bg-white border border-[#E5E7EB] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
       <!-- Header -->
       <div class="space-y-0.5">

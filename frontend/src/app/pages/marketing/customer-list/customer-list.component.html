@@ -1,0 +1,515 @@
+<div class="space-y-6 pb-12">
+  <!-- Page Header -->
+  <div class="flex flex-col gap-2">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-semibold text-neutral-90 tracking-tight">Daftar Nasabah</h1>
+        <p class="text-sm text-neutral-40 mt-0.5">
+          Direktori nasabah yang telah lolos verifikasi KYC Backoffice dan portofolio limit aktif
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Metric Overview Cards (3 Kotak Langsung) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <!-- Card 1: Nasabah Terverifikasi -->
+    <div
+      class="p-4 rounded-xl border border-[#E5E7EB] bg-white hover:border-success-20 hover:bg-neutral-0/40 transition-all flex flex-col justify-between group shadow-xs">
+      <div>
+        <div class="flex items-center justify-between gap-3">
+          <span
+            class="inline-flex items-center px-2.5 py-0.5 rounded-md bg-success-0 text-success-70 text-xs font-medium">
+            Lolos KYC
+          </span>
+          <div
+            class="w-8 h-8 rounded-lg bg-success-0 text-success-70 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <svg lucideShieldCheck [size]="16" class="w-4 h-4"></svg>
+          </div>
+        </div>
+
+        <div class="mt-2.5">
+          <span class="text-[11px] font-medium text-neutral-40 uppercase tracking-wider">Total Nasabah Terverifikasi</span>
+          <div class="text-xl sm:text-2xl font-bold text-neutral-90 tracking-tight mt-0.5 truncate">
+            {{ totalVerifiedCustomers() }} <span class="text-xs font-normal text-neutral-50">Nasabah</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-2.5 pt-2 border-t border-[#E5E7EB] flex items-center justify-between text-xs text-neutral-50">
+        <span class="text-neutral-40 truncate text-[11px]">Akun Terverifikasi</span>
+        <span class="font-medium text-neutral-70 shrink-0 text-xs ml-2">{{ totalVerifiedCustomers() }} Aktif</span>
+      </div>
+    </div>
+
+    <!-- Card 2: Total Plafond Tersedia -->
+    <div
+      class="p-4 rounded-xl border border-[#E5E7EB] bg-white hover:border-warning-20 hover:bg-neutral-0/40 transition-all flex flex-col justify-between group shadow-xs">
+      <div>
+        <div class="flex items-center justify-between gap-3">
+          <span
+            class="inline-flex items-center px-2.5 py-0.5 rounded-md bg-warning-0 text-warning-80 text-xs font-medium">
+            Plafond Kredit
+          </span>
+          <div
+            class="w-8 h-8 rounded-lg bg-warning-0 text-warning-80 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <svg lucideWallet [size]="16" class="w-4 h-4"></svg>
+          </div>
+        </div>
+
+        <div class="mt-2.5">
+          <span class="text-[11px] font-medium text-neutral-40 uppercase tracking-wider">Total Plafond Tersedia</span>
+          <div class="text-xl sm:text-2xl font-bold text-neutral-90 tracking-tight mt-0.5 truncate"
+            [title]="formatCurrency(totalActivePlafond())">
+            {{ formatCurrency(totalActivePlafond()) }}
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-2.5 pt-2 border-t border-[#E5E7EB] flex items-center justify-between text-xs text-neutral-50">
+        <span class="text-neutral-40 truncate text-[11px]">Akumulasi Plafond</span>
+        <span class="font-medium text-neutral-70 shrink-0 text-xs ml-2">Nasabah Aktif</span>
+      </div>
+    </div>
+
+    <!-- Card 3: Rata-Rata Limit Plafond (Primary Theme) -->
+    <div
+      class="p-4 rounded-xl border border-[#E5E7EB] bg-white hover:border-primary-20/60 hover:bg-neutral-0/40 transition-all flex flex-col justify-between group shadow-xs">
+      <div>
+        <div class="flex items-center justify-between gap-3">
+          <span
+            class="inline-flex items-center px-2.5 py-0.5 rounded-md bg-primary-10 text-primary text-xs font-medium">
+            Monitoring Limit
+          </span>
+          <div
+            class="w-8 h-8 rounded-lg bg-primary-10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <svg lucideCreditCard [size]="16" class="w-4 h-4"></svg>
+          </div>
+        </div>
+
+        <div class="mt-2.5">
+          <span class="text-[11px] font-medium text-neutral-40 uppercase tracking-wider">Rata-Rata Limit Plafond</span>
+          <div class="text-xl sm:text-2xl font-bold text-neutral-90 tracking-tight mt-0.5 truncate"
+            [title]="formatCurrency(avgPlafond())">
+            {{ formatCurrency(avgPlafond()) }}
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-2.5 pt-2 border-t border-[#E5E7EB] flex items-center justify-between text-xs text-neutral-50">
+        <span class="text-neutral-40 truncate text-[11px]">Rasio Portofolio</span>
+        <span class="font-medium text-neutral-70 shrink-0 text-xs ml-2">Per Nasabah</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Card Container -->
+  <div class="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs">
+    <!-- Toolbar Filters & Action -->
+    <div class="p-4 flex flex-wrap items-center justify-between gap-3.5 border-b border-[#F3F4F6]">
+      <!-- Left Filters -->
+      <div class="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
+        <!-- Search Input -->
+        <div class="w-72 max-w-full">
+          <app-input placeholder="Cari nama, NIK, kota..." [ngModel]="searchQuery()" (ngModelChange)="onSearchChange($event)">
+            <svg lucideSearch [size]="16" iconLeft class="w-4 h-4 text-neutral-40"></svg>
+          </app-input>
+        </div>
+
+        <!-- Tier Plafond Filter -->
+        <div class="w-48 max-w-full">
+          <app-dropdown [options]="tierOptions" placeholder="Filter Tier Plafond" [ngModel]="selectedTier()" [clearable]="true"
+            (optionChange)="onTierChange($event)"></app-dropdown>
+        </div>
+
+        <!-- Reset Button -->
+        @if (hasActiveFilters()) {
+        <button type="button" (click)="clearFilters()"
+          class="p-2 text-neutral-40 hover:text-neutral-90 hover:bg-neutral-10 rounded-lg transition-colors cursor-pointer"
+          title="Reset semua filter">
+          <svg lucideX [size]="16" class="w-4 h-4"></svg>
+        </button>
+        }
+      </div>
+
+      <!-- Right Count -->
+      <div class="text-xs text-neutral-40 font-medium">
+        Total <span class="font-semibold text-neutral-90">{{ totalItems() }}</span> nasabah terverifikasi
+      </div>
+    </div>
+
+    <!-- Data Table -->
+    <app-table [columns]="columns" [data]="customers()" [loading]="isLoading()" class="border-0">
+      <!-- Nasabah Column (Clean, Fixed, No Email) -->
+      <ng-template appTableCell="customer" let-row>
+        <div class="flex items-center gap-3 py-1">
+          <div class="w-8 h-8 rounded-full bg-primary-50/10 text-primary-50 flex items-center justify-center font-bold text-xs shrink-0 uppercase">
+            {{ (row.namaCustomer || 'N').charAt(0) }}
+          </div>
+          <span class="font-medium text-neutral-90 text-sm truncate max-w-[180px]">
+            {{ row.namaCustomer || '-' }}
+          </span>
+        </div>
+      </ng-template>
+
+      <!-- Domisili Column -->
+      <ng-template appTableCell="domisili" let-row>
+        <span class="text-sm text-neutral-70 truncate block max-w-[220px]">
+          {{ row.kota || '-' }}, {{ row.provinsi || '-' }}
+        </span>
+      </ng-template>
+
+      <!-- Tier Plafond Column -->
+      <ng-template appTableCell="tierPlafond" let-row>
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {{ getTierBadgeClass(row.tierPlafond) }}">
+          {{ row.tierPlafond || 'Tier Bronze' }}
+        </span>
+      </ng-template>
+
+      <!-- Plafond Aktif Column -->
+      <ng-template appTableCell="plafond" let-row>
+        <span class="text-sm font-semibold text-neutral-90">{{ formatCurrency(row.totalPlafond) }}</span>
+      </ng-template>
+
+      <!-- Sisa Plafond Column -->
+      <ng-template appTableCell="availablePlafond" let-row>
+        <span class="text-sm font-semibold text-emerald-600">
+          {{ formatCurrency(row.availablePlafond) }}
+        </span>
+      </ng-template>
+
+      <!-- Total Pengajuan Column (Soft Clean Badge) -->
+      <ng-template appTableCell="totalPengajuan" let-row>
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-neutral-0 text-neutral-80 border border-[#E5E7EB]">
+          {{ row.totalPengajuan || 0 }}x pinjaman
+        </span>
+      </ng-template>
+
+      <!-- Status Akun Column -->
+      <ng-template appTableCell="statusAkun" let-row>
+        <app-badge [variant]="row.statusAkun ? 'success' : 'error'" size="sm">
+          {{ row.statusAkun ? 'Aktif' : 'Nonaktif' }}
+        </app-badge>
+      </ng-template>
+
+      <!-- Actions Column (Selaras dengan tabel pengajuan) -->
+      <ng-template appTableCell="actions" let-row>
+        <div class="flex items-center justify-center">
+          <button type="button" (click)="viewCustomerDetail(row)"
+            class="p-1.5 text-neutral-50 hover:text-primary hover:bg-primary-10 rounded-lg transition-colors cursor-pointer"
+            title="Lihat Detail Nasabah">
+            <svg lucideEye [size]="16" class="w-4 h-4"></svg>
+          </button>
+        </div>
+      </ng-template>
+    </app-table>
+
+    <!-- Pagination -->
+    <div class="p-4 border-t border-[#F3F4F6]">
+      <app-pagination [currentPage]="currentPage()" [pageSize]="pageSize()" [totalItems]="totalItems()"
+        (pageChange)="onPageChange($event)" (pageSizeChange)="onPageSizeChange($event)">
+      </app-pagination>
+    </div>
+  </div>
+</div>
+
+<!-- Customer Detail Centered Modal -->
+@if (isModalOpen()) {
+<div class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+  <!-- Backdrop -->
+  <div class="fixed inset-0 bg-neutral-90/50 backdrop-blur-xs transition-opacity" (click)="closeModal()"></div>
+
+  <!-- Modal Box (Fixed Height Container) -->
+  <div class="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[700px] max-h-[90vh] z-10 border border-[#E5E7EB] animate-in fade-in zoom-in-95 duration-200">
+    <!-- Modal Header -->
+    <div class="px-6 py-4 bg-white border-b border-[#E5E7EB] flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-primary-50/10 text-primary-50 flex items-center justify-center font-bold text-sm uppercase">
+          {{ (selectedCustomerDetail()?.namaCustomer || 'N').charAt(0) }}
+        </div>
+        <div>
+          <h2 class="text-base font-bold text-neutral-90">
+            {{ selectedCustomerDetail()?.namaCustomer || 'Memuat Data...' }}
+          </h2>
+          <p class="text-xs text-neutral-40 mt-0.5">NIK: {{ selectedCustomerDetail()?.nik || '-' }}</p>
+        </div>
+      </div>
+      <button type="button" (click)="closeModal()"
+        class="p-2 text-neutral-40 hover:text-neutral-90 hover:bg-neutral-10 rounded-lg transition-colors cursor-pointer">
+        <svg lucideX [size]="18" class="w-4.5 h-4.5"></svg>
+      </button>
+    </div>
+
+    <!-- Modal Tabs -->
+    <div class="flex border-b border-[#E5E7EB] px-6 bg-white gap-2 shrink-0">
+      <button type="button" (click)="activeDetailTab.set('profil')"
+        class="py-3 px-3 text-xs font-semibold border-b-2 transition-colors cursor-pointer"
+        [ngClass]="activeDetailTab() === 'profil' ? 'border-primary-50 text-primary-50' : 'border-transparent text-neutral-40 hover:text-neutral-90'">
+        Profil & Identitas
+      </button>
+      <button type="button" (click)="activeDetailTab.set('plafond')"
+        class="py-3 px-3 text-xs font-semibold border-b-2 transition-colors cursor-pointer"
+        [ngClass]="activeDetailTab() === 'plafond' ? 'border-primary-50 text-primary-50' : 'border-transparent text-neutral-40 hover:text-neutral-90'">
+        Plafond & Pekerjaan
+      </button>
+      <button type="button" (click)="activeDetailTab.set('pinjaman')"
+        class="py-3 px-3 text-xs font-semibold border-b-2 transition-colors cursor-pointer"
+        [ngClass]="activeDetailTab() === 'pinjaman' ? 'border-primary-50 text-primary-50' : 'border-transparent text-neutral-40 hover:text-neutral-90'">
+        Riwayat Pinjaman ({{ selectedCustomerDetail()?.riwayatPinjaman?.length || 0 }})
+      </button>
+    </div>
+
+    <!-- Modal Body (Scrollable with Fixed Height Body Area) -->
+    <div class="flex-1 overflow-y-auto p-6 space-y-5 bg-[#FAFAFB]">
+      @if (isLoadingDetail()) {
+      <div class="flex flex-col items-center justify-center py-24 gap-3">
+        <div class="w-8 h-8 border-3 border-primary-50/20 border-t-primary-50 rounded-full animate-spin"></div>
+        <span class="text-xs text-neutral-40">Memuat rincian data nasabah...</span>
+      </div>
+      } @else if (selectedCustomerDetail()) {
+        <!-- TAB 1: PROFIL & IDENTITAS -->
+        @if (activeDetailTab() === 'profil') {
+        <div class="space-y-5">
+          <!-- CARD 1: DOKUMEN VERIFIKASI KYC -->
+          <app-card title="Dokumen Verifikasi KYC"
+            subtitle="Periksa keaslian dan kesesuaian foto selfie dengan KTP customer"
+            padding="sm">
+            <svg card-icon lucideShieldCheck [size]="16" class="w-4 h-4"></svg>
+
+            <!-- 2 Photo Grid: Foto KTP (Kiri) & Foto Selfie (Kanan) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Foto e-KTP Asli -->
+              <div
+                class="bg-[#F9FAFB] border border-[#E5E7EB] rounded-2xl p-4 flex flex-col items-center text-center group relative overflow-hidden">
+                <span class="text-xs font-semibold text-neutral-70 block mb-2.5">Foto e-KTP Asli</span>
+                <div
+                  class="w-full h-44 rounded-xl bg-white border border-[#E5E7EB] overflow-hidden flex items-center justify-center relative cursor-pointer"
+                  (click)="openInNewTab(selectedCustomerDetail()?.fotoKtp)" title="Klik untuk buka di tab baru">
+                  @if (selectedCustomerDetail()?.fotoKtp) {
+                  <img [src]="getFotoUrl(selectedCustomerDetail()?.fotoKtp)" alt="Foto KTP Customer"
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <div
+                    class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white">
+                    <svg lucideExternalLink [size]="16" class="w-4 h-4"></svg>
+                    <span class="text-xs font-medium">Buka Tab Baru</span>
+                  </div>
+                  } @else {
+                  <div class="flex flex-col items-center justify-center text-neutral-30 p-4">
+                    <svg lucideCreditCard [size]="40" class="w-10 h-10 mb-2 text-neutral-30"></svg>
+                    <span class="text-xs text-neutral-40">Foto KTP tidak tersedia</span>
+                  </div>
+                  }
+                </div>
+                <div class="w-full flex items-center justify-between mt-3 pt-2 border-t border-[#E5E7EB]/60 text-xs">
+                  <span class="text-neutral-40">Tipe: Kartu Identitas</span>
+                  @if (selectedCustomerDetail()?.fotoKtp) {
+                  <button type="button" (click)="openInNewTab(selectedCustomerDetail()?.fotoKtp)"
+                    class="text-primary hover:text-primary-60 font-medium flex items-center gap-1 cursor-pointer">
+                    <span>Buka Tab Baru</span>
+                    <svg lucideExternalLink [size]="12" class="w-3 h-3"></svg>
+                  </button>
+                  }
+                </div>
+              </div>
+
+              <!-- Foto Selfie Customer -->
+              <div
+                class="bg-[#F9FAFB] border border-[#E5E7EB] rounded-2xl p-4 flex flex-col items-center text-center group relative overflow-hidden">
+                <span class="text-xs font-semibold text-neutral-70 block mb-2.5">Foto Selfie Customer</span>
+                <div
+                  class="w-full h-44 rounded-xl bg-white border border-[#E5E7EB] overflow-hidden flex items-center justify-center relative cursor-pointer"
+                  (click)="openInNewTab(selectedCustomerDetail()?.fotoSelfie)" title="Klik untuk buka di tab baru">
+                  @if (selectedCustomerDetail()?.fotoSelfie) {
+                  <img [src]="getFotoUrl(selectedCustomerDetail()?.fotoSelfie)" alt="Foto Selfie Customer"
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <div
+                    class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white">
+                    <svg lucideExternalLink [size]="16" class="w-4 h-4"></svg>
+                    <span class="text-xs font-medium">Buka Tab Baru</span>
+                  </div>
+                  } @else {
+                  <div class="flex flex-col items-center justify-center text-neutral-30 p-4">
+                    <svg lucideUser [size]="40" class="w-10 h-10 mb-2 text-neutral-30"></svg>
+                    <span class="text-xs text-neutral-40">Foto selfie tidak tersedia</span>
+                  </div>
+                  }
+                </div>
+                <div class="w-full flex items-center justify-between mt-3 pt-2 border-t border-[#E5E7EB]/60 text-xs">
+                  <span class="text-neutral-40">Tipe: Foto Wajah</span>
+                  @if (selectedCustomerDetail()?.fotoSelfie) {
+                  <button type="button" (click)="openInNewTab(selectedCustomerDetail()?.fotoSelfie)"
+                    class="text-primary hover:text-primary-60 font-medium flex items-center gap-1 cursor-pointer">
+                    <span>Buka Tab Baru</span>
+                    <svg lucideExternalLink [size]="12" class="w-3 h-3"></svg>
+                  </button>
+                  }
+                </div>
+              </div>
+            </div>
+          </app-card>
+
+          <!-- CARD 2: INFORMASI KONTAK & BANK -->
+          <app-card title="Informasi Kontak & Bank" padding="sm">
+            <svg card-icon lucideUser [size]="16" class="w-4 h-4"></svg>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 text-xs">
+              <div>
+                <span class="text-neutral-40 block mb-0.5">Email</span>
+                <span class="font-medium text-neutral-90 text-sm block">{{ selectedCustomerDetail()?.email || '-' }}</span>
+              </div>
+              <div>
+                <span class="text-neutral-40 block mb-0.5">Nomor Telepon / WhatsApp</span>
+                <span class="font-medium text-neutral-90 text-sm block">{{ selectedCustomerDetail()?.noHp || '-' }}</span>
+              </div>
+              <div>
+                <span class="text-neutral-40 block mb-0.5">Nama Ibu Kandung</span>
+                <span class="font-medium text-neutral-90 text-sm block">{{ selectedCustomerDetail()?.namaIbuKandung || '-' }}</span>
+              </div>
+              <div>
+                <span class="text-neutral-40 block mb-0.5">Rekening Bank</span>
+                <span class="font-medium text-neutral-90 text-sm block">
+                  {{ selectedCustomerDetail()?.namaBank || '-' }} - {{ selectedCustomerDetail()?.noRekening || '-' }}
+                  <span class="text-xs text-neutral-40 font-normal">({{ selectedCustomerDetail()?.namaRekening || '-' }})</span>
+                </span>
+              </div>
+            </div>
+          </app-card>
+
+          <!-- CARD 3: ALAMAT KTP & DOMISILI -->
+          <app-card title="Alamat KTP & Domisili" padding="sm">
+            <svg card-icon lucideMapPin [size]="16" class="w-4 h-4"></svg>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div class="bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl p-3.5 space-y-1">
+                <span class="text-xs font-semibold text-neutral-70 uppercase tracking-wider block">Alamat e-KTP</span>
+                <p class="text-xs text-neutral-80 leading-relaxed">
+                  {{ selectedCustomerDetail()?.alamatKtp?.formattedAddress || selectedCustomerDetail()?.alamatKtp?.alamatLengkap || '-' }}
+                </p>
+              </div>
+              <div class="bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl p-3.5 space-y-1">
+                <span class="text-xs font-semibold text-neutral-70 uppercase tracking-wider block">Alamat Domisili</span>
+                <p class="text-xs text-neutral-80 leading-relaxed">
+                  {{ selectedCustomerDetail()?.alamatDomisili?.formattedAddress || selectedCustomerDetail()?.alamatDomisili?.alamatLengkap || '-' }}
+                </p>
+              </div>
+            </div>
+          </app-card>
+        </div>
+        }
+
+        <!-- TAB 2: PLAFOND & PEKERJAAN -->
+        @if (activeDetailTab() === 'plafond') {
+        <div class="space-y-5">
+          <!-- CARD 1: INFORMASI PEKERJAAN & KEUANGAN (Font Weight Medium) -->
+          <app-card title="Informasi Pekerjaan & Keuangan" padding="sm">
+            <svg card-icon lucideBriefcase [size]="16" class="w-4 h-4"></svg>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 text-xs">
+              <div>
+                <span class="text-neutral-40 block mb-0.5">Bidang / Profesi Pekerjaan</span>
+                <span class="font-medium text-neutral-90 text-sm block">{{ selectedCustomerDetail()?.pekerjaan || '-' }}</span>
+              </div>
+              <div>
+                <span class="text-neutral-40 block mb-0.5">Nama Perusahaan / Tempat Kerja</span>
+                <span class="font-medium text-neutral-90 text-sm block">{{ selectedCustomerDetail()?.tempatKerja || '-' }}</span>
+              </div>
+              <div>
+                <span class="text-neutral-40 block mb-0.5">Status Kepegawaian</span>
+                <span class="font-medium text-neutral-90 text-sm block">Karyawan</span>
+              </div>
+              <div>
+                <span class="text-neutral-40 block mb-0.5">Penghasilan Bulanan</span>
+                <span class="font-medium text-primary text-sm block">
+                  {{ formatCurrency(selectedCustomerDetail()?.pendapatan) }}
+                </span>
+              </div>
+            </div>
+          </app-card>
+
+          <!-- CARD 2: RINGKASAN LIMIT & TIER PLAFOND -->
+          <app-card title="Limit & Tier Plafond Nasabah" padding="sm">
+            <svg card-icon lucideWallet [size]="16" class="w-4 h-4"></svg>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl p-3.5">
+                <span class="text-[11px] font-medium text-neutral-40 uppercase tracking-wider block">Total Plafond</span>
+                <span class="text-base font-bold text-neutral-90 block mt-0.5">{{ formatCurrency(selectedCustomerDetail()?.totalPlafond) }}</span>
+                <div class="mt-1.5 flex items-center gap-1.5 text-xs">
+                  <span class="text-[11px] text-neutral-40">Tier:</span>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold {{ getTierBadgeClass(selectedCustomerDetail()?.tierPlafond) }}">
+                    {{ selectedCustomerDetail()?.tierPlafond || '-' }}
+                  </span>
+                </div>
+              </div>
+              <div class="bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl p-3.5">
+                <span class="text-[11px] font-medium text-neutral-40 uppercase tracking-wider block">Plafond Terpakai</span>
+                <span class="text-base font-bold text-neutral-80 block mt-0.5">{{ formatCurrency(selectedCustomerDetail()?.usedPlafond) }}</span>
+                <span class="text-[11px] text-neutral-40 mt-1 block">Pinjaman Berjalan</span>
+              </div>
+              <div class="bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl p-3.5">
+                <span class="text-[11px] font-medium text-neutral-40 uppercase tracking-wider block">Sisa Plafond Tersedia</span>
+                <span class="text-base font-bold text-emerald-600 block mt-0.5">{{ formatCurrency(selectedCustomerDetail()?.availablePlafond) }}</span>
+                <span class="text-[11px] text-emerald-600/80 mt-1 block font-medium">Dapat Digunakan</span>
+              </div>
+            </div>
+          </app-card>
+        </div>
+        }
+
+        <!-- TAB 3: RIWAYAT PINJAMAN -->
+        @if (activeDetailTab() === 'pinjaman') {
+        <div class="space-y-4">
+          <app-card title="Riwayat Pengajuan Pinjaman"
+            [subtitle]="'Total ' + (selectedCustomerDetail()?.riwayatPinjaman?.length || 0) + ' riwayat transaksi pengajuan'"
+            padding="sm">
+            <svg card-icon lucideFileText [size]="16" class="w-4 h-4"></svg>
+
+            @if (!selectedCustomerDetail()?.riwayatPinjaman || selectedCustomerDetail()!.riwayatPinjaman!.length === 0) {
+            <div class="text-center py-12 bg-neutral-0 rounded-xl border border-dashed border-[#E5E7EB]">
+              <svg lucideFileText [size]="32" class="w-8 h-8 text-neutral-30 mx-auto mb-2"></svg>
+              <p class="text-xs text-neutral-40 font-medium">Belum ada riwayat pengajuan pinjaman dari nasabah ini</p>
+            </div>
+            } @else {
+            <div class="space-y-2.5">
+              @for (loan of selectedCustomerDetail()!.riwayatPinjaman; track loan.pengajuanId) {
+              <div class="bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl p-3.5 shadow-2xs space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="font-semibold text-xs text-neutral-90">{{ loan.nomorPengajuan }}</span>
+                  <app-badge [variant]="getLoanStatusBadge(loan.statusPengajuan).variant" size="sm">
+                    {{ getLoanStatusBadge(loan.statusPengajuan).label }}
+                  </app-badge>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-xs pt-2 border-t border-[#E5E7EB]">
+                  <div>
+                    <span class="text-neutral-40 block mb-0.5">Nominal</span>
+                    <span class="font-bold text-neutral-90">{{ formatCurrency(loan.jumlahPinjaman) }}</span>
+                  </div>
+                  <div>
+                    <span class="text-neutral-40 block mb-0.5">Tenor</span>
+                    <span class="font-medium text-neutral-80">{{ loan.tenorBulan }} Bulan</span>
+                  </div>
+                  <div>
+                    <span class="text-neutral-40 block mb-0.5">Cabang</span>
+                    <span class="font-medium text-neutral-80">{{ loan.namaCabang }}</span>
+                  </div>
+                </div>
+              </div>
+              }
+            </div>
+            }
+          </app-card>
+        </div>
+        }
+      }
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="px-6 py-3.5 bg-white border-t border-[#E5E7EB] flex justify-end shrink-0">
+      <button type="button" (click)="closeModal()"
+        class="px-4 py-2 text-xs font-semibold text-neutral-70 bg-neutral-0 hover:bg-neutral-10 rounded-lg transition-colors cursor-pointer border border-[#E5E7EB]">
+        Tutup
+      </button>
+    </div>
+  </div>
+</div>
+}

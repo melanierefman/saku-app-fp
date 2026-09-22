@@ -100,6 +100,20 @@ export const routes: Routes = [
         pathMatch: 'full',
       },
 
+      {
+        path: 'marketing/customers',
+        loadComponent: () =>
+          import(
+            './pages/marketing/customer-list/customer-list.component'
+          ).then((m) => m.MarketingCustomerListComponent),
+        data: { title: 'Daftar Nasabah' },
+      },
+      {
+        path: 'marketing/nasabah',
+        redirectTo: 'marketing/customers',
+        pathMatch: 'full',
+      },
+
       // Branch Manager Routes
       {
         path: 'branch-manager/dashboard',
@@ -112,6 +126,29 @@ export const routes: Routes = [
       {
         path: 'branchmanager/dashboard',
         redirectTo: 'branch-manager/dashboard',
+        pathMatch: 'full',
+      },
+      {
+        path: 'branch-manager/customers',
+        loadComponent: () =>
+          import(
+            './pages/branchmanager/customer-list/customer-list.component'
+          ).then((m) => m.BranchManagerCustomerListComponent),
+        data: { title: 'Daftar Nasabah Cabang' },
+      },
+      {
+        path: 'branchmanager/customers',
+        redirectTo: 'branch-manager/customers',
+        pathMatch: 'full',
+      },
+      {
+        path: 'branch-manager/nasabah',
+        redirectTo: 'branch-manager/customers',
+        pathMatch: 'full',
+      },
+      {
+        path: 'branchmanager/nasabah',
+        redirectTo: 'branch-manager/customers',
         pathMatch: 'full',
       },
       {

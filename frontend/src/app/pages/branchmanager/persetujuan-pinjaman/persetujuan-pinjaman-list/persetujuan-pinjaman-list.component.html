@@ -11,6 +11,93 @@
     </div>
   </div>
 
+  <!-- Metric Overview Cards (4 Kotak Langsung per Status) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Card 1: Menunggu Persetujuan -->
+    <div (click)="toggleStatusFilter('MENUNGGU_PERSETUJUAN')"
+      class="p-4 rounded-xl border bg-white transition-all flex flex-col justify-between group shadow-xs cursor-pointer"
+      [ngClass]="selectedStatus() === 'MENUNGGU_PERSETUJUAN' ? 'border-primary ring-2 ring-primary/20 bg-primary-0/10' : 'border-[#E5E7EB] hover:border-primary-30 hover:bg-neutral-0/40'">
+      <div class="flex items-center justify-between gap-3">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-md bg-primary-0 text-primary text-xs font-medium">
+          Perlu Tindakan
+        </span>
+        <div class="w-8 h-8 rounded-lg bg-primary-0 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+          <svg lucideClock [size]="16" class="w-4 h-4"></svg>
+        </div>
+      </div>
+
+      <div class="mt-3">
+        <span class="text-[11px] font-medium text-neutral-40 uppercase tracking-wider">Menunggu Persetujuan</span>
+        <div class="text-xl sm:text-2xl font-bold text-neutral-90 tracking-tight mt-0.5 truncate">
+          {{ stats()?.menungguPersetujuan ?? 0 }} <span class="text-xs font-normal text-neutral-50">Berkas</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Dokumen Direvisi -->
+    <div (click)="toggleStatusFilter('PERLU_REVISI')"
+      class="p-4 rounded-xl border bg-white transition-all flex flex-col justify-between group shadow-xs cursor-pointer"
+      [ngClass]="selectedStatus() === 'PERLU_REVISI' || selectedStatus() === 'DOKUMEN_DIREVISI' ? 'border-warning ring-2 ring-warning/20 bg-warning-0/10' : 'border-[#E5E7EB] hover:border-warning-20 hover:bg-neutral-0/40'">
+      <div class="flex items-center justify-between gap-3">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-md bg-warning-0 text-warning-80 text-xs font-medium">
+          Perbaikan Berkas
+        </span>
+        <div class="w-8 h-8 rounded-lg bg-warning-0 text-warning-80 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+          <svg lucideAlertCircle [size]="16" class="w-4 h-4"></svg>
+        </div>
+      </div>
+
+      <div class="mt-3">
+        <span class="text-[11px] font-medium text-neutral-40 uppercase tracking-wider">Dokumen Direvisi</span>
+        <div class="text-xl sm:text-2xl font-bold text-neutral-90 tracking-tight mt-0.5 truncate">
+          {{ stats()?.statusPersetujuanDistribution?.['PERLU_REVISI'] ?? stats()?.statusPersetujuanDistribution?.['DOKUMEN_DIREVISI'] ?? 0 }} <span class="text-xs font-normal text-neutral-50">Berkas</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Disetujui BM -->
+    <div (click)="toggleStatusFilter('DISETUJUI')"
+      class="p-4 rounded-xl border bg-white transition-all flex flex-col justify-between group shadow-xs cursor-pointer"
+      [ngClass]="selectedStatus() === 'DISETUJUI' ? 'border-success ring-2 ring-success/20 bg-success-0/10' : 'border-[#E5E7EB] hover:border-success-20 hover:bg-neutral-0/40'">
+      <div class="flex items-center justify-between gap-3">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-md bg-success-0 text-success-70 text-xs font-medium">
+          Disetujui Cabang
+        </span>
+        <div class="w-8 h-8 rounded-lg bg-success-0 text-success-70 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+          <svg lucideCheckCircle2 [size]="16" class="w-4 h-4"></svg>
+        </div>
+      </div>
+
+      <div class="mt-3">
+        <span class="text-[11px] font-medium text-neutral-40 uppercase tracking-wider">Disetujui BM</span>
+        <div class="text-xl sm:text-2xl font-bold text-neutral-90 tracking-tight mt-0.5 truncate">
+          {{ stats()?.disetujuiBM ?? 0 }} <span class="text-xs font-normal text-neutral-50">Berkas</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 4: Ditolak BM -->
+    <div (click)="toggleStatusFilter('DITOLAK')"
+      class="p-4 rounded-xl border bg-white transition-all flex flex-col justify-between group shadow-xs cursor-pointer"
+      [ngClass]="selectedStatus() === 'DITOLAK' ? 'border-error ring-2 ring-error/20 bg-error-0/10' : 'border-[#E5E7EB] hover:border-error-20 hover:bg-neutral-0/40'">
+      <div class="flex items-center justify-between gap-3">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-md bg-error-0 text-error-70 text-xs font-medium">
+          Tidak Disetujui
+        </span>
+        <div class="w-8 h-8 rounded-lg bg-error-0 text-error-70 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+          <svg lucideXCircle [size]="16" class="w-4 h-4"></svg>
+        </div>
+      </div>
+
+      <div class="mt-3">
+        <span class="text-[11px] font-medium text-neutral-40 uppercase tracking-wider">Ditolak BM</span>
+        <div class="text-xl sm:text-2xl font-bold text-neutral-90 tracking-tight mt-0.5 truncate">
+          {{ stats()?.ditolakBM ?? 0 }} <span class="text-xs font-normal text-neutral-50">Berkas</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Main Card Container (Single Integrated Container) -->
   <div class="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs overflow-hidden">
     <!-- Toolbar Filters & Action -->

@@ -28,11 +28,17 @@ import {
   BranchManagerApprovalService,
   BranchManagerPengajuanItemResponse,
   RealTimeService,
+  BranchManagerDashboardService,
+  BranchManagerDashboardStats,
 } from '../../../../core';
 import {
   LucideSearch,
   LucideX,
   LucideEye,
+  LucideClock,
+  LucideAlertCircle,
+  LucideCheckCircle2,
+  LucideXCircle,
 } from '@lucide/angular';
 
 @Component({
@@ -52,12 +58,17 @@ import {
     LucideSearch,
     LucideX,
     LucideEye,
+    LucideClock,
+    LucideAlertCircle,
+    LucideCheckCircle2,
+    LucideXCircle,
   ],
   templateUrl: './persetujuan-pinjaman-list.component.html',
   styleUrl: './persetujuan-pinjaman-list.component.css',
 })
 export class PersetujuanPinjamanListComponent implements OnInit, OnDestroy {
   private bmService = inject(BranchManagerApprovalService);
+  private dashboardService = inject(BranchManagerDashboardService);
   private realtimeService = inject(RealTimeService);
   private toastService = inject(ToastService);
   private router = inject(Router);
@@ -65,6 +76,9 @@ export class PersetujuanPinjamanListComponent implements OnInit, OnDestroy {
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
   private destroy$ = new Subject<void>();
+
+  // Stats Signal
+  stats = signal<BranchManagerDashboardStats | null>(null);
 
   // Table Configuration
   readonly columns: TableColumn[] = [
@@ -122,6 +136,8 @@ export class PersetujuanPinjamanListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
+      this.loadStats();
+
       this.route.queryParams.subscribe((params) => {
         const statusParam = params['status'] ?? '';
         this.selectedStatus.set(statusParam);
@@ -135,9 +151,34 @@ export class PersetujuanPinjamanListComponent implements OnInit, OnDestroy {
           this.toastService.info(
             event.message || 'Terdapat pengajuan pinjaman yang menunggu persetujuan Anda.'
           );
+          this.loadStats();
           this.loadData();
         });
     }
+  }
+
+  loadStats(): void {
+    this.dashboardService.getDashboardStats().subscribe({
+      next: (res) => {
+        if (res.data) {
+          this.stats.set(res.data);
+          this.cdr.markForCheck();
+        }
+      },
+      error: (err) => {
+        console.error('Error fetching BM loan stats:', err);
+      },
+    });
+  }
+
+  toggleStatusFilter(status: string): void {
+    if (this.selectedStatus() === status) {
+      this.selectedStatus.set('');
+    } else {
+      this.selectedStatus.set(status);
+    }
+    this.currentPage.set(1);
+    this.loadData();
   }
 
   loadData(): void {

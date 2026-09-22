@@ -60,6 +60,7 @@ export const MARKETING_MENU_GROUPS: NavGroup[] = [
   {
     items: [
       { id: 'beranda', label: 'Beranda', icon: 'grid', url: '/dashboard' },
+      { id: 'daftar-nasabah', label: 'Daftar Nasabah', icon: 'users-round', url: '/marketing/customers' },
       {
         id: 'pengajuan-pinjaman',
         label: 'Pengajuan Pinjaman',
@@ -81,6 +82,7 @@ export const BM_MENU_GROUPS: NavGroup[] = [
   {
     items: [
       { id: 'beranda', label: 'Beranda', icon: 'grid', url: '/dashboard' },
+      { id: 'daftar-nasabah', label: 'Daftar Nasabah', icon: 'users-round', url: '/branch-manager/customers' },
       {
         id: 'persetujuan-pinjaman',
         label: 'Persetujuan Pinjaman',

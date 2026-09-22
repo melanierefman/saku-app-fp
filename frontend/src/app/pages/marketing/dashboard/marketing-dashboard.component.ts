@@ -27,8 +27,6 @@ import {
 } from '../../../shared/components';
 import {
   LucideFileText,
-  LucideClock,
-  LucideAlertCircle,
   LucideCheckCircle2,
   LucideXCircle,
   LucideTrendingUp,
@@ -48,8 +46,6 @@ import {
     BadgeComponent,
     SkeletonComponent,
     LucideFileText,
-    LucideClock,
-    LucideAlertCircle,
     LucideCheckCircle2,
     LucideXCircle,
     LucideTrendingUp,
