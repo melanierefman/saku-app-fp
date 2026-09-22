@@ -29,7 +29,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,14 +50,12 @@ import com.example.saku.app.core.ui.components.ButtonSize
 import com.example.saku.app.core.ui.components.ButtonVariant
 import com.example.saku.app.ui.theme.Background
 import com.example.saku.app.ui.theme.Border
-import com.example.saku.app.ui.theme.Neutral0
 import com.example.saku.app.ui.theme.Primary
 import com.example.saku.app.ui.theme.Primary0
 import com.example.saku.app.ui.theme.Surface
 import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary
 import com.example.saku.app.ui.theme.TextSecondary
-import com.example.saku.app.ui.theme.Warning0
 import java.text.NumberFormat
 
 @Composable
@@ -269,7 +266,7 @@ private fun HistoryLoanCard(
 ) {
     val status = loan.statusPengajuan ?: "PENDING"
     val (badgeVariant, badgeText) = when (status.uppercase()) {
-        "DICAIRKAN", "DISBURSED" -> Pair(BadgeVariant.Success, "Dicairkan")
+        "DICAIRKAN", "DISBURSED" -> Pair(BadgeVariant.Primary, "Dicairkan")
         "APPROVED", "DISETUJUI", "PENGAJUAN_DISETUJUI" -> Pair(BadgeVariant.Success, "Disetujui")
         "MENUNGGU_PENCAIRAN" -> Pair(BadgeVariant.Success, "Menunggu Pencairan")
         "SELESAI_DIREVIEW", "MENUNGGU_PERSETUJUAN", "DISETUJUI_MARKETING" -> Pair(BadgeVariant.Info, "Menunggu Persetujuan")

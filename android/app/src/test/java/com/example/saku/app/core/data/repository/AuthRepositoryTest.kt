@@ -9,11 +9,7 @@ import com.example.saku.app.core.network.dto.AuthResponse
 import com.example.saku.app.core.network.dto.ForgotPasswordRequest
 import com.example.saku.app.core.network.dto.LoginRequest
 import com.example.saku.app.core.network.dto.RefreshTokenRequest
-import com.example.saku.app.core.network.dto.RegisterStep1KtpRequestDto
-import com.example.saku.app.core.network.dto.RegisterStep1Request
 import com.example.saku.app.core.network.dto.RegisterStep2PersonalRequestDto
-import com.example.saku.app.core.network.dto.RegisterStep2Request
-import com.example.saku.app.core.network.dto.RegisterStep3Request
 import com.example.saku.app.core.network.dto.RegisterStep5CompleteRequest
 import com.example.saku.app.core.network.dto.RegisterStepResponse
 import com.example.saku.app.core.network.dto.ResetPasswordRequest
@@ -86,10 +82,16 @@ class AuthRepositoryTest {
         override suspend fun verifyOtp(request: VerifyOtpRequest): Response<ApiResponse<VerifyOtpResponse>> =
             Response.success(ApiResponse(statusCode = 200, data = VerifyOtpResponse(valid = true)))
 
+        override suspend fun checkNik(nik: String, customerId: String?): Response<ApiResponse<Boolean>> =
+            Response.success(ApiResponse(statusCode = 200, data = true))
+
+        override suspend fun checkPhone(phone: String, customerId: String?): Response<ApiResponse<Boolean>> =
+            Response.success(ApiResponse(statusCode = 200, data = true))
+
         override suspend fun registerStep1Ktp(customerId: String, ktp: MultipartBody.Part?, data: RequestBody): Response<ApiResponse<RegisterStepResponse>> =
             Response.success(ApiResponse(statusCode = 200, data = RegisterStepResponse(customerId, 1, "OK")))
 
-        override suspend fun registerStep1KtpJson(customerId: String, request: RegisterStep1KtpRequestDto): Response<ApiResponse<RegisterStepResponse>> =
+        override suspend fun registerStep1KtpJson(customerId: String, request: com.example.saku.app.core.network.dto.RegisterStep1KtpRequestDto): Response<ApiResponse<RegisterStepResponse>> =
             Response.success(ApiResponse(statusCode = 200, data = RegisterStepResponse(customerId, 1, "OK")))
 
         override suspend fun registerStep2Personal(customerId: String, request: RegisterStep2PersonalRequestDto): Response<ApiResponse<RegisterStepResponse>> =
@@ -103,18 +105,6 @@ class AuthRepositoryTest {
 
         override suspend fun registerStep5Complete(customerId: String, request: RegisterStep5CompleteRequest): Response<ApiResponse<RegisterStepResponse>> =
             Response.success(ApiResponse(statusCode = 200, data = RegisterStepResponse(customerId, 5, "OK")))
-
-        override suspend fun registerStep1(request: RegisterStep1Request): Response<ApiResponse<RegisterStepResponse>> =
-            Response.success(ApiResponse(statusCode = 200, data = RegisterStepResponse("1", 1, "OK")))
-
-        override suspend fun registerStep2(customerId: String, request: RegisterStep2Request): Response<ApiResponse<RegisterStepResponse>> =
-            Response.success(ApiResponse(statusCode = 200, data = RegisterStepResponse(customerId, 2, "OK")))
-
-        override suspend fun registerStep3(customerId: String, request: RegisterStep3Request): Response<ApiResponse<RegisterStepResponse>> =
-            Response.success(ApiResponse(statusCode = 200, data = RegisterStepResponse(customerId, 3, "OK")))
-
-        override suspend fun registerStep4(customerId: String, ktp: MultipartBody.Part?, selfie: MultipartBody.Part?): Response<ApiResponse<RegisterStepResponse>> =
-            Response.success(ApiResponse(statusCode = 200, data = RegisterStepResponse(customerId, 4, "OK")))
     }
 
     @Before

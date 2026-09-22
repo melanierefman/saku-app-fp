@@ -1,7 +1,6 @@
 package com.example.saku.app.features.auth.verification
 
 import android.Manifest
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -22,7 +21,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -57,16 +55,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
@@ -89,25 +84,19 @@ import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.CircleAlert
 import com.composables.icons.lucide.CircleCheck
 import com.composables.icons.lucide.Clock
-import com.composables.icons.lucide.CreditCard
 import com.composables.icons.lucide.Headphones
 import com.composables.icons.lucide.IdCard
 import com.composables.icons.lucide.Image as LucideImage
-import com.composables.icons.lucide.Info
 import com.composables.icons.lucide.Landmark
 import com.composables.icons.lucide.LogOut
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Mail
 import com.composables.icons.lucide.MapPin
-import com.composables.icons.lucide.Phone
 import com.composables.icons.lucide.RefreshCw
 import com.composables.icons.lucide.ShieldAlert
-import com.composables.icons.lucide.ShieldCheck
 import com.composables.icons.lucide.Trash2
 import com.composables.icons.lucide.User
 import com.example.saku.app.R
 import com.example.saku.app.core.network.ApiConstants
-import com.example.saku.app.core.network.dto.AlamatDetailDto
 import com.example.saku.app.core.network.dto.CustomerProfileDto
 import com.example.saku.app.core.ui.components.Badge
 import com.example.saku.app.core.ui.components.BadgeSize
@@ -122,19 +111,12 @@ import com.example.saku.app.ui.theme.Background
 import com.example.saku.app.ui.theme.Border
 import com.example.saku.app.ui.theme.Error
 import com.example.saku.app.ui.theme.Error0
-import com.example.saku.app.ui.theme.Error80
-import com.example.saku.app.ui.theme.Info
-import com.example.saku.app.ui.theme.Info0
-import com.example.saku.app.ui.theme.Info70
 import com.example.saku.app.ui.theme.Neutral0
 import com.example.saku.app.ui.theme.Neutral10
-import com.example.saku.app.ui.theme.Neutral60
 import com.example.saku.app.ui.theme.Primary
 import com.example.saku.app.ui.theme.Primary0
-import com.example.saku.app.ui.theme.Primary60
 import com.example.saku.app.ui.theme.Success
 import com.example.saku.app.ui.theme.Success0
-import com.example.saku.app.ui.theme.Success80
 import com.example.saku.app.ui.theme.Surface
 import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary
@@ -142,7 +124,6 @@ import com.example.saku.app.ui.theme.TextSecondary
 import com.example.saku.app.ui.theme.Warning
 import com.example.saku.app.ui.theme.Warning0
 import com.example.saku.app.ui.theme.Warning20
-import com.example.saku.app.ui.theme.Warning60
 import com.example.saku.app.ui.theme.Warning70
 import com.example.saku.app.ui.theme.Warning80
 import kotlinx.coroutines.delay
@@ -150,6 +131,8 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.text.NumberFormat
 import java.util.Locale
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 enum class KycSubPage {
     MAIN,
@@ -454,10 +437,7 @@ fun KycPendingScreen(
         }
     }
 }
-
-// -------------------------------------------------------------------------------------------------
 // 1. REUSABLE TOP BAR COMPONENT (Loan Detail Screen style)
-// -------------------------------------------------------------------------------------------------
 @Composable
 private fun KycDetailTopBar(
     title: String,
@@ -517,10 +497,7 @@ private fun KycDetailTopBar(
         }
     }
 }
-
-// -------------------------------------------------------------------------------------------------
 // 2. MAIN STATUS VERIFIKASI SCREEN
-// -------------------------------------------------------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun KycMainVerificationScreen(
@@ -832,10 +809,7 @@ private fun KycMainVerificationScreen(
         }
     }
 }
-
-// -------------------------------------------------------------------------------------------------
 // 3. PAGE 1: DATA AKUN NASABAH
-// -------------------------------------------------------------------------------------------------
 @Composable
 private fun KycDataAkunPage(
     profile: CustomerProfileDto?,
@@ -898,10 +872,7 @@ private fun KycDataAkunPage(
         }
     }
 }
-
-// -------------------------------------------------------------------------------------------------
 // 4. PAGE 2: DATA DIRI & KEUANGAN
-// -------------------------------------------------------------------------------------------------
 @Composable
 private fun KycDataDiriKeuanganPage(
     profile: CustomerProfileDto?,
@@ -1031,10 +1002,7 @@ private fun KycDataDiriKeuanganPage(
         }
     }
 }
-
-// -------------------------------------------------------------------------------------------------
 // 5. PAGE 3: INFORMASI ALAMAT
-// -------------------------------------------------------------------------------------------------
 @Composable
 private fun KycInformasiAlamatPage(
     profile: CustomerProfileDto?,
@@ -1132,10 +1100,7 @@ private fun KycInformasiAlamatPage(
         }
     }
 }
-
-// -------------------------------------------------------------------------------------------------
 // 6. PAGE 4: REVISI DOKUMEN IDENTITAS (Full Page Screen)
-// -------------------------------------------------------------------------------------------------
 @Composable
 private fun KycRevisiDokumenPage(
     profile: CustomerProfileDto?,
@@ -1445,10 +1410,7 @@ private fun KycRevisiDokumenPage(
         }
     )
 }
-
-// -------------------------------------------------------------------------------------------------
 // 7. HELPER COMPONENTS & UTILITIES
-// -------------------------------------------------------------------------------------------------
 @Composable
 private fun DocumentUploadOrPreviewBox(
     title: String,

@@ -19,13 +19,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,18 +38,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.composables.icons.lucide.CircleAlert
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.RotateCw
 import com.example.saku.app.ui.theme.Border
 import com.example.saku.app.ui.theme.Error
 import com.example.saku.app.ui.theme.Neutral0
-import com.example.saku.app.ui.theme.Neutral40
-import com.example.saku.app.ui.theme.Neutral60
 import com.example.saku.app.ui.theme.Primary
 import com.example.saku.app.ui.theme.Primary0
 import com.example.saku.app.ui.theme.Primary60
 import com.example.saku.app.ui.theme.Surface
 import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary
+import androidx.compose.runtime.getValue
 
 @Composable
 fun OtpInputField(

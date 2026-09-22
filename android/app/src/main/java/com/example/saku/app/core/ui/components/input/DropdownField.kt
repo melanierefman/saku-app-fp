@@ -1,6 +1,5 @@
 package com.example.saku.app.core.ui.components
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -31,11 +30,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,7 +50,6 @@ import com.composables.icons.lucide.Search
 import com.composables.icons.lucide.X
 import com.example.saku.app.ui.theme.Border
 import com.example.saku.app.ui.theme.Error
-import com.example.saku.app.ui.theme.Neutral0
 import com.example.saku.app.ui.theme.Neutral10
 import com.example.saku.app.ui.theme.Neutral40
 import com.example.saku.app.ui.theme.Neutral60
@@ -65,6 +61,8 @@ import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary
 import com.example.saku.app.ui.theme.TextSecondary
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 data class DropdownOption(
     val value: String,

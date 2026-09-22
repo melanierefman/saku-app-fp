@@ -19,22 +19,21 @@ class LoanRepositoryImpl @Inject constructor(
     private val loanDao: LoanDao
 ) : LoanRepository {
 
+    // Mengambil riwayat daftar pinjaman nasabah dengan caching Room DB
     override suspend fun getMyLoans(): ApiResult<List<LoanApplicationItemDto>> {
         return try {
             val response = customerApiService.getMyLoans()
             if (response.isSuccessful && response.body()?.data != null) {
                 val list = response.body()!!.data ?: emptyList()
-                // Cache into Room Database safely
                 if (list.isNotEmpty()) {
                     try {
                         loanDao.insertLoans(list.map { LoanApplicationEntity.fromDto(it) })
                     } catch (dbEx: Exception) {
-                        // ignore
+                        // Abaikan kegagalan cache lokal
                     }
                 }
                 ApiResult.Success(list, response.body()?.message)
             } else {
-                // Offline fallback from Room
                 try {
                     val cached = loanDao.getAllLoans()
                     if (cached.isNotEmpty()) {
@@ -47,7 +46,6 @@ class LoanRepositoryImpl @Inject constructor(
                 }
             }
         } catch (e: Exception) {
-            // Offline fallback from Room
             try {
                 val cached = loanDao.getAllLoans()
                 if (cached.isNotEmpty()) {
@@ -61,6 +59,7 @@ class LoanRepositoryImpl @Inject constructor(
         }
     }
 
+    // Mengambil rincian pengajuan pinjaman berdasarkan ID dengan offline fallback
     override suspend fun getLoanById(id: String): ApiResult<LoanApplicationItemDto> {
         return try {
             val response = customerApiService.getLoanById(id)
@@ -69,7 +68,7 @@ class LoanRepositoryImpl @Inject constructor(
                 try {
                     loanDao.insertLoan(LoanApplicationEntity.fromDto(loan))
                 } catch (dbEx: Exception) {
-                    // ignore
+                    // Abaikan kegagalan cache lokal
                 }
                 ApiResult.Success(loan, response.body()?.message)
             } else {
@@ -98,6 +97,7 @@ class LoanRepositoryImpl @Inject constructor(
         }
     }
 
+    // Mengirim pengajuan formulir pinjaman langkah 1
     override suspend fun submitLoanStep1(request: PengajuanPinjamanRequestDto): ApiResult<PengajuanStepResponseDto> {
         return try {
             val response = customerApiService.submitLoanStep1(request)
@@ -115,6 +115,7 @@ class LoanRepositoryImpl @Inject constructor(
         }
     }
 
+    // Mengunggah dokumen persyaratan pinjaman langkah 2
     override suspend fun submitLoanStep2(
         pengajuanId: String,
         slipGaji: MultipartBody.Part?,
@@ -137,6 +138,7 @@ class LoanRepositoryImpl @Inject constructor(
         }
     }
 
+    // Mengambil jadwal daftar angsuran pinjaman nasabah
     override suspend fun getJadwalAngsuran(pengajuanId: String): ApiResult<List<AngsuranItemDto>> {
         return try {
             val response = customerApiService.getJadwalAngsuran(pengajuanId)

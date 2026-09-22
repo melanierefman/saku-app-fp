@@ -3,7 +3,6 @@ package com.example.saku.app.features.loans.revision
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -39,10 +38,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,7 +54,6 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import androidx.compose.material3.AlertDialog
 import com.composables.icons.lucide.ArrowLeft
-import com.composables.icons.lucide.Camera
 import com.composables.icons.lucide.CircleAlert
 import com.composables.icons.lucide.CircleCheck
 import com.composables.icons.lucide.FileText
@@ -70,7 +66,6 @@ import com.example.saku.app.core.ui.components.BadgeSize
 import com.example.saku.app.core.ui.components.BadgeVariant
 import com.example.saku.app.core.ui.components.Button
 import com.example.saku.app.core.ui.components.ButtonSize
-import com.example.saku.app.core.ui.components.ButtonVariant
 import com.example.saku.app.core.ui.components.ConfirmationDialog
 import com.example.saku.app.core.ui.components.DialogType
 import com.example.saku.app.ui.theme.Background
@@ -78,7 +73,6 @@ import com.example.saku.app.ui.theme.Border
 import com.example.saku.app.ui.theme.Error
 import com.example.saku.app.ui.theme.Error0
 import com.example.saku.app.ui.theme.Error80
-import com.example.saku.app.ui.theme.Neutral0
 import com.example.saku.app.ui.theme.Primary
 import com.example.saku.app.ui.theme.Primary0
 import com.example.saku.app.ui.theme.Primary20
@@ -94,6 +88,8 @@ import com.example.saku.app.ui.theme.Warning20
 import com.example.saku.app.ui.theme.Warning70
 import com.example.saku.app.ui.theme.Warning80
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

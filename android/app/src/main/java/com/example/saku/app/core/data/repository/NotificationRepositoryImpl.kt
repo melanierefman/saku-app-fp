@@ -16,6 +16,7 @@ class NotificationRepositoryImpl @Inject constructor(
     private val notificationDao: NotificationDao
 ) : NotificationRepository {
 
+    // Mengambil daftar notifikasi pengguna dengan caching lokal Room
     override suspend fun getNotifications(status: String?): ApiResult<List<NotifikasiItemDto>> {
         return try {
             val response = customerApiService.getNotifications(status)
@@ -43,6 +44,7 @@ class NotificationRepositoryImpl @Inject constructor(
         }
     }
 
+    // Mengambil jumlah notifikasi yang belum dibaca dari server
     override suspend fun getUnreadCount(): ApiResult<UnreadNotifikasiCountDto> {
         return try {
             val response = customerApiService.getUnreadCount()
@@ -56,21 +58,7 @@ class NotificationRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getNotificationDetail(id: String): ApiResult<NotifikasiItemDto> {
-        return try {
-            val response = customerApiService.getNotificationDetail(id)
-            if (response.isSuccessful && response.body()?.data != null) {
-                val item = response.body()!!.data!!
-                notificationDao.insertNotifications(listOf(NotificationEntity.fromDto(item)))
-                ApiResult.Success(item, response.body()?.message)
-            } else {
-                ApiResult.Error(ApiClient.parseError(response), response.code())
-            }
-        } catch (e: Exception) {
-            ApiResult.Error(e.localizedMessage ?: "Gagal memuat detail notifikasi")
-        }
-    }
-
+    // Menandai satu notifikasi telah dibaca di lokal dan backend
     override suspend fun markNotificationRead(id: String): ApiResult<NotifikasiItemDto> {
         return try {
             notificationDao.markAsRead(id)
@@ -85,6 +73,7 @@ class NotificationRepositoryImpl @Inject constructor(
         }
     }
 
+    // Menandai seluruh notifikasi telah dibaca di lokal dan backend
     override suspend fun markAllNotificationsRead(): ApiResult<String> {
         return try {
             notificationDao.markAllAsRead()

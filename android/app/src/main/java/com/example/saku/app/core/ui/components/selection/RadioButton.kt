@@ -19,19 +19,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.saku.app.ui.theme.Border
 import com.example.saku.app.ui.theme.Neutral0
-import com.example.saku.app.ui.theme.Neutral10
 import com.example.saku.app.ui.theme.Neutral20
 import com.example.saku.app.ui.theme.Neutral30
 import com.example.saku.app.ui.theme.Primary
@@ -39,6 +35,7 @@ import com.example.saku.app.ui.theme.Surface
 import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary
 import com.example.saku.app.ui.theme.TextSecondary
+import androidx.compose.runtime.getValue
 
 @Composable
 fun RadioButton(

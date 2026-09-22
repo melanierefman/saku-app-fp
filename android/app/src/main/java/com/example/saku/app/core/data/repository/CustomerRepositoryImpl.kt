@@ -12,7 +12,6 @@ import com.example.saku.app.core.network.dto.PublicPlafondDto
 import com.example.saku.app.core.network.dto.SimulasiPinjamanResponseDto
 import com.example.saku.app.core.network.dto.UpdateDomisiliRequestDto
 import com.example.saku.app.core.network.dto.UpdatePekerjaanRequestDto
-import com.example.saku.app.core.network.dto.UpdateProfileRequestDto
 import com.example.saku.app.core.network.dto.UpdateRekeningRequestDto
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -27,24 +26,24 @@ class CustomerRepositoryImpl @Inject constructor(
 
     override val cachedProfileFlow: Flow<String?> = tokenManager.cachedProfileJsonFlow
 
+    // Mengambil profil tersimpan format JSON secara sinkron
     override suspend fun getCachedProfileJsonSync(): String? {
         return tokenManager.getCachedProfileJsonSync()
     }
 
+    // Mengambil data profil lengkap nasabah dengan fallback offline Room DB
     override suspend fun getProfile(): ApiResult<CustomerProfileDto> {
         return try {
             val response = customerApiService.getProfile()
             if (response.isSuccessful && response.body()?.data != null) {
                 val profileDto = response.body()!!.data!!
-                // Save to Room Database safely
                 try {
                     customerDao.insertProfile(CustomerProfileEntity.fromDto(profileDto))
                 } catch (dbEx: Exception) {
-                    // ignore DB caching error so API response is not blocked
+                    // Abaikan kesalahan penulisan database lokal
                 }
                 ApiResult.Success(profileDto, response.body()?.message)
             } else {
-                // Try offline cache from Room
                 try {
                     val cached = customerDao.getProfile()
                     if (cached != null) {
@@ -57,7 +56,6 @@ class CustomerRepositoryImpl @Inject constructor(
                 }
             }
         } catch (e: Exception) {
-            // Offline fallback from Room Database
             try {
                 val cached = customerDao.getProfile()
                 if (cached != null) {
@@ -71,21 +69,7 @@ class CustomerRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateProfile(request: UpdateProfileRequestDto): ApiResult<CustomerProfileDto> {
-        return try {
-            val response = customerApiService.updateProfile(request)
-            if (response.isSuccessful && response.body()?.data != null) {
-                val profileDto = response.body()!!.data!!
-                customerDao.insertProfile(CustomerProfileEntity.fromDto(profileDto))
-                ApiResult.Success(profileDto, response.body()?.message)
-            } else {
-                ApiResult.Error(ApiClient.parseError(response), response.code())
-            }
-        } catch (e: Exception) {
-            ApiResult.Error(e.localizedMessage ?: "Gagal memperbarui profil")
-        }
-    }
-
+    // Memperbarui informasi rekening bank nasabah
     override suspend fun updateRekening(request: UpdateRekeningRequestDto): ApiResult<CustomerProfileDto> {
         return try {
             val response = customerApiService.updateRekening(request)
@@ -101,6 +85,7 @@ class CustomerRepositoryImpl @Inject constructor(
         }
     }
 
+    // Memperbarui alamat domisili nasabah
     override suspend fun updateDomisili(request: UpdateDomisiliRequestDto): ApiResult<CustomerProfileDto> {
         return try {
             val response = customerApiService.updateDomisili(request)
@@ -116,6 +101,7 @@ class CustomerRepositoryImpl @Inject constructor(
         }
     }
 
+    // Memperbarui data pekerjaan dan penghasilan nasabah
     override suspend fun updatePekerjaan(request: UpdatePekerjaanRequestDto): ApiResult<CustomerProfileDto> {
         return try {
             val response = customerApiService.updatePekerjaan(request)
@@ -131,6 +117,7 @@ class CustomerRepositoryImpl @Inject constructor(
         }
     }
 
+    // Mengubah kata sandi akun nasabah
     override suspend fun changePassword(request: ChangePasswordRequestDto): ApiResult<String> {
         return try {
             val response = customerApiService.changePassword(request)
@@ -144,6 +131,7 @@ class CustomerRepositoryImpl @Inject constructor(
         }
     }
 
+    // Mengambil daftar limit plafond pinjaman publik
     override suspend fun getPublicPlafonds(): ApiResult<List<PublicPlafondDto>> {
         return try {
             val response = customerApiService.getPublicPlafonds()
@@ -157,6 +145,7 @@ class CustomerRepositoryImpl @Inject constructor(
         }
     }
 
+    // Menghitung simulasi pinjaman cicilan bulanan
     override suspend fun hitungSimulasi(
         jumlahPinjaman: Double,
         tenorBulan: Int
@@ -173,6 +162,7 @@ class CustomerRepositoryImpl @Inject constructor(
         }
     }
 
+    // Mengunggah dokumen KYC terbaru (KTP dan Selfie)
     override suspend fun updateKycDocuments(
         ktp: okhttp3.MultipartBody.Part?,
         selfie: okhttp3.MultipartBody.Part?
@@ -191,10 +181,12 @@ class CustomerRepositoryImpl @Inject constructor(
         }
     }
 
+    // Menyimpan string profil JSON ke preferences
     override suspend fun saveCachedProfileJson(profileJson: String) {
         tokenManager.saveCachedProfileJson(profileJson)
     }
 
+    // Memperbarui data ringkas profil di session lokal
     override suspend fun updateProfileData(
         nama: String?,
         email: String?,

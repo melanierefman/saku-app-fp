@@ -1,9 +1,7 @@
 package com.example.saku.app.features.home
 
-import coil.compose.AsyncImage
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.CircularProgressIndicator
-import com.example.saku.app.core.network.dto.CustomerProfileDto
 import com.example.saku.app.core.network.dto.NotifikasiItemDto
 import com.example.saku.app.core.network.dto.SimulasiPinjamanResponseDto
 import com.example.saku.app.features.history.HistoryScreen
@@ -15,12 +13,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,7 +24,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -45,14 +40,11 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.TrendingUp
-import androidx.compose.material.icons.rounded.AccountBalanceWallet
 import androidx.compose.material.icons.rounded.Calculate
-import androidx.compose.material.icons.rounded.CreditCard
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -61,9 +53,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Surface
@@ -72,11 +62,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -86,7 +73,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
@@ -104,33 +90,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.saku.app.ui.theme.OverusedGrotesk
 import androidx.compose.ui.window.Dialog
-import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
-import com.composables.icons.lucide.Award
 import com.composables.icons.lucide.Bell
-import com.composables.icons.lucide.Calculator
 import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.CircleCheck
-import com.composables.icons.lucide.Clock
-import com.composables.icons.lucide.CreditCard
-import com.composables.icons.lucide.DollarSign
 import com.composables.icons.lucide.Eye
 import com.composables.icons.lucide.EyeOff
-import com.composables.icons.lucide.FileText
 import com.composables.icons.lucide.House
 import com.composables.icons.lucide.Info
-import com.composables.icons.lucide.Landmark
 import com.composables.icons.lucide.LogOut
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Palette
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Receipt
-import com.composables.icons.lucide.ShieldCheck
-import com.composables.icons.lucide.Sparkles
 import com.composables.icons.lucide.TrendingUp
 import com.composables.icons.lucide.User
 import com.composables.icons.lucide.Wallet
-import com.composables.icons.lucide.Zap
 import com.example.saku.app.R
 import com.example.saku.app.core.network.dto.AngsuranItemDto
 import com.example.saku.app.core.network.dto.LoanApplicationItemDto
@@ -150,16 +124,8 @@ import com.example.saku.app.ui.theme.Error
 import com.example.saku.app.ui.theme.Neutral20
 import com.example.saku.app.ui.theme.Primary
 import com.example.saku.app.ui.theme.Primary0
-import com.example.saku.app.ui.theme.Primary20
-import com.example.saku.app.ui.theme.Primary40
-import com.example.saku.app.ui.theme.Primary60
-import com.example.saku.app.ui.theme.Primary70
-import com.example.saku.app.ui.theme.Primary80
 import com.example.saku.app.ui.theme.SAKUAppTheme
 import com.example.saku.app.ui.theme.Success
-import com.example.saku.app.ui.theme.Success0
-import com.example.saku.app.ui.theme.Success20
-import com.example.saku.app.ui.theme.Success70
 import com.example.saku.app.ui.theme.Surface
 import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary
@@ -169,9 +135,10 @@ import java.util.Locale
 
 import com.example.saku.app.features.loans.payment.PaymentInfoBottomSheet
 
-import androidx.compose.foundation.layout.statusBarsPadding
 import com.example.saku.app.ui.theme.Neutral
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -486,7 +453,6 @@ fun HomeScreen(
         )
     }
 }
-
 
 // Beranda Tab Content
 @Composable
@@ -1112,7 +1078,7 @@ private fun TagihanPinjamanAktifCard(
                     )
                     if (activeLoan != null) {
                         val (bVariant, bText) = when (rawStatus) {
-                            "DICAIRKAN", "DISBURSED" -> BadgeVariant.Success to "Dicairkan"
+                            "DICAIRKAN", "DISBURSED" -> BadgeVariant.Primary to "Dicairkan"
                             "APPROVED", "DISETUJUI", "PENGAJUAN_DISETUJUI" -> BadgeVariant.Success to "Disetujui"
                             "MENUNGGU_PENCAIRAN" -> BadgeVariant.Success to "Menunggu Pencairan"
                             "SELESAI_DIREVIEW", "MENUNGGU_PERSETUJUAN", "DISETUJUI_MARKETING" -> BadgeVariant.Info to "Menunggu Persetujuan"

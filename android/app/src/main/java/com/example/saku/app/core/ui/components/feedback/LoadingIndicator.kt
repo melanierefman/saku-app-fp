@@ -25,7 +25,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -41,13 +40,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.saku.app.ui.theme.Border
-import com.example.saku.app.ui.theme.Neutral0
-import com.example.saku.app.ui.theme.Neutral10
 import com.example.saku.app.ui.theme.Primary
-import com.example.saku.app.ui.theme.Primary60
 import com.example.saku.app.ui.theme.Surface
 import com.example.saku.app.ui.theme.TextPrimary
-import com.example.saku.app.ui.theme.TextSecondary
+import androidx.compose.runtime.getValue
 
 /**
  * Shimmer sweeping animation brush modifier for skeleton loaders

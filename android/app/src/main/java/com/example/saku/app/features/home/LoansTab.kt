@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -43,13 +42,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.composables.icons.lucide.Calculator
 import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.FileText
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Percent
 import com.composables.icons.lucide.ShieldCheck
-import com.composables.icons.lucide.Sparkles
 import com.composables.icons.lucide.Wallet
 import com.composables.icons.lucide.Zap
 import com.example.saku.app.R
@@ -63,7 +60,6 @@ import com.example.saku.app.core.ui.components.ButtonSize
 import com.example.saku.app.core.ui.components.ButtonVariant
 import com.example.saku.app.ui.theme.Background
 import com.example.saku.app.ui.theme.Border
-import com.example.saku.app.ui.theme.Neutral0
 import com.example.saku.app.ui.theme.Primary
 import com.example.saku.app.ui.theme.Primary0
 import com.example.saku.app.ui.theme.Primary60
@@ -72,7 +68,6 @@ import com.example.saku.app.ui.theme.Surface
 import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary
 import com.example.saku.app.ui.theme.TextSecondary
-import com.example.saku.app.ui.theme.Warning0
 import java.text.NumberFormat
 
 @Composable
@@ -411,7 +406,7 @@ private fun LoanItemCard(
 ) {
     val status = loan.statusPengajuan ?: "PENDING"
     val (badgeVariant, badgeText) = when (status.uppercase()) {
-        "DICAIRKAN", "DISBURSED" -> Pair(BadgeVariant.Success, "Dicairkan")
+        "DICAIRKAN", "DISBURSED" -> Pair(BadgeVariant.Primary, "Dicairkan")
         "APPROVED", "DISETUJUI", "PENGAJUAN_DISETUJUI" -> Pair(BadgeVariant.Success, "Disetujui")
         "MENUNGGU_PENCAIRAN" -> Pair(BadgeVariant.Success, "Menunggu Pencairan")
         "SELESAI_DIREVIEW", "MENUNGGU_PERSETUJUAN", "DISETUJUI_MARKETING" -> Pair(BadgeVariant.Info, "Menunggu Persetujuan")

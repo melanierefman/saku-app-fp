@@ -1,7 +1,6 @@
 package com.example.saku.app.features.auth.login
 
 import android.app.Application
-import androidx.test.core.app.ApplicationProvider
 import com.example.saku.app.core.data.UserSession
 import com.example.saku.app.core.data.repository.AuthRepository
 import com.example.saku.app.core.network.ApiResult
@@ -65,6 +64,11 @@ class LoginViewModelTest {
 
         override suspend fun logout(): ApiResult<Unit> = ApiResult.Success(Unit)
         override suspend fun clearSession() {}
+        override suspend fun checkNik(nik: String, customerId: String?): ApiResult<Boolean> =
+            ApiResult.Success(true)
+
+        override suspend fun checkPhone(phone: String, customerId: String?): ApiResult<Boolean> =
+            ApiResult.Success(true)
 
         override suspend fun sendOtp(email: String, purpose: String): ApiResult<SendOtpResponse> =
             ApiResult.Error("Not implemented")

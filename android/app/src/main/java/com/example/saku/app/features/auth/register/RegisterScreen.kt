@@ -2,7 +2,6 @@ package com.example.saku.app.features.auth.register
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -13,7 +12,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -46,23 +44,18 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
@@ -72,15 +65,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.saku.app.core.util.ImageCompressorHelper
 import org.koin.androidx.compose.koinViewModel
-import coil.compose.AsyncImage
 import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.Camera
 import com.composables.icons.lucide.CircleAlert
 import com.composables.icons.lucide.CircleCheck
-import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.CreditCard
-import com.composables.icons.lucide.Eye
-import com.composables.icons.lucide.EyeOff
 import com.composables.icons.lucide.FileText
 import com.composables.icons.lucide.IdCard
 import com.composables.icons.lucide.Image as LucideImage
@@ -88,41 +77,28 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Mail
 import com.composables.icons.lucide.MapPin
 import com.composables.icons.lucide.Phone
-import com.composables.icons.lucide.RefreshCw
 import com.composables.icons.lucide.RotateCw
-import com.composables.icons.lucide.ShieldCheck
 import com.composables.icons.lucide.Trash2
 import com.composables.icons.lucide.User
-import com.composables.icons.lucide.X
-import com.example.saku.app.R
-import com.example.saku.app.core.network.dto.AlamatCustomerDto
 import com.example.saku.app.core.ui.components.Badge
 import com.example.saku.app.core.ui.components.BadgeSize
 import com.example.saku.app.core.ui.components.BadgeVariant
 import com.example.saku.app.core.ui.components.Button
 import com.example.saku.app.core.ui.components.ButtonSize
 import com.example.saku.app.core.ui.components.ButtonVariant
-import com.example.saku.app.core.ui.components.Checkbox
 import com.example.saku.app.core.ui.components.CheckboxWithLabel
-import com.example.saku.app.core.ui.components.ConfirmationDialog
 import com.example.saku.app.core.ui.components.CurrencyField
 import com.example.saku.app.core.ui.components.DropdownField
 import com.example.saku.app.core.ui.components.DropdownOption
 import com.example.saku.app.core.ui.components.OtpInputField
 import com.example.saku.app.core.ui.components.PasswordField
-import com.example.saku.app.core.ui.components.StepProgressBar
 import com.example.saku.app.core.ui.components.TextField
-import com.example.saku.app.core.ui.components.UploadStatus
-import com.example.saku.app.core.util.KtpOcrHelper
 import com.example.saku.app.ui.theme.Border
 import com.example.saku.app.ui.theme.Error
 import com.example.saku.app.ui.theme.Error0
-import com.example.saku.app.ui.theme.Error60
 import com.example.saku.app.ui.theme.Neutral0
-import com.example.saku.app.ui.theme.Neutral60
 import com.example.saku.app.ui.theme.Primary
 import com.example.saku.app.ui.theme.Primary0
-import com.example.saku.app.ui.theme.Primary10
 import com.example.saku.app.ui.theme.Primary20
 import com.example.saku.app.ui.theme.Primary60
 import com.example.saku.app.ui.theme.Success
@@ -132,6 +108,8 @@ import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary
 import com.example.saku.app.ui.theme.TextSecondary
 import kotlinx.coroutines.delay
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

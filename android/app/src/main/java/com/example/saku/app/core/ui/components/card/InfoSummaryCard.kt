@@ -45,8 +45,6 @@ import com.example.saku.app.ui.theme.Info
 import com.example.saku.app.ui.theme.Info0
 import com.example.saku.app.ui.theme.Info70
 import com.example.saku.app.ui.theme.Neutral0
-import com.example.saku.app.ui.theme.Neutral40
-import com.example.saku.app.ui.theme.Neutral60
 import com.example.saku.app.ui.theme.Neutral70
 import com.example.saku.app.ui.theme.Primary
 import com.example.saku.app.ui.theme.Primary0

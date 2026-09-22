@@ -4,7 +4,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -38,9 +37,7 @@ import com.example.saku.app.ui.theme.Border
 import com.example.saku.app.ui.theme.Error
 import com.example.saku.app.ui.theme.Error0
 import com.example.saku.app.ui.theme.Neutral0
-import com.example.saku.app.ui.theme.Neutral60
 import com.example.saku.app.ui.theme.Primary
-import com.example.saku.app.ui.theme.Primary0
 import com.example.saku.app.ui.theme.Surface
 import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary

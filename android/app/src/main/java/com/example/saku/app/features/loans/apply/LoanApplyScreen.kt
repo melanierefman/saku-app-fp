@@ -6,10 +6,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.ImageDecoder
 import android.net.Uri
-import android.os.Build
-import android.provider.MediaStore
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -58,12 +55,10 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -72,11 +67,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -84,7 +77,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusEvent
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
@@ -109,7 +101,6 @@ import com.composables.icons.lucide.CircleCheck
 import com.composables.icons.lucide.Copy
 import com.composables.icons.lucide.FileCheck
 import com.composables.icons.lucide.FileText
-import com.composables.icons.lucide.Image as ImageIcon
 import com.composables.icons.lucide.Info
 import com.composables.icons.lucide.Landmark
 import com.composables.icons.lucide.Lucide
@@ -125,7 +116,6 @@ import com.example.saku.app.core.ui.components.BadgeVariant
 import com.example.saku.app.core.ui.components.Button
 import com.example.saku.app.core.ui.components.ButtonSize
 import com.example.saku.app.core.ui.components.ButtonVariant
-import com.example.saku.app.core.ui.components.CameraCaptureMode
 import com.example.saku.app.core.ui.components.ConfirmationDialog
 import com.example.saku.app.core.ui.components.DialogType
 import com.example.saku.app.core.ui.components.TextField
@@ -137,7 +127,6 @@ import com.example.saku.app.ui.theme.Error0
 import com.example.saku.app.ui.theme.Error20
 import com.example.saku.app.ui.theme.Error70
 import com.example.saku.app.ui.theme.Neutral0
-import com.example.saku.app.ui.theme.Neutral10
 import com.example.saku.app.ui.theme.Neutral20
 import com.example.saku.app.ui.theme.OverusedGrotesk
 import com.example.saku.app.ui.theme.Primary
@@ -154,13 +143,14 @@ import com.example.saku.app.ui.theme.TextSecondary
 import com.example.saku.app.ui.theme.Warning
 import com.example.saku.app.ui.theme.Warning0
 import com.example.saku.app.ui.theme.Warning20
-import com.example.saku.app.ui.theme.Warning70
 import com.example.saku.app.ui.theme.Warning80
 import java.text.NumberFormat
 
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1108,6 +1098,16 @@ private fun Step1NominalTenorView(
                         )
 
                         BreakdownRow(
+                            label = "Nominal Pinjaman:",
+                            value = "Rp ${currencyFormatter.format(uiState.jumlahPinjaman)}"
+                        )
+
+                        BreakdownRow(
+                            label = "Tenor Pinjaman:",
+                            value = "${uiState.tenorBulan} Bulan"
+                        )
+
+                        BreakdownRow(
                             label = "Total Estimasi Bunga ($formattedBunga/bln):",
                             value = "Rp ${currencyFormatter.format(totalBunga)}"
                         )
@@ -1201,9 +1201,9 @@ private fun BreakdownRow(
 private fun CostBreakdownRow(
     label: String,
     value: String,
+    isHighlight: Boolean = false,
     isBold: Boolean = false,
-    isBadge: Boolean = false,
-    isHighlight: Boolean = false
+    isBadge: Boolean = false
 ) {
     Row(
         modifier = Modifier
@@ -1214,16 +1214,16 @@ private fun CostBreakdownRow(
     ) {
         Text(
             text = label,
-            fontSize = if (isHighlight) 13.sp else 12.5.sp,
+            fontSize = if (isHighlight) 13.5.sp else 12.5.sp,
             color = if (isHighlight || isBold) TextPrimary else TextSecondary,
-            fontWeight = if (isHighlight || isBold) FontWeight.Bold else FontWeight.Medium
+            fontWeight = if (isHighlight || isBold) FontWeight.SemiBold else FontWeight.Normal
         )
         if (isBadge) {
             Badge(text = value, variant = BadgeVariant.Success, size = BadgeSize.SM)
         } else {
             Text(
                 text = value,
-                fontSize = if (isHighlight) 14.sp else 12.5.sp,
+                fontSize = if (isHighlight) 14.5.sp else 12.5.sp,
                 fontWeight = if (isHighlight || isBold) FontWeight.Bold else FontWeight.SemiBold,
                 color = if (isHighlight) Primary else TextPrimary
             )
@@ -1365,22 +1365,38 @@ private fun Step3SummarySubmitView(
                     }
 
                     CostBreakdownRow(label = "Status", value = "Siap Diajukan", isBadge = true)
-                    CostBreakdownRow(label = "Nominal Pinjaman", value = "Rp ${currencyFormatter.format(uiState.jumlahPinjaman)}")
-                    CostBreakdownRow(label = "Tenor", value = "${uiState.tenorBulan} Bulan")
                     CostBreakdownRow(label = "Tujuan Penggunaan", value = uiState.effectiveTujuan)
-                    CostBreakdownRow(label = "Suku Bunga", value = "$formattedBunga flat / bulan")
-                    CostBreakdownRow(label = "Biaya Administrasi", value = "Rp ${currencyFormatter.format(uiState.biayaAdmin)}")
+//                    CostBreakdownRow(label = "Suku Bunga", value = "$formattedBunga flat / bulan")
 
                     HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Border)
 
+                    val totalBunga = (uiState.bungaBulanan * uiState.tenorBulan).toLong()
+
                     CostBreakdownRow(
-                        label = "Estimasi Cicilan per Bulan",
-                        value = "Rp ${currencyFormatter.format(uiState.estimasiCicilanBulanan)}",
+                        label = "Cicilan Bulanan (Estimasi):",
+                        value = "Rp ${currencyFormatter.format(uiState.estimasiCicilanBulanan)} / bln",
                         isHighlight = true
                     )
                     CostBreakdownRow(
-                        label = "Total Estimasi Pengembalian",
-                        value = "Rp ${currencyFormatter.format(uiState.totalPengembalian)}"
+                        label = "Nominal Pinjaman:",
+                        value = "Rp ${currencyFormatter.format(uiState.jumlahPinjaman)}"
+                    )
+                    CostBreakdownRow(
+                        label = "Tenor Pinjaman:",
+                        value = "${uiState.tenorBulan} Bulan"
+                    )
+                    CostBreakdownRow(
+                        label = "Total Estimasi Bunga ($formattedBunga/bln):",
+                        value = "Rp ${currencyFormatter.format(totalBunga)}"
+                    )
+                    CostBreakdownRow(
+                        label = "Biaya Administrasi:",
+                        value = "Rp ${currencyFormatter.format(uiState.biayaAdmin)}"
+                    )
+                    CostBreakdownRow(
+                        label = "Total Pengembalian:",
+                        value = "Rp ${currencyFormatter.format(uiState.totalPengembalian)}",
+                        isBold = true
                     )
                 }
             }
@@ -1691,39 +1707,6 @@ private fun Step4SuccessReceiptView(
 }
 
 // Helper Components
-@Composable
-private fun CostBreakdownRow(
-    label: String,
-    value: String,
-    isHighlight: Boolean = false,
-    isBadge: Boolean = false
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            fontSize = if (isHighlight) 13.sp else 12.5.sp,
-            fontWeight = if (isHighlight) FontWeight.SemiBold else FontWeight.Normal,
-            color = if (isHighlight) TextPrimary else TextMuted
-        )
-        if (isBadge) {
-            Badge(text = value, variant = BadgeVariant.Warning, size = BadgeSize.SM)
-        } else {
-            Text(
-                text = value,
-                fontSize = if (isHighlight) 14.sp else 13.sp,
-                fontWeight = if (isHighlight) FontWeight.Bold else FontWeight.SemiBold,
-                color = TextPrimary
-            )
-        }
-    }
-}
-
 private fun getFileNameFromUri(context: Context, uri: Uri?): String {
     if (uri == null) return ""
     return try {

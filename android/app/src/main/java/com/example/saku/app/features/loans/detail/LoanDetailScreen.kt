@@ -4,7 +4,6 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,7 +25,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -42,12 +40,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -55,26 +51,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.composables.icons.lucide.ArrowLeft
-import com.composables.icons.lucide.Building
 import com.composables.icons.lucide.Calendar
 import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.CircleAlert
-import com.composables.icons.lucide.CircleCheck
-import com.composables.icons.lucide.Clock
 import com.composables.icons.lucide.Copy
-import com.composables.icons.lucide.CreditCard
 import com.composables.icons.lucide.FileText
 import com.composables.icons.lucide.Info
-import com.composables.icons.lucide.Landmark
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.ShieldAlert
-import com.composables.icons.lucide.ShieldCheck
 import com.composables.icons.lucide.TriangleAlert
-import com.composables.icons.lucide.UserCheck
-import com.composables.icons.lucide.Wallet
 import com.example.saku.app.core.network.dto.AngsuranItemDto
-import com.example.saku.app.core.network.dto.LoanApplicationItemDto
 import com.example.saku.app.core.ui.components.Badge
 import com.example.saku.app.core.ui.components.BadgeSize
 import com.example.saku.app.core.ui.components.BadgeVariant
@@ -86,22 +72,13 @@ import com.example.saku.app.ui.theme.Background
 import com.example.saku.app.ui.theme.Border
 import com.example.saku.app.ui.theme.Error
 import com.example.saku.app.ui.theme.Error0
-import com.example.saku.app.ui.theme.Error70
 import com.example.saku.app.ui.theme.Error80
 import com.example.saku.app.ui.theme.Info
-import com.example.saku.app.ui.theme.Info0
-import com.example.saku.app.ui.theme.Info20
-import com.example.saku.app.ui.theme.Info70
 import com.example.saku.app.ui.theme.Neutral0
 import com.example.saku.app.ui.theme.Neutral10
-import com.example.saku.app.ui.theme.Neutral20
 import com.example.saku.app.ui.theme.Primary
 import com.example.saku.app.ui.theme.Primary0
-import com.example.saku.app.ui.theme.Primary20
-import com.example.saku.app.ui.theme.Primary70
-import com.example.saku.app.ui.theme.Primary80
 import com.example.saku.app.ui.theme.Success
-import com.example.saku.app.ui.theme.Success0
 import com.example.saku.app.ui.theme.Surface
 import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary
@@ -114,6 +91,7 @@ import com.example.saku.app.ui.theme.Warning80
 import java.text.NumberFormat
 import java.util.Locale
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.runtime.getValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -448,7 +426,7 @@ private fun LoanDetailTopBar(
             }
 
             val (badgeText, badgeVariant) = when (status) {
-                "DICAIRKAN", "DISBURSED" -> "Dicairkan" to BadgeVariant.Success
+                "DICAIRKAN", "DISBURSED" -> "Dicairkan" to BadgeVariant.Primary
                 "DISETUJUI", "APPROVED", "PENGAJUAN_DISETUJUI" -> "Disetujui" to BadgeVariant.Success
                 "MENUNGGU_PENCAIRAN" -> "Menunggu Pencairan" to BadgeVariant.Success
                 "SELESAI_DIREVIEW", "MENUNGGU_PERSETUJUAN", "DISETUJUI_MARKETING" -> "Menunggu Persetujuan" to BadgeVariant.Info

@@ -137,9 +137,9 @@ class RegisterViewModel(
         loadProvinces()
     }
 
-    // ==========================================
+    
     // API Publik Wilayah Indonesia Cascading
-    // ==========================================
+    
     fun loadProvinces() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoadingWilayah = true)
@@ -423,9 +423,9 @@ class RegisterViewModel(
         )
     }
 
-    // ==========================================
+    
     // Pra-Step: Email & OTP Handling
-    // ==========================================
+    
     fun onEmailChange(v: String) { _uiState.value = _uiState.value.copy(email = v, errorMessage = null) }
     fun onOtpCodeChange(v: String) {
         val filtered = v.filter { it.isDigit() }.take(6)
@@ -507,9 +507,9 @@ class RegisterViewModel(
         sendOtp()
     }
 
-    // ==========================================
+    
     // Step 1: Data Pribadi & Identitas
-    // ==========================================
+    
     fun onNikChange(v: String) {
         val filtered = v.filter { it.isDigit() }.take(16)
         _uiState.value = _uiState.value.copy(nik = filtered, errorMessage = null)
@@ -567,9 +567,9 @@ class RegisterViewModel(
         }
     }
 
-    // ==========================================
+    
     // Step 2: Data Pekerjaan & Rekening
-    // ==========================================
+    
     fun onPekerjaanChange(v: String) { _uiState.value = _uiState.value.copy(pekerjaan = v, errorMessage = null) }
     fun onTempatKerjaChange(v: String) { _uiState.value = _uiState.value.copy(tempatKerja = v, errorMessage = null) }
     fun onStatusPekerjaanChange(v: String) { _uiState.value = _uiState.value.copy(statusPekerjaan = v, errorMessage = null) }
@@ -632,9 +632,9 @@ class RegisterViewModel(
         _uiState.value = s.copy(currentStep = 3, errorMessage = null, successMessage = null)
     }
 
-    // ==========================================
+    
     // Step 3: Alamat KTP & Domisili
-    // ==========================================
+    
     fun onAlamatKtpChange(alamat: AlamatFormState) { _uiState.value = _uiState.value.copy(alamatKtp = alamat, errorMessage = null) }
     fun onSameAsKtpToggle(same: Boolean) { _uiState.value = _uiState.value.copy(sameAsKtp = same, errorMessage = null) }
     fun onAlamatDomisiliChange(alamat: AlamatFormState) { _uiState.value = _uiState.value.copy(alamatDomisili = alamat, errorMessage = null) }
@@ -746,9 +746,9 @@ class RegisterViewModel(
         }
     }
 
-    // ==========================================
+    
     // Step 4: Upload Dokumen KYC
-    // ==========================================
+    
     fun onKtpImageSelected(uri: Uri?) {
         _uiState.value = _uiState.value.copy(ktpUri = uri, ktpBitmap = null, errorMessage = null)
     }
@@ -810,11 +810,38 @@ class RegisterViewModel(
                     MultipartBody.Part.createFormData("selfie", "selfie_${custId}.jpg", selfieReqFile)
                 }
 
-                // 3. Upload Dokumen KYC (KTP & Selfie) via Register Step 4 Endpoint
-                val uploadRes = authRepository.registerStep4(custId, ktpPart, selfiePart)
-                if (uploadRes is ApiResult.Error) {
-                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = uploadRes.message)
-                    return@launch
+                // 3. Upload Dokumen KTP jika ada
+                if (ktpPart != null) {
+                    val ktpDto = RegisterStep1KtpRequestDto(
+                        nik = s.nik.trim(),
+                        namaLengkap = s.namaLengkap.trim(),
+                        alamatKtp = AlamatCustomerDto(
+                            alamatLengkap = s.alamatKtp.alamatLengkap.trim(),
+                            rt = s.alamatKtp.rt.trim(),
+                            rw = s.alamatKtp.rw.trim(),
+                            kelurahan = s.alamatKtp.kelurahan.trim(),
+                            kecamatan = s.alamatKtp.kecamatan.trim(),
+                            kotaKabupaten = s.alamatKtp.kotaKabupaten.trim(),
+                            provinsi = s.alamatKtp.provinsi.trim(),
+                            kodePos = s.alamatKtp.kodePos.trim()
+                        )
+                    )
+                    val jsonString = com.google.gson.Gson().toJson(ktpDto)
+                    val dataPart = jsonString.toRequestBody("application/json".toMediaTypeOrNull())
+                    val ktpRes = authRepository.registerStep1Ktp(custId, ktpPart, dataPart)
+                    if (ktpRes is ApiResult.Error) {
+                        _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = ktpRes.message)
+                        return@launch
+                    }
+                }
+
+                // 4. Upload Dokumen Selfie Wajah Liveness
+                if (selfiePart != null) {
+                    val selfieRes = authRepository.registerStep3Liveness(custId, selfiePart)
+                    if (selfieRes is ApiResult.Error) {
+                        _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = selfieRes.message)
+                        return@launch
+                    }
                 }
 
                 // Sukses unggah dokumen KYC, lanjut ke Step 5 (Buat Kata Sandi)
@@ -829,9 +856,9 @@ class RegisterViewModel(
         }
     }
 
-    // ==========================================
+    
     // Step 5: Buat Kredensial (Kata Sandi)
-    // ==========================================
+    
     fun onPasswordChange(v: String) { _uiState.value = _uiState.value.copy(password = v, errorMessage = null) }
     fun onConfirmPasswordChange(v: String) { _uiState.value = _uiState.value.copy(confirmPassword = v, errorMessage = null) }
 
@@ -852,9 +879,9 @@ class RegisterViewModel(
         )
     }
 
-    // ==========================================
+    
     // Step 6: Syarat & Ketentuan (Langkah Terakhir Pendaftaran)
-    // ==========================================
+    
     fun onTncAgreedToggle(agreed: Boolean) { _uiState.value = _uiState.value.copy(isTncAgreed = agreed, errorMessage = null) }
 
     fun openConfirmationModal() {
@@ -921,9 +948,9 @@ class RegisterViewModel(
         }
     }
 
-    // ==========================================
+    
     // Back Navigation & Dialog Control
-    // ==========================================
+    
     fun onBackPress(onExit: () -> Unit) {
         val current = _uiState.value.currentStep
         if (current > 0) {

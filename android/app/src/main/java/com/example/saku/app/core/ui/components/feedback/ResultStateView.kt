@@ -29,14 +29,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -45,26 +42,21 @@ import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.CircleAlert
 import com.composables.icons.lucide.Clock
 import com.composables.icons.lucide.Copy
-import com.composables.icons.lucide.Download
 import com.composables.icons.lucide.Lucide
 import com.example.saku.app.ui.theme.Border
 import com.example.saku.app.ui.theme.Error
 import com.example.saku.app.ui.theme.Error0
-import com.example.saku.app.ui.theme.Error70
 import com.example.saku.app.ui.theme.Neutral0
-import com.example.saku.app.ui.theme.Neutral60
 import com.example.saku.app.ui.theme.Primary
 import com.example.saku.app.ui.theme.Primary0
 import com.example.saku.app.ui.theme.Primary60
 import com.example.saku.app.ui.theme.Success
 import com.example.saku.app.ui.theme.Success0
-import com.example.saku.app.ui.theme.Success70
 import com.example.saku.app.ui.theme.Surface
 import com.example.saku.app.ui.theme.TextMuted
 import com.example.saku.app.ui.theme.TextPrimary
 import com.example.saku.app.ui.theme.TextSecondary
-import com.example.saku.app.ui.theme.Warning
-import com.example.saku.app.ui.theme.Warning0
+import androidx.compose.runtime.getValue
 
 enum class ResultType {
     SUCCESS,

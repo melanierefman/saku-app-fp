@@ -73,4 +73,3 @@ class LoginViewModel(
         _loginState.value = ApiResult.Idle
     }
 }
-
