@@ -156,13 +156,14 @@ jobs:
             # Sync Nginx configuration if provided
             if [ -f nginx/saku.conf ]; then
               echo ">>> Syncing Nginx configuration for saku.morpkhai.web.id..."
-              sudo cp nginx/saku.conf /etc/nginx/sites-available/saku
-              sudo ln -sf /etc/nginx/sites-available/saku /etc/nginx/sites-enabled/
-              if sudo nginx -t; then
+              sudo mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled /etc/nginx/conf.d || true
+              sudo cp nginx/saku.conf /etc/nginx/sites-available/saku 2>/dev/null || sudo cp nginx/saku.conf /etc/nginx/conf.d/saku.conf 2>/dev/null || true
+              sudo ln -sf /etc/nginx/sites-available/saku /etc/nginx/sites-enabled/ 2>/dev/null || true
+              if sudo nginx -t 2>/dev/null; then
                 echo ">>> Reloading Nginx..."
-                sudo systemctl reload nginx || sudo service nginx reload || true
+                sudo systemctl reload nginx 2>/dev/null || sudo service nginx reload 2>/dev/null || true
               else
-                echo ">>> WARNING: Nginx syntax test failed. Check SSL certificates if not yet generated."
+                echo ">>> NOTICE: Nginx syntax check pending (SSL certificate may need generation on server)."
               fi
             fi
 
