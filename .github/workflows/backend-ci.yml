@@ -167,34 +167,14 @@ jobs:
               # 1. If SSL cert does not exist yet, bootstrap HTTP port 80 first
               if [ ! -f /etc/letsencrypt/live/saku.morpkhai.web.id/fullchain.pem ]; then
                 echo ">>> SSL cert not found. Bootstrapping HTTP port 80..."
-                sudo tee /etc/nginx/sites-available/saku > /dev/null << 'EOF'
-server {
-    listen 80;
-    listen [::]:80;
-    server_name saku.morpkhai.web.id;
-    client_max_body_size 25M;
-
-    location ^~ /.well-known/acme-challenge/ {
-        root /var/www/certbot;
-        default_type text/plain;
-        try_files $uri =404;
-    }
-
-    location / {
-        proxy_pass http://127.0.0.1:8080;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-EOF
-                sudo ln -sf /etc/nginx/sites-available/saku /etc/nginx/sites-enabled/ 2>/dev/null || true
-                sudo cp /etc/nginx/sites-available/saku /etc/nginx/conf.d/saku.conf 2>/dev/null || true
-                if sudo nginx -t; then
-                  sudo systemctl reload nginx 2>/dev/null || sudo service nginx reload 2>/dev/null || sudo systemctl restart nginx 2>/dev/null || true
-                  echo ">>> Bootstrap HTTP port 80 active."
+                if [ -f nginx/saku-bootstrap.conf ]; then
+                  sudo cp nginx/saku-bootstrap.conf /etc/nginx/sites-available/saku
+                  sudo cp nginx/saku-bootstrap.conf /etc/nginx/conf.d/saku.conf 2>/dev/null || true
+                  sudo ln -sf /etc/nginx/sites-available/saku /etc/nginx/sites-enabled/ 2>/dev/null || true
+                  if sudo nginx -t; then
+                    sudo systemctl reload nginx 2>/dev/null || sudo service nginx reload 2>/dev/null || sudo systemctl restart nginx 2>/dev/null || true
+                    echo ">>> Bootstrap HTTP port 80 active."
+                  fi
                 fi
 
                 echo ">>> Requesting Let's Encrypt SSL certificate via Certbot..."
