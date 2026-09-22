@@ -1,59 +1,153 @@
-# SAKU
+# SAKU Web Portal Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.1.6.
+> Portal Web Manajemen & Operasional Internal **SAKU** berbasis **Angular 22** dan **Tailwind CSS**.
 
-## Development server
+Portal ini digunakan oleh tim operasional internal (Marketing, Branch Manager, Back Office, dan Super Admin) untuk mengelola seluruh siklus pembiayaan pinjaman digital secara real-time, cepat, dan aman.
 
-To start a local development server, run:
+---
 
-```bash
-ng serve
+## 📖 Dokumentasi API Terkait (Scalar API Reference)
+
+Seluruh interaksi API antara Web Portal dan Backend mengacu pada dokumentasi **Scalar API Reference**:
+
+- 🌐 **Production Scalar API**: [https://saku.morpkhai.web.id/scalar](https://saku.morpkhai.web.id/scalar)
+- 💻 **Localhost Scalar API**: [http://localhost:8080/scalar](http://localhost:8080/scalar)
+
+---
+
+## 🛠️ Teknologi & Arsitektur Frontend
+
+| Komponen | Spesifikasi / Library |
+| :--- | :--- |
+| **Framework & Versi** | Angular 22 (Standalone Components Architecture) |
+| **Bahasa Pemrograman** | TypeScript 5.x |
+| **Styling & UI** | Tailwind CSS 3.x, Custom Design System & Glassmorphism |
+| **Ikonografi** | Lucide Angular Icons & FontAwesome |
+| **Manajemen State & HTTP** | RxJS, Angular HttpClient Interceptors (JWT Bearer Auth & Global Error Handling) |
+| **Notifikasi Real-Time** | Server-Sent Events (SSE) Client Service |
+| **Unit Test Runner** | Vitest (`ng test` / `vitest`) |
+| **Build & Tooling** | Angular CLI 22, Vite Builder |
+
+---
+
+## 📁 Struktur Direktori Frontend
+
+```text
+frontend/
+├── src/
+│   ├── app/
+│   │   ├── core/                  # Singleton Services, Guards, Interceptors, Models
+│   │   │   ├── guards/            # AuthGuard, RoleGuard (RBAC Protection)
+│   │   │   ├── interceptors/      # AuthInterceptor (JWT Injection), ErrorInterceptor
+│   │   │   ├── services/          # AuthService, SseService, ApiService, NotificationService
+│   │   │   └── models/            # Type definitions & response DTO interfaces
+│   │   ├── pages/                 # Halaman utama aplikasi berbasis role
+│   │   │   ├── auth/              # Halaman Login Karyawan & Nasabah
+│   │   │   ├── landing-page/      # Landing Page Publik SAKU (SEO & Simulasi Pinjaman)
+│   │   │   ├── marketing/         # Dashboard & Review Pengajuan Pinjaman Cabang
+│   │   │   ├── branchmanager/     # Dashboard & Persetujuan (Approval) Pinjaman BM
+│   │   │   ├── backoffice/        # Verifikasi Dokumen KYC & Proses Pencairan Dana
+│   │   │   └── superadmin/        # Master Role, Permission, Menu, Karyawan, Cabang, Plafond, Audit Log
+│   │   └── shared/                # Reusable UI Components (Navbar, Sidebar, Modal, Table, Badge, Footer)
+│   ├── environments/
+│   │   ├── environment.ts         # Konfigurasi development (API: http://localhost:8080)
+│   │   └── environment.prod.ts    # Konfigurasi production (API: https://saku.morpkhai.web.id)
+│   ├── index.html                 # HTML Entry Point dengan Meta Tag SEO & Social Graph
+│   └── styles.css                 # Global styles & import Tailwind directives
+├── package.json
+├── tailwind.config.js
+├── tsconfig.json
+└── angular.json
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+---
 
-## Code scaffolding
+## 👥 Modul & Fitur Berdasarkan Role
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+### 1. 🌐 Landing Page Publik (`/`)
+- Informasi nilai utama SAKU (*Responsible Lending* & Anti-Overindebtedness).
+- Kalkulator simulasi pinjaman interaktif (pilihan plafon, tenor, dan estimasi bunga transparan).
+- Navigasi cepat dan Call-to-Action download mobile app.
 
+### 2. 📋 Modul Marketing (`/marketing`)
+- **Dashboard Marketing**: Ringkasan total pengajuan masuk, perlu review, dan disetujui.
+- **Review Pengajuan**: Verifikasi kelayakan debitur, riwayat scoring, pengecekan slip gaji & rekening koran.
+- **Aksi Review**: Teruskan ke Branch Manager (Setujui), Minta Revisi Dokumen, atau Tolak Pengajuan.
+
+### 3. ⚖️ Modul Branch Manager (`/branchmanager`)
+- **Dashboard Branch Manager**: Matriks persetujuan pinjaman cabang & statistik portofolio.
+- **Persetujuan Pinjaman**: Evaluasi pinjaman bernilai besar yang memerlukan otorisasi pimpinan cabang.
+- **Aksi Keputusan**: Approve / Reject disertai catatan telaah manajerial.
+
+### 4. 💳 Modul Back Office (`/backoffice`)
+- **Verifikasi KYC**: Pengecekan keabsahan foto e-KTP dan foto selfie nasabah baru.
+- **Pencairan Dana (Disbursement)**: Validasi rekening penerima dan eksekusi transfer pencairan ke rekening BCA nasabah.
+
+### 5. ⚙️ Modul Super Admin (`/superadmin`)
+- **Master RBAC**: Manajemen Role, Hak Akses Permission, dan Menu Navigasi dinamis.
+- **Master Data**: Pengelolaan Karyawan Internal, Kantor Cabang, dan Produk Plafond (Tier Bronze s.d Platinum).
+- **Monitoring & Audit**: Monitoring status seluruh pengajuan nasional dan pelacakan audit log aktivitas staf.
+
+---
+
+## ⚙️ Konfigurasi Environment
+
+File konfigurasi API backend terletak pada folder `src/environments/`:
+
+- **Development (`environment.ts`)**:
+  ```typescript
+  export const environment = {
+    production: false,
+    apiUrl: 'http://localhost:8080/api',
+    baseUrl: 'http://localhost:8080'
+  };
+  ```
+
+- **Production (`environment.prod.ts`)**:
+  ```typescript
+  export const environment = {
+    production: true,
+    apiUrl: 'https://saku.morpkhai.web.id/api',
+    baseUrl: 'https://saku.morpkhai.web.id'
+  };
+  ```
+
+---
+
+## 🚀 Panduan Menjalankan Frontend
+
+### 1. Instalasi Dependensi
 ```bash
-ng generate component component-name
+cd frontend
+npm install
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
+### 2. Menjalankan Server Development
 ```bash
-ng generate --help
+npm start
+# atau:
+ng serve --port 4200
+```
+Buka browser di: **`http://localhost:4200/`**.
+
+### 3. Build untuk Production
+```bash
+npm run build
+# Output bundle akan dibuat di folder: dist/
 ```
 
-## Building
-
-To build the project run:
-
+### 4. Menjalankan Unit Testing
 ```bash
-ng build
+npm test
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+---
 
-## Running unit tests
+## 🔑 Kredensial Akun Pengujian Demo
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+| Role | Username | Password | Modul Utama |
+| :--- | :--- | :--- | :--- |
+| **Super Admin** | `superadmin` | `Admin123#` | `/superadmin/dashboard` |
+| **Back Office** | `backoffice` | `Admin123#` | `/backoffice/dashboard` |
+| **Marketing (Pusat)** | `marketing` | `Admin123#` | `/marketing/dashboard` |
+| **Branch Manager (Pusat)** | `bm` | `Admin123#` | `/branchmanager/dashboard` |

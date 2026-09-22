@@ -93,6 +93,12 @@ class AuthRepositoryAndroidTest {
         override suspend fun verifyOtp(request: VerifyOtpRequest): Response<ApiResponse<VerifyOtpResponse>> =
             Response.success(ApiResponse(statusCode = 200, data = VerifyOtpResponse(valid = true)))
 
+        override suspend fun checkNik(nik: String, customerId: String?): Response<ApiResponse<Boolean>> =
+            Response.success(ApiResponse(statusCode = 200, data = true))
+
+        override suspend fun checkPhone(phone: String, customerId: String?): Response<ApiResponse<Boolean>> =
+            Response.success(ApiResponse(statusCode = 200, data = true))
+
         override suspend fun registerStep1Ktp(customerId: String, ktp: MultipartBody.Part?, data: RequestBody): Response<ApiResponse<RegisterStepResponse>> =
             Response.success(ApiResponse(statusCode = 200, data = RegisterStepResponse(customerId, 1, "OK")))
 

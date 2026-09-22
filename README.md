@@ -8,187 +8,101 @@ Ekosistem SAKU menghubungkan nasabah peminjam (*mobile client* Android) dengan p
 
 ---
 
-### 💡 Nilai Utama & Keunggulan SAKU (Core Values)
+## 📖 Dokumentasi API Interaktif (Scalar API Reference)
 
-1. **Limit Pintar & Terukur**: Plafon pinjaman tidak dipukul rata, melainkan dihitung secara adil berdasarkan profil pendapatan, rasio beban cicilan (*Debt Burden Ratio*), dan data scoring nasabah.
-2. **Bebas Rasa Cemas**: Simulasi nominal, bunga flat transparan, dan estimasi angsuran ditampilkan jelas di awal sebelum nasabah mengajukan.
-3. **Proses Cepat & Terverifikasi**: Verifikasi identitas KYC (*e-KTP & selfie liveness*), evaluasi berjenjang, hingga pencairan dana langsung ke rekening bank nasabah.
-4. **Tampilan Modern & Human-Centric**: Pengalaman pengguna (*UI/UX*) yang segar, ramah anak muda (Gen-Z & Milenial), interaktif, dan mudah digunakan oleh siapa saja.
+Layanan RESTful API backend SAKU dilengkapi dengan antarmuka dokumentasi modern dan interaktif menggunakan **Scalar API Reference**:
+
+- 🌐 **Dokumentasi Scalar API (Production)**: [https://saku.morpkhai.web.id/scalar](https://saku.morpkhai.web.id/scalar)
+- 💻 **Dokumentasi Scalar API (Lokal)**: [http://localhost:8080/scalar](http://localhost:8080/scalar) *(atau `/docs`)*
+- 📄 **OpenAPI 3.0 Raw Spec**: [https://saku.morpkhai.web.id/v3/api-docs](https://saku.morpkhai.web.id/v3/api-docs)
+
+> **Fitur Scalar Docs**: Tampilan modern dark/light mode, pencarian endpoint instan, live API testing/request builder, schema type definitions, dan response example.
 
 ---
 
-## 🏗️ Arsitektur & Teknologi
+## 💡 Nilai Utama & Keunggulan SAKU
 
-Aplikasi SAKU dibangun dengan arsitektur modern multi-platform:
+1. **Limit Pintar & Terukur**: Plafon pinjaman dihitung secara adil berdasarkan profil pendapatan, rasio beban cicilan (*Debt Burden Ratio*), dan skor kredit nasabah.
+2. **Transparansi Penuh**: Simulasi nominal, suku bunga flat transparan (0.75% - 1.50% / bulan), dan jadwal angsuran ditampilkan jelas sebelum pengajuan.
+3. **Alur Verifikasi Cepat & Berjenjang**: Verifikasi identitas KYC (*e-KTP & selfie liveness*), review marketing cabang, approval branch manager, hingga pencairan dana otomatis ke rekening bank.
+4. **Keamanan & RBAC Ketat**: Perlindungan berlapis dengan JWT Auth, BCrypt password hashing, Spring Security RBAC, dan audit trail aktivitas staf.
 
-| Komponen | Platform / Framework | Bahasa / Tool | Fitur Utama |
+---
+
+## 🏗️ Arsitektur & Komponen Ekosistem
+
+| Komponen | Platform / Framework | Direktori | Deskripsi & Fitur Utama |
 | :--- | :--- | :--- | :--- |
-| **Mobile App** | Android (Jetpack Compose) | Kotlin 2.x | Material 3, Biometric/Auth, Room DB, FCM Push Notifications, Root/Security Detection |
-| **Backend API** | Spring Boot 4.x | Java 21 | Spring Security, JWT Auth, Spring Data JPA (Hibernate), PostgreSQL 16, Redis 7 (Caching & OTP) |
-| **Web Portal** | Angular 22 | TypeScript / Tailwind CSS | Dashboard Monitoring, Review Marketing, Persetujuan BM, Eksekusi Pencairan, Verifikasi KYC |
-| **DevOps / CI-CD** | Docker & GitHub Actions | Docker Compose, Bash | Automated Maven Testing, SCP File Transfer, Zero-downtime Container Deployment |
+| **Backend REST API** | Spring Boot 4.x / Java 21 | [`/backend`](./backend/README.md) | REST API, Spring Security, JWT, PostgreSQL 16, Redis 7, Scalar Docs, SSE Notifications |
+| **Web Portal Admin** | Angular 22 / TypeScript | [`/frontend`](./frontend/README.md) | Portal Backoffice, Review Marketing, Approval BM, Master RBAC & Plafond Superadmin |
+| **Mobile App Nasabah** | Android Jetpack Compose | `/android` | Registrasi KYC, Pengajuan Pinjaman, Simulasi Angsuran, Biometric Auth, FCM Notifikasi |
+| **DevOps & CI/CD** | GitHub Actions & Docker | `/.github/workflows` | Automated Maven Testing, SCP Deployment, Nginx Reverse Proxy, Auto-SSL Certbot |
 
 ---
 
-## 📁 Struktur Direktori Repositori
+## 📁 Struktur Repositori
 
 ```text
 saku-app-fp/
-├── .github/
-│   └── workflows/
-│       ├── backend-ci.yml         # CI/CD Pipeline (Build, Test & Auto-deploy SSH/Docker)
-│       └── frontend-ci.yml        # CI Pipeline (Build, Lint & Test Angular)
-├── android/                       # Aplikasi Mobile Nasabah (Android Jetpack Compose)
-│   ├── app/
-│   │   ├── src/main/java/...      # UI Components, Screens, ViewModels, Room DB & Services
-│   │   └── build.gradle.kts
-│   ├── gradle/
-│   └── build.gradle.kts
-├── backend/                       # Layanan RESTful API Backend (Spring Boot & Java 21)
-│   ├── Dockerfile                 # Multi-stage production container build
-│   ├── docker-compose.yml         # Orkestrasi container backend & persistensi storage
-│   ├── database/
-│   │   ├── docker-compose.yaml    # Database PostgreSQL lokal (Development)
-│   │   └── seeder.sql             # SQL Data Seeder (Schema: mel_saku)
-│   ├── src/main/java/...          # Controllers, Services, Repositories, Entities & Security
-│   ├── src/main/resources/        # application.properties & Firebase credentials
-│   ├── pom.xml
-│   └── .env.example
-├── frontend/                      # Web Portal Backoffice & Manajemen (Angular 22)
-│   ├── src/app/pages/             # Modul Marketing, Branch Manager, Backoffice, Superadmin
-│   ├── src/app/core/              # Guards, Interceptors, Services, Models
-│   ├── package.json
-│   └── angular.json
-├── .gitignore
-└── README.md
+├── .github/workflows/
+│   ├── backend-ci.yml         # CI/CD Pipeline Backend (Maven Test, SCP & Docker Auto-Deploy)
+│   └── frontend-ci.yml        # CI Pipeline Frontend (Angular Lint, Test & Build)
+├── android/                   # Aplikasi Mobile Nasabah (Android Jetpack Compose & Kotlin)
+├── backend/                   # Layanan Backend RESTful API (Spring Boot 4 & Java 21)
+│   ├── database/              # SQL Seeder (30 Customer, 18 Loan), Migrasi, & Dummy Generator
+│   ├── nginx/                 # Konfigurasi Reverse Proxy & Auto-SSL
+│   └── src/main/java/...      # Controllers, Services, Security, Entities, DTOs
+├── frontend/                  # Web Portal Staf Internal (Angular 22 & Tailwind CSS)
+│   └── src/app/pages/         # Halaman Marketing, BM, Backoffice, Superadmin, Landing Page
+└── README.md                  # Dokumentasi Utama Proyek
 ```
 
 ---
 
-## ⚙️ Prasyarat Lingkungan (Prerequisites)
+## 🔑 Akun Demo Pengujian (Demo Accounts)
 
-Pastikan perangkat Anda telah memasang dependensi berikut:
-- **Java JDK 21** (misalnya Eclipse Temurin / OpenJDK 21)
-- **Node.js**: v20.x atau v22.x LTS & **npm**
-- **Android Studio** (Ladybug / Iguana atau terbaru) + Android SDK 35
-- **Docker Engine & Docker Compose**
-- **Git**
+Seluruh akun telah disiapkan melalui database seeder:
+
+| Role | Username | Email | Password | Cabang / Akses |
+| :--- | :--- | :--- | :--- | :--- |
+| **Super Admin** | `superadmin` | `superadmin@saku.com` | `Admin123#` | Nasional (Full Access & RBAC) |
+| **Back Office** | `backoffice` | `backoffice@saku.com` | `Admin123#` | Nasional (KYC Verification & Pencairan) |
+| **Marketing (Pusat)** | `marketing` | `marketing@saku.com` | `Admin123#` | Kantor Pusat Jakarta |
+| **Marketing (Surabaya)** | `marketingsby` | `marketingsby@saku.com` | `Admin123#` | Cabang Surabaya |
+| **Marketing (Bandung)** | `marketingbdg` | `marketingbdg@saku.com` | `Admin123#` | Cabang Bandung |
+| **Branch Manager (Pusat)** | `bm` | `bm@saku.com` | `Admin123#` | Kantor Pusat Jakarta |
+| **Branch Manager (Surabaya)**| `bmsby` | `bmsby@saku.com` | `Admin123#` | Cabang Surabaya |
+| **Branch Manager (Bandung)** | `bmbdg` | `bmbdg@saku.com` | `Admin123#` | Cabang Bandung |
+| **Nasabah (Customer)** | `melanie` | `melanie@example.com` | `Customer123#` | Nasabah Tier Reguler (Silver) |
+| **Nasabah (Customer)** | `bagus_sby` | `bagus.sby@example.com` | `Customer123#` | Nasabah Tier Platinum (Surabaya) |
+| **Nasabah (Customer)** | `siti_bandung`| `siti.bandung@example.com`| `Customer123#` | Nasabah Tier Starter (Bandung) |
 
 ---
 
-## 🚀 Panduan Memulai Cepat (Quick Start)
+## 🚀 Panduan Menjalankan Seluruh Proyek (Quick Start)
 
-### 1. Menjalankan Backend (Spring Boot)
-
-#### Opsi A: Menggunakan Database Lokal (Docker)
-1. Jalankan PostgreSQL lokal:
-   ```bash
-   cd backend/database
-   docker compose up -d
-   ```
-2. Siapkan file `.env` di folder `backend/` (salin dari `.env.example`):
-   ```properties
-   DB_URL=jdbc:postgresql://localhost:5433/db_saku
-   DB_USERNAME=your_local_db_user
-   DB_PASSWORD=your_local_db_password
-   REDIS_HOST=localhost
-   REDIS_PORT=6379
-   JWT_SECRET=your_secure_256bit_jwt_secret_here
-   ```
-
-#### Opsi B: Menggunakan Database Server Remote
-Konfigurasikan `.env` mengarah ke host database dan Redis yang telah disediakan:
-```properties
-DB_URL=jdbc:postgresql://<DB_HOST>:<DB_PORT>/<DB_NAME>?currentSchema=<SCHEMA_NAME>
-DB_USERNAME=<DB_USERNAME>
-DB_PASSWORD=<DB_PASSWORD>
-DB_SCHEMA=<SCHEMA_NAME>
-REDIS_HOST=<REDIS_HOST>
-REDIS_PORT=6379
-REDIS_USERNAME=<REDIS_USERNAME>
-REDIS_PASSWORD=<REDIS_PASSWORD>
-REDIS_KEY_PREFIX=<KEY_PREFIX>
+### 1. Menjalankan Backend API
+Lihat panduan lengkap di [backend/README.md](./backend/README.md).
+```bash
+cd backend
+.\mvnw.cmd spring-boot:run   # Windows
+./mvnw spring-boot:run       # Linux / macOS
 ```
+> Server aktif di: `http://localhost:8080` (Dokumentasi API: `http://localhost:8080/scalar`)
 
-#### Menjalankan Server API:
-- **Windows (PowerShell):**
-  ```powershell
-  cd backend
-  .\mvnw.cmd spring-boot:run
-  ```
-- **Linux / macOS:**
-  ```bash
-  cd backend
-  ./mvnw spring-boot:run
-  ```
-Backend aktif di `http://localhost:8080`.
+### 2. Menjalankan Web Portal Frontend
+Lihat panduan lengkap di [frontend/README.md](./frontend/README.md).
+```bash
+cd frontend
+npm install
+npm start
+```
+> Web portal aktif di: `http://localhost:4200`
 
----
-
-### 2. Mengisi Data Awal (Database Seeder)
-
-Setelah backend menyala pertama kali dan struktur tabel otomatis terbentuk di database, jalankan script seeder untuk mengisi data master awal (role, cabang, plafond, menu, dan permission):
-
-- **Via DBeaver / pgAdmin**: Buka koneksi database Anda, lalu buka dan eksekusi file [`backend/database/seeder.sql`](file:///c:/Users/melan/OneDrive/Documents/GitHub/saku-app-fp/backend/database/seeder.sql).
-- **Via Terminal (psql / Docker)**:
-  ```powershell
-  docker exec -i saku-postgres psql -h <DB_HOST> -U <DB_USER> -d <DB_NAME> < backend\database\seeder.sql
-  ```
+### 3. Menjalankan Mobile App Android
+Buka folder `android/` di **Android Studio**, lakukan **Gradle Sync**, dan jalankan pada emulator atau perangkat fisik Android.
 
 ---
 
-### 3. Menjalankan Web Portal Frontend (Angular)
-
-1. Masuk ke folder `frontend`:
-   ```bash
-   cd frontend
-   ```
-2. Pasang dependensi:
-   ```bash
-   npm install
-   ```
-3. Jalankan server development:
-   ```bash
-   npm start
-   ```
-4. Buka browser di: **`http://localhost:4200/`**.
-
----
-
-### 4. Menjalankan Aplikasi Mobile (Android)
-
-1. Buka **Android Studio**.
-2. Pilih menu **File &rarr; Open**, arahkan ke subfolder **`android/`**.
-3. Tunggu proses **Gradle Sync** selesai secara otomatis.
-4. Hubungkan HP Android fisik (dengan *USB Debugging* aktif) atau gunakan Android Virtual Device (AVD Emulator).
-5. Klik tombol hijau **Run 'app' (Shift + F10)**.
-
----
-
-## 🔄 CI / CD Pipeline & Deployment Otomatis
-
-Repositori ini telah dikonfigurasi dengan pipeline **GitHub Actions** yang beroperasi secara otomatis:
-
-### 1. Pipeline Backend (`backend-ci.yml`)
-- **Tahap CI (Integrasi)**:
-  - Berjalan pada setiap push / pull-request ke branch `dev` dan `main`.
-  - Menginisialisasi service container PostgreSQL & Redis di runner Ubuntu.
-  - Menjalankan unit test dan compile Maven (`./mvnw clean test -B`).
-- **Tahap CD (Deployment Produksi)**:
-  - Otomatis terpicu saat ada push / merge ke branch **`main`**.
-  - Mengambil konfigurasi rahasia dari GitHub Secrets (`PROD_ENV_FILE`, `SERVER_SSH_KEY`, `SERVER_HOST`, `SERVER_USER`).
-  - Mentransfer berkas backend dan file `.env` ke target server VPS produksi via protokol SCP aman.
-  - Membangun dan menyalakan kontainer aplikasi secara otomatis melalui Docker Compose (`docker compose up -d --build`).
-
-### 2. Pipeline Frontend (`frontend-ci.yml`)
-- Memvalidasi ketergantungan paket Node.js (`npm ci`).
-- Menjalankan unit testing Angular.
-- Melakukan kompilasi build production bundle (`npm run build --configuration production`).
-
----
-
-## 🌿 Strategi Percabangan Git (Branching Strategy)
-
-- **`main`**: Branch produksi stabil. Setiap perubahan yang di-push ke branch ini akan langsung diuji dan di-deploy otomatis ke server VPS produksi.
-- **`dev`**: Branch pengembangan aktif utama untuk integrasi fitur sebelum dirilis ke produksi.
-- **`feat/*`**: Branch fitur individual untuk pengerjaan modul tertentu sebelum digabungkan ke branch `dev`.
+## 📄 Lisensi & Tim Pengembang
+Dikembangkan untuk Final Project.

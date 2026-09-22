@@ -1,7 +1,6 @@
 package com.bcafinance.backend_saku.core.config;
 
 import com.bcafinance.backend_saku.core.exception.SecurityExceptionHandler;
-import com.bcafinance.backend_saku.core.exception.UnauthorizedHandler;
 import com.bcafinance.backend_saku.core.filter.JwtAuthFilter;
 import com.bcafinance.backend_saku.core.security.AppUserDetailService;
 import com.bcafinance.backend_saku.core.security.CustomerUserDetailService;
@@ -12,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -38,31 +38,48 @@ public class SecurityConfig {
         private List<String> allowedOrigins;
 
         @Bean
-        SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter,
-                        UnauthorizedHandler unauthorizedHandler) throws Exception {
+        SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
                 return http
                                 .csrf(csrf -> csrf.disable())
                                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                                // untuk RBAC
+                                // RBAC & Endpoint Authorization
                                 .authorizeHttpRequests(request -> request
-                                                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
-                                                .requestMatchers("/api/auth/**", "/api/public/**", "/uploads/**", "/files/**", "/api/files/**",
-                                                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/docs", "/docs/**", "/scalar", "/scalar/**").permitAll()
+                                                // Preflight CORS
+                                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                                                // Public Endpoints, Uploads & Scalar OpenAPI Documentation
+                                                .requestMatchers(
+                                                                "/api/auth/**",
+                                                                "/api/public/**",
+                                                                "/uploads/**",
+                                                                "/scalar", "/scalar/**",
+                                                                "/docs", "/docs/**",
+                                                                "/v3/api-docs/**",
+                                                                "/swagger-ui/**", "/swagger-ui.html"
+                                                ).permitAll()
+
+                                                // Role-Based Access Control
                                                 .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
                                                 .requestMatchers("/api/marketing/**").hasRole("MARKETING")
-                                                .requestMatchers("/api/branch-manager/**", "/api/bm/**",
-                                                                "/api/branchmanager/**")
-                                                .hasRole("BRANCHMANAGER")
-                                                .requestMatchers("/api/karyawan/**", "/api/cabang/**",
-                                                                "/api/plafond/**", "/api/master/**",
-                                                                "/api/role/**", "/api/menu/**", "/api/permission/**",
-                                                                "/api/monitoring/**")
-                                                .hasRole("SUPERADMIN")
-                                                .requestMatchers("/api/backoffice/**").hasRole("BACKOFFICE")
+                                                .requestMatchers("/api/branch-manager/**", "/api/branchmanager/**", "/api/bm/**").hasRole("BRANCHMANAGER")
+                                                .requestMatchers("/api/backoffice/**", "/api/bo/**", "/api/scoring/**").hasRole("BACKOFFICE")
+                                                .requestMatchers(
+                                                                "/api/superadmin/**",
+                                                                "/api/master/**",
+                                                                "/api/karyawan/**",
+                                                                "/api/cabang/**",
+                                                                "/api/plafond/**",
+                                                                "/api/role/**",
+                                                                "/api/menu/**",
+                                                                "/api/permission/**",
+                                                                "/api/monitoring/**",
+                                                                "/api/monitoring-pengajuan/**",
+                                                                "/api/audit-log/**"
+                                                ).hasRole("SUPERADMIN")
 
-                                                .anyRequest()
-                                                .authenticated())
+                                                // All other endpoints require authentication (e.g., /api/realtime/**)
+                                                .anyRequest().authenticated())
 
                                 .headers(headers -> headers
                                                 // contentsecuritypolicy

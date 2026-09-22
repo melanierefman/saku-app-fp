@@ -98,6 +98,12 @@ class LoginScreenTest {
         override suspend fun registerStep4Tnc(customerId: String): ApiResult<com.example.saku.app.core.network.dto.RegisterStepResponse> =
             ApiResult.Error("Not implemented")
 
+        override suspend fun checkNik(nik: String, customerId: String?): ApiResult<Boolean> =
+            ApiResult.Success(true)
+
+        override suspend fun checkPhone(phone: String, customerId: String?): ApiResult<Boolean> =
+            ApiResult.Success(true)
+
         override suspend fun registerStep5Complete(
             customerId: String,
             request: com.example.saku.app.core.network.dto.RegisterStep5CompleteRequest
@@ -108,7 +114,7 @@ class LoginScreenTest {
     @Test
     fun loginScreen_displaysAllInitialUiElements() {
         val fakeRepo = FakeAuthRepository()
-        val viewModel = LoginViewModel(ApplicationProvider.getApplicationContext(), fakeRepo)
+        val viewModel = LoginViewModel(fakeRepo)
 
         composeTestRule.setContent {
             SAKUAppTheme {
@@ -116,6 +122,7 @@ class LoginScreenTest {
                     onNavigateToRegister = {},
                     onNavigateToHome = {},
                     onNavigateToForgotPassword = {},
+                    onNavigateToKycPending = {},
                     viewModel = viewModel
                 )
             }
@@ -132,7 +139,7 @@ class LoginScreenTest {
     @Test
     fun loginScreen_emptyCredentials_showsValidationErrors() {
         val fakeRepo = FakeAuthRepository()
-        val viewModel = LoginViewModel(ApplicationProvider.getApplicationContext(), fakeRepo)
+        val viewModel = LoginViewModel(fakeRepo)
 
         composeTestRule.setContent {
             SAKUAppTheme {
@@ -140,6 +147,7 @@ class LoginScreenTest {
                     onNavigateToRegister = {},
                     onNavigateToHome = {},
                     onNavigateToForgotPassword = {},
+                    onNavigateToKycPending = {},
                     viewModel = viewModel
                 )
             }
@@ -155,7 +163,7 @@ class LoginScreenTest {
     @Test
     fun loginScreen_passwordLessThan6Chars_showsMinLengthError() {
         val fakeRepo = FakeAuthRepository()
-        val viewModel = LoginViewModel(ApplicationProvider.getApplicationContext(), fakeRepo)
+        val viewModel = LoginViewModel(fakeRepo)
 
         composeTestRule.setContent {
             SAKUAppTheme {
@@ -163,6 +171,7 @@ class LoginScreenTest {
                     onNavigateToRegister = {},
                     onNavigateToHome = {},
                     onNavigateToForgotPassword = {},
+                    onNavigateToKycPending = {},
                     viewModel = viewModel
                 )
             }
@@ -180,7 +189,7 @@ class LoginScreenTest {
     @Test
     fun loginScreen_successfulLogin_triggersOnNavigateToHome() {
         val fakeRepo = FakeAuthRepository(shouldSucceed = true)
-        val viewModel = LoginViewModel(ApplicationProvider.getApplicationContext(), fakeRepo)
+        val viewModel = LoginViewModel(fakeRepo)
         var navigatedToHome = false
 
         composeTestRule.setContent {
@@ -189,6 +198,7 @@ class LoginScreenTest {
                     onNavigateToRegister = {},
                     onNavigateToHome = { navigatedToHome = true },
                     onNavigateToForgotPassword = {},
+                    onNavigateToKycPending = {},
                     viewModel = viewModel
                 )
             }
@@ -208,7 +218,7 @@ class LoginScreenTest {
     @Test
     fun loginScreen_failedLogin_displaysErrorMessage() {
         val fakeRepo = FakeAuthRepository(shouldSucceed = false, errorMessage = "Email atau password salah")
-        val viewModel = LoginViewModel(ApplicationProvider.getApplicationContext(), fakeRepo)
+        val viewModel = LoginViewModel(fakeRepo)
 
         composeTestRule.setContent {
             SAKUAppTheme {
@@ -216,6 +226,7 @@ class LoginScreenTest {
                     onNavigateToRegister = {},
                     onNavigateToHome = {},
                     onNavigateToForgotPassword = {},
+                    onNavigateToKycPending = {},
                     viewModel = viewModel
                 )
             }
@@ -233,7 +244,7 @@ class LoginScreenTest {
     @Test
     fun loginScreen_clickRegister_triggersOnNavigateToRegister() {
         val fakeRepo = FakeAuthRepository()
-        val viewModel = LoginViewModel(ApplicationProvider.getApplicationContext(), fakeRepo)
+        val viewModel = LoginViewModel(fakeRepo)
         var navigatedToRegister = false
 
         composeTestRule.setContent {
@@ -242,6 +253,7 @@ class LoginScreenTest {
                     onNavigateToRegister = { navigatedToRegister = true },
                     onNavigateToHome = {},
                     onNavigateToForgotPassword = {},
+                    onNavigateToKycPending = {},
                     viewModel = viewModel
                 )
             }
@@ -254,7 +266,7 @@ class LoginScreenTest {
     @Test
     fun loginScreen_clickForgotPassword_triggersOnNavigateToForgotPassword() {
         val fakeRepo = FakeAuthRepository()
-        val viewModel = LoginViewModel(ApplicationProvider.getApplicationContext(), fakeRepo)
+        val viewModel = LoginViewModel(fakeRepo)
         var navigatedToForgot = false
 
         composeTestRule.setContent {
@@ -263,6 +275,7 @@ class LoginScreenTest {
                     onNavigateToRegister = {},
                     onNavigateToHome = {},
                     onNavigateToForgotPassword = { navigatedToForgot = true },
+                    onNavigateToKycPending = {},
                     viewModel = viewModel
                 )
             }
