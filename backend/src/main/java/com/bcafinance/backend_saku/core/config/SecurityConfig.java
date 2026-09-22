@@ -115,9 +115,9 @@ public class SecurityConfig {
                 origins.add("http://localhost:4200");
                 origins.add("http://localhost:3000");
                 origins.add("http://localhost:5173");
-                origins.add("http://35.255.112.244:*");
-                origins.add("http://35.255.112.244");
-                origins.add("https://farmers-saturn-teeth-providers.trycloudflare.com");
+                origins.add("https://saku.morpkhai.web.id");
+                origins.add("http://saku.morpkhai.web.id");
+                origins.add("https://*.morpkhai.web.id");
                 if (allowedOrigins != null && !allowedOrigins.isEmpty()) {
                     for (String o : allowedOrigins) {
                         if (!origins.contains(o)) {
