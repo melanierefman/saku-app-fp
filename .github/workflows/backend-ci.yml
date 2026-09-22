@@ -170,7 +170,7 @@ jobs:
               sudo rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
 
               # 1. If SSL cert does not exist yet, bootstrap HTTP port 80 first
-              if [ ! -f /etc/letsencrypt/live/saku.morpkhai.web.id/fullchain.pem ]; then
+              if ! sudo test -f /etc/letsencrypt/live/saku.morpkhai.web.id/fullchain.pem; then
                 echo ">>> SSL cert not found. Bootstrapping HTTP port 80..."
                 if [ -f nginx/saku-bootstrap.conf ]; then
                   sudo cp nginx/saku-bootstrap.conf /etc/nginx/sites-available/saku
@@ -187,7 +187,7 @@ jobs:
               fi
 
               # 2. If SSL cert now exists, apply full HTTPS configuration
-              if [ -f /etc/letsencrypt/live/saku.morpkhai.web.id/fullchain.pem ]; then
+              if sudo test -f /etc/letsencrypt/live/saku.morpkhai.web.id/fullchain.pem; then
                 echo ">>> Applying full HTTPS Nginx configuration..."
                 sudo cp nginx/saku.conf /etc/nginx/sites-available/saku
                 sudo cp nginx/saku.conf /etc/nginx/conf.d/saku.conf 2>/dev/null || true
