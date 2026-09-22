@@ -121,6 +121,12 @@ jobs:
             echo ">>> FIREBASE_SERVICE_ACCOUNT_JSON secret not provided."
           fi
 
+      - name: Generate Dummy Upload Files
+        run: |
+          cd backend
+          node database/generate-dummy-files.js
+          tar -czf dummy-uploads.tar.gz uploads
+
       - name: Transfer Backend Files to Server via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -128,7 +134,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
-          source: "backend/pom.xml,backend/Dockerfile,backend/docker-compose.yml,backend/.dockerignore,backend/.env*,backend/src/**,backend/nginx/**,backend/database/**"
+          source: "backend/pom.xml,backend/Dockerfile,backend/docker-compose.yml,backend/.dockerignore,backend/.env*,backend/src/**,backend/nginx/**,backend/database/**,backend/dummy-uploads.tar.gz"
           target: "~/backend"
           strip_components: 1
 
@@ -150,16 +156,17 @@ jobs:
               cp .env.example .env
             fi
 
+            # Extract dummy upload files if transferred
+            if [ -f dummy-uploads.tar.gz ]; then
+              echo ">>> Extracting dummy upload files..."
+              tar -xzf dummy-uploads.tar.gz
+              rm -f dummy-uploads.tar.gz
+            fi
+
             # Ensure uploads directory exists with proper permissions
             sudo mkdir -p uploads
             sudo chown -R $USER:$USER uploads 2>/dev/null || true
             sudo chmod -R 777 uploads 2>/dev/null || true
-
-            # Generate dummy files on server if node is available
-            if command -v node >/dev/null 2>&1 && [ -f database/generate-dummy-files.js ]; then
-              echo ">>> Ensuring dummy upload files on server..."
-              node database/generate-dummy-files.js || true
-            fi
 
 
 

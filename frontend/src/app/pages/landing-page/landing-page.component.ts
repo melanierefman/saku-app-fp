@@ -28,10 +28,10 @@ export class LandingPageComponent implements OnInit {
   constructor(
     private titleService: Title,
     private metaService: Meta,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
-    this.titleService.setTitle('SAKU - Solusi Pinjaman Digital Cepat, Aman & Terpercaya | Aplikasi Fintech SAKU');
+    this.titleService.setTitle('SAKU - Solusi Aman Keuangan Untukmu');
     this.metaService.updateTag({
       name: 'description',
       content: 'SAKU adalah platform pinjaman digital terdepan di Indonesia. Dapatkan pinjaman dana tunai dan modal usaha kilat hingga Rp 50 Juta dengan bunga rendah mulai 0.99%, persetujuan 5 menit, tanpa agunan, aman dan terpercaya sesuai regulasi yang berlaku.',
@@ -40,7 +40,7 @@ export class LandingPageComponent implements OnInit {
       name: 'keywords',
       content: 'SAKU, aplikasi SAKU, SAKU app, pinjaman SAKU, pinjaman online SAKU, fintech SAKU, pinjaman dana tunai, pinjaman terpercaya, pinjaman bunga rendah, kredit instan, pinjaman modal UMKM',
     });
-    this.metaService.updateTag({ property: 'og:title', content: 'SAKU - Solusi Pinjaman Digital Cepat, Aman & Terpercaya' });
+    this.metaService.updateTag({ property: 'og:title', content: 'SAKU - Solusi Aman Keuangan Untukmu' });
     this.metaService.updateTag({
       property: 'og:description',
       content: 'Solusi pinjaman dana tunai & modal usaha instan hingga Rp 50 Juta dengan bunga bersahabat mulai 0.99%. Aman dan sesuai regulasi yang berlaku.',

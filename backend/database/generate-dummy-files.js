@@ -35,7 +35,7 @@ if (!fs.existsSync(seederSqlPath)) {
 }
 
 const content = fs.readFileSync(seederSqlPath, 'utf8');
-const regex = /VALUES\s*\([^)]*?'([^']+?\.(?:jpg|jpeg|png|pdf))'/gi;
+const regex = /'((?:ktp|selfie|pinjaman)\/[^']+\.(?:jpg|jpeg|png|pdf))'/gi;
 let match;
 let count = 0;
 
