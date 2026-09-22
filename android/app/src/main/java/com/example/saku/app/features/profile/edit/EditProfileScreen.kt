@@ -13,12 +13,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -29,14 +32,17 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.composables.icons.lucide.ArrowLeft
@@ -44,13 +50,16 @@ import com.composables.icons.lucide.Briefcase
 import com.composables.icons.lucide.CreditCard
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.MapPin
+import com.composables.icons.lucide.User
 import com.example.saku.app.core.ui.components.Button
 import com.example.saku.app.core.ui.components.ButtonSize
 import com.example.saku.app.core.ui.components.ButtonVariant
 import com.example.saku.app.core.ui.components.ConfirmationDialog
+import com.example.saku.app.core.ui.components.CurrencyField
 import com.example.saku.app.core.ui.components.DialogType
+import com.example.saku.app.core.ui.components.DropdownField
+import com.example.saku.app.core.ui.components.DropdownOption
 import com.example.saku.app.core.ui.components.TextField
-import com.example.saku.app.features.home.HomeViewModel
 import com.example.saku.app.ui.theme.Background
 import com.example.saku.app.ui.theme.Border
 import com.example.saku.app.ui.theme.Primary
@@ -58,19 +67,33 @@ import com.example.saku.app.ui.theme.Surface
 import com.example.saku.app.ui.theme.TextPrimary
 import com.example.saku.app.ui.theme.TextSecondary
 import org.koin.androidx.compose.koinViewModel
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileScreen(
     initialTab: String = "REKENING",
     onNavigateBack: () -> Unit,
-    viewModel: HomeViewModel = koinViewModel()
+    viewModel: EditProfileViewModel = koinViewModel()
 ) {
     val context = LocalContext.current
     val customerProfile by viewModel.customerProfile.collectAsState()
     val isUpdating by viewModel.isProfileUpdating.collectAsState()
+
+    // Wilayah Cascading States
+    val provinces by viewModel.provinces.collectAsState()
+    val regencies by viewModel.regencies.collectAsState()
+    val districts by viewModel.districts.collectAsState()
+    val villages by viewModel.villages.collectAsState()
+
+    val selectedProvince by viewModel.selectedProvince.collectAsState()
+    val selectedRegency by viewModel.selectedRegency.collectAsState()
+    val selectedDistrict by viewModel.selectedDistrict.collectAsState()
+    val selectedVillage by viewModel.selectedVillage.collectAsState()
+
+    val isLoadingWilayah by viewModel.isLoadingWilayah.collectAsState()
+    val isLoadingRegencies by viewModel.isLoadingRegencies.collectAsState()
+    val isLoadingDistricts by viewModel.isLoadingDistricts.collectAsState()
+    val isLoadingVillages by viewModel.isLoadingVillages.collectAsState()
 
     var activeTab by remember(initialTab) {
         val normalized = initialTab.trim().uppercase()
@@ -83,6 +106,29 @@ fun EditProfileScreen(
         else -> "REKENING"
     }
 
+    // Opsi Pilihan Bank (Sama dengan Register)
+    val bankOptions = listOf(
+        DropdownOption(value = "BCA", label = "BCA (Bank Central Asia)"),
+        DropdownOption(value = "MANDIRI", label = "Bank Mandiri"),
+        DropdownOption(value = "BRI", label = "BRI (Bank Rakyat Indonesia)"),
+        DropdownOption(value = "BNI", label = "BNI (Bank Negara Indonesia)"),
+        DropdownOption(value = "CIMB", label = "CIMB Niaga"),
+        DropdownOption(value = "PERMATA", label = "Bank Permata"),
+        DropdownOption(value = "DANAMON", label = "Bank Danamon"),
+        DropdownOption(value = "BSI", label = "BSI (Bank Syariah Indonesia)")
+    )
+
+    // Opsi Status Pekerjaan (Sama dengan Register)
+    val jobStatusOptions = listOf(
+        DropdownOption(value = "KARYAWAN_TETAP", label = "Karyawan Tetap"),
+        DropdownOption(value = "KARYAWAN_KONTRAK", label = "Karyawan Kontrak"),
+        DropdownOption(value = "WIRAUSAHA", label = "Wirausaha / Pemilik Usaha"),
+        DropdownOption(value = "PROFESIONAL", label = "Profesional / Freelancer"),
+        DropdownOption(value = "PNS_BUMN", label = "PNS / Pegawai BUMN"),
+        DropdownOption(value = "IBU_RUMAH_TANGGA", label = "Ibu Rumah Tangga"),
+        DropdownOption(value = "LAINNYA", label = "Lainnya")
+    )
+
     // Rekening Form States
     var namaBank by remember(customerProfile) { mutableStateOf(customerProfile?.namaBank ?: "BCA") }
     var noRekening by remember(customerProfile) { mutableStateOf(customerProfile?.noRekening ?: "") }
@@ -92,21 +138,15 @@ fun EditProfileScreen(
     var alamat by remember(customerProfile) { mutableStateOf(customerProfile?.alamatDomisili?.alamatLengkap ?: "") }
     var rt by remember(customerProfile) { mutableStateOf(customerProfile?.alamatDomisili?.rt ?: "") }
     var rw by remember(customerProfile) { mutableStateOf(customerProfile?.alamatDomisili?.rw ?: "") }
-    var kelurahan by remember(customerProfile) { mutableStateOf(customerProfile?.alamatDomisili?.kelurahan ?: "") }
-    var kecamatan by remember(customerProfile) { mutableStateOf(customerProfile?.alamatDomisili?.kecamatan ?: "") }
-    var kota by remember(customerProfile) { mutableStateOf(customerProfile?.alamatDomisili?.kotaKabupaten ?: "") }
-    var provinsi by remember(customerProfile) { mutableStateOf(customerProfile?.alamatDomisili?.provinsi ?: "") }
     var kodePos by remember(customerProfile) { mutableStateOf(customerProfile?.alamatDomisili?.kodePos ?: "") }
 
     // Pekerjaan Form States
     var pekerjaan by remember(customerProfile) { mutableStateOf(customerProfile?.pekerjaan ?: "") }
     var tempatKerja by remember(customerProfile) { mutableStateOf(customerProfile?.tempatKerja ?: "") }
-    var statusPekerjaan by remember(customerProfile) {
-        mutableStateOf(
-            com.example.saku.app.core.util.EnumLabelUtils.formatStatusPekerjaan(customerProfile?.statusPekerjaan).takeIf { it != "-" } ?: (customerProfile?.statusPekerjaan ?: "")
-        )
-    }
+    var statusPekerjaan by remember(customerProfile) { mutableStateOf(customerProfile?.statusPekerjaan ?: "KARYAWAN_TETAP") }
     var penghasilan by remember(customerProfile) { mutableStateOf(customerProfile?.penghasilanBulanan?.toLong()?.toString() ?: "") }
+    var lamaBekerja by remember(customerProfile) { mutableStateOf(customerProfile?.lamaBekerjaBulan?.toString() ?: "") }
+    var cicilanLain by remember(customerProfile) { mutableStateOf(customerProfile?.totalCicilanLainBulanan?.toLong()?.toString() ?: "0") }
 
     var showConfirmDialog by remember { mutableStateOf(false) }
 
@@ -153,11 +193,12 @@ fun EditProfileScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
+                .padding(innerPadding)
+                .imePadding(),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 48.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Tab Selector: Rekening | Domisili | Pekerjaan (Di dalam body halaman)
+            // Tab Selector: Rekening | Domisili | Pekerjaan
             item {
                 Row(
                     modifier = Modifier
@@ -191,6 +232,7 @@ fun EditProfileScreen(
             }
 
             when (currentTab) {
+                // ==================== TAB REKENING ====================
                 "REKENING" -> {
                     item {
                         Card(
@@ -217,11 +259,18 @@ fun EditProfileScreen(
 
                                 Spacer(modifier = Modifier.height(4.dp))
 
-                                TextField(
-                                    value = namaBank,
-                                    onValueChange = { namaBank = it },
+                                val selectedBankOption = bankOptions.find {
+                                    it.value.equals(namaBank, ignoreCase = true) ||
+                                    it.label.startsWith(namaBank, ignoreCase = true)
+                                } ?: DropdownOption(value = namaBank, label = namaBank)
+
+                                DropdownField(
+                                    options = bankOptions,
+                                    selectedOption = selectedBankOption,
+                                    onOptionSelect = { opt -> opt?.let { namaBank = it.value } },
                                     label = "Nama Bank",
-                                    placeholder = "Contoh: BCA, Bank Mandiri, BRI",
+                                    placeholder = "Pilih Bank Pencairan",
+                                    leadingIcon = Lucide.CreditCard,
                                     required = true
                                 )
 
@@ -229,7 +278,9 @@ fun EditProfileScreen(
                                     value = noRekening,
                                     onValueChange = { noRekening = it },
                                     label = "Nomor Rekening",
-                                    placeholder = "Masukkan nomor rekening",
+                                    placeholder = "Contoh: 1234567890",
+                                    leadingIcon = Lucide.CreditCard,
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                     required = true
                                 )
 
@@ -238,6 +289,7 @@ fun EditProfileScreen(
                                     onValueChange = { namaRekening = it },
                                     label = "Nama Pemilik Rekening",
                                     placeholder = "Sesuai nama di buku tabungan",
+                                    leadingIcon = Lucide.User,
                                     required = true
                                 )
 
@@ -262,6 +314,7 @@ fun EditProfileScreen(
                     }
                 }
 
+                // ==================== TAB DOMISILI ====================
                 "DOMISILI" -> {
                     item {
                         Card(
@@ -288,20 +341,78 @@ fun EditProfileScreen(
 
                                 Spacer(modifier = Modifier.height(4.dp))
 
+                                // 1. Provinsi (API Cascading)
+                                DropdownField(
+                                    options = provinces,
+                                    selectedOption = selectedProvince,
+                                    onOptionSelect = { viewModel.onProvinceSelected(it) },
+                                    label = "Provinsi Domisili",
+                                    placeholder = if (isLoadingWilayah) "Memuat daftar provinsi..." else "Pilih Provinsi...",
+                                    required = true,
+                                    searchable = true,
+                                    isLoading = isLoadingWilayah,
+                                    leadingIcon = Lucide.MapPin
+                                )
+
+                                // 2. Kota / Kabupaten (API Cascading)
+                                DropdownField(
+                                    options = regencies,
+                                    selectedOption = selectedRegency,
+                                    onOptionSelect = { viewModel.onRegencySelected(it) },
+                                    label = "Kota / Kabupaten Domisili",
+                                    placeholder = if (selectedProvince == null) "Pilih provinsi terlebih dahulu" else if (isLoadingRegencies) "Memuat kota/kabupaten..." else "Pilih Kota / Kabupaten...",
+                                    required = true,
+                                    searchable = true,
+                                    enabled = selectedProvince != null,
+                                    isLoading = isLoadingRegencies,
+                                    leadingIcon = Lucide.MapPin
+                                )
+
+                                // 3. Kecamatan (API Cascading)
+                                DropdownField(
+                                    options = districts,
+                                    selectedOption = selectedDistrict,
+                                    onOptionSelect = { viewModel.onDistrictSelected(it) },
+                                    label = "Kecamatan Domisili",
+                                    placeholder = if (selectedRegency == null) "Pilih kota/kabupaten terlebih dahulu" else if (isLoadingDistricts) "Memuat kecamatan..." else "Pilih Kecamatan...",
+                                    required = true,
+                                    searchable = true,
+                                    enabled = selectedRegency != null,
+                                    isLoading = isLoadingDistricts,
+                                    leadingIcon = Lucide.MapPin
+                                )
+
+                                // 4. Kelurahan / Desa (API Cascading)
+                                DropdownField(
+                                    options = villages,
+                                    selectedOption = selectedVillage,
+                                    onOptionSelect = { viewModel.onVillageSelected(it) },
+                                    label = "Kelurahan / Desa Domisili",
+                                    placeholder = if (selectedDistrict == null) "Pilih kecamatan terlebih dahulu" else if (isLoadingVillages) "Memuat kelurahan/desa..." else "Pilih Kelurahan / Desa...",
+                                    required = true,
+                                    searchable = true,
+                                    enabled = selectedDistrict != null,
+                                    isLoading = isLoadingVillages,
+                                    leadingIcon = Lucide.MapPin
+                                )
+
+                                // 5. Alamat Lengkap
                                 TextField(
                                     value = alamat,
                                     onValueChange = { alamat = it },
                                     label = "Alamat Lengkap",
-                                    placeholder = "Nama jalan, nomor rumah, RT/RW",
+                                    placeholder = "Nama jalan, nomor rumah",
                                     required = true
                                 )
 
+                                // 6. RT & RW
                                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                     TextField(
                                         value = rt,
                                         onValueChange = { rt = it },
                                         label = "RT",
                                         placeholder = "001",
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                         modifier = Modifier.weight(1f),
                                         required = true
                                     )
@@ -310,61 +421,34 @@ fun EditProfileScreen(
                                         onValueChange = { rw = it },
                                         label = "RW",
                                         placeholder = "002",
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                         modifier = Modifier.weight(1f),
                                         required = true
                                     )
                                 }
 
+                                // 7. Kode Pos
                                 TextField(
-                                    value = kelurahan,
-                                    onValueChange = { kelurahan = it },
-                                    label = "Kelurahan / Desa",
-                                    placeholder = "Nama kelurahan",
+                                    value = kodePos,
+                                    onValueChange = { kodePos = it },
+                                    label = "Kode Pos",
+                                    placeholder = "Contoh: 12345",
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                     required = true
                                 )
-
-                                TextField(
-                                    value = kecamatan,
-                                    onValueChange = { kecamatan = it },
-                                    label = "Kecamatan",
-                                    placeholder = "Nama kecamatan",
-                                    required = true
-                                )
-
-                                TextField(
-                                    value = kota,
-                                    onValueChange = { kota = it },
-                                    label = "Kota / Kabupaten",
-                                    placeholder = "Nama kota",
-                                    required = true
-                                )
-
-                                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                    TextField(
-                                        value = provinsi,
-                                        onValueChange = { provinsi = it },
-                                        label = "Provinsi",
-                                        placeholder = "DKI Jakarta",
-                                        modifier = Modifier.weight(1.2f),
-                                        required = true
-                                    )
-                                    TextField(
-                                        value = kodePos,
-                                        onValueChange = { kodePos = it },
-                                        label = "Kode Pos",
-                                        placeholder = "12345",
-                                        modifier = Modifier.weight(0.8f),
-                                        required = true
-                                    )
-                                }
 
                                 Spacer(modifier = Modifier.height(8.dp))
 
                                 Button(
                                     text = "Simpan Perubahan Domisili",
                                     onClick = {
-                                        if (alamat.isBlank() || rt.isBlank() || rw.isBlank() || kelurahan.isBlank() || kecamatan.isBlank() || kota.isBlank() || provinsi.isBlank() || kodePos.isBlank()) {
-                                            Toast.makeText(context, "Semua data alamat domisili wajib diisi", Toast.LENGTH_SHORT).show()
+                                        val provVal = selectedProvince?.label ?: customerProfile?.alamatDomisili?.provinsi ?: ""
+                                        val kotaVal = selectedRegency?.label ?: customerProfile?.alamatDomisili?.kotaKabupaten ?: ""
+                                        val kecVal = selectedDistrict?.label ?: customerProfile?.alamatDomisili?.kecamatan ?: ""
+                                        val kelVal = selectedVillage?.label ?: customerProfile?.alamatDomisili?.kelurahan ?: ""
+
+                                        if (provVal.isBlank() || kotaVal.isBlank() || kecVal.isBlank() || kelVal.isBlank() || alamat.isBlank() || rt.isBlank() || rw.isBlank() || kodePos.isBlank()) {
+                                            Toast.makeText(context, "Semua data alamat domisili wajib diisi lengkap", Toast.LENGTH_SHORT).show()
                                             return@Button
                                         }
                                         showConfirmDialog = true
@@ -379,6 +463,7 @@ fun EditProfileScreen(
                     }
                 }
 
+                // ==================== TAB PEKERJAAN ====================
                 "PEKERJAAN" -> {
                     item {
                         Card(
@@ -421,21 +506,48 @@ fun EditProfileScreen(
                                     required = true
                                 )
 
-                                TextField(
-                                    value = statusPekerjaan,
-                                    onValueChange = { statusPekerjaan = it },
-                                    label = "Status Karyawan",
-                                    placeholder = "Karyawan Tetap / Kontrak / Profesional",
+                                val selectedJobStatusOption = jobStatusOptions.find {
+                                    it.value.equals(statusPekerjaan, ignoreCase = true) ||
+                                    it.label.equals(statusPekerjaan, ignoreCase = true)
+                                } ?: DropdownOption(value = statusPekerjaan, label = statusPekerjaan)
+
+                                DropdownField(
+                                    options = jobStatusOptions,
+                                    selectedOption = selectedJobStatusOption,
+                                    onOptionSelect = { opt -> opt?.let { statusPekerjaan = it.value } },
+                                    label = "Status Pekerjaan",
+                                    placeholder = "Pilih status pekerjaan",
                                     required = true
                                 )
 
-                                TextField(
-                                    value = penghasilan,
-                                    onValueChange = { penghasilan = it },
-                                    label = "Penghasilan Bersih Bulanan (Rp)",
-                                    placeholder = "Contoh: 7500000",
-                                    required = true
+                                CurrencyField(
+                                    amount = penghasilan.toLongOrNull(),
+                                    onAmountChange = { penghasilan = it?.toString() ?: "" },
+                                    label = "Penghasilan Bersih Bulanan",
+                                    placeholder = "0",
+                                    required = true,
+                                    quickAmounts = emptyList()
                                 )
+
+                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    TextField(
+                                        value = lamaBekerja,
+                                        onValueChange = { lamaBekerja = it },
+                                        label = "Lama Kerja (Bulan)",
+                                        placeholder = "24",
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        modifier = Modifier.weight(1f)
+                                    )
+
+                                    CurrencyField(
+                                        amount = cicilanLain.toLongOrNull(),
+                                        onAmountChange = { cicilanLain = it?.toString() ?: "0" },
+                                        label = "Cicilan Lain / Bulan",
+                                        placeholder = "0",
+                                        quickAmounts = emptyList(),
+                                        modifier = Modifier.weight(1.3f)
+                                    )
+                                }
 
                                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -457,6 +569,10 @@ fun EditProfileScreen(
                         }
                     }
                 }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(24.dp).navigationBarsPadding())
             }
         }
     }
@@ -491,14 +607,19 @@ fun EditProfileScreen(
         onConfirm = {
             when (currentTab) {
                 "DOMISILI" -> {
+                    val provVal = selectedProvince?.label ?: customerProfile?.alamatDomisili?.provinsi ?: ""
+                    val kotaVal = selectedRegency?.label ?: customerProfile?.alamatDomisili?.kotaKabupaten ?: ""
+                    val kecVal = selectedDistrict?.label ?: customerProfile?.alamatDomisili?.kecamatan ?: ""
+                    val kelVal = selectedVillage?.label ?: customerProfile?.alamatDomisili?.kelurahan ?: ""
+
                     viewModel.updateDomisili(
                         alamat = alamat,
                         rt = rt,
                         rw = rw,
-                        kelurahan = kelurahan,
-                        kecamatan = kecamatan,
-                        kota = kota,
-                        provinsi = provinsi,
+                        kelurahan = kelVal,
+                        kecamatan = kecVal,
+                        kota = kotaVal,
+                        provinsi = provVal,
                         kodePos = kodePos,
                         onSuccess = { msg ->
                             showConfirmDialog = false
@@ -516,6 +637,8 @@ fun EditProfileScreen(
                         tempatKerja = tempatKerja,
                         statusPekerjaan = statusPekerjaan,
                         penghasilanBulanan = penghasilan.toDoubleOrNull(),
+                        lamaBekerjaBulan = lamaBekerja.toIntOrNull(),
+                        totalCicilanLainBulanan = cicilanLain.toDoubleOrNull(),
                         onSuccess = { msg ->
                             showConfirmDialog = false
                             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()

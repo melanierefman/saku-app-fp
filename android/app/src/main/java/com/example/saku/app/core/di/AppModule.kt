@@ -21,6 +21,7 @@ import com.example.saku.app.features.home.HomeViewModel
 import com.example.saku.app.features.loans.apply.LoanApplyViewModel
 import com.example.saku.app.features.loans.detail.LoanDetailViewModel
 import com.example.saku.app.features.loans.revision.LoanRevisionViewModel
+import com.example.saku.app.features.profile.edit.EditProfileViewModel
 import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -57,6 +58,7 @@ val viewModelModule = module {
     viewModel { LoanApplyViewModel(get(), get()) }
     viewModel { LoanDetailViewModel(get()) }
     viewModel { LoanRevisionViewModel(get()) }
+    viewModel { EditProfileViewModel(get(), get()) }
 }
 
 val appModules = listOf(
