@@ -22,7 +22,8 @@ public class EmailService {
 
     public void sendOtpEmail(String toEmail, String otpCode, String purpose, int expiryMinutes) {
         String purposeTitle = formatPurpose(purpose);
-        // Do not put raw OTP digit numbers in the subject line to prevent aggressive spam filtering heuristics
+        // Do not put raw OTP digit numbers in the subject line to prevent aggressive
+        // spam filtering heuristics
         String subject = "Kode Verifikasi Keamanan SAKU - " + purposeTitle;
         String expiryText = expiryMinutes + " menit";
 
@@ -40,12 +41,13 @@ public class EmailService {
                 MimeMessage mimeMessage = mailSender.createMimeMessage();
                 MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
-                helper.setFrom(senderEmail, "SAKU Finansial");
+                helper.setFrom(senderEmail, "SAKU App");
                 helper.setTo(toEmail);
                 helper.setReplyTo(senderEmail, "SAKU Support");
                 helper.setSubject(subject);
 
-                // Add multipart/alternative: plain text version for spam filters + HTML version for rich render
+                // Add multipart/alternative: plain text version for spam filters + HTML version
+                // for rich render
                 String plainText = buildPlainTextEmail(otpCode, purposeTitle, expiryText);
                 String htmlText = buildHtmlEmail(otpCode, purposeTitle, expiryText);
                 helper.setText(plainText, htmlText);
