@@ -73,9 +73,9 @@ Seluruh akun telah disiapkan melalui database seeder:
 | **Branch Manager (Pusat)** | `bm` | `bm@saku.com` | `Admin123#` | Kantor Pusat Jakarta |
 | **Branch Manager (Surabaya)**| `bmsby` | `bmsby@saku.com` | `Admin123#` | Cabang Surabaya |
 | **Branch Manager (Bandung)** | `bmbdg` | `bmbdg@saku.com` | `Admin123#` | Cabang Bandung |
-| **Nasabah (Customer)** | `melanie` | `melanie@example.com` | `Customer123#` | Nasabah Tier Reguler (Silver) |
-| **Nasabah (Customer)** | `bagus_sby` | `bagus.sby@example.com` | `Customer123#` | Nasabah Tier Platinum (Surabaya) |
-| **Nasabah (Customer)** | `siti_bandung`| `siti.bandung@example.com`| `Customer123#` | Nasabah Tier Starter (Bandung) |
+| **Nasabah (Customer)** | `melanie` | `melanie@saku.com` | `Customer123#` | Nasabah Tier Reguler (Silver) |
+| **Nasabah (Customer)** | `bagus_sby` | `bagus.sby@saku.com` | `Customer123#` | Nasabah Tier Platinum (Surabaya) |
+| **Nasabah (Customer)** | `siti_bandung`| `siti.bandung@saku.com`| `Customer123#` | Nasabah Tier Starter (Bandung) |
 
 ---
 
