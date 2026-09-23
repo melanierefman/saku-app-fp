@@ -76,7 +76,7 @@ public class VerifikasiCustomerService {
                             .findFirstByMstCustomerIdOrderByCreatedDateDesc(customer.getId());
                     String status = determineStatus(customer, latestVerification);
                     String catatan = latestVerification.map(VerifikasiCustomer::getCatatanVerifikasi).orElse(null);
-                    LocalDateTime tglVerifikasi = latestVerification.map(VerifikasiCustomer::getCreatedDate)
+                    LocalDateTime tglVerifikasi = latestVerification.map(v -> v.getUpdatedDate() != null ? v.getUpdatedDate() : v.getCreatedDate())
                             .orElse(null);
 
                     return VerifikasiCustomerItemResponse.builder()
@@ -194,7 +194,7 @@ public class VerifikasiCustomerService {
                 .statusVerifikasi(statusVerifikasi)
                 .catatanVerifikasi(verifikasiOpt.map(VerifikasiCustomer::getCatatanVerifikasi).orElse(null))
                 .tanggalPengajuan(customer.getCreatedDate())
-                .tanggalVerifikasi(verifikasiOpt.map(VerifikasiCustomer::getCreatedDate).orElse(null))
+                .tanggalVerifikasi(verifikasiOpt.map(v -> v.getUpdatedDate() != null ? v.getUpdatedDate() : v.getCreatedDate()).orElse(null))
                 .verifiedByKaryawanId(verifikasiOpt.map(VerifikasiCustomer::getMstKaryawanId).orElse(null))
                 .build();
     }
@@ -302,17 +302,19 @@ public class VerifikasiCustomerService {
                             : "Dokumen identitas (KTP & Foto Selfie) tidak memenuhi syarat verifikasi.";
         }
 
+        LocalDateTime now = LocalDateTime.now();
         VerifikasiCustomer verification = verifikasiRepository.findFirstByMstCustomerIdOrderByCreatedDateDesc(customerId)
                 .orElseGet(() -> {
                     VerifikasiCustomer v = new VerifikasiCustomer();
                     v.setId(UUID.randomUUID());
-                    v.setCreatedDate(LocalDateTime.now());
+                    v.setCreatedDate(now);
                     v.setMstCustomerId(customerId);
                     return v;
                 });
         verification.setStatusVerifikasi(status);
         verification.setCatatanVerifikasi(finalCatatan.trim());
-        verification.setUpdatedDate(LocalDateTime.now());
+        verification.setUpdatedDate(now);
+        verification.setCreatedDate(now);
         verification.setMstKaryawanId(effectiveKaryawanId);
         verifikasiRepository.save(verification);
 

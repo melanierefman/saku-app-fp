@@ -272,7 +272,7 @@ public class CustomerProfileService {
                 .isKycVerified(isKycVerified)
                 .statusVerifikasi(statusVerifikasi)
                 .catatanVerifikasi(verifikasiOpt.map(VerifikasiCustomer::getCatatanVerifikasi).orElse(null))
-                .tanggalVerifikasi(verifikasiOpt.map(VerifikasiCustomer::getCreatedDate).orElse(null))
+                .tanggalVerifikasi(verifikasiOpt.map(v -> v.getUpdatedDate() != null ? v.getUpdatedDate() : v.getCreatedDate()).orElse(null))
                 .alamatKtp(alamatKtpOpt.map(this::mapAlamat).orElse(null))
                 .alamatDomisili(alamatDomisiliOpt.map(this::mapAlamat).orElse(null))
                 .fotoKtp(ktpDocOpt.map(DokumenCustomer::getFileUrl).orElse(null))

@@ -121,9 +121,19 @@ public class MarketingReviewService {
                     LocalDateTime tglReviewTerakhir;
 
                     if (isRevisiSubmitted) {
+                        statusTampilan = "DOKUMEN_DIREVISI";
                         hasilReviewTerakhir = "DOKUMEN_DIREVISI";
                         catatanTerakhir = p.getCatatanReview();
                         tglReviewTerakhir = p.getUpdatedDate();
+                    } else if ("PENGAJUAN_DITOLAK".equalsIgnoreCase(statusTampilan) || "DITOLAK".equalsIgnoreCase(statusTampilan)) {
+                        hasilReviewTerakhir = latestReviewOpt.map(ReviewPengajuan::getHasilReview).orElse(null);
+                        catatanTerakhir = latestReviewOpt.map(ReviewPengajuan::getCatatan).orElse(p.getCatatanReview());
+                        tglReviewTerakhir = latestReviewOpt.map(ReviewPengajuan::getCreatedDate).orElse(null);
+                        if (latestReviewOpt.isPresent() && "DISETUJUI".equalsIgnoreCase(latestReviewOpt.get().getHasilReview())) {
+                            statusTampilan = "DITOLAK_BM";
+                        } else {
+                            statusTampilan = "DITOLAK_MARKETING";
+                        }
                     } else {
                         hasilReviewTerakhir = latestReviewOpt.map(ReviewPengajuan::getHasilReview).orElse(null);
                         catatanTerakhir = latestReviewOpt.map(ReviewPengajuan::getCatatan).orElse(p.getCatatanReview());
@@ -151,22 +161,34 @@ public class MarketingReviewService {
                     if (statusFilter == null || statusFilter.isBlank() || "ALL".equalsIgnoreCase(statusFilter)) {
                         return true;
                     }
-                    if ("MENUNGGU_REVIEW".equalsIgnoreCase(statusFilter) || "PENDING".equalsIgnoreCase(statusFilter)) {
-                        return "MENUNGGU_REVIEW".equalsIgnoreCase(item.getStatus())
-                                || "PENDING".equalsIgnoreCase(item.getStatus());
+                    String sf = statusFilter.trim().toUpperCase();
+                    if ("MENUNGGU_REVIEW".equals(sf) || "PENDING".equals(sf)) {
+                        return ("MENUNGGU_REVIEW".equalsIgnoreCase(item.getStatus()) || "PENDING".equalsIgnoreCase(item.getStatus()))
+                                && !"DOKUMEN_DIREVISI".equalsIgnoreCase(item.getHasilReviewTerakhir());
                     }
-                    if ("SELESAI_DIREVIEW".equalsIgnoreCase(statusFilter)
-                            || "DISETUJUI".equalsIgnoreCase(statusFilter)) {
-                        return "SELESAI_DIREVIEW".equalsIgnoreCase(item.getStatus());
+                    if ("DOKUMEN_DIREVISI".equals(sf) || "PERLU_REVISI".equals(sf) || "REVISI".equals(sf)) {
+                        return "DOKUMEN_DIREVISI".equalsIgnoreCase(item.getStatus())
+                                || "DOKUMEN_DIREVISI".equalsIgnoreCase(item.getHasilReviewTerakhir())
+                                || "PERLU_REVISI".equalsIgnoreCase(item.getStatus())
+                                || "PERLU_REVISI".equalsIgnoreCase(item.getHasilReviewTerakhir());
                     }
-                    if ("PENGAJUAN_DITOLAK".equalsIgnoreCase(statusFilter)
-                            || "DITOLAK".equalsIgnoreCase(statusFilter)) {
-                        return "PENGAJUAN_DITOLAK".equalsIgnoreCase(item.getStatus());
+                    if ("SELESAI_DIREVIEW".equals(sf) || "DISETUJUI".equals(sf) || "DISETUJUI_MARKETING".equals(sf) || "APPROVED".equals(sf)) {
+                        return "SELESAI_DIREVIEW".equalsIgnoreCase(item.getStatus())
+                                || "DISETUJUI".equalsIgnoreCase(item.getStatus());
                     }
-                    if ("PERLU_REVISI".equalsIgnoreCase(statusFilter)) {
-                        return "PERLU_REVISI".equalsIgnoreCase(item.getStatus());
+                    if ("PENGAJUAN_DITOLAK".equals(sf) || "DITOLAK".equals(sf) || "SEMUA_DITOLAK".equals(sf) || "REJECTED".equals(sf)) {
+                        return "PENGAJUAN_DITOLAK".equalsIgnoreCase(item.getStatus())
+                                || "DITOLAK".equalsIgnoreCase(item.getStatus())
+                                || "DITOLAK_MARKETING".equalsIgnoreCase(item.getStatus())
+                                || "DITOLAK_BM".equalsIgnoreCase(item.getStatus());
                     }
-                    return statusFilter.equalsIgnoreCase(item.getStatus());
+                    if ("DITOLAK_MARKETING_ONLY".equals(sf) || "DITOLAK_MARKETING".equals(sf)) {
+                        return "DITOLAK_MARKETING".equalsIgnoreCase(item.getStatus());
+                    }
+                    if ("DITOLAK_BM".equals(sf)) {
+                        return "DITOLAK_BM".equalsIgnoreCase(item.getStatus());
+                    }
+                    return sf.equalsIgnoreCase(item.getStatus());
                 })
                 .toList();
     }

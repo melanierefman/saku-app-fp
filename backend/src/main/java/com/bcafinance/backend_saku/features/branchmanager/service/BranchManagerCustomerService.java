@@ -178,7 +178,7 @@ public class BranchManagerCustomerService {
         CustomerPlafondService.CustomerPlafondSummary plafondSummary = customerPlafondService.calculatePlafondSummary(customerId);
 
         Optional<VerifikasiCustomer> verifOpt = verifikasiRepository.findFirstByMstCustomerIdOrderByCreatedDateDesc(customerId);
-        LocalDateTime tanggalVerifikasi = verifOpt.map(VerifikasiCustomer::getCreatedDate).orElse(customer.getUpdatedDate());
+        LocalDateTime tanggalVerifikasi = verifOpt.map(v -> v.getUpdatedDate() != null ? v.getUpdatedDate() : v.getCreatedDate()).orElse(customer.getUpdatedDate());
 
         List<PengajuanPinjaman> pengajuanList = pengajuanRepository.findAllByMstCustomerIdOrderByCreatedDateDesc(customerId);
         List<CustomerPinjamanHistoryItemResponse> riwayatPinjaman = pengajuanList.stream()
@@ -254,7 +254,7 @@ public class BranchManagerCustomerService {
                 .orElse(fallbackBranchName != null ? fallbackBranchName : "Kantor Pusat / All");
 
         Optional<VerifikasiCustomer> verifOpt = verifikasiRepository.findFirstByMstCustomerIdOrderByCreatedDateDesc(customer.getId());
-        LocalDateTime tglVerifikasi = verifOpt.map(VerifikasiCustomer::getCreatedDate).orElse(customer.getUpdatedDate());
+        LocalDateTime tglVerifikasi = verifOpt.map(v -> v.getUpdatedDate() != null ? v.getUpdatedDate() : v.getCreatedDate()).orElse(customer.getUpdatedDate());
 
         return BranchManagerCustomerItemResponse.builder()
                 .customerId(customer.getId())

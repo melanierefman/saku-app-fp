@@ -394,6 +394,13 @@ public class BranchManagerPersetujuanService {
                 .catatanMarketing(latestMarketing != null ? latestMarketing.getCatatan() : "-")
                 .tanggalReviewMarketing(latestMarketing != null ? latestMarketing.getTanggalReview() : null)
 
+                // 6b. Persetujuan Branch Manager Terakhir
+                .branchManagerId(!persetujuanHistory.isEmpty() ? persetujuanHistory.get(0).getApproverId() : null)
+                .namaBranchManager(!persetujuanHistory.isEmpty() ? persetujuanHistory.get(0).getNamaApprover() : "-")
+                .hasilPersetujuanBM(!persetujuanHistory.isEmpty() ? persetujuanHistory.get(0).getHasilPersetujuan() : null)
+                .catatanPersetujuanBM(!persetujuanHistory.isEmpty() ? persetujuanHistory.get(0).getCatatan() : null)
+                .tanggalPersetujuanBM(!persetujuanHistory.isEmpty() ? persetujuanHistory.get(0).getTanggalPersetujuan() : null)
+
                 // 7. Riwayat
                 .reviewMarketingHistory(reviewMarketingHistory)
                 .persetujuanHistory(persetujuanHistory)

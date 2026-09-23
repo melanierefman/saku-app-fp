@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import jakarta.annotation.PostConstruct;
+import java.util.TimeZone;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
@@ -13,8 +15,13 @@ import org.springframework.cache.annotation.EnableCaching;
 @SpringBootApplication
 public class BackendSakuApplication {
 
+    @PostConstruct
+    public void init() {
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Jakarta"));
+    }
 
     public static void main(String[] args) {
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Jakarta"));
         loadDotenv();
         SpringApplication.run(BackendSakuApplication.class, args);
     }

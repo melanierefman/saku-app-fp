@@ -100,6 +100,13 @@ public class BranchManagerPengajuanDetailResponse {
     private String catatanMarketing;
     private LocalDateTime tanggalReviewMarketing;
 
+    // 6b. Persetujuan Branch Manager
+    private UUID branchManagerId;
+    private String namaBranchManager;
+    private String hasilPersetujuanBM;
+    private String catatanPersetujuanBM;
+    private LocalDateTime tanggalPersetujuanBM;
+
     // 7. Riwayat
     private List<ReviewPengajuanResponse> reviewMarketingHistory;
     private List<PersetujuanPinjamanResponse> persetujuanHistory;
