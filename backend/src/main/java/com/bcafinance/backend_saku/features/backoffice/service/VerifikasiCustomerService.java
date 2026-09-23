@@ -262,7 +262,23 @@ public class VerifikasiCustomerService {
         customerRepository.save(customer);
 
         UUID effectiveKaryawanId = karyawanId;
-        if (effectiveKaryawanId == null) {
+        if (effectiveKaryawanId != null && karyawanRepository != null) {
+            boolean exists = false;
+            try {
+                exists = karyawanRepository.existsById(effectiveKaryawanId);
+            } catch (Exception ignored) {
+            }
+            if (!exists) {
+                effectiveKaryawanId = karyawanRepository.findAll().stream()
+                        .filter(k -> Boolean.TRUE.equals(k.getStatus()))
+                        .map(Karyawan::getId)
+                        .findFirst()
+                        .orElseGet(() -> karyawanRepository.findAll().stream()
+                                .map(Karyawan::getId)
+                                .findFirst()
+                                .orElse(karyawanId));
+            }
+        } else if (effectiveKaryawanId == null && karyawanRepository != null) {
             effectiveKaryawanId = karyawanRepository.findAll().stream()
                     .filter(k -> Boolean.TRUE.equals(k.getStatus()))
                     .map(Karyawan::getId)
@@ -274,7 +290,7 @@ public class VerifikasiCustomerService {
         }
 
         if (effectiveKaryawanId == null) {
-            effectiveKaryawanId = UUID.randomUUID();
+            effectiveKaryawanId = karyawanId != null ? karyawanId : UUID.randomUUID();
         }
 
         String finalCatatan = request.getCatatanVerifikasi();
@@ -286,13 +302,17 @@ public class VerifikasiCustomerService {
                             : "Dokumen identitas (KTP & Foto Selfie) tidak memenuhi syarat verifikasi.";
         }
 
-        VerifikasiCustomer verification = new VerifikasiCustomer();
-        verification.setId(UUID.randomUUID());
+        VerifikasiCustomer verification = verifikasiRepository.findFirstByMstCustomerIdOrderByCreatedDateDesc(customerId)
+                .orElseGet(() -> {
+                    VerifikasiCustomer v = new VerifikasiCustomer();
+                    v.setId(UUID.randomUUID());
+                    v.setCreatedDate(LocalDateTime.now());
+                    v.setMstCustomerId(customerId);
+                    return v;
+                });
         verification.setStatusVerifikasi(status);
         verification.setCatatanVerifikasi(finalCatatan.trim());
-        verification.setCreatedDate(LocalDateTime.now());
         verification.setUpdatedDate(LocalDateTime.now());
-        verification.setMstCustomerId(customerId);
         verification.setMstKaryawanId(effectiveKaryawanId);
         verifikasiRepository.save(verification);
 
