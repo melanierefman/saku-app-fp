@@ -69,6 +69,11 @@ pnpm-debug.log*
 **/.cxx/
 **/android/**/build/
 **/app/build/
+*.apk
+*.aab
+**/android/app/release/
+**/baselineProfiles/
+**/output-metadata.json
 
 # ==========================================
 # Environment & Secrets
