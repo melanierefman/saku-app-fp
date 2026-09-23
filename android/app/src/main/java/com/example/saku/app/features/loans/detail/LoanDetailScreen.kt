@@ -6,6 +6,7 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import com.example.saku.app.core.ui.components.card.WarningCalloutCard
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -175,48 +176,12 @@ fun LoanDetailScreen(
                     if (isRevisionStatus) {
                         loan.catatanReview?.takeIf { it.isNotBlank() }?.let { note ->
                             item {
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(containerColor = Warning0),
-                                border = BorderStroke(1.dp, Warning20)
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(14.dp)
-                                ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        verticalAlignment = Alignment.Top
-                                    ) {
-                                        Icon(
-                                            imageVector = Lucide.Info,
-                                            contentDescription = null,
-                                            tint = Warning,
-                                            modifier = Modifier.size(20.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(10.dp))
-                                        Column {
-                                            Text(
-                                                text = "Catatan Review Verifikator",
-                                                fontSize = 12.5.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = Warning80
-                                            )
-                                            Spacer(modifier = Modifier.height(2.dp))
-                                            Text(
-                                                text = note,
-                                                fontSize = 12.sp,
-                                                color = Warning70,
-                                                lineHeight = 16.sp
-                                            )
-                                        }
-                                    }
-                                }
+                                WarningCalloutCard(
+                                    title = "Catatan Review Verifikator",
+                                    message = note
+                                )
                             }
                         }
-                    }
                     }
 
                     // 3. Loan Financial Specifications Card
@@ -681,7 +646,7 @@ private fun TimelineStepItem(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
                         .background(Warning0)
-                        .border(1.dp, Warning20, RoundedCornerShape(8.dp))
+                        .border(1.dp, Warning.copy(alpha = 0.35f), RoundedCornerShape(8.dp))
                         .clickable { onRevisionClick() }
                         .padding(horizontal = 10.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically

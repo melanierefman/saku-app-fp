@@ -1075,8 +1075,10 @@ private fun TagihanPinjamanAktifCard(
                         fontSize = 14.5.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary,
+                        modifier = Modifier.weight(1f, fill = false)
                     )
                     if (activeLoan != null) {
+                        Spacer(modifier = Modifier.width(8.dp))
                         val (bVariant, bText) = when (rawStatus) {
                             "DICAIRKAN", "DISBURSED" -> BadgeVariant.Primary to "Dicairkan"
                             "APPROVED", "DISETUJUI", "PENGAJUAN_DISETUJUI" -> BadgeVariant.Success to "Disetujui"

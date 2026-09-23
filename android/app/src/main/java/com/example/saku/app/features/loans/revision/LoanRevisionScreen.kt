@@ -190,7 +190,7 @@ fun LoanRevisionScreen(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(18.dp),
                             colors = CardDefaults.cardColors(containerColor = Warning0),
-                            border = BorderStroke(1.dp, Warning20)
+                            border = BorderStroke(1.dp, Warning.copy(alpha = 0.35f))
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
                                 Row(

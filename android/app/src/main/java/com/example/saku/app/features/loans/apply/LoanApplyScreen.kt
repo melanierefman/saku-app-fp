@@ -47,6 +47,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
+import com.example.saku.app.core.ui.components.card.WarningCalloutCard
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -1267,34 +1268,9 @@ private fun Step2UploadDokumenView(
     ) {
         // Info Banner
         item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Warning0),
-                border = BorderStroke(1.dp, Warning20)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(14.dp),
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Icon(
-                        imageVector = Lucide.Info,
-                        contentDescription = null,
-                        tint = Warning,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Text(
-                        text = "Unggah dokumen pendukung untuk proses verifikasi kilat. Pastikan foto jelas, terbaca, dan tidak terpotong.",
-                        fontSize = 12.5.sp,
-                        color = Warning80,
-                        lineHeight = 17.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
+            WarningCalloutCard(
+                message = "Unggah dokumen pendukung untuk proses verifikasi kilat. Pastikan foto jelas, terbaca, dan tidak terpotong."
+            )
         }
 
         // 1. Slip Gaji / Bukti Penghasilan (Wajib)
