@@ -22,9 +22,7 @@ public class EmailService {
 
     public void sendOtpEmail(String toEmail, String otpCode, String purpose, int expiryMinutes) {
         String purposeTitle = formatPurpose(purpose);
-        // Do not put raw OTP digit numbers in the subject line to prevent aggressive
-        // spam filtering heuristics
-        String subject = "Kode Verifikasi Keamanan SAKU - " + purposeTitle;
+        String subject = "Kode OTP SAKU: " + otpCode + " - " + purposeTitle;
         String expiryText = expiryMinutes + " menit";
 
         log.info("=================================================");
