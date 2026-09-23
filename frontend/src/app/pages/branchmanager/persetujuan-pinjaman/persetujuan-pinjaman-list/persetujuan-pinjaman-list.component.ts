@@ -24,12 +24,14 @@ import {
   DatePickerComponent,
   ToastService,
 } from '../../../../shared/components';
+import { sortTableData } from '../../../../shared/utils';
 import {
   BranchManagerApprovalService,
   BranchManagerPengajuanItemResponse,
   RealTimeService,
   BranchManagerDashboardService,
   BranchManagerDashboardStats,
+  AuthStore,
 } from '../../../../core';
 import {
   LucideSearch,
@@ -70,12 +72,16 @@ export class PersetujuanPinjamanListComponent implements OnInit, OnDestroy {
   private bmService = inject(BranchManagerApprovalService);
   private dashboardService = inject(BranchManagerDashboardService);
   private realtimeService = inject(RealTimeService);
+  private authStore = inject(AuthStore);
   private toastService = inject(ToastService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
   private destroy$ = new Subject<void>();
+
+  // Cabang Info
+  readonly userCabang = this.authStore.userCabang;
 
   // Stats Signal
   stats = signal<BranchManagerDashboardStats | null>(null);
@@ -94,7 +100,6 @@ export class PersetujuanPinjamanListComponent implements OnInit, OnDestroy {
     { key: 'customer', header: 'Nama Customer', sortable: true, minWidth: '180px' },
     { key: 'jumlah', header: 'Jumlah Pinjaman', sortable: true, minWidth: '160px' },
     { key: 'tenor', header: 'Tenor', sortable: true, width: '100px' },
-    { key: 'cabang', header: 'Cabang', sortable: true, minWidth: '160px' },
     { key: 'skorKelayakan', header: 'Skor Kelayakan', sortable: true, width: '160px' },
     { key: 'tanggalReviewMarketing', header: 'Tanggal Review Marketing', sortable: true, width: '180px' },
     { key: 'tanggalPersetujuan', header: 'Tanggal Persetujuan', sortable: true, width: '180px' },
@@ -334,23 +339,22 @@ export class PersetujuanPinjamanListComponent implements OnInit, OnDestroy {
     const field = this.sortKey();
     const dir = this.sortDirection();
     if (field && this.items().length > 0) {
-      const sorted = [...this.items()].sort((a: any, b: any) => {
-        let valA = a[field] ?? '';
-        let valB = b[field] ?? '';
-
-        if (field === 'skorKelayakan' || field === 'skorKredit' || field === 'skor') {
-          valA = this.getScore(a);
-          valB = this.getScore(b);
+      const sorted = sortTableData<BranchManagerPengajuanItemResponse>(
+        this.items(),
+        field,
+        dir,
+        {
+          noPengajuan: (item) => item.noPengajuan || (item as any).nomorPengajuan,
+          customer: (item) => item.customer || (item as any).namaLengkap || (item as any).namaCustomer,
+          jumlah: (item) => item.jumlah ?? (item as any).jumlahPinjaman ?? (item as any).nominalPinjaman ?? (item as any).nominal,
+          tenor: (item) => item.tenor ?? (item as any).tenorBulan,
+          cabang: (item) => this.getCabangName(item),
+          skorKelayakan: (item) => this.getScore(item),
+          tanggalReviewMarketing: (item) => item.tanggalReviewMarketing || (item as any).tanggalReviewTerakhir || (item as any).tanggalReview,
+          tanggalPersetujuan: (item) => item.tanggalPersetujuanTerakhir || (item as any).tanggalPersetujuan || (item as any).tanggalPersetujuanBM,
+          status: (item) => this.getStatusLabel(item.status, item.hasilPersetujuanTerakhir || (item as any).hasilPersetujuanBM),
         }
-
-        let cmp = 0;
-        if (typeof valA === 'number' && typeof valB === 'number') {
-          cmp = valA - valB;
-        } else {
-          cmp = String(valA).localeCompare(String(valB));
-        }
-        return dir === 'asc' ? cmp : -cmp;
-      });
+      );
       this.items.set(sorted);
     }
   }

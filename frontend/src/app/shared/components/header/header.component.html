@@ -12,14 +12,16 @@
     <div class="relative">
       <button type="button" (click)="toggleUserDropdown()"
         class="flex items-center gap-3 pl-2 py-1 pr-1.5 rounded-xl hover:bg-neutral-0/80 transition-colors cursor-pointer text-left focus:outline-none">
-        <!-- User Name & Role Text Column -->
+        <!-- User Name & Cabang Text Column -->
         <div class="hidden sm:flex flex-col text-right">
           <span class="text-sm font-semibold text-neutral-90 leading-tight">
             {{ userName }}
           </span>
-          <span class="text-[11px] font-bold text-neutral-40 uppercase tracking-wider mt-0.5 leading-tight">
-            {{ userRoleDisplay }}
+          @if (userCabangDisplay) {
+          <span class="text-xs font-medium text-primary leading-tight mt-0.5">
+            {{ userCabangDisplay }}
           </span>
+          }
         </div>
 
         <!-- User Avatar Circle -->
@@ -29,7 +31,8 @@
         </div>
 
         <!-- Dropdown Chevron -->
-        <svg lucideChevronDown [size]="16" class="w-4 h-4 text-neutral-40 transition-transform duration-200 hidden sm:block"
+        <svg lucideChevronDown [size]="16"
+          class="w-4 h-4 text-neutral-40 transition-transform duration-200 hidden sm:block"
           [class.rotate-180]="showUserDropdown"></svg>
       </button>
 
@@ -44,7 +47,9 @@
         <!-- User Info in dropdown for mobile -->
         <div class="px-4 py-2.5 border-b border-neutral-10 sm:hidden">
           <p class="text-sm font-semibold text-neutral-90 truncate">{{ userName }}</p>
-          <p class="text-xs text-neutral-40 uppercase font-medium">{{ userRoleDisplay }}</p>
+          @if (userCabangDisplay) {
+          <p class="text-xs text-neutral-50 font-medium">{{ userCabangDisplay }}</p>
+          }
         </div>
 
         <!-- Menu Links -->
@@ -69,16 +74,8 @@
 </header>
 
 <!-- Logout Confirmation Dialog Modal -->
-<app-modal
-  [isOpen]="showLogoutModal"
-  variant="confirm"
-  icon="alert"
-  message="Apakah Anda yakin ingin keluar dari akun Anda?"
-  confirmText="Ya, Keluar"
-  cancelText="Batal"
-  confirmVariant="primary"
-  (confirm)="onConfirmLogout()"
-  (close)="showLogoutModal = false"
-  (cancel)="showLogoutModal = false"
->
+<app-modal [isOpen]="showLogoutModal" variant="confirm" icon="alert"
+  message="Apakah Anda yakin ingin keluar dari akun Anda?" confirmText="Ya, Keluar" cancelText="Batal"
+  confirmVariant="primary" (confirm)="onConfirmLogout()" (close)="showLogoutModal = false"
+  (cancel)="showLogoutModal = false">
 </app-modal>

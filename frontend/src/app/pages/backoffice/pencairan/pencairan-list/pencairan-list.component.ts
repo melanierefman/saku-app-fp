@@ -25,6 +25,7 @@ import {
   ModalComponent,
   ToastService,
 } from '../../../../shared/components';
+import { sortTableData } from '../../../../shared/utils';
 import {
   PencairanService,
   PencairanItem,
@@ -190,24 +191,7 @@ export class PencairanListComponent implements OnInit, OnDestroy {
           this.items.set(contentList);
         }
 
-        // Client sort if needed
-        const field = this.sortKey();
-        const dir = this.sortDirection();
-        if (field && this.items().length > 0) {
-          const sorted = [...this.items()].sort((a: any, b: any) => {
-            const valA = a[field] ?? '';
-            const valB = b[field] ?? '';
-            let cmp = 0;
-            if (typeof valA === 'number' && typeof valB === 'number') {
-              cmp = valA - valB;
-            } else {
-              cmp = String(valA).localeCompare(String(valB));
-            }
-            return dir === 'asc' ? cmp : -cmp;
-          });
-          this.items.set(sorted);
-        }
-
+        this.applySorting();
         this.isLoading.set(false);
         this.cdr.detectChanges();
       },
@@ -294,10 +278,34 @@ export class PencairanListComponent implements OnInit, OnDestroy {
     this.loadData();
   }
 
+  private applySorting(): void {
+    const field = this.sortKey();
+    const dir = this.sortDirection();
+    if (field && this.items().length > 0) {
+      const sorted = sortTableData<PencairanItem>(
+        this.items(),
+        field,
+        dir,
+        {
+          noPengajuan: (item) => item.noPengajuan || (item as any).nomorPengajuan,
+          namaCustomer: (item) => item.namaCustomer || (item as any).customer || (item as any).namaLengkap,
+          jumlahPinjaman: (item) => item.jumlahPinjaman ?? (item as any).jumlah ?? (item as any).nominalPinjaman,
+          biayaAdmin: (item) => item.biayaAdmin,
+          jumlahPencairan: (item) => item.jumlahPencairan ?? item.jumlahPencairanBersih ?? (item as any).totalPencairan,
+          tenorBulan: (item) => item.tenorBulan ?? (item as any).tenor,
+          tanggalDisetujuiBM: (item) => item.tanggalDisetujuiBM || (item as any).tanggalPersetujuan || (item as any).tanggalPersetujuanTerakhir,
+          tanggalPencairan: (item) => item.tanggalPencairan,
+          statusPencairan: (item) => item.statusPencairan,
+        }
+      );
+      this.items.set(sorted);
+    }
+  }
+
   onSortChange(event: { key: string; direction: 'asc' | 'desc' }): void {
     this.sortKey.set(event.key);
     this.sortDirection.set(event.direction);
-    this.loadData();
+    this.applySorting();
   }
 
   onPageChange(page: number): void {

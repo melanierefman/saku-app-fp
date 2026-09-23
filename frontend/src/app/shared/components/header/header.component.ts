@@ -45,6 +45,11 @@ export class HeaderComponent {
     return role;
   }
 
+  get userCabangDisplay(): string {
+    const user = this.currentUser() as any;
+    return user?.cabang || user?.namaCabang || user?.cabangNama || user?.branchName || '';
+  }
+
   get userInitials(): string {
     const name = this.userName;
     const parts = name.trim().split(' ');

@@ -139,7 +139,8 @@
     </div>
 
     <!-- Data Table -->
-    <app-table [columns]="columns" [data]="customers()" [loading]="isLoading()" class="border-0">
+    <app-table [columns]="columns" [data]="customers()" [loading]="isLoading()" [sortKey]="sortKey()"
+      [sortDirection]="sortDirection()" (sortChange)="onSortChange($event)" class="border-0">
       <!-- Nasabah Column (Clean, Fixed, No Email) -->
       <ng-template appTableCell="customer" let-row>
         <div class="flex items-center gap-3 py-1">

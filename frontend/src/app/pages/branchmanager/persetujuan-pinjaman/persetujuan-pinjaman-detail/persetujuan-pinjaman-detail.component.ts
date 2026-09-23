@@ -322,12 +322,13 @@ export class PersetujuanPinjamanDetailComponent implements OnInit, OnDestroy {
       error: (err) => {
         console.error('Failed to submit BM persetujuan:', err);
         this.isSubmitting.set(false);
+        this.isConfirmModalOpen.set(false);
         const errMsg =
           err?.error?.message ||
           err?.message ||
           'Terjadi kesalahan saat memproses keputusan';
         this.toastService.error(errMsg);
-        this.cdr.detectChanges();
+        this.loadDetail(id);
       },
     });
   }

@@ -340,10 +340,12 @@ export class PengajuanPinjamanDetailComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.isSubmitting.set(false);
+        this.isConfirmModalOpen.set(false);
         console.error('Error submitting review:', err);
         const errMsg =
           err?.error?.message || err?.message || 'Gagal menyimpan keputusan review';
         this.toastService.error(errMsg);
+        this.loadDetail();
       },
     });
   }

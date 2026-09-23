@@ -24,6 +24,7 @@ import {
   DatePickerComponent,
   ToastService,
 } from '../../../../shared/components';
+import { sortTableData } from '../../../../shared/utils';
 import {
   VerifikasiCustomerService,
   VerifikasiCustomerItem,
@@ -181,28 +182,7 @@ export class VerifikasiCustomerListComponent implements OnInit, OnDestroy {
           this.items.set(contentList);
         }
 
-        // Client sort if needed
-        const field = this.sortKey();
-        const dir = this.sortDirection();
-        if (field && this.items().length > 0) {
-          const sorted = [...this.items()].sort((a: any, b: any) => {
-            let valA = a[field] ?? '';
-            let valB = b[field] ?? '';
-            if (field === 'tanggalRegister') {
-              valA = this.extractRawRegisterDate(a) || '';
-              valB = this.extractRawRegisterDate(b) || '';
-            }
-            let cmp = 0;
-            if (typeof valA === 'number' && typeof valB === 'number') {
-              cmp = valA - valB;
-            } else {
-              cmp = String(valA).localeCompare(String(valB));
-            }
-            return dir === 'asc' ? cmp : -cmp;
-          });
-          this.items.set(sorted);
-        }
-
+        this.applySorting();
         this.isLoading.set(false);
         this.cdr.detectChanges();
       },
@@ -288,10 +268,32 @@ export class VerifikasiCustomerListComponent implements OnInit, OnDestroy {
     this.loadData();
   }
 
+  private applySorting(): void {
+    const field = this.sortKey();
+    const dir = this.sortDirection();
+    if (field && this.items().length > 0) {
+      const sorted = sortTableData<VerifikasiCustomerItem>(
+        this.items(),
+        field,
+        dir,
+        {
+          namaCustomer: (item) => item.namaCustomer || item.namaLengkap || '',
+          nik: (item) => item.nik || '',
+          email: (item) => item.email || '',
+          noHp: (item) => item.noHp || '',
+          tanggalRegister: (item) => this.extractRawRegisterDate(item),
+          tanggalVerifikasi: (item) => item.tanggalVerifikasi || (item as any).tanggalReview || '',
+          statusVerifikasi: (item) => item.statusVerifikasi || (item as any).status || '',
+        }
+      );
+      this.items.set(sorted);
+    }
+  }
+
   onSortChange(event: { key: string; direction: 'asc' | 'desc' }): void {
     this.sortKey.set(event.key);
     this.sortDirection.set(event.direction);
-    this.loadData();
+    this.applySorting();
   }
 
   onPageChange(page: number): void {

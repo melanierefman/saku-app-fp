@@ -21,6 +21,7 @@ import {
   ToastService,
   CardComponent,
 } from '../../../shared/components';
+import { sortTableData } from '../../../shared/utils';
 import {
   MarketingCustomerService,
   MarketingCustomerItemResponse,
@@ -120,6 +121,10 @@ export class MarketingCustomerListComponent implements OnInit {
   totalActivePlafond = signal<number>(0);
   avgPlafond = signal<number>(0);
 
+  // Sorting State
+  sortKey = signal<string>('');
+  sortDirection = signal<'asc' | 'desc' | ''>('');
+
   ngOnInit(): void {
     this.loadCustomers();
   }
@@ -156,6 +161,7 @@ export class MarketingCustomerListComponent implements OnInit {
         const avg = content.length > 0 ? Math.round(totalPlafondSum / content.length) : 0;
         this.avgPlafond.set(avg);
 
+        this.applySorting();
         this.isLoading.set(false);
         this.cdr.markForCheck();
       },
@@ -190,6 +196,33 @@ export class MarketingCustomerListComponent implements OnInit {
 
   hasActiveFilters(): boolean {
     return !!this.searchQuery() || !!this.selectedTier();
+  }
+
+  private applySorting(): void {
+    const field = this.sortKey();
+    const dir = this.sortDirection();
+    if (field && this.customers().length > 0) {
+      const sorted = sortTableData<MarketingCustomerItemResponse>(
+        this.customers(),
+        field,
+        dir,
+        {
+          customer: (item) => item.namaCustomer || (item as any).customer || (item as any).nama,
+          domisili: (item) => `${item.kota || ''} ${item.provinsi || ''}`.trim(),
+          tierPlafond: (item) => item.tierPlafond || (item as any).tier,
+          plafond: (item) => item.totalPlafond ?? (item as any).plafond,
+          availablePlafond: (item) => item.availablePlafond ?? (item as any).sisaPlafond,
+          totalPengajuan: (item) => item.totalPengajuan ?? 0,
+        }
+      );
+      this.customers.set(sorted);
+    }
+  }
+
+  onSortChange(event: { key: string; direction: 'asc' | 'desc' }): void {
+    this.sortKey.set(event.key);
+    this.sortDirection.set(event.direction);
+    this.applySorting();
   }
 
   onPageChange(page: number): void {

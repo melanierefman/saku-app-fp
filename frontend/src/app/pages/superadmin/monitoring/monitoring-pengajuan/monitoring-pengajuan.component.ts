@@ -41,7 +41,7 @@ import {
   LucideEye,
   LucideFileText,
 } from '@lucide/angular';
-import { formatDate as formatDateHelper } from '../../../../shared/utils/date.util';
+import { formatDate as formatDateHelper, sortTableData } from '../../../../shared/utils';
 
 @Component({
   selector: 'app-monitoring-pengajuan',
@@ -190,31 +190,19 @@ export class MonitoringPengajuanComponent implements OnInit {
     const dir = this.sortDirection();
 
     if (key && dir) {
-      result = [...result].sort((a: any, b: any) => {
-        let valA = a[key];
-        let valB = b[key];
-
-        if (key === 'jumlahTenor') {
-          valA = a.jumlah || a.nominalPinjaman || a.nominal || 0;
-          valB = b.jumlah || b.nominalPinjaman || b.nominal || 0;
-        } else if (key === 'cabang') {
-          valA = this.getCabangName(a);
-          valB = this.getCabangName(b);
-        } else if (key === 'customer') {
-          valA = a.customer || a.namaCustomer || a.nama || '';
-          valB = b.customer || b.namaCustomer || b.nama || '';
-        } else if (key === 'noPengajuan') {
-          valA = a.noPengajuan || a.nomorPengajuan || '';
-          valB = b.noPengajuan || b.nomorPengajuan || '';
+      result = sortTableData<MarketingPengajuanItemResponse>(
+        result,
+        key,
+        dir,
+        {
+          noPengajuan: (item) => item.noPengajuan || (item as any).nomorPengajuan || '',
+          customer: (item) => item.customer || (item as any).namaCustomer || (item as any).nama || '',
+          cabang: (item) => this.getCabangName(item),
+          jumlahTenor: (item) => item.jumlah || (item as any).nominalPinjaman || (item as any).nominal || 0,
+          tanggalPengajuan: (item) => item.tanggalPengajuan || (item as any).createdDate,
+          status: (item) => item.status,
         }
-
-        if (typeof valA === 'string') valA = valA.toLowerCase();
-        if (typeof valB === 'string') valB = valB.toLowerCase();
-
-        if (valA < valB) return dir === 'asc' ? -1 : 1;
-        if (valA > valB) return dir === 'asc' ? 1 : -1;
-        return 0;
-      });
+      );
     }
 
     return result;
