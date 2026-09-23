@@ -82,7 +82,7 @@
 
       <!-- Inner 3 Cards (1 Baris Kesamping) -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <!-- 1. Disetujui Marketing -->
+        <!-- 1. Pengajuan Disetujui -->
         <div (click)="navigateToList('DISETUJUI')"
           class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-success-20 hover:bg-success-0/20 transition-all flex items-center justify-between gap-2.5 group cursor-pointer">
           <div class="flex items-center gap-2.5 min-w-0">
@@ -91,7 +91,7 @@
               <svg lucideCheckCircle2 [size]="18" class="w-4.5 h-4.5"></svg>
             </div>
             <div class="min-w-0 truncate">
-              <p class="text-xs font-semibold text-neutral-90 truncate">Disetujui Marketing</p>
+              <p class="text-xs font-semibold text-neutral-90 truncate">Pengajuan Disetujui</p>
               <p class="text-[11px] text-neutral-40 truncate">Lolos ke tahap BM</p>
             </div>
           </div>
@@ -103,7 +103,7 @@
           </div>
         </div>
 
-        <!-- 2. Ditolak Marketing -->
+        <!-- 2. Pengajuan Ditolak -->
         <div (click)="navigateToList('DITOLAK')"
           class="p-3.5 rounded-xl border border-[#E5E7EB] hover:border-error-20 hover:bg-error-0/20 transition-all flex items-center justify-between gap-2.5 group cursor-pointer">
           <div class="flex items-center gap-2.5 min-w-0">
@@ -112,7 +112,7 @@
               <svg lucideXCircle [size]="18" class="w-4.5 h-4.5"></svg>
             </div>
             <div class="min-w-0 truncate">
-              <p class="text-xs font-semibold text-neutral-90 truncate">Ditolak Marketing</p>
+              <p class="text-xs font-semibold text-neutral-90 truncate">Pengajuan Ditolak</p>
               <p class="text-[11px] text-neutral-40 truncate">Gagal scoring awal</p>
             </div>
           </div>

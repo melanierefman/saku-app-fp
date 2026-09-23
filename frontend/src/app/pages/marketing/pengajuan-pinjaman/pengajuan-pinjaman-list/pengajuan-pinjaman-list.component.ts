@@ -111,8 +111,9 @@ export class PengajuanPinjamanListComponent implements OnInit, OnDestroy {
     { value: 'MENUNGGU_REVIEW', label: 'Menunggu Review' },
     { value: 'DOKUMEN_DIREVISI', label: 'Dokumen Direvisi' },
     { value: 'SELESAI_DIREVIEW', label: 'Selesai Direview' },
-    { value: 'DISETUJUI', label: 'Disetujui' },
-    { value: 'DITOLAK', label: 'Ditolak' },
+    { value: 'DITOLAK', label: 'Semua Ditolak' },
+    { value: 'DITOLAK_MARKETING', label: 'Ditolak Marketing' },
+    { value: 'DITOLAK_BM', label: 'Ditolak BM' },
   ];
 
   readonly skorOptions: DropdownOption[] = [
@@ -179,12 +180,14 @@ export class PengajuanPinjamanListComponent implements OnInit, OnDestroy {
   }
 
   toggleStatusFilter(status: string): void {
-    if (this.selectedStatus() === status) {
-      this.selectedStatus.set('');
-    } else {
-      this.selectedStatus.set(status);
-    }
+    const newStatus = this.selectedStatus() === status ? '' : status;
+    this.selectedStatus.set(newStatus);
     this.currentPage.set(1);
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { status: newStatus || null },
+      queryParamsHandling: 'merge',
+    });
     this.loadData();
   }
 
@@ -487,7 +490,7 @@ export class PengajuanPinjamanListComponent implements OnInit, OnDestroy {
   getStatusBadgeVariant(status?: string, hasilReview?: string): BadgeVariant {
     const label = this.getStatusLabel(status, hasilReview);
     if (label === 'Disetujui Marketing') return 'success';
-    if (label === 'Ditolak Marketing') return 'error';
+    if (label === 'Ditolak Marketing' || label === 'Ditolak BM') return 'error';
     if (label === 'Perlu Revisi' || label === 'Menunggu Review') return 'warning';
     return 'neutral';
   }
@@ -496,20 +499,23 @@ export class PengajuanPinjamanListComponent implements OnInit, OnDestroy {
     const s = (status || '').toUpperCase();
     const h = (hasilReview || '').toUpperCase();
 
+    if (s === 'DITOLAK_BM') {
+      return 'Ditolak BM';
+    }
+    if (s === 'DITOLAK_MARKETING' || h === 'DITOLAK' || (s === 'DITOLAK' && h !== 'DISETUJUI')) {
+      return 'Ditolak Marketing';
+    }
     if (
       h === 'DISETUJUI' ||
       s === 'DISETUJUI' ||
       s === 'SELESAI_DIREVIEW' ||
       s === 'DICAIRKAN' ||
       s === 'DISBURSED' ||
-      s.includes('BM') ||
+      (s.includes('BM') && !s.includes('DITOLAK')) ||
       s.includes('CAIR') ||
       s.includes('BACKOFFICE')
     ) {
       return 'Disetujui Marketing';
-    }
-    if (h === 'DITOLAK' || s === 'DITOLAK') {
-      return 'Ditolak Marketing';
     }
     if (
       h === 'DOKUMEN_DIREVISI' ||

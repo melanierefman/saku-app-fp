@@ -602,7 +602,7 @@
               Persetujuan BM: {{ detail()?.hasilPersetujuanBM || 'DISETUJUI' }}
             </span>
             <span class="text-[11px] text-neutral-40 block mt-0.5">
-              {{ formatDate(detail()?.tanggalPersetujuanBM) }}
+              {{ formatDate(getTanggalPersetujuanBM()) }} &bull; {{ getNamaApprover() }}
             </span>
           </div>
           } @else {

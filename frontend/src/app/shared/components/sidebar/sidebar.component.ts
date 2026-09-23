@@ -69,8 +69,8 @@ export const MARKETING_MENU_GROUPS: NavGroup[] = [
         children: [
           { id: 'pengajuan-menunggu', label: 'Menunggu Review', url: '/pengajuan-pinjaman', queryParams: { status: 'MENUNGGU_REVIEW' } },
           { id: 'pengajuan-revisi', label: 'Dokumen Direvisi', url: '/pengajuan-pinjaman', queryParams: { status: 'DOKUMEN_DIREVISI' } },
-          { id: 'pengajuan-disetujui', label: 'Disetujui Marketing', url: '/pengajuan-pinjaman', queryParams: { status: 'DISETUJUI' } },
-          { id: 'pengajuan-ditolak', label: 'Ditolak Marketing', url: '/pengajuan-pinjaman', queryParams: { status: 'DITOLAK' } },
+          { id: 'pengajuan-disetujui', label: 'Pengajuan Disetujui', url: '/pengajuan-pinjaman', queryParams: { status: 'DISETUJUI' } },
+          { id: 'pengajuan-ditolak', label: 'Pengajuan Ditolak', url: '/pengajuan-pinjaman', queryParams: { status: 'DITOLAK' } },
         ],
       },
       { id: 'profile', label: 'Profil', icon: 'user-round', url: '/profile' },
@@ -90,8 +90,8 @@ export const BM_MENU_GROUPS: NavGroup[] = [
         url: '/persetujuan-pinjaman',
         children: [
           { id: 'persetujuan-menunggu', label: 'Menunggu Persetujuan', url: '/persetujuan-pinjaman', queryParams: { status: 'MENUNGGU_PERSETUJUAN' } },
-          { id: 'persetujuan-disetujui', label: 'Disetujui BM', url: '/persetujuan-pinjaman', queryParams: { status: 'DISETUJUI' } },
-          { id: 'persetujuan-ditolak', label: 'Ditolak BM', url: '/persetujuan-pinjaman', queryParams: { status: 'DITOLAK' } },
+          { id: 'persetujuan-disetujui', label: 'Pengajuan Disetujui', url: '/persetujuan-pinjaman', queryParams: { status: 'DISETUJUI' } },
+          { id: 'persetujuan-ditolak', label: 'Pengajuan Ditolak', url: '/persetujuan-pinjaman', queryParams: { status: 'DITOLAK' } },
         ],
       },
       { id: 'profile', label: 'Profil', icon: 'user-round', url: '/profile' },
