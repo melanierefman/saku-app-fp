@@ -13,6 +13,8 @@ import com.bcafinance.backend_saku.features.backoffice.dto.VerifikasiCustomerRes
 import com.bcafinance.backend_saku.core.entity.AlamatCustomer;
 import com.bcafinance.backend_saku.core.entity.Customer;
 import com.bcafinance.backend_saku.core.entity.DokumenCustomer;
+import com.bcafinance.backend_saku.core.entity.Karyawan;
+import com.bcafinance.backend_saku.core.entity.Plafond;
 import com.bcafinance.backend_saku.core.entity.ScoringCustomer;
 import com.bcafinance.backend_saku.core.entity.VerifikasiCustomer;
 import com.bcafinance.backend_saku.core.exception.BussinessRuleException;
@@ -21,6 +23,7 @@ import com.bcafinance.backend_saku.core.repository.CustomerRepository;
 import com.bcafinance.backend_saku.core.repository.DokumenCustomerRepository;
 import com.bcafinance.backend_saku.core.repository.ScoringCustomerRepository;
 import com.bcafinance.backend_saku.core.repository.VerifikasiCustomerRepository;
+import com.bcafinance.backend_saku.features.scoring.service.ScoringService;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -214,7 +217,7 @@ public class VerifikasiCustomerService {
             status = "APPROVED";
 
             // Hitung skor kredit resmi dari data pekerjaan & finansial nasabah yang telah diverifikasi
-            com.bcafinance.backend_saku.features.scoring.service.ScoringService.ScoringResult scoringResult = scoringService.calculateScore(
+            ScoringService.ScoringResult scoringResult = scoringService.calculateScore(
                     scoring.getTotalCicilanLainBulanan() != null ? scoring.getTotalCicilanLainBulanan() : java.math.BigDecimal.ZERO,
                     scoring.getPenghasilanBulanan() != null ? scoring.getPenghasilanBulanan() : java.math.BigDecimal.ZERO,
                     scoring.getLamaBekerjaBulan() != null ? scoring.getLamaBekerjaBulan() : 0,
@@ -228,7 +231,11 @@ public class VerifikasiCustomerService {
             approvedAmount = calculation.getApprovedAmount();
             keputusan = calculation.getKeputusan();
             if (plafondId != null && !plafondRepository.existsById(plafondId)) {
-                plafondId = null;
+                plafondId = plafondRepository.findAll().stream()
+                        .filter(p -> Boolean.TRUE.equals(p.getStatus()))
+                        .map(Plafond::getId)
+                        .findFirst()
+                        .orElse(null);
             }
             scoring.setMstPlafondId(plafondId);
             customer.setStatus(true);
@@ -258,22 +265,38 @@ public class VerifikasiCustomerService {
         if (effectiveKaryawanId == null || !karyawanRepository.existsById(effectiveKaryawanId)) {
             effectiveKaryawanId = karyawanRepository.findAll().stream()
                     .filter(k -> Boolean.TRUE.equals(k.getStatus()))
-                    .map(com.bcafinance.backend_saku.core.entity.Karyawan::getId)
+                    .map(Karyawan::getId)
                     .findFirst()
-                    .orElse(karyawanId);
+                    .orElseGet(() -> karyawanRepository.findAll().stream()
+                            .map(Karyawan::getId)
+                            .findFirst()
+                            .orElse(null));
+        }
+
+        if (effectiveKaryawanId == null) {
+            throw new BussinessRuleException("Karyawan verifikator tidak ditemukan di sistem.");
+        }
+
+        String finalCatatan = request.getCatatanVerifikasi();
+        if (finalCatatan == null || finalCatatan.trim().isBlank()) {
+            finalCatatan = "APPROVED".equalsIgnoreCase(status)
+                    ? "Dokumen identitas (KTP & Foto Selfie) telah diverifikasi dan disetujui."
+                    : "PERLU_REVISI".equalsIgnoreCase(status)
+                            ? "Dokumen identitas (KTP & Foto Selfie) perlu diperbaiki/diunggah ulang."
+                            : "Dokumen identitas (KTP & Foto Selfie) tidak memenuhi syarat verifikasi.";
         }
 
         VerifikasiCustomer verification = new VerifikasiCustomer();
         verification.setId(UUID.randomUUID());
         verification.setStatusVerifikasi(status);
-        verification.setCatatanVerifikasi(request.getCatatanVerifikasi());
+        verification.setCatatanVerifikasi(finalCatatan.trim());
         verification.setCreatedDate(LocalDateTime.now());
         verification.setUpdatedDate(LocalDateTime.now());
         verification.setMstCustomerId(customerId);
         verification.setMstKaryawanId(effectiveKaryawanId);
         verifikasiRepository.save(verification);
 
-        if (auditLogService != null && effectiveKaryawanId != null) {
+        if (auditLogService != null) {
             String desc = "Backoffice memverifikasi KYC customer " + customer.getNama() + " (" + customer.getEmail()
                     + ") dengan status: " + status;
             auditLogService.recordLog(effectiveKaryawanId, "VERIFIKASI_KYC", "CUSTOMER", desc);
