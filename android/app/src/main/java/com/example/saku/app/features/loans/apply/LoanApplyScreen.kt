@@ -1103,6 +1103,18 @@ private fun Step1NominalTenorView(
                         )
 
                         BreakdownRow(
+                            label = "Biaya Administrasi (Potong Awal):",
+                            value = "- Rp ${currencyFormatter.format(uiState.biayaAdmin)}"
+                        )
+
+                        val danaBersihCair = (uiState.jumlahPinjaman - uiState.biayaAdmin).coerceAtLeast(0.0).toLong()
+                        BreakdownRow(
+                            label = "Dana Bersih Cair:",
+                            value = "Rp ${currencyFormatter.format(danaBersihCair)}",
+                            isValueBold = true
+                        )
+
+                        BreakdownRow(
                             label = "Tenor Pinjaman:",
                             value = "${uiState.tenorBulan} Bulan"
                         )
@@ -1113,12 +1125,7 @@ private fun Step1NominalTenorView(
                         )
 
                         BreakdownRow(
-                            label = "Biaya Administrasi:",
-                            value = "Rp ${currencyFormatter.format(uiState.biayaAdmin)}"
-                        )
-
-                        BreakdownRow(
-                            label = "Total Pengembalian:",
+                            label = "Total Pengembalian (Cicilan):",
                             value = "Rp ${currencyFormatter.format(uiState.totalPengembalian)}",
                             isBold = true
                         )
@@ -1175,7 +1182,8 @@ private fun BreakdownRow(
     label: String,
     value: String,
     isHighlight: Boolean = false,
-    isBold: Boolean = false
+    isBold: Boolean = false,
+    isValueBold: Boolean = false
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -1186,13 +1194,15 @@ private fun BreakdownRow(
             text = label,
             fontSize = if (isHighlight) 13.5.sp else 12.5.sp,
             color = if (isHighlight || isBold) TextPrimary else TextSecondary,
-            fontWeight = if (isHighlight || isBold) FontWeight.SemiBold else FontWeight.Normal
+            fontWeight = if (isHighlight || isBold) FontWeight.SemiBold else FontWeight.Normal,
+            maxLines = 1
         )
         Text(
             text = value,
             fontSize = if (isHighlight) 14.5.sp else 12.5.sp,
-            fontWeight = if (isHighlight || isBold) FontWeight.Bold else FontWeight.SemiBold,
-            color = if (isHighlight) Primary else TextPrimary
+            fontWeight = if (isHighlight || isBold || isValueBold) FontWeight.Bold else FontWeight.SemiBold,
+            color = if (isHighlight) Primary else TextPrimary,
+            maxLines = 1
         )
     }
 }
@@ -1203,7 +1213,8 @@ private fun CostBreakdownRow(
     value: String,
     isHighlight: Boolean = false,
     isBold: Boolean = false,
-    isBadge: Boolean = false
+    isBadge: Boolean = false,
+    isValueBold: Boolean = false
 ) {
     Row(
         modifier = Modifier
@@ -1216,7 +1227,8 @@ private fun CostBreakdownRow(
             text = label,
             fontSize = if (isHighlight) 13.5.sp else 12.5.sp,
             color = if (isHighlight || isBold) TextPrimary else TextSecondary,
-            fontWeight = if (isHighlight || isBold) FontWeight.SemiBold else FontWeight.Normal
+            fontWeight = if (isHighlight || isBold) FontWeight.SemiBold else FontWeight.Normal,
+            maxLines = 1
         )
         if (isBadge) {
             Badge(text = value, variant = BadgeVariant.Success, size = BadgeSize.SM)
@@ -1224,8 +1236,9 @@ private fun CostBreakdownRow(
             Text(
                 text = value,
                 fontSize = if (isHighlight) 14.5.sp else 12.5.sp,
-                fontWeight = if (isHighlight || isBold) FontWeight.Bold else FontWeight.SemiBold,
-                color = if (isHighlight) Primary else TextPrimary
+                fontWeight = if (isHighlight || isBold || isValueBold) FontWeight.Bold else FontWeight.SemiBold,
+                color = if (isHighlight) Primary else TextPrimary,
+                maxLines = 1
             )
         }
     }
@@ -1382,6 +1395,16 @@ private fun Step3SummarySubmitView(
                         value = "Rp ${currencyFormatter.format(uiState.jumlahPinjaman)}"
                     )
                     CostBreakdownRow(
+                        label = "Biaya Administrasi (Potong Awal):",
+                        value = "- Rp ${currencyFormatter.format(uiState.biayaAdmin)}"
+                    )
+                    val danaBersihCairStep3 = (uiState.jumlahPinjaman - uiState.biayaAdmin).coerceAtLeast(0.0).toLong()
+                    CostBreakdownRow(
+                        label = "Dana Bersih Cair:",
+                        value = "Rp ${currencyFormatter.format(danaBersihCairStep3)}",
+                        isValueBold = true
+                    )
+                    CostBreakdownRow(
                         label = "Tenor Pinjaman:",
                         value = "${uiState.tenorBulan} Bulan"
                     )
@@ -1390,11 +1413,7 @@ private fun Step3SummarySubmitView(
                         value = "Rp ${currencyFormatter.format(totalBunga)}"
                     )
                     CostBreakdownRow(
-                        label = "Biaya Administrasi:",
-                        value = "Rp ${currencyFormatter.format(uiState.biayaAdmin)}"
-                    )
-                    CostBreakdownRow(
-                        label = "Total Pengembalian:",
+                        label = "Total Pengembalian (Cicilan):",
                         value = "Rp ${currencyFormatter.format(uiState.totalPengembalian)}",
                         isBold = true
                     )

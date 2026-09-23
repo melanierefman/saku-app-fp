@@ -33,6 +33,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -139,7 +140,8 @@ fun LoanSimulationScreen(
     val bungaBulanan = simAmount * (sukuBunga / 100.0)
     val monthlyInstallment = (pokokBulanan + bungaBulanan).toLong()
     val totalBunga = (bungaBulanan * simTenorMonths).toLong()
-    val totalPengembalian = (simAmount + (bungaBulanan * simTenorMonths) + biayaAdmin).toLong()
+    val totalPengembalian = (simAmount + totalBunga).toLong()
+    val danaBersihCair = (simAmount - biayaAdmin).coerceAtLeast(0.0).toLong()
 
     val availableTenors = listOf(3, 6, 9, 12, 18, 24, 36)
     val quickAmounts = listOf(1_000_000.0, 5_000_000.0, 10_000_000.0, 25_000_000.0, maxPlafond)
@@ -160,7 +162,7 @@ fun LoanSimulationScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(260.dp)
+                .height(230.dp)
                 .background(Primary)
         ) {
             // Background Image matching Homescreen Plafond Card with Zoom
@@ -224,7 +226,7 @@ fun LoanSimulationScreen(
                 .fillMaxSize()
                 .verticalScroll(scrollState)
                 .statusBarsPadding()
-                .padding(top = 195.dp) // Negative overlap over header
+                .padding(top = 170.dp) // Perfectly balanced overlap over header
                 .padding(horizontal = 18.dp)
                 .navigationBarsPadding()
         ) {
@@ -484,6 +486,17 @@ fun LoanSimulationScreen(
                         )
 
                         BreakdownRow(
+                            label = "Biaya Administrasi (Potong Awal):",
+                            value = "- Rp ${currencyFormatter.format(biayaAdmin)}"
+                        )
+
+                        BreakdownRow(
+                            label = "Dana Bersih Cair:",
+                            value = "Rp ${currencyFormatter.format(danaBersihCair)}",
+                            isValueBold = true
+                        )
+
+                        BreakdownRow(
                             label = "Tenor Pinjaman:",
                             value = "$simTenorMonths Bulan"
                         )
@@ -494,12 +507,7 @@ fun LoanSimulationScreen(
                         )
 
                         BreakdownRow(
-                            label = "Biaya Administrasi:",
-                            value = "Rp ${currencyFormatter.format(biayaAdmin)}"
-                        )
-
-                        BreakdownRow(
-                            label = "Total Pengembalian:",
+                            label = "Total Pengembalian (Cicilan):",
                             value = "Rp ${currencyFormatter.format(totalPengembalian)}",
                             isBold = true
                         )
@@ -621,7 +629,7 @@ fun LoanSimulationScreen(
             Spacer(modifier = Modifier.height(30.dp))
         }
 
-        // --- 3. TOP NAV BAR (PLUSH ON TOP TO GUARANTEE CLICKABILITY & NO CIRCLE FILL) ---
+        // --- 3. TOP NAV BAR ---
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -659,7 +667,8 @@ private fun BreakdownRow(
     label: String,
     value: String,
     isHighlight: Boolean = false,
-    isBold: Boolean = false
+    isBold: Boolean = false,
+    isValueBold: Boolean = false
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -670,13 +679,15 @@ private fun BreakdownRow(
             text = label,
             fontSize = if (isHighlight) 13.5.sp else 12.5.sp,
             color = if (isHighlight || isBold) TextPrimary else TextSecondary,
-            fontWeight = if (isHighlight || isBold) FontWeight.SemiBold else FontWeight.Normal
+            fontWeight = if (isHighlight || isBold) FontWeight.SemiBold else FontWeight.Normal,
+            maxLines = 1
         )
         Text(
             text = value,
             fontSize = if (isHighlight) 14.5.sp else 12.5.sp,
-            fontWeight = if (isHighlight || isBold) FontWeight.Bold else FontWeight.SemiBold,
-            color = if (isHighlight) Primary else TextPrimary
+            fontWeight = if (isHighlight || isBold || isValueBold) FontWeight.Bold else FontWeight.SemiBold,
+            color = if (isHighlight) Primary else TextPrimary,
+            maxLines = 1
         )
     }
 }

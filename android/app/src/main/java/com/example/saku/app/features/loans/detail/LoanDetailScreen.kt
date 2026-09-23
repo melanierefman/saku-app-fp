@@ -261,21 +261,26 @@ fun LoanDetailScreen(
 
                                 DetailRow(label = "Nomor Pengajuan", value = loan.nomorPengajuan ?: "-")
                                 DetailRow(label = "Nominal Pinjaman", value = "Rp ${currencyFormatter.format(loan.jumlahPinjaman ?: 0.0)}")
+                                DetailRow(label = "Biaya Administrasi (Potong Awal)", value = "- Rp ${currencyFormatter.format(loan.biayaAdmin ?: 0.0)}")
+                                val danaBersihCairVal = ((loan.jumlahPinjaman ?: 0.0) - (loan.biayaAdmin ?: 0.0)).coerceAtLeast(0.0)
                                 DetailRow(label = "Tenor Pinjaman", value = "${loan.tenorBulan ?: 0} Bulan")
                                 val rawBunga = loan.bunga ?: 1.5
                                 val displayBunga = if (rawBunga <= 1.0 && rawBunga > 0.0) rawBunga * 100 else rawBunga
                                 val formattedBunga = if (displayBunga % 1.0 == 0.0) "${displayBunga.toLong()}%" else "${displayBunga.toString().replace('.', ',')}%"
-                                DetailRow(label = "Suku Bunga", value = "$formattedBunga flat / bulan")
-                                DetailRow(label = "Biaya Administrasi", value = "Rp ${currencyFormatter.format(loan.biayaAdmin ?: 0.0)}")
                                 val totalBungaVal = (loan.jumlahPinjaman ?: 0.0) * (displayBunga / 100.0) * (loan.tenorBulan ?: 0)
-                                DetailRow(label = "Total Estimasi Bunga ($formattedBunga)", value = "Rp ${currencyFormatter.format(totalBungaVal)}")
-                                val totalPengembalianVal = (loan.jumlahPinjaman ?: 0.0) + totalBungaVal + (loan.biayaAdmin ?: 0.0)
-                                DetailRow(label = "Total Pengembalian", value = "Rp ${currencyFormatter.format(totalPengembalianVal)}")
+                                DetailRow(label = "Total Estimasi Bunga ($formattedBunga/bln)", value = "Rp ${currencyFormatter.format(totalBungaVal)}")
+                                val totalPengembalianVal = (loan.jumlahPinjaman ?: 0.0) + totalBungaVal
+                                DetailRow(label = "Total Pengembalian (Cicilan)", value = "Rp ${currencyFormatter.format(totalPengembalianVal)}")
                                 DetailRow(label = "Tujuan Pinjaman", value = loan.tujuanPinjaman ?: "-")
                                 DetailRow(label = "Cabang Pengelola", value = loan.namaCabang ?: "PT SAKU Pusat")
 
                                 HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Border)
 
+                                DetailRow(
+                                    label = "Dana Bersih Cair",
+                                    value = "Rp ${currencyFormatter.format(danaBersihCairVal)}",
+                                    isBold = true
+                                )
                                 DetailRow(
                                     label = "Estimasi Angsuran Bulanan",
                                     value = "Rp ${currencyFormatter.format(loan.estimasiAngsuranBulanan ?: 0.0)} / bln",
@@ -772,31 +777,31 @@ private fun AngsuranItemRow(
 private fun DetailRow(
     label: String,
     value: String,
-    isHighlight: Boolean = false
+    isHighlight: Boolean = false,
+    isBold: Boolean = false
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.Top
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = label,
-            fontSize = if (isHighlight) 13.sp else 12.sp,
-            color = if (isHighlight) TextPrimary else TextMuted,
-            fontWeight = if (isHighlight) FontWeight.SemiBold else FontWeight.Normal,
-            modifier = Modifier.weight(0.38f)
+            fontSize = if (isHighlight || isBold) 13.sp else 12.sp,
+            color = if (isHighlight || isBold) TextPrimary else TextMuted,
+            fontWeight = if (isHighlight || isBold) FontWeight.SemiBold else FontWeight.Normal,
+            maxLines = 1
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = value,
-            fontSize = if (isHighlight) 14.sp else 12.5.sp,
-            fontWeight = if (isHighlight) FontWeight.ExtraBold else FontWeight.SemiBold,
-            color = TextPrimary,
+            fontSize = if (isHighlight) 14.sp else (if (isBold) 13.5.sp else 12.5.sp),
+            fontWeight = if (isHighlight || isBold) FontWeight.ExtraBold else FontWeight.SemiBold,
+            color = if (isHighlight) Primary else TextPrimary,
             textAlign = TextAlign.End,
-            modifier = Modifier.weight(0.62f),
-            lineHeight = 16.5.sp
+            maxLines = 1
         )
     }
 }

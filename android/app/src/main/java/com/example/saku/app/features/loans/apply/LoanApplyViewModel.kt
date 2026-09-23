@@ -175,8 +175,8 @@ class LoanApplyViewModel(
         val bungaBln = amount * (rate / 100.0)
         val pokokBln = if (tenor > 0) amount / tenor else 0.0
         val cicilanBln = (pokokBln + bungaBln).roundToLong()
-        val admin = _uiState.value.biayaAdmin
-        val totalBayar = (amount + (bungaBln * tenor) + admin).roundToLong()
+        val totalBunga = (bungaBln * tenor).roundToLong()
+        val totalBayar = (amount + totalBunga).roundToLong()
 
         _uiState.value = _uiState.value.copy(
             bungaBulanan = bungaBln,
