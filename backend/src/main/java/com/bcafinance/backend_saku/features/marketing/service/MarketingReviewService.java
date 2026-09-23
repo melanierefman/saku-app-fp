@@ -367,6 +367,16 @@ public class MarketingReviewService {
             throw new BussinessRuleException("Anda tidak memiliki izin untuk mereview pengajuan dari cabang lain");
         }
 
+        String currentStatus = pengajuan.getStatusPengajuan() != null ? pengajuan.getStatusPengajuan().trim().toUpperCase() : "";
+        if (!"PENDING".equals(currentStatus)
+                && !"MENUNGGU_REVIEW".equals(currentStatus)
+                && !"DOKUMEN_DIREVISI".equals(currentStatus)
+                && !"PERBAIKAN_DOKUMEN".equals(currentStatus)) {
+            throw new BussinessRuleException(
+                    "Pengajuan pinjaman ini sudah diproses review sebelumnya (Status: "
+                            + currentStatus + ").");
+        }
+
         String inputReview = request.getHasilReview().trim().toUpperCase();
         String hasilReview;
         String statusPengajuan;

@@ -22,7 +22,8 @@ public class EmailService {
 
     public void sendOtpEmail(String toEmail, String otpCode, String purpose, int expiryMinutes) {
         String purposeTitle = formatPurpose(purpose);
-        String subject = "Kode OTP SAKU: " + otpCode + " - " + purposeTitle;
+        // Do not put raw OTP digit numbers in the subject line to prevent aggressive spam filtering heuristics
+        String subject = "Kode Verifikasi Keamanan SAKU - " + purposeTitle;
         String expiryText = expiryMinutes + " menit";
 
         log.info("=================================================");
@@ -39,10 +40,19 @@ public class EmailService {
                 MimeMessage mimeMessage = mailSender.createMimeMessage();
                 MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
-                helper.setFrom(senderEmail, "SAKU");
+                helper.setFrom(senderEmail, "SAKU Finansial");
                 helper.setTo(toEmail);
+                helper.setReplyTo(senderEmail, "SAKU Support");
                 helper.setSubject(subject);
-                helper.setText(buildHtmlEmail(otpCode, purposeTitle, expiryText), true);
+
+                // Add multipart/alternative: plain text version for spam filters + HTML version for rich render
+                String plainText = buildPlainTextEmail(otpCode, purposeTitle, expiryText);
+                String htmlText = buildHtmlEmail(otpCode, purposeTitle, expiryText);
+                helper.setText(plainText, htmlText);
+
+                // Standard transactional headers
+                mimeMessage.setHeader("Auto-Submitted", "auto-generated");
+                mimeMessage.setHeader("X-Auto-Response-Suppress", "All");
 
                 mailSender.send(mimeMessage);
                 log.info("✅ Email OTP berhasil dikirimkan secara nyata ke {}", toEmail);
@@ -53,6 +63,24 @@ public class EmailService {
             log.warn(
                     "⚠️ SMTP Credentials belum disetel di .env (MAIL_USERNAME/MAIL_PASSWORD). Email disimulasikan di console.");
         }
+    }
+
+    private String buildPlainTextEmail(String otpCode, String purposeTitle, String expiryText) {
+        return """
+                SAKU - Aplikasi Finansial SAKU
+                ----------------------------------------
+                Verifikasi %s
+
+                Gunakan kode OTP berikut untuk melanjutkan proses %s di akun SAKU Anda:
+
+                >> %s <<
+
+                Kode ini berlaku selama %s.
+
+                Penting: Jangan berikan kode OTP ini kepada siapa pun, termasuk pihak yang mengatasnamakan tim SAKU.
+                ----------------------------------------
+                © 2026 SAKU. All rights reserved.
+                """.formatted(purposeTitle, purposeTitle, otpCode, expiryText);
     }
 
     private String buildHtmlEmail(String otpCode, String purposeTitle, String expiryText) {

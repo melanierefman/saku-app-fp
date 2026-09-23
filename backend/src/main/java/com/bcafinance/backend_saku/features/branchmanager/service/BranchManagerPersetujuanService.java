@@ -420,16 +420,15 @@ public class BranchManagerPersetujuanService {
             throw new BussinessRuleException("Anda tidak memiliki izin untuk menyetujui pengajuan dari cabang lain");
         }
 
-        String currentStatus = pengajuan.getStatusPengajuan() != null ? pengajuan.getStatusPengajuan() : "";
+        String currentStatus = pengajuan.getStatusPengajuan() != null ? pengajuan.getStatusPengajuan().trim().toUpperCase() : "";
 
-        // Validasi: Pengajuan harus sudah disetujui oleh Marketing (SELESAI_DIREVIEW)
-        // atau sudah dalam status persetujuan
+        // Validasi: Pengajuan harus dalam status SELESAI_DIREVIEW / MENUNGGU_PERSETUJUAN_BM
         if (!"SELESAI_DIREVIEW".equalsIgnoreCase(currentStatus)
-                && !"PENGAJUAN_DISETUJUI".equalsIgnoreCase(currentStatus)
-                && !"APPROVED".equalsIgnoreCase(currentStatus)) {
+                && !"MENUNGGU_PERSETUJUAN_BM".equalsIgnoreCase(currentStatus)
+                && !"MENUNGGU_PERSETUJUAN".equalsIgnoreCase(currentStatus)) {
             throw new BussinessRuleException(
-                    "Pengajuan pinjaman belum selesai direview oleh tim Marketing (Status saat ini: " + currentStatus
-                            + ")");
+                    "Pengajuan pinjaman tidak dalam status menunggu persetujuan Branch Manager atau sudah diproses sebelumnya (Status saat ini: " + currentStatus
+                            + ").");
         }
 
         String rawInput = request.getHasilPersetujuan().trim().toUpperCase();
