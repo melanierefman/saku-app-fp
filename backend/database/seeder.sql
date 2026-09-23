@@ -21,6 +21,7 @@ SET row_security = off;
 --
 ALTER TABLE mel_saku.mst_plafond ALTER COLUMN bunga TYPE numeric(6,4);
 ALTER TABLE mel_saku.trx_pengajuan_pinjaman ALTER COLUMN bunga TYPE numeric(6,4);
+ALTER TABLE mel_saku.trx_notifikasi ALTER COLUMN trx_pengajuan_pinjaman_id DROP NOT NULL;
 
 TRUNCATE TABLE 
     mel_saku.trx_audit_log,
