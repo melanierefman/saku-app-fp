@@ -283,7 +283,11 @@ class HomeViewModel(
     fun setSimulationDialogVisible(visible: Boolean) {
         _showSimulationDialog.value = visible
         if (visible) {
-            val maxP = (_customerProfile.value?.availablePlafond ?: _customerProfile.value?.totalPlafond ?: 50_000_000.0).coerceAtLeast(500_000.0)
+            val maxP = if (isLoggedIn.value) {
+                (_customerProfile.value?.availablePlafond ?: _customerProfile.value?.totalPlafond ?: 50_000_000.0).coerceAtLeast(500_000.0)
+            } else {
+                150_000_000.0
+            }
             val clamped = _simAmount.value.coerceIn(500_000.0, maxP)
             _simAmount.value = clamped
             fetchSimulasiCalculation(clamped, _simTenorMonths.value)
@@ -291,7 +295,11 @@ class HomeViewModel(
     }
 
     fun updateSimAmount(amount: Double) {
-        val maxP = (_customerProfile.value?.availablePlafond ?: _customerProfile.value?.totalPlafond ?: 50_000_000.0).coerceAtLeast(500_000.0)
+        val maxP = if (isLoggedIn.value) {
+            (_customerProfile.value?.availablePlafond ?: _customerProfile.value?.totalPlafond ?: 50_000_000.0).coerceAtLeast(500_000.0)
+        } else {
+            150_000_000.0
+        }
         val clamped = amount.coerceIn(500_000.0, maxP)
         _simAmount.value = clamped
         fetchSimulasiCalculation(clamped, _simTenorMonths.value)
@@ -335,8 +343,8 @@ class HomeViewModel(
     fun calculateMonthlyInstallment(amount: Double, tenorMonths: Int): Long {
         if (tenorMonths <= 0) return 0L
         val profileRate = _customerProfile.value?.sukuBunga
-        val rawRate = if (profileRate != null && profileRate > 0) profileRate else (_simulasiResult.value?.sukuBungaPersen ?: 5.0)
-        val ratePct = if (rawRate <= 1.0 && rawRate > 0.0) rawRate * 100 else rawRate
+        val rawRate = if (profileRate != null && profileRate > 0) profileRate else (_simulasiResult.value?.sukuBungaPersen ?: 1.5)
+        val ratePct = if (rawRate < 0.05 && rawRate > 0.0) rawRate * 100 else rawRate
         val principalPerMonth = amount / tenorMonths
         val interestPerMonth = amount * (ratePct / 100.0)
         return (principalPerMonth + interestPerMonth).roundToLong()

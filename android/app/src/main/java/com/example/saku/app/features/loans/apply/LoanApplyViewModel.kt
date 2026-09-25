@@ -141,7 +141,7 @@ class LoanApplyViewModel(
         val amount = if (isSim) _uiState.value.jumlahPinjaman.coerceIn(500_000.0, avail.coerceAtLeast(500_000.0)) else (if (avail >= 5_000_000.0) 5_000_000.0 else avail.coerceAtLeast(500_000.0))
         val tenor = _uiState.value.tenorBulan
         val rawBunga = p.sukuBunga
-        val normalizedBunga = if (rawBunga != null) (if (rawBunga <= 1.0 && rawBunga > 0.0) rawBunga * 100 else rawBunga) else null
+        val normalizedBunga = if (rawBunga != null) (if (rawBunga < 0.05 && rawBunga > 0.0) rawBunga * 100 else rawBunga) else null
         val admin = p.biayaAdmin
 
         _uiState.value = _uiState.value.copy(

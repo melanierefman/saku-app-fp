@@ -135,7 +135,7 @@ fun LoanSimulationScreen(
     } else {
         0.75
     }
-    val sukuBunga = if (defaultBunga <= 1.0 && defaultBunga > 0.0) defaultBunga * 100 else defaultBunga
+    val sukuBunga = if (defaultBunga < 0.05 && defaultBunga > 0.0) defaultBunga * 100 else defaultBunga
     val formattedBunga = if (sukuBunga % 1.0 == 0.0) {
         "${sukuBunga.toLong()}%"
     } else {

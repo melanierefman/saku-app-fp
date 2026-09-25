@@ -970,7 +970,7 @@ private fun PlafondMeshHeroCard(
                                 SubLimitMetricItem(
                                     label = "Bunga",
                                     value = if (sukuBunga != null && sukuBunga > 0) {
-                                        val pct = if (sukuBunga <= 1.0) sukuBunga * 100 else sukuBunga
+                                        val pct = if (sukuBunga < 0.05 && sukuBunga > 0.0) sukuBunga * 100 else sukuBunga
                                         val formatted = if (pct % 1.0 == 0.0) "${pct.toLong()}%" else "${pct.toString().replace('.', ',')}%"
                                         "$formatted / bln"
                                     } else {
@@ -2022,9 +2022,10 @@ private fun LoanSimulationDialog(
                         Spacer(modifier = Modifier.height(4.dp))
                         val tierName = simulasiResult?.estimasiTierPlafond ?: "Standar"
                         val rawBunga = simulasiResult?.sukuBungaPersen ?: 1.5
-                        val sukuBunga = if (rawBunga <= 1.0 && rawBunga > 0.0) rawBunga * 100 else rawBunga
+                        val sukuBunga = if (rawBunga < 0.05 && rawBunga > 0.0) rawBunga * 100 else rawBunga
+                        val formattedBunga = if (sukuBunga % 1.0 == 0.0) "${sukuBunga.toLong()}%" else "${sukuBunga.toString().replace('.', ',')}%"
                         Text(
-                            text = "Bunga $sukuBunga% flat/bln • Tier Plafond: $tierName",
+                            text = "Bunga $formattedBunga flat/bln • Tier Plafond: $tierName",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Medium,
                             color = Primary,

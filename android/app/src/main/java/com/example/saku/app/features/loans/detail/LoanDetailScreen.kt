@@ -230,7 +230,7 @@ fun LoanDetailScreen(
                                 val danaBersihCairVal = ((loan.jumlahPinjaman ?: 0.0) - (loan.biayaAdmin ?: 0.0)).coerceAtLeast(0.0)
                                 DetailRow(label = "Tenor Pinjaman", value = "${loan.tenorBulan ?: 0} Bulan")
                                 val rawBunga = loan.bunga ?: 1.5
-                                val displayBunga = if (rawBunga <= 1.0 && rawBunga > 0.0) rawBunga * 100 else rawBunga
+                                val displayBunga = if (rawBunga < 0.05 && rawBunga > 0.0) rawBunga * 100 else rawBunga
                                 val formattedBunga = if (displayBunga % 1.0 == 0.0) "${displayBunga.toLong()}%" else "${displayBunga.toString().replace('.', ',')}%"
                                 val totalBungaVal = (loan.jumlahPinjaman ?: 0.0) * (displayBunga / 100.0) * (loan.tenorBulan ?: 0)
                                 DetailRow(label = "Total Estimasi Bunga ($formattedBunga/bln)", value = "Rp ${currencyFormatter.format(totalBungaVal)}")
