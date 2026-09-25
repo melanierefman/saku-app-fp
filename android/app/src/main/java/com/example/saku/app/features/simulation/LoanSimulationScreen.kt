@@ -95,8 +95,10 @@ import androidx.compose.runtime.setValue
 fun LoanSimulationScreen(
     onNavigateBack: () -> Unit,
     onNavigateToApplyLoan: (Double, Int) -> Unit = { _, _ -> },
+    onNavigateToLogin: () -> Unit = {},
     viewModel: HomeViewModel = koinViewModel()
 ) {
+    val isLoggedIn by viewModel.isLoggedIn.collectAsState()
     val customerProfile by viewModel.customerProfile.collectAsState()
     val myLoans by viewModel.myLoans.collectAsState()
     val simAmount by viewModel.simAmount.collectAsState()
@@ -113,10 +115,13 @@ fun LoanSimulationScreen(
     }
 
     val minPlafond = 500_000.0
-    val maxPlafond = (customerProfile?.availablePlafond ?: customerProfile?.totalPlafond ?: 50_000_000.0)
-        .coerceAtLeast(minPlafond)
+    val maxPlafond = if (isLoggedIn) {
+        (customerProfile?.availablePlafond ?: customerProfile?.totalPlafond ?: 50_000_000.0).coerceAtLeast(minPlafond)
+    } else {
+        150_000_000.0
+    }
 
-    LaunchedEffect(maxPlafond) {
+    LaunchedEffect(maxPlafond, isLoggedIn) {
         if (simAmount > maxPlafond) {
             viewModel.updateSimAmount(maxPlafond)
         } else if (simAmount < minPlafond) {
@@ -125,7 +130,11 @@ fun LoanSimulationScreen(
     }
 
     val profileBunga = customerProfile?.sukuBunga
-    val defaultBunga = if (profileBunga != null && profileBunga > 0) profileBunga else (simulasiResult?.sukuBungaPersen ?: 1.25)
+    val defaultBunga = if (isLoggedIn) {
+        if (profileBunga != null && profileBunga > 0) profileBunga else (simulasiResult?.sukuBungaPersen ?: 1.25)
+    } else {
+        0.75
+    }
     val sukuBunga = if (defaultBunga <= 1.0 && defaultBunga > 0.0) defaultBunga * 100 else defaultBunga
     val formattedBunga = if (sukuBunga % 1.0 == 0.0) {
         "${sukuBunga.toLong()}%"
@@ -144,7 +153,7 @@ fun LoanSimulationScreen(
     val danaBersihCair = (simAmount - biayaAdmin).coerceAtLeast(0.0).toLong()
 
     val availableTenors = listOf(3, 6, 9, 12, 18, 24, 36)
-    val quickAmounts = listOf(1_000_000.0, 5_000_000.0, 10_000_000.0, 25_000_000.0, maxPlafond)
+    val quickAmounts = listOf(5_000_000.0, 10_000_000.0, 25_000_000.0, 50_000_000.0, 100_000_000.0, maxPlafond)
         .filter { it <= maxPlafond && it >= minPlafond }.distinct().sorted()
 
     var isAgreedToTerms by remember { mutableStateOf(true) }
@@ -205,14 +214,14 @@ fun LoanSimulationScreen(
                     letterSpacing = (-0.5).sp
                 )
 
-                val formattedBunga = if (sukuBunga % 1.0 == 0.0) {
-                    "${sukuBunga.toLong()}%"
+                val bungaSubtitle = if (isLoggedIn) {
+                    "Suku bunga $formattedBunga per bulan"
                 } else {
-                    "${sukuBunga.toString().replace('.', ',')}%"
+                    "Suku bunga mulai dari 0,75% per bulan"
                 }
 
                 Text(
-                    text = "Suku bunga $formattedBunga per bulan",
+                    text = bungaSubtitle,
                     fontSize = 12.5.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color.White.copy(alpha = 0.92f)
@@ -556,75 +565,88 @@ fun LoanSimulationScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            if (isLoggedIn) {
+                Spacer(modifier = Modifier.height(20.dp))
 
-            // --- 3. AGREEMENT CHECKBOX & TERMS ---
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable { isAgreedToTerms = !isAgreedToTerms }
-                    .padding(vertical = 4.dp, horizontal = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Checkbox(
-                    checked = isAgreedToTerms,
-                    onCheckedChange = { isAgreedToTerms = it }
-                )
+                // --- 3. AGREEMENT CHECKBOX & TERMS ---
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable { isAgreedToTerms = !isAgreedToTerms }
+                        .padding(vertical = 4.dp, horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = isAgreedToTerms,
+                        onCheckedChange = { isAgreedToTerms = it }
+                    )
 
-                Spacer(modifier = Modifier.width(10.dp))
+                    Spacer(modifier = Modifier.width(10.dp))
 
-                val agreementText = buildAnnotatedString {
-                    append("Saya telah membaca dan menyetujui ")
-                    withStyle(style = SpanStyle(color = Primary, fontWeight = FontWeight.Bold)) {
-                        append("Syarat & Ketentuan")
+                    val agreementText = buildAnnotatedString {
+                        append("Saya telah membaca dan menyetujui ")
+                        withStyle(style = SpanStyle(color = Primary, fontWeight = FontWeight.Bold)) {
+                            append("Syarat & Ketentuan")
+                        }
+                        append(" serta ")
+                        withStyle(style = SpanStyle(color = Primary, fontWeight = FontWeight.Bold)) {
+                            append("Kebijakan Privasi")
+                        }
+                        append(".")
                     }
-                    append(" serta ")
-                    withStyle(style = SpanStyle(color = Primary, fontWeight = FontWeight.Bold)) {
-                        append("Kebijakan Privasi")
-                    }
-                    append(".")
+
+                    Text(
+                        text = agreementText,
+                        fontSize = 12.sp,
+                        color = TextSecondary,
+                        lineHeight = 16.sp
+                    )
                 }
 
-                Text(
-                    text = agreementText,
-                    fontSize = 12.sp,
-                    color = TextSecondary,
-                    lineHeight = 16.sp
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // --- 4. APPLY NOW CTA BUTTON (LOGGED IN) ---
+                val buttonText = when {
+                    hasInProcessLoan -> "Sedang Ada Pengajuan Berjalan"
+                    !isApplyEnabled -> "Plafond Belum Tersedia"
+                    else -> "Ajukan Sekarang"
+                }
+
+                Button(
+                    text = buttonText,
+                    onClick = {
+                        if (hasInProcessLoan) {
+                            val inProg = myLoans.firstOrNull {
+                                val s = (it.statusPengajuan ?: "").uppercase()
+                                s !in listOf("DITOLAK", "PENGAJUAN_DITOLAK", "REJECTED", "DITOLAK_MARKETING", "DITOLAK_BM", "REJECT", "BATAL", "CANCELLED", "PAID", "LUNAS", "DICAIRKAN", "DISBURSED")
+                            }
+                            Toast.makeText(
+                                context,
+                                "Anda memiliki pengajuan (${inProg?.nomorPengajuan ?: "berjalan"}) yang sedang diproses review.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        } else if (isAgreedToTerms && isApplyEnabled) {
+                            onNavigateToApplyLoan(simAmount, simTenorMonths)
+                        }
+                    },
+                    enabled = isAgreedToTerms,
+                    variant = if (hasInProcessLoan) ButtonVariant.Outline else ButtonVariant.Primary,
+                    size = ButtonSize.LG,
+                    fullWidth = true
+                )
+            } else {
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // --- 4. APPLY NOW CTA BUTTON (GUEST / REDIRECT TO LOGIN) ---
+                Button(
+                    text = "Ajukan Sekarang",
+                    onClick = onNavigateToLogin,
+                    variant = ButtonVariant.Primary,
+                    size = ButtonSize.LG,
+                    fullWidth = true
                 )
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // --- 4. APPLY NOW CTA BUTTON ---
-            val buttonText = when {
-                hasInProcessLoan -> "Sedang Ada Pengajuan Berjalan"
-                !isApplyEnabled -> "Plafond Belum Tersedia"
-                else -> "Ajukan Sekarang"
-            }
-
-            Button(
-                text = buttonText,
-                onClick = {
-                    if (hasInProcessLoan) {
-                        val inProg = myLoans.firstOrNull {
-                            val s = (it.statusPengajuan ?: "").uppercase()
-                            s !in listOf("DITOLAK", "PENGAJUAN_DITOLAK", "REJECTED", "DITOLAK_MARKETING", "DITOLAK_BM", "REJECT", "BATAL", "CANCELLED", "PAID", "LUNAS", "DICAIRKAN", "DISBURSED")
-                        }
-                        Toast.makeText(
-                            context,
-                            "Anda memiliki pengajuan (${inProg?.nomorPengajuan ?: "berjalan"}) yang sedang diproses review.",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    } else if (isAgreedToTerms && isApplyEnabled) {
-                        onNavigateToApplyLoan(simAmount, simTenorMonths)
-                    }
-                },
-                enabled = isAgreedToTerms,
-                variant = if (hasInProcessLoan) ButtonVariant.Outline else ButtonVariant.Primary,
-                size = ButtonSize.LG,
-                fullWidth = true
-            )
 
             Spacer(modifier = Modifier.height(30.dp))
         }

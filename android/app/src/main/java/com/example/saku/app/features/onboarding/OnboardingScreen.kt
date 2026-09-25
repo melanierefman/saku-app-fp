@@ -64,7 +64,7 @@ data class OnboardingPageData(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(
-    onNavigateToLogin: () -> Unit
+    onNavigateToHome: () -> Unit
 ) {
     val context = LocalContext.current
     val tokenManager = remember { TokenManager.getInstance(context) }
@@ -92,7 +92,7 @@ fun OnboardingScreen(
     val completeOnboarding = {
         scope.launch {
             tokenManager.setOnboardingCompleted(true)
-            onNavigateToLogin()
+            onNavigateToHome()
         }
     }
 

@@ -103,8 +103,8 @@ fun AppNavHost(
 
         composable(Screen.Onboarding.route) {
             OnboardingScreen(
-                onNavigateToLogin = {
-                    navController.navigate(Screen.Login.route) {
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Onboarding.route) { inclusive = true }
                     }
                 }
@@ -113,6 +113,7 @@ fun AppNavHost(
 
         composable(Screen.Login.route) {
             LoginScreen(
+                onNavigateBack = { navController.popBackStack() },
                 onNavigateToHome = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
@@ -183,9 +184,10 @@ fun AppNavHost(
         composable(Screen.Home.route) {
             HomeScreen(
                 onNavigateToLogin = {
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
-                    }
+                    navController.navigate(Screen.Login.route)
+                },
+                onNavigateToRegister = {
+                    navController.navigate(Screen.Register.route)
                 },
                 onNavigateToSandbox = {
                     navController.navigate(Screen.Sandbox.route)
@@ -316,6 +318,9 @@ fun AppNavHost(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToApplyLoan = { amount, tenor ->
                     navController.navigate(Screen.LoanApply.createRoute(amount, tenor))
+                },
+                onNavigateToLogin = {
+                    navController.navigate(Screen.Login.route)
                 }
             )
         }

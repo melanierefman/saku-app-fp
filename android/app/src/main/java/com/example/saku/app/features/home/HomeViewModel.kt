@@ -35,6 +35,13 @@ class HomeViewModel(
 
     private val gson = Gson()
 
+    val isLoggedIn: StateFlow<Boolean> = authRepository.isLoggedIn
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = false
+        )
+
     val userSession: StateFlow<UserSession?> = authRepository.userSession
         .stateIn(
             scope = viewModelScope,
@@ -108,31 +115,42 @@ class HomeViewModel(
     }
 
     init {
-        // 1. Muat profil tersimpan (cache) segera agar data instan muncul tanpa flicker
+        // 1. Muat profil tersimpan (cache) segera jika user sudah login
         viewModelScope.launch {
-            val cachedJson = customerRepository.getCachedProfileJsonSync()
-            if (!cachedJson.isNullOrBlank() && _customerProfile.value == null) {
-                try {
-                    val cached = gson.fromJson(cachedJson, CustomerProfileDto::class.java)
-                    _customerProfile.value = cached
-                    val maxP = (cached?.availablePlafond ?: cached?.totalPlafond ?: 50_000_000.0).coerceAtLeast(500_000.0)
-                    if (_simAmount.value > maxP) {
-                        _simAmount.value = maxP
+            authRepository.isLoggedIn.collect { loggedIn ->
+                if (loggedIn) {
+                    val cachedJson = customerRepository.getCachedProfileJsonSync()
+                    if (!cachedJson.isNullOrBlank() && _customerProfile.value == null) {
+                        try {
+                            val cached = gson.fromJson(cachedJson, CustomerProfileDto::class.java)
+                            _customerProfile.value = cached
+                            val maxP = (cached?.availablePlafond ?: cached?.totalPlafond ?: 50_000_000.0).coerceAtLeast(500_000.0)
+                            if (_simAmount.value > maxP) {
+                                _simAmount.value = maxP
+                            }
+                        } catch (e: Exception) {
+                            // Ignore parse error
+                        }
                     }
-                } catch (e: Exception) {
-                    // Ignore parse error
+                    fetchDashboardData()
+                    fetchUnreadNotificationCount()
+                } else {
+                    _customerProfile.value = null
+                    _myLoans.value = emptyList()
+                    _unreadNotifikasiCount.value = 0L
                 }
             }
         }
 
-        // 2. Tarik data terbaru dari backend
-        fetchDashboardData()
-        fetchUnreadNotificationCount()
+        // 2. Tarik data publik yang bisa diakses tanpa login
         fetchPublicPlafonds()
     }
 
     fun fetchDashboardData() {
         viewModelScope.launch {
+            if (!isLoggedIn.value && userSession.value == null) {
+                return@launch
+            }
             _isLoading.value = true
             try {
                 // Fetch profile

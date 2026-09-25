@@ -144,6 +144,7 @@ import androidx.compose.runtime.setValue
 @Composable
 fun HomeScreen(
     onNavigateToLogin: () -> Unit,
+    onNavigateToRegister: () -> Unit = {},
     onNavigateToSandbox: (() -> Unit)? = null,
     onNavigateToApplyLoan: () -> Unit = {},
     onNavigateToLoanDetail: (String) -> Unit = {},
@@ -154,6 +155,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
+    val isLoggedIn by viewModel.isLoggedIn.collectAsState()
     val userSession by viewModel.userSession.collectAsState()
     val customerProfile by viewModel.customerProfile.collectAsState()
     val myLoans by viewModel.myLoans.collectAsState()
@@ -188,9 +190,11 @@ fun HomeScreen(
     }
 
     // Refresh data saat HomeScreen aktif / tab berpindah
-    LaunchedEffect(currentNavRoute) {
-        viewModel.fetchDashboardData()
-        com.example.saku.app.MainActivity.syncFcmToken(context)
+    LaunchedEffect(currentNavRoute, isLoggedIn) {
+        if (isLoggedIn) {
+            viewModel.fetchDashboardData()
+            com.example.saku.app.MainActivity.syncFcmToken(context)
+        }
     }
 
     val totalPlafond = customerProfile?.totalPlafond ?: 50_000_000.0
@@ -245,17 +249,19 @@ fun HomeScreen(
 
     Scaffold(
         bottomBar = {
-            BottomNavBar(
-                items = navItems,
-                currentRoute = currentNavRoute,
-                onItemClick = { item ->
-                    if (item.route == "apply") {
-                        handleAjukanClick()
-                    } else {
-                        viewModel.setNavRoute(item.route)
-                    }
-                },
-            )
+            if (isLoggedIn) {
+                BottomNavBar(
+                    items = navItems,
+                    currentRoute = currentNavRoute,
+                    onItemClick = { item ->
+                        if (item.route == "apply") {
+                            handleAjukanClick()
+                        } else {
+                            viewModel.setNavRoute(item.route)
+                        }
+                    },
+                )
+            }
         },
         containerColor = Background,
     ) { innerPadding ->
@@ -297,6 +303,7 @@ fun HomeScreen(
                 "home" -> {
                     HomeTabContent(
                         displayName = displayName,
+                        isLoggedIn = isLoggedIn,
                         sukuBunga = customerProfile?.sukuBunga,
                         availablePlafond = availablePlafond,
                         totalPlafond = totalPlafond,
@@ -329,6 +336,8 @@ fun HomeScreen(
                         onNotificationClick = onNavigateToNotifications,
                         onSandboxClick = onNavigateToSandbox,
                         onLogoutClick = { viewModel.setLogoutDialogVisible(true) },
+                        onNavigateToLogin = onNavigateToLogin,
+                        onNavigateToRegister = onNavigateToRegister,
                     )
                 }
                 "loans" -> {
@@ -458,6 +467,7 @@ fun HomeScreen(
 @Composable
 private fun HomeTabContent(
     displayName: String,
+    isLoggedIn: Boolean = true,
     sukuBunga: Double? = null,
     availablePlafond: Double,
     totalPlafond: Double,
@@ -481,6 +491,8 @@ private fun HomeTabContent(
     onNotificationClick: () -> Unit,
     onSandboxClick: (() -> Unit)?,
     onLogoutClick: () -> Unit,
+    onNavigateToLogin: () -> Unit = {},
+    onNavigateToRegister: () -> Unit = {},
 ) {
     val listState = rememberLazyListState()
     var isScrolled by remember { mutableStateOf(false) }
@@ -504,14 +516,17 @@ private fun HomeTabContent(
             .fillMaxSize()
             .background(Background)
     ) {
-        // 1. HEADER ATAS (SAKU Logo + Action Icons + Collapsible "HALO, NAMA LENGKAP")
+        // 1. HEADER ATAS (SAKU Logo + Action Icons + Collapsible "HALO, NAMA LENGKAP" / "SELAMAT DATANG DI SAKU")
         HomeHeaderSection(
             displayName = displayName,
             unreadCount = unreadCount,
             isScrolled = isScrolled,
+            isLoggedIn = isLoggedIn,
             onNotificationClick = onNotificationClick,
             onSandboxClick = onSandboxClick,
             onLogoutClick = onLogoutClick,
+            onNavigateToLogin = onNavigateToLogin,
+            onNavigateToRegister = onNavigateToRegister,
         )
 
         // 2. HERO CARD PLAFOND SAKU (Sticky di atas, Box Hitam mengecil saat di-scroll)
@@ -526,7 +541,9 @@ private fun HomeTabContent(
                 hasInProcessLoan = hasInProcessLoan,
                 hasDisbursedLoan = hasDisbursedLoan,
                 isScrolled = isScrolled,
+                isLoggedIn = isLoggedIn,
                 onToggleVisibility = onToggleVisibility,
+                onSimulasiClick = onSimulasiClick,
                 currencyFormatter = currencyFormatter,
             )
         }
@@ -539,37 +556,51 @@ private fun HomeTabContent(
                 .fillMaxWidth(),
             contentPadding = PaddingValues(bottom = 32.dp),
         ) {
-            // SECTION "MENU UTAMA" (Theme 1: Simulasi, Cek Skor, Naikkan Limit, Riwayat)
-            item {
-                Spacer(modifier = Modifier.height(14.dp))
-                MenuUtamaSection(
-                    onSimulasiClick = onSimulasiClick,
-                    onCreditScoreClick = onCreditScoreClick,
-                    onUpgradeLimitClick = onUpgradeLimitClick,
-                    onRiwayatClick = onRiwayatClick,
-                )
-            }
-
-            // INFO TAGIHAN / PINJAMAN AKTIF CARD
-            item {
-                Spacer(modifier = Modifier.height(18.dp))
-                Box(modifier = Modifier.padding(horizontal = 20.dp)) {
-                    TagihanPinjamanAktifCard(
-                        activeLoan = activeLoan,
-                        activeLoansCount = activeLoansCount,
-                        currencyFormatter = currencyFormatter,
-                        onPayClick = onBayarClick,
-                        onDetailClick = { activeLoan?.id?.let { onDetailLoanClick(it) } ?: onBayarClick() },
+            if (isLoggedIn) {
+                // SECTION "MENU UTAMA" (Simulasi, Cek Skor, Naikkan Limit, Riwayat)
+                item {
+                    Spacer(modifier = Modifier.height(14.dp))
+                    MenuUtamaSection(
+                        onSimulasiClick = onSimulasiClick,
+                        onCreditScoreClick = onCreditScoreClick,
+                        onUpgradeLimitClick = onUpgradeLimitClick,
+                        onRiwayatClick = onRiwayatClick,
                     )
+                }
+
+                // INFO TAGIHAN / PINJAMAN AKTIF CARD
+                item {
+                    Spacer(modifier = Modifier.height(18.dp))
+                    Box(modifier = Modifier.padding(horizontal = 20.dp)) {
+                        TagihanPinjamanAktifCard(
+                            activeLoan = activeLoan,
+                            activeLoansCount = activeLoansCount,
+                            currencyFormatter = currencyFormatter,
+                            onPayClick = onBayarClick,
+                            onDetailClick = { activeLoan?.id?.let { onDetailLoanClick(it) } ?: onBayarClick() },
+                        )
+                    }
+                }
+            } else {
+                // SECTION: KEUNGGULAN SAKU (Value Proposition)
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    KeunggulanSakuSection()
+                }
+
+                // SECTION: 3 LANGKAH MUDAH PENGAJUAN (How it Works)
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    LangkahPengajuanSection(onRegisterClick = onNavigateToRegister)
                 }
             }
 
             // BANNER PROMO FULL WIDTH
             item {
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(if (isLoggedIn) 20.dp else 16.dp))
                 FullWidthPromoBannerSection(
                     onSimulasiClick = onSimulasiClick,
-                    onAjukanClick = onAjukanClick,
+                    onAjukanClick = if (isLoggedIn) onAjukanClick else onNavigateToRegister,
                 )
             }
 
@@ -584,15 +615,18 @@ private fun HomeTabContent(
     }
 }
 
-// 1. Top Bar ("Halo, Nama Lengkap")
+// 1. Top Bar ("Halo, Nama Lengkap" / "Masuk" & "Daftar")
 @Composable
 private fun HomeHeaderSection(
     displayName: String,
     unreadCount: Long = 0L,
     isScrolled: Boolean = false,
+    isLoggedIn: Boolean = true,
     onNotificationClick: () -> Unit,
     onSandboxClick: (() -> Unit)?,
     onLogoutClick: () -> Unit,
+    onNavigateToLogin: () -> Unit = {},
+    onNavigateToRegister: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -615,45 +649,94 @@ private fun HomeHeaderSection(
                 letterSpacing = 0.5.sp,
             )
 
-            // Action Icons (Notifikasi, Logout) - Bare Outline Icons
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                // Notification Bell with Red Badge
-                IconButton(
-                    onClick = onNotificationClick,
-                    modifier = Modifier.size(36.dp)
+            if (isLoggedIn) {
+                // Action Icons (Notifikasi, Logout) - Bare Outline Icons
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
-                    Box(contentAlignment = Alignment.TopEnd) {
+                    // Notification Bell with Red Badge
+                    IconButton(
+                        onClick = onNotificationClick,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.TopEnd) {
+                            Icon(
+                                imageVector = Lucide.Bell,
+                                contentDescription = "Notifikasi",
+                                tint = TextPrimary,
+                                modifier = Modifier.size(22.dp),
+                            )
+                            if (unreadCount > 0) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .clip(CircleShape)
+                                        .background(Error)
+                                )
+                            }
+                        }
+                    }
+
+                    // Logout Button
+                    IconButton(
+                        onClick = onLogoutClick,
+                        modifier = Modifier.size(36.dp)
+                    ) {
                         Icon(
-                            imageVector = Lucide.Bell,
-                            contentDescription = "Notifikasi",
+                            imageVector = Lucide.LogOut,
+                            contentDescription = "Logout",
                             tint = TextPrimary,
                             modifier = Modifier.size(22.dp),
                         )
-                        if (unreadCount > 0) {
-                            Box(
-                                modifier = Modifier
-                                    .size(8.dp)
-                                    .clip(CircleShape)
-                                    .background(Error)
-                            )
-                        }
                     }
                 }
-
-                // Logout Button
-                IconButton(
-                    onClick = onLogoutClick,
-                    modifier = Modifier.size(36.dp)
+            } else {
+                // Tombol Masuk (Ghost/Text) dan Daftar (Filled Primary Compact)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    Icon(
-                        imageVector = Lucide.LogOut,
-                        contentDescription = "Logout",
-                        tint = TextPrimary,
-                        modifier = Modifier.size(22.dp),
-                    )
+                    // 1. Tombol "Masuk" (Teks polos / Ghost button)
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable(onClick = onNavigateToLogin)
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Masuk",
+                            fontSize = 13.5.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Primary,
+                            style = TextStyle(
+                                fontFamily = OverusedGrotesk,
+                                platformStyle = PlatformTextStyle(includeFontPadding = false),
+                            )
+                        )
+                    }
+
+                    // 2. Tombol "Daftar" (Filled Primary Compact)
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Primary)
+                            .clickable(onClick = onNavigateToRegister)
+                            .padding(horizontal = 14.dp, vertical = 6.5.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Daftar",
+                            fontSize = 13.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            style = TextStyle(
+                                fontFamily = OverusedGrotesk,
+                                platformStyle = PlatformTextStyle(includeFontPadding = false),
+                            )
+                        )
+                    }
                 }
             }
         }
@@ -667,7 +750,7 @@ private fun HomeHeaderSection(
             Column {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "HALO, ${displayName.uppercase()}",
+                    text = if (isLoggedIn) "HALO, ${displayName.uppercase()}" else "SELAMAT DATANG DI SAKU",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextSecondary,
@@ -692,7 +775,9 @@ private fun PlafondMeshHeroCard(
     hasInProcessLoan: Boolean = false,
     hasDisbursedLoan: Boolean = false,
     isScrolled: Boolean = false,
+    isLoggedIn: Boolean = true,
     onToggleVisibility: () -> Unit,
+    onSimulasiClick: () -> Unit = {},
     currencyFormatter: NumberFormat,
 ) {
     Card(
@@ -733,161 +818,235 @@ private fun PlafondMeshHeroCard(
                     .fillMaxWidth()
                     .padding(horizontal = 18.dp, vertical = if (isScrolled) 11.dp else 14.dp)
             ) {
-                // Top Row: Plafon Pinjaman Anda + Eye Toggle
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
+                if (isLoggedIn) {
+                    // Top Row: Plafon Pinjaman Anda + Eye Toggle
                     Row(
+                        modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable(onClick = onToggleVisibility),
                     ) {
-                        Text(
-                            text = "Plafon Pinjaman Anda",
-                            fontSize = 13.sp,
-                            lineHeight = 15.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = Color.White.copy(alpha = 0.95f),
-                            style = TextStyle(
-                                fontFamily = OverusedGrotesk,
-                                platformStyle = PlatformTextStyle(includeFontPadding = false),
-                                lineHeightStyle = LineHeightStyle(
-                                    alignment = LineHeightStyle.Alignment.Center,
-                                    trim = LineHeightStyle.Trim.Both
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.clickable(onClick = onToggleVisibility),
+                        ) {
+                            Text(
+                                text = "Plafon Pinjaman Anda",
+                                fontSize = 13.sp,
+                                lineHeight = 15.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color.White.copy(alpha = 0.95f),
+                                style = TextStyle(
+                                    fontFamily = OverusedGrotesk,
+                                    platformStyle = PlatformTextStyle(includeFontPadding = false),
+                                    lineHeightStyle = LineHeightStyle(
+                                        alignment = LineHeightStyle.Alignment.Center,
+                                        trim = LineHeightStyle.Trim.Both
+                                    )
                                 )
                             )
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Icon(
-                            imageVector = if (isBalanceVisible) Lucide.Eye else Lucide.EyeOff,
-                            contentDescription = "Toggle saldo",
-                            tint = Color.White.copy(alpha = 0.95f),
-                            modifier = Modifier.size(15.dp),
-                        )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Icon(
+                                imageVector = if (isBalanceVisible) Lucide.Eye else Lucide.EyeOff,
+                                contentDescription = "Toggle saldo",
+                                tint = Color.White.copy(alpha = 0.95f),
+                                modifier = Modifier.size(15.dp),
+                            )
+                        }
                     }
-                }
 
-                Spacer(modifier = Modifier.height(if (isScrolled) 3.dp else 6.dp))
+                    Spacer(modifier = Modifier.height(if (isScrolled) 3.dp else 6.dp))
 
-                // Main Large Amount
-                Text(
-                    text = if (isBalanceVisible) "Rp${currencyFormatter.format(availablePlafond)}" else "Rp ••••••••••",
-                    fontSize = if (isScrolled) 22.sp else 26.sp,
-                    lineHeight = if (isScrolled) 24.sp else 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    style = TextStyle(
-                        fontFamily = OverusedGrotesk,
-                        platformStyle = PlatformTextStyle(includeFontPadding = false),
-                        lineHeightStyle = LineHeightStyle(
-                            alignment = LineHeightStyle.Alignment.Center,
-                            trim = LineHeightStyle.Trim.Both
+                    // Main Large Amount
+                    Text(
+                        text = if (isBalanceVisible) "Rp${currencyFormatter.format(availablePlafond)}" else "Rp ••••••••••",
+                        fontSize = if (isScrolled) 22.sp else 26.sp,
+                        lineHeight = if (isScrolled) 24.sp else 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        style = TextStyle(
+                            fontFamily = OverusedGrotesk,
+                            platformStyle = PlatformTextStyle(includeFontPadding = false),
+                            lineHeightStyle = LineHeightStyle(
+                                alignment = LineHeightStyle.Alignment.Center,
+                                trim = LineHeightStyle.Trim.Both
+                            )
                         )
                     )
-                )
 
-                Spacer(modifier = Modifier.height(3.dp))
+                    Spacer(modifier = Modifier.height(3.dp))
 
-                Text(
-                    text = "Tersedia untuk pengajuan",
-                    fontSize = 11.sp,
-                    lineHeight = 13.sp,
-                    color = Color.White.copy(alpha = 0.9f),
-                    style = TextStyle(
-                        fontFamily = OverusedGrotesk,
-                        platformStyle = PlatformTextStyle(includeFontPadding = false),
-                        lineHeightStyle = LineHeightStyle(
-                            alignment = LineHeightStyle.Alignment.Center,
-                            trim = LineHeightStyle.Trim.Both
+                    Text(
+                        text = "Tersedia untuk pengajuan",
+                        fontSize = 11.sp,
+                        lineHeight = 13.sp,
+                        color = Color.White.copy(alpha = 0.9f),
+                        style = TextStyle(
+                            fontFamily = OverusedGrotesk,
+                            platformStyle = PlatformTextStyle(includeFontPadding = false),
+                            lineHeightStyle = LineHeightStyle(
+                                alignment = LineHeightStyle.Alignment.Center,
+                                trim = LineHeightStyle.Trim.Both
+                            )
                         )
                     )
-                )
 
-                // Indikator Informative jika ada pengajuan yang sedang diproses
-                if (hasInProcessLoan && inProcessAmount > 0) {
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(Color.Black.copy(alpha = 0.28f))
-                            .border(0.5.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(8.dp))
-                            .padding(horizontal = 8.dp, vertical = 3.dp)
-                    ) {
-                        Box(
+                    // Indikator Informative jika ada pengajuan yang sedang diproses
+                    if (hasInProcessLoan && inProcessAmount > 0) {
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
-                                .size(6.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFFFD166))
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color.Black.copy(alpha = 0.28f))
+                                .border(0.5.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(8.dp))
+                                .padding(horizontal = 8.dp, vertical = 3.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(6.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFFFFD166))
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = if (isBalanceVisible) "Rp ${currencyFormatter.format(inProcessAmount)} sedang dalam proses pengajuan" else "Sedang dalam proses pengajuan",
+                                fontSize = 10.5.sp,
+                                lineHeight = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color.White.copy(alpha = 0.95f),
+                                style = TextStyle(
+                                    fontFamily = OverusedGrotesk,
+                                    platformStyle = PlatformTextStyle(includeFontPadding = false),
+                                )
+                            )
+                        }
+                    }
+
+                    // Sub-limit dark container (Total Plafond, Plafond Terpakai, Bunga)
+                    // DIHIDE KETIKA DI-SCROLL KE BAWAH (Persis OVO di Gambar 2)
+                    AnimatedVisibility(
+                        visible = !isScrolled,
+                        enter = expandVertically(tween(200)) + fadeIn(tween(200)),
+                        exit = shrinkVertically(tween(200)) + fadeOut(tween(200)),
+                    ) {
+                        Column {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color.Black.copy(alpha = 0.35f))
+                                    .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
+                                    .padding(horizontal = 14.dp, vertical = 9.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                SubLimitMetricItem(
+                                    label = "Total Plafond",
+                                    value = if (isBalanceVisible) "Rp ${currencyFormatter.format(totalPlafond)}" else "Rp ••••••"
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .height(22.dp)
+                                        .width(1.dp)
+                                        .background(Color.White.copy(alpha = 0.22f))
+                                )
+
+                                SubLimitMetricItem(
+                                    label = "Plafond Terpakai",
+                                    value = if (isBalanceVisible) "Rp ${currencyFormatter.format(usedPlafond)}" else "Rp ••••••"
+                                )
+
+                                Box(
+                                    modifier = Modifier
+                                        .height(22.dp)
+                                        .width(1.dp)
+                                        .background(Color.White.copy(alpha = 0.22f))
+                                )
+
+                                SubLimitMetricItem(
+                                    label = "Bunga",
+                                    value = if (sukuBunga != null && sukuBunga > 0) {
+                                        val pct = if (sukuBunga <= 1.0) sukuBunga * 100 else sukuBunga
+                                        val formatted = if (pct % 1.0 == 0.0) "${pct.toLong()}%" else "${pct.toString().replace('.', ',')}%"
+                                        "$formatted / bln"
+                                    } else {
+                                        "1,25% / bln"
+                                    }
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    // Mode Belum Login (Guest Mode)
+                    Text(
+                        text = "Plafon Pinjaman Hingga",
+                        fontSize = 13.sp,
+                        lineHeight = 15.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.White.copy(alpha = 0.95f),
+                        style = TextStyle(
+                            fontFamily = OverusedGrotesk,
+                            platformStyle = PlatformTextStyle(includeFontPadding = false),
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
+                    )
+
+                    Spacer(modifier = Modifier.height(if (isScrolled) 3.dp else 6.dp))
+
+                    Text(
+                        text = "Rp150.000.000",
+                        fontSize = if (isScrolled) 22.sp else 26.sp,
+                        lineHeight = if (isScrolled) 24.sp else 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        style = TextStyle(
+                            fontFamily = OverusedGrotesk,
+                            platformStyle = PlatformTextStyle(includeFontPadding = false),
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(3.dp))
+
+                    Text(
+                        text = "Bunga ringan mulai dari 0,75% / bln",
+                        fontSize = 11.5.sp,
+                        lineHeight = 14.sp,
+                        color = Color.White.copy(alpha = 0.9f),
+                        style = TextStyle(
+                            fontFamily = OverusedGrotesk,
+                            platformStyle = PlatformTextStyle(includeFontPadding = false),
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Tombol Putih Simulasi Pinjaman
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color.White)
+                            .clickable(onClick = onSimulasiClick)
+                            .padding(vertical = 10.dp, horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Calculate,
+                            contentDescription = "Simulasi Pinjaman",
+                            tint = Primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = if (isBalanceVisible) "Rp ${currencyFormatter.format(inProcessAmount)} sedang dalam proses pengajuan" else "Sedang dalam proses pengajuan",
-                            fontSize = 10.5.sp,
-                            lineHeight = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = Color.White.copy(alpha = 0.95f),
+                            text = "Simulasi Pinjaman",
+                            fontSize = 13.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Primary,
                             style = TextStyle(
                                 fontFamily = OverusedGrotesk,
                                 platformStyle = PlatformTextStyle(includeFontPadding = false),
                             )
                         )
-                    }
-                }
-
-                // Sub-limit dark container (Total Plafond, Plafond Terpakai, Bunga)
-                // DIHIDE KETIKA DI-SCROLL KE BAWAH (Persis OVO di Gambar 2)
-                AnimatedVisibility(
-                    visible = !isScrolled,
-                    enter = expandVertically(tween(200)) + fadeIn(tween(200)),
-                    exit = shrinkVertically(tween(200)) + fadeOut(tween(200)),
-                ) {
-                    Column {
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Color.Black.copy(alpha = 0.35f))
-                                .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
-                                .padding(horizontal = 14.dp, vertical = 9.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            SubLimitMetricItem(
-                                label = "Total Plafond",
-                                value = if (isBalanceVisible) "Rp ${currencyFormatter.format(totalPlafond)}" else "Rp ••••••"
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .height(22.dp)
-                                    .width(1.dp)
-                                    .background(Color.White.copy(alpha = 0.22f))
-                            )
-
-                            SubLimitMetricItem(
-                                label = "Plafond Terpakai",
-                                value = if (isBalanceVisible) "Rp ${currencyFormatter.format(usedPlafond)}" else "Rp ••••••"
-                            )
-
-                            Box(
-                                modifier = Modifier
-                                    .height(22.dp)
-                                    .width(1.dp)
-                                    .background(Color.White.copy(alpha = 0.22f))
-                            )
-
-                            SubLimitMetricItem(
-                                label = "Bunga",
-                                value = if (sukuBunga != null && sukuBunga > 0) {
-                                    val pct = if (sukuBunga <= 1.0) sukuBunga * 100 else sukuBunga
-                                    val formatted = if (pct % 1.0 == 0.0) "${pct.toLong()}%" else "${pct.toString().replace('.', ',')}%"
-                                    "$formatted / bln"
-                                } else {
-                                    "1,25% / bln"
-                                }
-                            )
-                        }
                     }
                 }
             }
@@ -935,6 +1094,226 @@ private fun SubLimitMetricItem(
                     trim = LineHeightStyle.Trim.Both
                 )
             )
+        )
+    }
+}
+
+// 2.A Keunggulan SAKU (Khusus Mode Belum Login)
+@Composable
+private fun KeunggulanSakuSection() {
+    Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(containerColor = Surface),
+            border = BorderStroke(1.dp, Border),
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(16.dp)
+            ) {
+                Text(
+                    text = "Keunggulan SAKU",
+                    fontSize = 14.5.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    modifier = Modifier.padding(bottom = 12.dp),
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    KeunggulanItem(
+                        icon = Icons.Rounded.Speed,
+                        title = "Pencairan Cepat",
+                        desc = "Hitungan Menit",
+                        modifier = Modifier.weight(1f)
+                    )
+                    KeunggulanItem(
+                        icon = Lucide.CircleCheck,
+                        title = "Aman & Resmi",
+                        desc = "Data Terenkripsi",
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    KeunggulanItem(
+                        icon = Icons.AutoMirrored.Rounded.TrendingUp,
+                        title = "Bunga Ringan",
+                        desc = "Mulai 0,75%/bln",
+                        modifier = Modifier.weight(1f)
+                    )
+                    KeunggulanItem(
+                        icon = Lucide.Wallet,
+                        title = "Syarat Mudah",
+                        desc = "Cukup e-KTP",
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun KeunggulanItem(
+    icon: ImageVector,
+    title: String,
+    desc: String,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.padding(horizontal = 2.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(Primary0),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = title,
+                tint = Primary,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        Column {
+            Text(
+                text = title,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = desc,
+                fontSize = 10.5.sp,
+                color = TextSecondary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+// 2.B 3 Langkah Mudah Pengajuan (Khusus Mode Belum Login)
+@Composable
+private fun LangkahPengajuanSection(
+    onRegisterClick: () -> Unit = {}
+) {
+    Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(containerColor = Surface),
+            border = BorderStroke(1.dp, Border),
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(16.dp)
+            ) {
+                Text(
+                    text = "3 Langkah Mudah Pengajuan",
+                    fontSize = 14.5.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top
+                ) {
+                    LangkahItem(
+                        stepNumber = "1",
+                        title = "Daftar Akun",
+                        desc = "Data & e-KTP",
+                        modifier = Modifier.weight(1f)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 14.dp)
+                            .width(16.dp)
+                            .height(1.dp)
+                            .background(Border)
+                    )
+                    LangkahItem(
+                        stepNumber = "2",
+                        title = "Cek Plafon",
+                        desc = "Limit otomatis",
+                        modifier = Modifier.weight(1f)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 14.dp)
+                            .width(16.dp)
+                            .height(1.dp)
+                            .background(Border)
+                    )
+                    LangkahItem(
+                        stepNumber = "3",
+                        title = "Cairkan Dana",
+                        desc = "Transfer instan",
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LangkahItem(
+    stepNumber: String,
+    title: String,
+    desc: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.padding(horizontal = 2.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(28.dp)
+                .clip(CircleShape)
+                .background(Primary),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = stepNumber,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = title,
+            fontSize = 11.5.sp,
+            fontWeight = FontWeight.Bold,
+            color = TextPrimary,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = desc,
+            fontSize = 10.sp,
+            color = TextSecondary,
+            textAlign = TextAlign.Center,
+            lineHeight = 13.sp
         )
     }
 }

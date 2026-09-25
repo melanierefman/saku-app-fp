@@ -65,7 +65,7 @@ fun SplashScreen(
         } else {
             val isOnboardingDone = tokenManager.isOnboardingCompletedFlow.first()
             if (isOnboardingDone) {
-                onNavigateToLogin()
+                onNavigateToHome()
             } else {
                 onNavigateToOnboarding()
             }
