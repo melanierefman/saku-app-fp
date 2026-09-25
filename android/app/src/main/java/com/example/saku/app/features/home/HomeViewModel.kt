@@ -502,7 +502,7 @@ class HomeViewModel(
         _currentNavRoute.value = route
     }
 
-    fun logout(onLoggedOut: () -> Unit) {
+    fun logout(onLoggedOut: () -> Unit = {}) {
         viewModelScope.launch {
             _showLogoutDialog.value = false
             try {
@@ -510,6 +510,10 @@ class HomeViewModel(
             } catch (e: Exception) {
                 // Ignore network error on logout
             } finally {
+                _currentNavRoute.value = "home"
+                _customerProfile.value = null
+                _myLoans.value = emptyList()
+                _unreadNotifikasiCount.value = 0L
                 onLoggedOut()
             }
         }

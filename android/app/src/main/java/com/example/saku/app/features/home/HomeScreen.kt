@@ -94,6 +94,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.composables.icons.lucide.Bell
 import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.CircleCheck
+import com.composables.icons.lucide.CreditCard
 import com.composables.icons.lucide.Eye
 import com.composables.icons.lucide.EyeOff
 import com.composables.icons.lucide.House
@@ -102,6 +103,7 @@ import com.composables.icons.lucide.LogOut
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Receipt
+import com.composables.icons.lucide.ShieldCheck
 import com.composables.icons.lucide.TrendingUp
 import com.composables.icons.lucide.User
 import com.composables.icons.lucide.Wallet
@@ -418,7 +420,9 @@ fun HomeScreen(
         dismissButtonText = "Batal",
         type = DialogType.DESTRUCTIVE,
         icon = Lucide.LogOut,
-        onConfirm = { viewModel.logout(onLoggedOut = onNavigateToLogin) },
+        onConfirm = {
+            viewModel.logout()
+        },
         onDismiss = { viewModel.setLogoutDialogVisible(false) },
     )
 
@@ -1116,6 +1120,13 @@ private fun KeunggulanSakuSection() {
                     fontSize = 14.5.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary,
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "Solusi Aman Keuangan Untukmu",
+                    fontSize = 11.5.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = TextSecondary,
                     modifier = Modifier.padding(bottom = 12.dp),
                 )
 
@@ -1124,15 +1135,15 @@ private fun KeunggulanSakuSection() {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     KeunggulanItem(
-                        icon = Icons.Rounded.Speed,
-                        title = "Pencairan Cepat",
-                        desc = "Hitungan Menit",
+                        icon = Lucide.CreditCard,
+                        title = "Plafon Terukur",
+                        desc = "Sesuai Kemampuan",
                         modifier = Modifier.weight(1f)
                     )
                     KeunggulanItem(
-                        icon = Lucide.CircleCheck,
-                        title = "Aman & Resmi",
-                        desc = "Data Terenkripsi",
+                        icon = Icons.AutoMirrored.Rounded.TrendingUp,
+                        title = "Bunga Ringan",
+                        desc = "Mulai 0,75%/bln",
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -1144,15 +1155,15 @@ private fun KeunggulanSakuSection() {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     KeunggulanItem(
-                        icon = Icons.AutoMirrored.Rounded.TrendingUp,
-                        title = "Bunga Ringan",
-                        desc = "Mulai 0,75%/bln",
+                        icon = Icons.Rounded.Speed,
+                        title = "Pencairan Cepat",
+                        desc = "Cukup e-KTP",
                         modifier = Modifier.weight(1f)
                     )
                     KeunggulanItem(
-                        icon = Lucide.Wallet,
-                        title = "Syarat Mudah",
-                        desc = "Cukup e-KTP",
+                        icon = Lucide.ShieldCheck,
+                        title = "Aman Terpercaya",
+                        desc = "Data Terenkripsi",
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -2603,7 +2614,7 @@ private fun UpgradeLimitGuideDialog(
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "s/d Rp 50.000.000",
+                                text = "s/d Rp 150.000.000",
                                 fontSize = 14.5.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = Primary
