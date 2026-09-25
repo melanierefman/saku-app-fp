@@ -104,7 +104,7 @@ android/
 ### Langkah Menjalankan Aplikasi
 1. Buka folder `android/` di Android Studio.
 2. Pastikan file `keystore.properties` atau konfigurasi API URL pada `ApiConstants.kt` sudah mengarah ke backend yang aktif:
-   - **Localhost Emulator**: `http://10.0.2.2:8080/api/v1`
-   - **Production Backend**: `https://saku.morpkhai.web.id/api/v1`
+   - **Localhost Emulator**: `http://10.0.2.2:8080/api/`
+   - **Production Backend**: `https://saku.morpkhai.web.id/api/`
 3. Lakukan **Sync Project with Gradle Files**.
 4. Pilih target Emulator / HP Android terhubung, lalu klik tombol **Run** (`Shift + F10`).
